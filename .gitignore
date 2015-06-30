@@ -1,3 +1,9 @@
+# Temp, bin, and library directories
+bin/*
+lib/*
+obj/*
+
+
 # Compiled Object files
 *.slo
 *.lo
