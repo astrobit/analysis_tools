@@ -83,15 +83,15 @@ $(BINDIR)/shex: $(SRCDIR)/extract_shell.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/extract_shell.cpp -lhdf5 -lxflash -lxio -lxstdlib -o $(BINDIR)/shex
 shex: $(BINDIR)/shex
 
-$(BINDIR)/densprof: $(SRCDIR)/dens_profiles.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE)
+$(BINDIR)/densprof: $(SRCDIR)/dens_profiles.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/dens_profiles.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/densprof
 densprof: $(BINDIR)/densprof
 
-$(BINDIR)/quikplot: $(SRCDIR)/quikplot.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
+$(BINDIR)/quikplot: $(SRCDIR)/quikplot.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/quikplot.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/quikplot
 quikplot: $(BINDIR)/quikplot
 
-$(BINDIR)/quikplotspec: $(SRCDIR)/quikplotspectrum.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE)
+$(BINDIR)/quikplotspec: $(SRCDIR)/quikplotspectrum.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/quikplotspectrum.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/quikplotspec
 quikplotspec: $(BINDIR)/quikplotspec
 
@@ -99,29 +99,29 @@ $(BINDIR)/flashtime: $(SRCDIR)/gettime.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gettime.cpp -lhdf5 -lxflash -o $(BINDIR)/flashtime
 flashtime: $(BINDIR)/flashtime
 
-$(BINDIR)/spectrafit: $(SRCDIR)/specta_fit.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/spectrafit: $(SRCDIR)/specta_fit.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/specta_fit.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/spectrafit
 spectrafit: $(BINDIR)/spectrafit
 
 
-$(BINDIR)/userprof: $(SRCDIR)/user_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/userprof: $(SRCDIR)/user_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/user_profile.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/userprof
 userprof: $(BINDIR)/userprof
 
-$(BINDIR)/userseries: $(LIBDIR)/libplotutil.a $(SRCDIR)/user_series.cpp $(XLIBSCHANGE)  $(LIBDIR)/liblinerout.a
+$(BINDIR)/userseries: $(LIBDIR)/libplotutil.a $(SRCDIR)/user_series.cpp $(XLIBSCHANGE)  line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/user_series.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/userseries
 userseries: $(BINDIR)/userseries
 
-$(BINDIR)/gaussianprof: $(SRCDIR)/gaussian_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE)
+$(BINDIR)/gaussianprof: $(SRCDIR)/gaussian_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gaussian_profile.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/gaussianprof
 gaussianprof: $(BINDIR)/gaussianprof
 
 quikplotseries: $(BINDIR)/quikplotseries 
-$(BINDIR)/quikplotseries: $(SRCDIR)/quikplotseries.cpp $(LIBDIR)/libplotutil.a  $(XLIBSCHANGE)
+$(BINDIR)/quikplotseries: $(SRCDIR)/quikplotseries.cpp $(LIBDIR)/libplotutil.a  $(XLIBSCHANGE) line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/quikplotseries.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/quikplotseries
 
 equivwidth: $(BINDIR)/equivwidth
-$(BINDIR)/equivwidth: $(SRCDIR)/equivalentwidth.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE)
+$(BINDIR)/equivwidth: $(SRCDIR)/equivalentwidth.cpp line_routines $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/equivalentwidth.cpp $(ESFLAGS) -lxio -lxstdlib -llinerout -lxmath $(ESLIBS) -o $(BINDIR)/equivwidth
 
 bestfitcsv: $(BINDIR)/bestfitcsv
@@ -137,11 +137,11 @@ $(BINDIR)/ionabddet: $(SRCDIR)/ion_abd_determination.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/ion_abd_determination.cpp -lhdf5 -lxflash -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/ionabddet
 
 paperplot: $(BINDIR)/paperplot
-$(BINDIR)/paperplot: $(LIBDIR)/libplotutil.a $(SRCDIR)/paper_plots.cpp $(XLIBSCHANGE)  $(LIBDIR)/liblinerout.a
+$(BINDIR)/paperplot: $(LIBDIR)/libplotutil.a $(SRCDIR)/paper_plots.cpp $(XLIBSCHANGE)  line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/paper_plots.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/paperplot
 
 seriesewvmin: $(BINDIR)/seriesewvmin
-$(BINDIR)/seriesewvmin: $(LIBDIR)/libplotutil.a $(SRCDIR)/paper_plots.cpp $(XLIBSCHANGE)  $(LIBDIR)/liblinerout.a
+$(BINDIR)/seriesewvmin: $(LIBDIR)/libplotutil.a $(SRCDIR)/paper_plots.cpp $(XLIBSCHANGE)  line_routines
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/ES_Vel_min.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/seriesewvmin
 
 gatherfits: $(BINDIR)/gatherfits
@@ -149,18 +149,18 @@ $(BINDIR)/gatherfits: $(SRCDIR)/gather_best_fit_data.cpp $(INCLUDEDIR)/best_fit_
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_best_fit_data.cpp $(ESFLAGS)  $(ESLIBS) -lxstdlib -o $(BINDIR)/gatherfits
 
 genfitmom: $(BINDIR)/genfitmom
-$(BINDIR)/genfitmom: $(SRCDIR)/generate_fit_moments.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE) $(SRCDIR)/eps_plot.cpp
+$(BINDIR)/genfitmom: $(SRCDIR)/generate_fit_moments.cpp line_routines $(XLIBSCHANGE) $(SRCDIR)/eps_plot.cpp
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/generate_fit_moments.cpp $(SRCDIR)/eps_plot.cpp $(ESFLAGS) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/genfitmom
 
 modfits: $(BINDIR)/modfits
 $(BINDIR)/modfits: $(SRCDIR)/mod_best_fit_file.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/mod_best_fit_file.cpp $(ESFLAGS) $(ESLIBS) -lxstdlib -o $(BINDIR)/modfits
 
-$(BINDIR)/psfit: $(SRCDIR)/PS_temp.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/psfit: $(SRCDIR)/PS_temp.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/PS_temp.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/psfit
 psfit: $(BINDIR)/psfit
 
-$(BINDIR)/psfitinter: $(SRCDIR)/PS_temp_inter.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/psfitinter: $(SRCDIR)/PS_temp_inter.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/PS_temp_inter.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/psfitinter
 psfitinter: $(BINDIR)/psfitinter
 
@@ -196,25 +196,25 @@ tempex: $(BINDIR)/tempex
 $(BINDIR)/tempex: $(SRCDIR)/temp_extractor.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/temp_extractor.cpp  -lhdf5 -lxflash -o $(BINDIR)/tempex
 
-$(BINDIR)/velev: $(SRCDIR)/nofit_user_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/velev: $(SRCDIR)/nofit_user_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/nofit_user_profile.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/velev
 velev: $(BINDIR)/velev
 
 
-$(BINDIR)/regenfits: $(SRCDIR)/regen_data_file.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/regenfits: $(SRCDIR)/regen_data_file.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/regen_data_file.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/regenfits
 regenfits: $(BINDIR)/regenfits
 
-$(BINDIR)/fixfits: $(SRCDIR)/fix_data_file.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/fixfits: $(SRCDIR)/fix_data_file.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/fix_data_file.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/fixfits
 fixfits: $(BINDIR)/fixfits
 
-$(BINDIR)/replot: $(SRCDIR)/replot.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/replot: $(SRCDIR)/replot.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/replot.cpp $(ESFLAGS) $(PLPLOTLIB) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/replot
 replot: $(BINDIR)/replot
 
 modelvelev:$(BINDIR)/modelvelev msdb
-$(BINDIR)/modelvelev: $(SRCDIR)/model_vel_evolution.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+$(BINDIR)/modelvelev: $(SRCDIR)/model_vel_evolution.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) line_routines $(INCLUDEDIR)/best_fit_data.h
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/model_vel_evolution.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/modelvelev
 
 diffusion:$(BINDIR)/diffusion
