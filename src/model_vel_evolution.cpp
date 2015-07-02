@@ -33,10 +33,10 @@ public:
 
 	GAUSS_FIT_PARAMETERS(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
 	{
-		dW_Ratio_1 = i_dWL_1 / i_dWL_2;
-		dW_Ratio_2 = i_dWL_3 / i_dWL_2;
-		dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
-		dH_Ratio_2 = i_dStrength_2 / i_dStrength_2;
+		m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
+		m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
+		m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
+		m_dH_Ratio_2 = i_dStrength_2 / i_dStrength_2;
 	}
 };
 
@@ -44,7 +44,7 @@ GAUSS_FIT_PARAMETERS	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
 GAUSS_FIT_PARAMETERS	g_cgfpCaHK(3968.47,1.0,3968.47,1.0); //@@TODO Get strengths for H&K lines
 //@@TODO: Set up paramters for other features
 
-XVECTOR Gaussian(const double & i_dX, XVECTOR & i_vA, void * i_lpvData)
+XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 {
 	XVECTOR vOut;
 
@@ -54,33 +54,33 @@ XVECTOR Gaussian(const double & i_dX, XVECTOR & i_vA, void * i_lpvData)
 	double	dDelx_X, dDel_X_Sigma_1, dDel_X_Sigma_2, dDel_X_Sigma_3 = 0.0;
 	double	dExp_1, dExp_2, dExp_3 = 0.0;
 	double	dDel_X;
-	double	dInv_Sigmal 
+	double	dInv_Sigma;
 
 	dInv_Sigma = 1.0 / i_vA.Get(1);
 	dDel_X = i_dX - i_vA.Get(2);
 	dDel_X_Sigma_2 = dDel_X * dInv_Sigma;
 
 
-	dDel_X = i_dX / i_lpvData->m_dW_Ratio_1 - i_vA.Get(2);
-	dDel_X_Sigma_1 = dDel_X_1 * dInv_Sigma;
+	dDel_X = i_dX / lpvParam->m_dW_Ratio_1 - i_vA.Get(2);
+	dDel_X_Sigma_1 = dDel_X * dInv_Sigma;
 
-	dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * i_lpvData->m_dH_Ratio_1;
+	dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * lpvParam->m_dH_Ratio_1;
 	dExp_2 = exp(-0.5 * dDel_X_Sigma_2 * dDel_X_Sigma_2);
 	dExp_3 = 0.0;
 
-	if (i_lpvData->m_dW_Ratio_2 != 0.0)
+	if (lpvParam->m_dW_Ratio_2 != 0.0)
 	{
-		dDel_X = i_dX / i_lpvData->m_dW_Ratio_2 - i_vA.Get(2);
-		dDel_X_Sigma_3 = dDel_X_1 * dInv_Sigma;
-		dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * i_lpvData->m_dH_Ratio_2;
+		dDel_X = i_dX / lpvParam->m_dW_Ratio_2 - i_vA.Get(2);
+		dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
+		dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
 	}
 	vOut.Set(0,i_vA.Get(0) * (dExp_1 + dExp_2 + dExp_3));
 	vOut.Set(1,dExp_1 + dExp_2 + dExp_3);
-	vOut.Set(2,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3);
-	vOut.Set(3,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3);
+	vOut.Set(2,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3));
+	vOut.Set(3,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3));
 	return vOut;
 }
-XVECTOR Multi_Gaussian(const double & i_dX, XVECTOR & i_vA, void * i_lpvData)
+XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 {
 	XVECTOR vOut;
 	vOut.Set_Size(7);
@@ -132,7 +132,7 @@ XVECTOR	Error(const XVECTOR & i_vA, void * i_lpvData)
 	vOut.Set(5,0.0);
 	vOut.Set(6,0.0);
 
-	for (unsigned int uiI = 0; uiI < lpcfdData->m_uiNum_Points)
+	for (unsigned int uiI = 0; uiI < lpcfdData->m_uiNum_Points; uiI++)
 	{
 		vError = Multi_Gaussian(lpcfdData->m_lpdWavelength[uiI],i_vA,&(lpcfdData->cGauss_Parameters));
 		vError.Set(0,vError.Get(0) - lpcfdData->m_lpdFlux[uiI]); // subtract known flux
@@ -612,9 +612,9 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 			// first generate pEW based on flattened spectra and excluding the p Cygni peak
 			for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 			{
-				dFlat_Flux = lpdSpectra_Flux[uiI][uiJ] / lpdContinuum_Flux[uiI][uiJ];
+				double dFlat_Flux = lpdSpectra_Flux[uiI][uiJ] / lpdContinuum_Flux[uiI][uiJ];
 				if (dFlat_Flux < 1.0)
-					dpEW += (1.0 - dFlat_Flux) * cParam.m_dWavelength_Delta_Ang;
+					dpEW_True += (1.0 - dFlat_Flux) * cParam.m_dWavelength_Delta_Ang;
 			}
 			// perform Gaussian fitting routine
 		}
