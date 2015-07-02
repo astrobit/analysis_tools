@@ -6,8 +6,8 @@
 #include <xio.h>
 #include "ES_Synow.hh"
 #include "ES_Generic_Error.hh"
-#include <plplot/plplot.h>
-#include <plplot/plstream.h>
+//#include <plplot/plplot.h>
+//#include <plplot/plstream.h>
 #include <Plot_Utilities.h>
 #include <time.h>
 #include <unistd.h>
@@ -792,7 +792,7 @@ void Plot(ES::Spectrum & i_cTarget, ES::Spectrum & i_cFit, const char * i_lpszOu
 	delete [] lpdFit_Flux;
 }
 
-void Plot_Spectrum(const char * i_lpszFilename,const double & i_dMin_WL, const double & i_dMax_WL, const char * i_lpszTitle, unsigned int i_uiNum_Points, const double * i_lpdWavelength, const PLFLT * i_lpdLog_Intensity)
+void Plot_Spectrum(const char * i_lpszFilename,const double & i_dMin_WL, const double & i_dMax_WL, const char * i_lpszTitle, unsigned int i_uiNum_Points, const double * i_lpdWavelength, const double * i_lpdLog_Intensity)
 {
 	double dMin_Intensity = 1.0e30;
 	double	dMax_Intensity = -1.0e30;

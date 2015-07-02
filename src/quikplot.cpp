@@ -8,8 +8,8 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-#include <plplot/plplot.h>
-#include <plplot/plstream.h>
+//#include <plplot/plplot.h>
+//#include <plplot/plstream.h>
 #include <Plot_Utilities.h>
 
 unsigned int  Find_Variable_Idx(const XFLASH_File & cFile, const char * i_lpszVar_Name)
@@ -174,13 +174,13 @@ void Process_Block(const XFLASH_File & cFlash_File, unsigned int uiBlock_ID, uns
 void Plot_vs_r(XDATASET & cDataset, const char * lpszFilename)
 {
 	BOUNDS cBounds;				
-	PLINT lpiOptions_Array[2];
-	PLINT lpiLegend_Text_Colors[2];
+	int lpiOptions_Array[2];
+	int lpiLegend_Text_Colors[2];
 	const char *lplpszLegend_Test[2];
-	PLINT lpiLegend_Line_Colors[2];
-	PLINT lpiLegend_Line_Styles[2];
-	PLFLT lpfLegend_Line_Widths[2];
-	PLFLT fLgnd_Width,fLgnd_Height;
+	int lpiLegend_Line_Colors[2];
+	int lpiLegend_Line_Styles[2];
+	double lpfLegend_Line_Widths[2];
+	double fLgnd_Width,fLgnd_Height;
 
 	cBounds.DetermineBounds(cDataset);
 	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
