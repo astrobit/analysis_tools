@@ -8,6 +8,7 @@
 #include <xmath.h>
 #include <xlinalg.h>
 #include <xstdlib.h>
+#include <xfit.h>
 #include "ES_Synow.hh"
 #include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
@@ -21,6 +22,8 @@
 class GAUSS_FIT_PARAMETERS
 {
 public:
+	double	m_dWl[3];
+	double	m_dStr[3];
 	double	m_dW_Ratio_1;
 	double	m_dW_Ratio_2;
 	
@@ -33,6 +36,14 @@ public:
 
 	GAUSS_FIT_PARAMETERS(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
 	{
+		m_dWl[0] = i_dWL_1;
+		m_dWl[1] = i_dWL_2;
+		m_dWl[2] = i_dWL_3;
+
+		m_dStr[0] = i_dStrength_1;
+		m_dStr[1] = i_dStrength_2;
+		m_dStr[2] = i_dStrength_3;
+
 		m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
 		m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
 		m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
@@ -83,68 +94,80 @@ XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 {
 	XVECTOR vOut;
-	vOut.Set_Size(7);
 	XVECTOR vOut1;
 	XVECTOR vOut2;
 
 	XVECTOR vA_lcl;
-	vA_lcl.Set_Size(3);
-	vA_lcl.Set(0,i_vA.Get(3));
-	vA_lcl.Set(1,i_vA.Get(4));
-	vA_lcl.Set(2,i_vA.Get(5));
-
-	vOut1 = Gaussian(i_dX,i_vA,i_lpvData);
-	vOut2 = Gaussian(i_dX,vA_lcl,i_lpvData);
-
-	vOut.Set(0,vOut1.Get(0) + vOut2.Get(0));
-	vOut.Set(1,vOut1.Get(1));
-	vOut.Set(2,vOut1.Get(2));
-	vOut.Set(3,vOut1.Get(3));
-	vOut.Set(4,vOut2.Get(1));
-	vOut.Set(5,vOut2.Get(2));
-	vOut.Set(6,vOut2.Get(3));
-	return vOut;
-}
-
-class FIT_DATA
-{
-public:
-	double * m_lpdWavelength;
-	double * m_lpdFlux;
-	unsigned int m_uiNum_Points;
-
-	GAUSS_FIT_PARAMETERS	cGauss_Parameters;
-};
-
-XVECTOR	Error(const XVECTOR & i_vA, void * i_lpvData)
-{
-
-	FIT_DATA * lpcfdData = (FIT_DATA *) i_lpvData;
-	XVECTOR vError;
-	vError.Set_Size(7);
-	XVECTOR vOut;
-	vOut.Set_Size(7);
-	vOut.Set(0,0.0);
-	vOut.Set(1,0.0);
-	vOut.Set(2,0.0);
-	vOut.Set(3,0.0);
-	vOut.Set(4,0.0);
-	vOut.Set(5,0.0);
-	vOut.Set(6,0.0);
-
-	for (unsigned int uiI = 0; uiI < lpcfdData->m_uiNum_Points; uiI++)
+	if (i_vA.Get_Size() == 6)
 	{
-		vError = Multi_Gaussian(lpcfdData->m_lpdWavelength[uiI],i_vA,&(lpcfdData->cGauss_Parameters));
-		vError.Set(0,vError.Get(0) - lpcfdData->m_lpdFlux[uiI]); // subtract known flux
-		vOut += vError;
+		vOut.Set_Size(7);
+		vA_lcl.Set_Size(3);
+		vA_lcl.Set(0,i_vA.Get(3));
+		vA_lcl.Set(1,i_vA.Get(4));
+		vA_lcl.Set(2,i_vA.Get(5));
+
+		vOut1 = Gaussian(i_dX,i_vA,i_lpvData);
+		vOut2 = Gaussian(i_dX,vA_lcl,i_lpvData);
+
+		vOut.Set(0,vOut1.Get(0) + vOut2.Get(0));
+		vOut.Set(1,vOut1.Get(1));
+		vOut.Set(2,vOut1.Get(2));
+		vOut.Set(3,vOut1.Get(3));
+		vOut.Set(4,vOut2.Get(1));
+		vOut.Set(5,vOut2.Get(2));
+		vOut.Set(6,vOut2.Get(3));
+	}
+	else if (i_vA.Get_Size() == 3)
+	{
+		vOut = Gaussian(i_dX,i_vA,i_lpvData);
 	}
 	return vOut;
 }
 
+double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength)
+{
+	double	dz = i_dObserved_Wavelength / i_dRest_Wavelength;
+	double	dz_sqr = dz * dz;
+	return (2.99792458e5 * (dz_sqr - 1.0) / (dz_sqr + 1.0));
+}
+
+
+class FEATURE_PARAMETERS
+{
+public:
+	double	m_d_pEW;
+	double	m_dVmin;
+	double	m_dFlux_vmin;
+
+	void Process_Vmin(const double &i_dWL, const double &i_dFlux, const double & i_dWL_Ref, bool i_bProcess = true)
+	{
+		if (i_bProcess)
+		{
+			if (i_dFlux < m_dFlux_vmin)
+			{
+				m_dVmin = Compute_Velocity(i_dWL,i_dWL_Ref);
+				m_dFlux_vmin = i_dFlux;
+			}
+		}
+	}
+	void Process_pEW(const double & i_dFlux, const double & i_dDelta_WL)
+	{
+		m_d_pEW += (1.0 - i_dFlux) * i_dDelta_WL;
+	}
+	void	Reset(void)
+	{
+		m_d_pEW = 0.0;
+		m_dVmin = 0.0;
+		m_dFlux_vmin = DBL_MAX;
+	}
+	FEATURE_PARAMETERS(void) { Reset();}
+};
+
+
 int main(int i_iArg_Count, char * i_lpszArg_Values[])
 {
 	msdb::DATABASE cMSDB(true);
-
+	GAUSS_FIT_PARAMETERS * lpgfpParamters;
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
 	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
 	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);
@@ -252,6 +275,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		dRange_Min = 7700.0;
 		dRange_Max = 9200.0;
 		cParam.m_eFeature = msdb::CaNIR;
+		lpgfpParamters = &g_cgfpCaNIR;
 		break;
 	case CAHK:
 		dNorm_WL = 3750.0;
@@ -259,12 +283,14 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		dRange_Min = 1800.0;
 		dRange_Max = 4000.0;
 		cParam.m_eFeature = msdb::CaHK;
+		lpgfpParamters = &g_cgfpCaHK;
 		break;
 	case SI5968:
 		dNorm_WL = 5750.0;
 		dWL_Ref = (5959.21 * pow(10.0,-0.225) + 5980.59 * pow(10,0.084)) / (pow(10.0,-0.225) + pow(10.0,0.084));
 		dRange_Min = 5000.0;
 		dRange_Max = 7000.0;
+		lpgfpParamters = NULL; //@@TODO Si 5968 gaussian fit parameters
 		break;
 	case SI6355:
 		dNorm_WL = 5750.0;
@@ -272,6 +298,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		dRange_Min = 5000.0;
 		dRange_Max = 7000.0;
 		cParam.m_eFeature = msdb::Si6355;
+		lpgfpParamters = NULL; //@@TODO Si 6355 gaussian fit parameters
 		break;
 	case OINIR:
 		dNorm_WL = 7100.0;
@@ -279,6 +306,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		dRange_Min = 6000.0;
 		dRange_Max = 8000.0;
 		cParam.m_eFeature = msdb::O7773;
+		lpgfpParamters = NULL; //@@TODO OI gaussian fit parameters
 		break;
 	}
 	
@@ -292,11 +320,16 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		//printf("%f %f %f\n", cParam.m_dWavelength_Range_Lower_Ang,cParam.m_dWavelength_Range_Upper_Ang,cParam.m_dWavelength_Delta_Ang);
 
 
-		ES::Spectrum *lpcSpectrum = new ES::Spectrum[uiModel_Count];
-		ES::Spectrum * lpcContinuum = new ES::Spectrum[uiModel_Count];
-		double * lpdV_ps = new double[uiModel_Count];
+		ES::Spectrum ** lpcSpectrum = new ES::Spectrum *[uiModel_Count];
 		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
-			lpcContinuum[uiI] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
+		{
+			lpcSpectrum[uiI] = new ES::Spectrum[4];
+			lpcSpectrum[uiI][0] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
+			lpcSpectrum[uiI][1] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
+			lpcSpectrum[uiI][2] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
+			lpcSpectrum[uiI][3] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
+		}
+		double * lpdV_ps = new double[uiModel_Count];
 		XVECTOR cParameters(7);
 		XVECTOR cContinuum_Parameters(7);
 
@@ -310,9 +343,6 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 			char	lpszModel_Name[64];
 			XDATASET cOpacity_Map_Shell;
 			XDATASET cOpacity_Map_Ejecta;
-
-			lpcSpectrum[uiI] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
-
 
 			if (lpszModel_List != NULL && lpszModel_List[uiI] != NULL && lpszModel_List[uiI][0] != 0)
 			{
@@ -388,12 +418,12 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 
 				cParam.m_uiModel_ID = 0;
 				cParam.m_dPhotosphere_Velocity_kkms = cContinuum_Parameters.Get(0);
-				if (cMSDB.Get_Spectrum(cParam, msdb::CONTINUUM, lpcContinuum[uiI]) == 0)
+				if (cMSDB.Get_Spectrum(cParam, msdb::CONTINUUM, lpcSpectrum[uiI][0]) == 0)
 				{
 					printf("generating continuua\n");
-					Generate_Synow_Spectra_Exp(lpcContinuum[uiI],2001,cContinuum_Parameters,lpcContinuum[uiI]); // ion irrelevant for this 
+					Generate_Synow_Spectra_Exp(lpcSpectrum[uiI][0],2001,cContinuum_Parameters,lpcSpectrum[uiI][0]); // ion irrelevant for this 
 					printf("Adding to db\n");
-					cMSDB.Add_Spectrum(cParam, msdb::CONTINUUM, lpcContinuum[uiI]);
+					cMSDB.Add_Spectrum(cParam, msdb::CONTINUUM, lpcSpectrum[uiI][0]);
 					printf("done\n");
 				}
 
@@ -415,39 +445,55 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 					cParameters.Set(6,dShell_Scalar);
 				}
 
-				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI]) == 0)
+				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]) == 0)
 				{
-					Generate_Synow_Spectra(lpcSpectrum[uiI], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI]);
+					Generate_Synow_Spectra(lpcSpectrum[uiI][1], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1]);
 					printf("Adding to db for %s...",lpszModel_Name);
 					fflush(stdout);
-					msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI]);
+					msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]);
 					printf(".");
 					fflush(stdout);
 					if (!bShell)
 					{
-						cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, lpcSpectrum[uiI]);
+						lpcSpectrum[uiI][2] = lpcSpectrum[uiI][1];
+						cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]);
 						printf(".");
 						fflush(stdout);
 					}
 					else
 					{
 						cParameters.Set(6,-40.0);
-						Generate_Synow_Spectra(lpcSpectrum[uiI], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI]);
+						Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][2]);
 						printf(".");
 						fflush(stdout);
-						cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, lpcSpectrum[uiI]);
+						cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]);
 
 						cParameters.Set(6,dShell_Scalar);
 						cParameters.Set(4,-40.0);
-						Generate_Synow_Spectra(lpcSpectrum[uiI], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI]);
+						Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3]);
 						printf(".");
 						fflush(stdout);
-						cMSDB.Add_Spectrum(dbidID, msdb::SHELL_ONLY, lpcSpectrum[uiI]);
+						cMSDB.Add_Spectrum(dbidID, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]);
 					}
 					printf("Done\n");
 				}
-
-
+				if (cMSDB.Get_Spectrum(cParam, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]) == 0)
+				{
+					Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1]);
+					printf("Adding E-O to db for %s...",lpszModel_Name);
+					fflush(stdout);
+					msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]);
+				}
+				if (!bShell)
+				{
+					if (cMSDB.Get_Spectrum(cParam, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]) == 0)
+					{
+						Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3]);
+						printf("Adding S-O to db for %s...",lpszModel_Name);
+						fflush(stdout);
+						msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]);
+					}
+				}
 			}
 		}
 
@@ -474,6 +520,10 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		char lpszFilename[512];
 		double ** lpdSpectra_WL = new double *[uiModel_Count];
 		double ** lpdSpectra_Flux = new double *[uiModel_Count];
+		double ** lpdSpectra_WL_EO = new double *[uiModel_Count];
+		double ** lpdSpectra_Flux_EO = new double *[uiModel_Count];
+		double ** lpdSpectra_WL_SO = new double *[uiModel_Count];
+		double ** lpdSpectra_Flux_SO = new double *[uiModel_Count];
 		double ** lpdContinuum_WL = new double *[uiModel_Count], ** lpdContinuum_Flux = new double *[uiModel_Count];
 		unsigned int * lpuiSpectra_Count = new unsigned int[uiModel_Count], * lpuiContinuum_Count = new unsigned int[uiModel_Count];
 		int iColor = (int)epsplot::BLACK;
@@ -491,11 +541,16 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 			lpdSpectra_WL[uiI] = NULL;
 			lpdSpectra_Flux[uiI] = NULL;
 			lpuiSpectra_Count[uiI] = 0;
-			Get_Spectra_Data(lpcContinuum[uiI], lpdContinuum_WL[uiI], lpdContinuum_Flux[uiI], lpuiContinuum_Count[uiI], dRange_Min, dRange_Max);
-			Get_Spectra_Data(lpcSpectrum[uiI], lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], dRange_Min, dRange_Max);
+			Get_Spectra_Data(lpcSpectrum[uiI][0], lpdContinuum_WL[uiI], lpdContinuum_Flux[uiI], lpuiContinuum_Count[uiI], dRange_Min, dRange_Max);
+			Get_Spectra_Data(lpcSpectrum[uiI][1], lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], dRange_Min, dRange_Max);
+			Get_Spectra_Data(lpcSpectrum[uiI][2], lpdSpectra_WL_EO[uiI], lpdSpectra_Flux_EO[uiI], lpuiSpectra_Count[uiI], dRange_Min, dRange_Max);
+			Get_Spectra_Data(lpcSpectrum[uiI][3], lpdSpectra_WL_SO[uiI], lpdSpectra_Flux_SO[uiI], lpuiSpectra_Count[uiI], dRange_Min, dRange_Max);
 			for (unsigned int uiJ = 0; uiJ <= lpuiSpectra_Count[uiI]; uiJ++)
+			{
 				lpdSpectra_Flux[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
-
+				lpdSpectra_Flux_EO[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
+				lpdSpectra_Flux_SO[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
+			}
 			cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + (uiI % 7));
 			cLine_Parameters.m_eStipple = (epsplot::STIPPLE)(epsplot::SOLID + (uiI % 8));
 			cPlot.Set_Plot_Data(lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
@@ -591,34 +646,133 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 
 		cPlot.Set_Plot_Filename(lpszOutput_Name);
 		cPlot.Plot(cPlot_Parameters);
-		sprintf(lpszFilename,"%s.csv",lpszOutput_Name);
+		sprintf(lpszFilename,"%s.dat",lpszOutput_Name);
 		FILE * fileOut = fopen(lpszFilename,"wt");
-		for (unsigned int uiI = 0; uiI < lpcContinuum[0].size(); uiI++)
+		for (unsigned int uiI = 0; uiI < lpcSpectrum[0][0].size(); uiI++)
 		{
 			fprintf(fileOut, "%f",lpdContinuum_WL[0][uiI]);
 			for (unsigned int uiJ = 0; uiJ < uiModel_Count; uiJ++)
 			{
 				fprintf(fileOut, " %f",lpdContinuum_Flux[uiJ][uiI]);
 				fprintf(fileOut, " %f",lpdSpectra_Flux[uiJ][uiI]);
+				fprintf(fileOut, " %f",lpdSpectra_Flux_EO[uiJ][uiI]);
+				fprintf(fileOut, " %f",lpdSpectra_Flux_SO[uiJ][uiI]);
 			}
 			fprintf(fileOut, "\n");
 		}
 		fclose(fileOut);
 
+		sprintf(lpszFilename,"%s.data.csv",lpszOutput_Name);
+		FILE * fileData = fopen(lpszFilename,"wt");
+		XVECTOR	vX, vY, vA, vW;
+		XSQUARE_MATRIX mCovariance_Matrix;
+		double	dSmin;
 		// compute pEW values for features of interest.
 		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 		{
-			double dpEW_True = 0.0;
+			FEATURE_PARAMETERS	cCombined_Flat;
+			FEATURE_PARAMETERS	cEO_Flat;
+			FEATURE_PARAMETERS	cSO_Flat;
+			FEATURE_PARAMETERS	cCombined_Unflat;
+			FEATURE_PARAMETERS	cEO_Unflat;
+			FEATURE_PARAMETERS	cSO_Unflat;
+			unsigned int uiContinuum_Blue_Idx;
+			unsigned int uiContinuum_Red_Idx;
+			bool	bIn_feature = false;
+			double	dMin_Flux = DBL_MAX;
+			double	dP_Cygni_Peak_Flux = 0.0;
+
 			// first generate pEW based on flattened spectra and excluding the p Cygni peak
 			for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 			{
-				double dFlat_Flux = lpdSpectra_Flux[uiI][uiJ] / lpdContinuum_Flux[uiI][uiJ];
-				if (dFlat_Flux < 1.0)
-					dpEW_True += (1.0 - dFlat_Flux) * cParam.m_dWavelength_Delta_Ang;
-			}
-			// perform Gaussian fitting routine
-		}
+				double dFlat_Flux = lpdSpectra_Flux[uiI][uiJ];
+				double dFlat_Flux_EO = lpdSpectra_Flux_EO[uiI][uiJ];
+				double dFlat_Flux_SO = lpdSpectra_Flux_SO[uiI][uiJ];
 
+				cCombined_Flat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpdSpectra_Flux[uiI][uiJ],dWL_Ref);
+				cEO_Flat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpdSpectra_Flux_EO[uiI][uiJ],dWL_Ref);
+				cSO_Flat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpdSpectra_Flux_SO[uiI][uiJ],dWL_Ref);
+
+				cCombined_Flat.Process_pEW(lpdSpectra_Flux[uiI][uiJ],cParam.m_dWavelength_Delta_Ang);
+				cEO_Flat.Process_pEW(lpdSpectra_Flux_EO[uiI][uiJ],cParam.m_dWavelength_Delta_Ang);
+				cSO_Flat.Process_pEW(lpdSpectra_Flux_SO[uiI][uiJ],cParam.m_dWavelength_Delta_Ang);
+
+				cCombined_Unflat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpcSpectrum[uiI][1].flux(uiJ),dWL_Ref,lpdSpectra_Flux[uiI][uiJ] < 1.0);
+				cEO_Unflat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpcSpectrum[uiI][2].flux(uiJ),dWL_Ref, lpdSpectra_Flux_EO[uiI][uiJ] < 1.0);
+				cSO_Unflat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpcSpectrum[uiI][3].flux(uiJ),dWL_Ref, lpdSpectra_Flux_SO[uiI][uiJ] < 1.0);
+
+				bIn_feature |= fabs(dFlat_Flux - 1.0) > 1.0e-4;
+				if (!bIn_feature)
+					uiContinuum_Blue_Idx = uiJ;
+				if (lpdSpectra_Flux[uiI][uiJ] > 1.0001 && lpcSpectrum[uiI][1].flux(uiJ) > dP_Cygni_Peak_Flux)
+				{
+					dP_Cygni_Peak_Flux = lpcSpectrum[uiI][1].flux(uiJ);
+					uiContinuum_Red_Idx = uiJ;
+				}
+				if (bIn_feature && lpdSpectra_Flux[uiI][uiJ] < 1.000 && lpcSpectrum[uiI][1].flux(uiJ) < dMin_Flux)
+				{
+					dMin_Flux = lpcSpectrum[uiI][1].flux(uiJ);
+				}
+			}	
+			
+			// perform Gaussian fitting routine
+			// first define the pseudo-continuum as defined by Silverman
+			double	dSlope = (lpdSpectra_Flux[uiI][uiContinuum_Red_Idx] - lpdSpectra_Flux[uiI][uiContinuum_Blue_Idx]) / (lpdSpectra_WL[uiI][uiContinuum_Red_Idx] - lpdSpectra_WL[uiI][uiContinuum_Blue_Idx]);
+			unsigned int uiNum_Points = uiContinuum_Blue_Idx - uiContinuum_Red_Idx + 1;
+			
+			vY.Set_Size(uiNum_Points);
+			vX.Set_Size(uiNum_Points);
+			vW.Set_Size(uiNum_Points);
+			for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
+			{
+				vX.Set(uiJ,lpdSpectra_WL[uiI][uiJ + uiContinuum_Blue_Idx]);
+				vW.Set(uiJ,0.01); // arbitrary weight
+				vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ + uiContinuum_Blue_Idx] - (lpdSpectra_WL[uiI][uiJ + uiContinuum_Blue_Idx] - lpdSpectra_WL[uiI][uiContinuum_Blue_Idx]) * dSlope + lpdSpectra_Flux[uiI][uiContinuum_Blue_Idx]);
+
+				cCombined_Unflat.Process_pEW(vY.Get(uiJ),cParam.m_dWavelength_Delta_Ang);
+			}
+			// some rough initial guesses for the parameters
+			vA.Set_Size(6);
+			vA.Set(0,0.125 * dMin_Flux);
+			vA.Set(1,15.0);
+			vA.Set(2,lpdSpectra_WL[uiI][uiNum_Points / 4 + uiContinuum_Blue_Idx]);
+			vA.Set(3,dMin_Flux);
+			vA.Set(4,15.0);
+			vA.Set(5,lpdSpectra_WL[uiI][uiContinuum_Red_Idx - uiNum_Points / 4]);
+
+			double	dV_Jeff_HVF = 0.0, dV_Jeff_PVF = 0.0, dpEW_Jeff_HVF = 0.0, dpEW_Jeff_PVF = 0.0;
+
+			if (GeneralFit(vX, vY ,vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, lpgfpParamters))
+			{
+				dV_Jeff_HVF = Compute_Velocity(vA.Get(2),lpgfpParamters->m_dWl[1]);
+				dV_Jeff_PVF = Compute_Velocity(vA.Get(5),lpgfpParamters->m_dWl[1]);
+				for (unsigned int uiJ = uiContinuum_Blue_Idx; uiJ < uiContinuum_Red_Idx; uiJ++)
+				{
+					XVECTOR vF = Multi_Gaussian(vX.Get(uiJ), vA, lpgfpParamters);
+					XVECTOR vAlcl;
+					vAlcl.Set_Size(3);
+					vAlcl.Set(0,vA.Get(0));
+					vAlcl.Set(1,vA.Get(1));
+					vAlcl.Set(2,vA.Get(2));
+
+					Gaussian(vX.Get(uiJ), vAlcl, lpgfpParamters);
+					dpEW_Jeff_HVF -= vF.Get(0) * cParam.m_dWavelength_Delta_Ang; // - sign to keep pEW positive
+
+					vAlcl.Set(0,vA.Get(3));
+					vAlcl.Set(1,vA.Get(4));
+					vAlcl.Set(2,vA.Get(5));
+
+					Gaussian(vX.Get(uiJ), vAlcl, lpgfpParamters);
+					dpEW_Jeff_PVF -= vF.Get(0) * cParam.m_dWavelength_Delta_Ang;
+				}
+
+			}
+
+			fprintf(fileData,"%s, %.17e, %.17e, %.17e, \n", lpszModel_List[uiI], cCombined_Flat.m_d_pEW, cCombined_Flat.m_dVmin, cEO_Flat.m_d_pEW, cEO_Flat.m_dVmin,  cSO_Flat.m_d_pEW, cSO_Flat.m_dVmin, cCombined_Unflat.m_d_pEW, cCombined_Flat.m_dVmin, cEO_Unflat.m_dVmin, cSO_Unflat.m_dVmin, dV_Jeff_HVF, dV_Jeff_PVF, dpEW_Jeff_HVF, dpEW_Jeff_PVF);
+			
+			
+		}
+		fclose(fileData);
 
 		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 		{
