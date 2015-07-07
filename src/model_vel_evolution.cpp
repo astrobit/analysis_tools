@@ -702,6 +702,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		XVECTOR	vX, vY, vA, vW,vA_Single;
 		double	dSmin_Single = DBL_MAX;
 		XSQUARE_MATRIX mCovariance_Matrix;
+		XSQUARE_MATRIX mCovariance_Matrix_Single;
 		double	dSmin;
 		fprintf(fileData,"Model, pEW (Combined - flat), Vmin (Combined - flat), pEW (EO - flat), Vmin (EO - flat), pEW (SO - flat), Vmin (SO - flat), pEW (Combined), Vmin (combined), Vmin (EO), Vmin (SO), Vmin-HVF (Jeff), Vmin-PVF (Jeff), pEW-HVF (Jeff), pEW-PVF (Jeff)\n");
 
@@ -823,6 +824,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 				{
 					vA_Single = vA;
 					dSmin_Single = dSmin;
+					mCovariance_Matrix_Single = mCovariance_Matrix;
 				}
 				vA.Set_Size(6);
 				vA.Set(0,-dMin_Flux_Flat/6.0);
@@ -837,12 +839,14 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 					{
 						vA = vA_Single;
 						dSmin = dSmin_Single;
+						mCovariance_Matrix = mCovariance_Matrix_Single;
 					}
 				}
 				else
 				{
 					vA = vA_Single;
 					dSmin = dSmin_Single;
+					mCovariance_Matrix = mCovariance_Matrix_Single;
 				}
 
 //			printf("here 4c\n");
@@ -888,8 +892,16 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 
 //		printf("here 4d\n");
 //		fflush(stdout);
-			fprintf(fileData,"%s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e\n", 
+			fprintf(fileData,"%s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e", 
 lpszModel_List[uiI], cCombined_Flat.m_d_pEW, -cCombined_Flat.m_dVmin, cEO_Flat.m_d_pEW, -cEO_Flat.m_dVmin,  cSO_Flat.m_d_pEW, -cSO_Flat.m_dVmin, cCombined_Unflat.m_d_pEW, -cCombined_Flat.m_dVmin, -cEO_Unflat.m_dVmin, -cSO_Unflat.m_dVmin, -dV_Jeff_HVF, -dV_Jeff_PVF, dpEW_Jeff_HVF, dpEW_Jeff_PVF);
+			if (dSmin < DBL_MAX)
+			{
+				fprintf(fileData,",%.17e, %.17e, %.17e",vA.Get(0),sqrt(mCovariance_Matrix.Get(0,0)),vA.Get(1),sqrt(mCovariance_Matrix.Get(1,1)),vA.Get(2),sqrt(mCovariance_Matrix.Get(2,2)));
+				if (vA.Get_Size() == 6)
+					fprintf(fileData,",%.17e, %.17e, %.17e",vA.Get(3),sqrt(mCovariance_Matrix.Get(3,3)),vA.Get(4),sqrt(mCovariance_Matrix.Get(4,4)),vA.Get(5),sqrt(mCovariance_Matrix.Get(5,5)));
+			}
+			fprintf(fileData,"\n");
+
 			
 			
 		}
