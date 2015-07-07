@@ -892,7 +892,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 				{
 					vX.Set(uiJ,lpdSpectra_WL[uiI][uiJ]);
 					vW.Set(uiJ,0.01); // arbitrary weight
-					vY.Set(uiJ,1.0 - lpdSpectra_Flux[uiI][uiJ]);
+					vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
 				}
 				// try single gaussian fit
 				// some rough initial guesses for the parameters
