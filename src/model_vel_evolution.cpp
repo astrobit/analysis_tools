@@ -419,7 +419,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cContinuum_Parameters.Set(1,dPS_Temp);
 				cContinuum_Parameters.Set(2,-20.0); // PS ion log tau
 				cContinuum_Parameters.Set(3,10.0); // PS ion exctication temp
-				cContinuum_Parameters.Set(4,10.0); // PS ion vmin
+				cContinuum_Parameters.Set(4,lpdV_ps[uiI]); // PS ion vmin
 				cContinuum_Parameters.Set(5,80.0); // PS ion vmax
 				cContinuum_Parameters.Set(6,1.0); // PS ion vscale
 
