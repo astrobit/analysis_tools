@@ -193,6 +193,12 @@ int main(int iArgC,const char * lpszArgV[])
 
 	unsigned int uiNum_Points;
 
+	if (!xParse_Command_Line_Exists(iArgC,lpszArgV,"--file"))
+	{
+		fprintf(stderr,"Usage: photosphere --file=<filename>\n");
+		exit(0);
+	}
+
 	xParse_Command_Line_String(iArgC,lpszArgV,"--file",lpszFile_To_Read,256);
 	if (lpszFile_To_Read[0] == 0)
 	{
