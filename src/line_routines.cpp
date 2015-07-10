@@ -244,6 +244,11 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 			g_lpdVelocities[uiI - 1] = i_lpOpacity_Map->GetElement(0,uiI) * 1e-8;
 		}
 	}
+	else
+	{
+		for (unsigned int uiI = 0; uiI < uiNum_Elements; uiI++)
+			g_lpdVelocities[uiI] = (128.0 / (uiNum_Elements + 1.0)) * (uiI + 1); // between 0 and 128
+	}
 }
 
 void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput)
