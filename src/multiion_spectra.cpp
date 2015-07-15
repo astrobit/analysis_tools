@@ -273,6 +273,33 @@ unsigned int Find_Ion_Index_Ref(const XDATASET & cData, unsigned int i_uiIon)
 	return uiIdx;
 }
 
+
+enum	tFit_Region		{CANIR,CAHK,SI5968,SI6355,OINIR,OTHER};
+
+double Get_WL_Ref(tFit_Region i_eFit_Region)
+{
+	double dWL_Ref;
+	switch (i_eFit_Region)
+	{
+	case CANIR:
+		dWL_Ref = (8498.02 * pow(10.0,-0.39) + 8542.09 * pow(10,-0.36) + 8662.14 * pow(10.0,-0.622)) / (pow(10.0,-0.39) + pow(10.0,-0.36) + pow(10.0,-0.622));
+		break;
+	case CAHK:
+		dWL_Ref = (3934.777 * pow(10.0,0.135) + 3969.592 * pow(10,-0.18)) / (pow(10.0,0.135) + pow(10.0,-0.18));
+		break;
+	case SI5968:
+		dWL_Ref = (5959.21 * pow(10.0,-0.225) + 5980.59 * pow(10,0.084)) / (pow(10.0,-0.225) + pow(10.0,0.084));
+		break;
+	case SI6355:
+		dWL_Ref = (6348.85 * pow(10.0,0.149)  + 6373.12 * pow(10.0,-0.082)) / (pow(10.0,0.149) + pow(10.0,-0.082));
+		break;
+	case OINIR:
+		dWL_Ref = (7774.083 * pow(10.0,0.369) + 7776.305 * pow(10.0,0.223) + 7777.528 * pow(10.0,0.002)) / (pow(10.0,0.369) + pow(10.0,0.223) + pow(10.0,0.002));
+		break;
+	}
+	return dWL_Ref;
+}
+
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
@@ -559,33 +586,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //	printf("Generate combined\n");
 	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data, uiIon_Count * 2, lpcSpectrum[1]);
 //	printf("Generate EO\n");
-	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_EO, uiIon_Count, lpcSpectrum[2]);
+//	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_EO, uiIon_Count, lpcSpectrum[2]);
 //	printf("Generate SO\n");
-	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_SO, uiIon_Count, lpcSpectrum[3]);
+//	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_SO, uiIon_Count, lpcSpectrum[3]);
 
 //	printf("Plot\n");
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
-
-
-	cPlot_Parameters.m_uiNum_Columns = 1;
-	cPlot_Parameters.m_uiNum_Rows = 1;
-	cPlot_Parameters.m_dWidth_Inches = 11.0;
-	cPlot_Parameters.m_dHeight_Inches = 8.5;
-
-	cX_Axis_Parameters.Set_Title("Wavelength [A]");
-	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
-	cY_Axis_Parameters.Set_Title("Flux");
-	cY_Axis_Parameters.m_dLower_Limit = 0.0;
-//	cY_Axis_Parameters.m_dUpper_Limit = 2.0;
-
-	unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
-	unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
 
 
 	double * lpdSpectra_WL = NULL;
+	double * lpdSpectra_Vel = NULL;
 	double * lpdSpectra_Flux = NULL;
 	double * lpdSpectra_WL_EO = NULL;
 	double * lpdSpectra_Flux_EO = NULL;
@@ -593,19 +602,19 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double * lpdSpectra_Flux_SO = NULL;
 	double * lpdContinuum_WL = NULL, * lpdContinuum_Flux = NULL;
 	unsigned int uiSpectra_Count = 0, uiContinuum_Count = 0, uiSpectra_Count_EO = 0, uiSpectra_Count_SO = 0;
-	int iColor = (int)epsplot::BLACK;
-	int iStipple = (int)epsplot::SOLID;
-	epsplot::LINE_PARAMETERS cLine_Parameters;
 
 		// Get spectral data in the desired range
-	cLine_Parameters.m_dWidth = 1.0;
 	Get_Spectra_Data(lpcSpectrum[0], lpdContinuum_WL, lpdContinuum_Flux, uiContinuum_Count, dRange_Min, dRange_Max);
 	Get_Spectra_Data(lpcSpectrum[1], lpdSpectra_WL, lpdSpectra_Flux, uiSpectra_Count, dRange_Min, dRange_Max);
 	Get_Spectra_Data(lpcSpectrum[2], lpdSpectra_WL_EO, lpdSpectra_Flux_EO, uiSpectra_Count_EO, dRange_Min, dRange_Max);
 	Get_Spectra_Data(lpcSpectrum[3], lpdSpectra_WL_SO, lpdSpectra_Flux_SO, uiSpectra_Count_SO, dRange_Min, dRange_Max);
+
+	lpdSpectra_Vel = new double[uiSpectra_Count];
+
+	epsplot::LINE_PARAMETERS cLine_Parameters;
+	cLine_Parameters.m_dWidth = 1.0;
 	cLine_Parameters.m_eColor = epsplot::BLACK;
 	cLine_Parameters.m_eStipple = epsplot::SOLID;
-	cPlot.Set_Plot_Data(lpdSpectra_WL, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 
 	
 
@@ -627,8 +636,47 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	fprintf(fileCaption," $T_{ps} = %.0f,000\\K$, $\\log C_S = %.2f$, $\\log C_E = %.2f$.}\n",dPS_Temp,dShell_Scalar,dEjecta_Scalar);
 	fclose(fileCaption);
 
+	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+	epsplot::DATA cPlot;
+	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
+	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+
+
+	cPlot_Parameters.m_uiNum_Columns = 1;
+	cPlot_Parameters.m_uiNum_Rows = 1;
+	cPlot_Parameters.m_dWidth_Inches = 11.0;
+	cPlot_Parameters.m_dHeight_Inches = 8.5;
+
+	cX_Axis_Parameters.Set_Title("Wavelength [A]");
+	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+	cY_Axis_Parameters.Set_Title("Flux");
+	cY_Axis_Parameters.m_dLower_Limit = 0.0;
+//	cY_Axis_Parameters.m_dUpper_Limit = 2.0;
+
+	unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
+	unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
+
+	unsigned int uiPlot_Data_ID = cPlot.Set_Plot_Data(lpdSpectra_WL, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 	cPlot.Set_Plot_Filename(lpszOutput_Name);
 	cPlot.Plot(cPlot_Parameters);
+
+
+	sprintf(lpszFilename,"%s.OI.eps",lpszOutput_Name);
+	cX_Axis_Parameters.Set_Title("Velocity [1,000 km/s]");
+	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+	cX_Axis_Parameters.m_dLower_Limit = -50.0;
+	cX_Axis_Parameters.m_dUpper_Limit = 100.0;
+	cPlot.Modify_X_Axis_Parameters( uiX_Axis, cX_Axis_Parameters);
+	
+	double dWL_Ref = Get_WL_Ref(OINIR);
+	for (unsigned int uiI = 0; uiI < uiSpectra_Count; uiI++)
+	{
+		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-8;
+	}
+	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+
+
+
 	sprintf(lpszFilename,"%s.dat",lpszOutput_Name);
 	fileOut = fopen(lpszFilename,"wt");
 	fprintf(fileOut,"wl");
@@ -650,6 +698,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 
 	delete [] lpdSpectra_WL;
+	delete [] lpdSpectra_Vel;
 	delete [] lpdSpectra_Flux;
 	delete [] lpdSpectra_WL_EO;
 	delete [] lpdSpectra_Flux_EO;
@@ -661,3 +710,4 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 	return 0;
 }
+
