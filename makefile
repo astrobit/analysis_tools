@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion
 
 .PHONY: all
 
@@ -119,7 +119,7 @@ $(BINDIR)/quikplotseries: $(SRCDIR)/quikplotseries.cpp $(LIBDIR)/libplotutil.a  
 
 equivwidth: $(BINDIR)/equivwidth
 $(BINDIR)/equivwidth: $(SRCDIR)/equivalentwidth.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE)
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/equivalentwidth.cpp $(ESFLAGS) -lxio -lxstdlib -llinerout -lxmath $(ESLIBS) -o $(BINDIR)/equivwidth
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/equivalentwidth.cpp $(ESFLAGS) -llinerout -lxio -lxstdlib -lxmath $(ESLIBS) -o $(BINDIR)/equivwidth
 
 bestfitcsv: $(BINDIR)/bestfitcsv
 $(BINDIR)/bestfitcsv: $(SRCDIR)/bestfittocsv.cpp $(INCLUDEDIR)/best_fit_data.h $(XLIBSCHANGE)
@@ -214,13 +214,21 @@ modelvelev:$(BINDIR)/modelvelev
 $(BINDIR)/modelvelev: $(SRCDIR)/model_vel_evolution.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h $(LIBDIR)/libmsdb.a
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/model_vel_evolution.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/modelvelev
 
-diffusion:$(BINDIR)/diffusion
+diffusion: $(BINDIR)/diffusion
 $(BINDIR)/diffusion: $(SRCDIR)/diffusion.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/diffusion.cpp -lxmath -lxio -lxstdlib -o $(BINDIR)/diffusion
 
-flash2snec:$(BINDIR)/flash2snec
+flash2snec: $(BINDIR)/flash2snec
 $(BINDIR)/flash2snec: $(SRCDIR)/FLASH_2_SNEC.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/FLASH_2_SNEC.cpp -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/flash2snec
+
+mve_vels: $(BINDIR)/mve_vels
+$(BINDIR)/mve_vels: $(SRCDIR)/mve_velocity_plot.cpp $(XLIBSCHANGE)
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/mve_velocity_plot.cpp -lxio -lxstdlib -o $(BINDIR)/mve_vels
+
+multiion: $(BINDIR)/multiion
+$(BINDIR)/multiion: $(SRCDIR)/multiion_spectra.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/multiion_spectra.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/multiion
 
 clean:
 	-rm $(BINDIR)/*
