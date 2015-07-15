@@ -17,7 +17,7 @@
 #include <line_routines.h>
 #include <wordexp.h>
 #include <model_spectra_db.h>
-
+#include <opacity_profile_data.h>
 
 class GAUSS_FIT_PARAMETERS
 {
@@ -52,8 +52,11 @@ public:
 };
 
 GAUSS_FIT_PARAMETERS	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
-GAUSS_FIT_PARAMETERS	g_cgfpCaHK(3968.47,1.0,3968.47,1.0); //@@TODO Get strengths for H&K lines
-//@@TODO: Set up paramters for other features
+GAUSS_FIT_PARAMETERS	g_cgfpCaHK(3934.77,230.0,3969.59,220.0);
+GAUSS_FIT_PARAMETERS	g_cgfpOINIR(774.08,870.0,776.31,810.0,7777.53,750.0);
+GAUSS_FIT_PARAMETERS	g_cgfpSi6355(6348.85,1000.0,6373.12,1000.0);
+GAUSS_FIT_PARAMETERS	g_cgfpSi5968(5959.21,500.0,5980.59,500.0);
+
 
 XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 {
@@ -164,29 +167,11 @@ public:
 };
 
 
-int main(int i_iArg_Count, const char * i_lpszArg_Values[])
+void Process_Model_List(const char * lpszModel_List_String, const char ** o_lpszModel_List, unsigned int o_uiModel_Count)
 {
-	msdb::DATABASE cMSDB(true);
-	GAUSS_FIT_PARAMETERS * lpgfpParamters;
-	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
-	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
-	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);
-	double	dEjecta_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-scalar",1.0);
-	double	dShell_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-scalar",1.0);
-	bool	bFull_Spectrum = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--full-spectrum");
-    unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
-//	printf("here 0\n");
-	// get model list string
-	const char *	lpszModel_List_String = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--models");
-	enum	tFit_Region		{CANIR,CAHK,SI5968,SI6355,OINIR,OTHER};
-	tFit_Region	eFit_Region = OTHER;
-	unsigned int uiIon = 0;
-	char lpszOutput_Name[256];
-	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output-name",lpszOutput_Name,sizeof(lpszOutput_Name),"");
-
 	char * lpszCursor = (char *)lpszModel_List_String;
 	// count number of models to process
-	unsigned int uiModel_Count = 0;
+	o_uiModel_Count = 0;
 	while (lpszCursor && lpszCursor[0] != 0)
 	{
 		// bypass whitespace
@@ -195,7 +180,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		// count model
 		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
 		{
-			uiModel_Count++;
+			o_uiModel_Count++;
 			while (lpszCursor[0] != 0 && lpszCursor[0] != ',')
 				lpszCursor++;
 		}
@@ -203,9 +188,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpszCursor++; // bypass comma
 	}
 	// allocate model name pointer list
-	const char ** lpszModel_List = new const char *[uiModel_Count];
+	o_lpszModel_List = new const char *[o_uiModel_Count];
 	// count number of models to process
-	uiModel_Count = 0;
+	o_uiModel_Count = 0;
 	lpszCursor = (char *)lpszModel_List_String; // reset cursor
 	while (lpszCursor && lpszCursor[0] != 0)
 	{
@@ -215,8 +200,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		// add pointer to model name and count model
 		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
 		{
-			lpszModel_List[uiModel_Count] = lpszCursor;
-			uiModel_Count++;
+			o_lpszModel_List[o_uiModel_Count] = lpszCursor;
+			o_uiModel_Count++;
 			while (lpszCursor[0] != 0 && lpszCursor[0] != ',')
 				lpszCursor++;
 		}
@@ -226,6 +211,55 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpszCursor++; // bypass comma
 		}
 	}
+}
+int main(int i_iArg_Count, const char * i_lpszArg_Values[])
+{
+	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
+	msdb::DATABASE cMSDB(true);
+	GAUSS_FIT_PARAMETERS * lpgfpParamters;
+	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
+	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
+	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);
+	double	dEjecta_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-scalar",1.0);
+	double	dShell_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-scalar",1.0);
+	bool	bFull_Spectrum = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--full-spectrum");
+    unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
+	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
+	char lpszRef_Model_Extended[128] = {0};
+	const char *	lpszIon_List = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ions");
+	char lpszShell_Abundance[128];
+	char lpszEjecta_Abundance[128];
+	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-abundance",lpszShell_Abundance,sizeof(lpszShell_Abundance),"");
+	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-abundance",lpszEjecta_Abundance,sizeof(lpszShell_Abundance),"");
+
+
+	if (lpszRef_Model && lpszRef_Model[0] >= '0' && lpszRef_Model[0] <= '9') // just a number, convert into "runXX")
+	{
+		lpszRef_Model_Extended[0] = 'r';
+		lpszRef_Model_Extended[1] = 'u';
+		lpszRef_Model_Extended[2] = 'n';
+		strcpy(lpszRef_Model_Extended + 3,lpszRef_Model);
+
+	}
+	else if (lpszRef_Model)
+	{
+		strcpy(lpszRef_Model_Extended,lpszRef_Model);
+	}
+
+//	printf("here 0\n");
+	// get model list string
+	const char *	lpszModel_List_String = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--models");
+	const char ** lpszModel_List;
+	unsigned int uiModel_Count;
+	Process_Model_List(lpszModel_List_String, lpszModel_List, uiModel_Count);
+
+	enum	tFit_Region		{CANIR,CAHK,SI5968,SI6355,OINIR,OTHER};
+	tFit_Region	eFit_Region = OTHER;
+	unsigned int uiIon = 0;
+	char lpszOutput_Name[256];
+	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output-name",lpszOutput_Name,sizeof(lpszOutput_Name),"");
+
+
 
 	// Identify which line we are interested in.
 	char lpszFitRegion[8];
@@ -277,6 +311,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		dRange_Max = 9500.0;
 		cParam.m_eFeature = msdb::CaNIR;
 		lpgfpParamters = &g_cgfpCaNIR;
+		eScalar_Type = OPACITY_PROFILE_DATA::SILICON;
 		break;
 	case CAHK:
 		dNorm_WL = 3750.0;
@@ -285,13 +320,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		dRange_Max = 4000.0;
 		cParam.m_eFeature = msdb::CaHK;
 		lpgfpParamters = &g_cgfpCaHK;
+		eScalar_Type = OPACITY_PROFILE_DATA::SILICON;
 		break;
 	case SI5968:
 		dNorm_WL = 5750.0;
 		dWL_Ref = (5959.21 * pow(10.0,-0.225) + 5980.59 * pow(10,0.084)) / (pow(10.0,-0.225) + pow(10.0,0.084));
 		dRange_Min = 5000.0;
 		dRange_Max = 7000.0;
-		lpgfpParamters = NULL; //@@TODO Si 5968 gaussian fit parameters
+		lpgfpParamters = &g_cgfpSi5968;
+		eScalar_Type = OPACITY_PROFILE_DATA::SILICON;
 		break;
 	case SI6355:
 		dNorm_WL = 5750.0;
@@ -299,7 +336,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		dRange_Min = 5000.0;
 		dRange_Max = 7000.0;
 		cParam.m_eFeature = msdb::Si6355;
-		lpgfpParamters = NULL; //@@TODO Si 6355 gaussian fit parameters
+		lpgfpParamters = &g_cgfpSi6355;
+		eScalar_Type = OPACITY_PROFILE_DATA::SILICON;
 		break;
 	case OINIR:
 		dNorm_WL = 7100.0;
@@ -307,7 +345,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		dRange_Min = 6000.0;
 		dRange_Max = 8000.0;
 		cParam.m_eFeature = msdb::O7773;
-		lpgfpParamters = NULL; //@@TODO OI gaussian fit parameters
+		lpgfpParamters = &g_cgfpOINIR;
+		eScalar_Type = OPACITY_PROFILE_DATA::OXYGEN;
 		break;
 	}
 
@@ -342,6 +381,20 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 //		printf("here 1\n");
 
+		double	dEjecta_Scalar_Ref = -1.0;
+		double	dShell_Scalar_Ref = -1.0;
+		double	dEjecta_Scalar_Prof = -1.0;
+		double	dShell_Scalar_Prof = -1.0;
+		OPACITY_PROFILE_DATA	cOpacity_Profile;
+
+		if (lpszRef_Model)
+		{
+			char lpszOpacity_Profile[128];
+			sprintf(lpszOpacity_Profile,"%s/opacity_map_scalars.opdata",lpszRef_Model_Extended);
+			cOpacity_Profile.Load(lpszOpacity_Profile);
+			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(eScalar_Type);
+			dShell_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
+		}
 
 		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 		{
@@ -350,6 +403,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			char	lpszModel_Name[64];
 			XDATASET cOpacity_Map_Shell;
 			XDATASET cOpacity_Map_Ejecta;
+
 
 			if (lpszModel_List != NULL && lpszModel_List[uiI] != NULL && lpszModel_List[uiI][0] != 0)
 			{
@@ -415,6 +469,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						exit(1);
 					}
 				}
+				char lpszOpacity_Profile[128];
+				sprintf(lpszOpacity_Profile,"%s/opacity_map_scalars.opdata",lpszModel_Name);
+				cOpacity_Profile.Load(lpszOpacity_Profile);
+				dEjecta_Scalar_Prof = cOpacity_Profile.Get_Scalar(eScalar_Type);
+				dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
+				if (dEjecta_Scalar_Ref == -1.0)
+					dEjecta_Scalar_Ref = dEjecta_Scalar_Prof;
+				if (dShell_Scalar_Ref == -1.0)
+					dShell_Scalar_Ref = dShell_Scalar_Prof;
+//				printf("%.2e/%.2e [%.2e] %.2e/%.2e [%.2e]\n",dEjecta_Scalar_Prof,dEjecta_Scalar_Ref,log10(dEjecta_Scalar_Prof/dEjecta_Scalar_Ref),dShell_Scalar_Prof,dShell_Scalar_Ref,log10(dShell_Scalar_Prof/dShell_Scalar_Ref));
+
+
 				lpdV_ps[uiI] = cContinuum_Parameters.Get(0);
 				cContinuum_Parameters.Set(1,dPS_Temp);
 				cContinuum_Parameters.Set(2,-20.0); // PS ion log tau
@@ -445,11 +511,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cParameters.Set(2,dPS_Temp);
 
 				cParameters.Set(3,10.0); // fix excitation temp
-				cParameters.Set(4,dEjecta_Scalar);
+//				cParameters.Set(4,dEjecta_Scalar);
+				cParameters.Set(4,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
+//				printf("%.5e %.5e\n",dEjecta_Scalar,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
 				if (bShell)
 				{
 					cParameters.Set(5,10.0); // fix excitation temp
-					cParameters.Set(6,dShell_Scalar);
+					cParameters.Set(6,dShell_Scalar + log10(dShell_Scalar_Prof / dShell_Scalar_Ref));
 				}
 
 				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]) == 0)
@@ -527,6 +595,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
 		cY_Axis_Parameters.Set_Title("Flux");
 		cY_Axis_Parameters.m_dLower_Limit = 0.0;
+		cY_Axis_Parameters.m_dUpper_Limit = 2.0;
 
 		unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
 		unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
@@ -956,10 +1025,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					if (vA.Get_Size() == 6)
 						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA.Get(3),sqrt(mCovariance_Matrix.Get(3,3)),vA.Get(4),sqrt(mCovariance_Matrix.Get(4,4)),vA.Get(5),sqrt(mCovariance_Matrix.Get(5,5)));
 					else
-						fprintf(fileData,", , , , , , ");
+						fprintf(fileData,", -1., -1., -1., -1., -1., -1.");
 				}
 				else
-					fprintf(fileData,", , , , , , , , , , , , ");
+					fprintf(fileData,", -1., -1., -1., -1., -1., -1., -1., -1., -1., -1., -1., -1.");
 
 				if (dSmin_Flat < DBL_MAX)
 				{
@@ -967,10 +1036,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					if (vA_Flat.Get_Size() == 6)
 						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA_Flat.Get(3),sqrt(mCovariance_Matrix_Flat.Get(3,3)),vA_Flat.Get(4),sqrt(mCovariance_Matrix_Flat.Get(4,4)),vA_Flat.Get(5),sqrt(mCovariance_Matrix_Flat.Get(5,5)));
 					else
-						fprintf(fileData,", , , , , , ");
+						fprintf(fileData,", -1., -1., -1., -1., -1., -1.");
 				}
 				else
-					fprintf(fileData,", , , , , , , , , , , , ");
+					fprintf(fileData,", -1., -1., -1., -1., -1., -1., -1., -1., -1., -1., -1., -1.");
 				fprintf(fileData,"\n");
 
 			
