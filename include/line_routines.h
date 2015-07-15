@@ -6,8 +6,23 @@
 
 double	Equivalent_Width(const XDATASET & i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
 double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
+
+
+class ION_DATA
+{
+public:
+	unsigned int m_uiIon;
+	XDATASET * m_lpcOpacity_Map;
+	double		m_dScalar;
+	double		m_dExcitation_Temp;
+};
+
+
+void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i_dPS_Temp_kK, const double & i_dPS_Velocity_kkms, ION_DATA * i_lpcIon_Data, unsigned int i_uiNum_Ions, ES::Spectrum &io_cOutput);
 void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput);
 void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput);
+
+
 void Find_Minimum(ES::Spectrum * i_lpcSpectra, unsigned int i_uiNum_Spectra, double * o_lpdMinima_WL, double * o_lpdMinima_Flux, const double & i_dMin_WL = -1.0, const double & i_dMax_WL = -1.0);
 
 void Get_Spectra_Data(const ES::Spectrum & i_cSpectrum, double * &o_lpdWavelengths, double * & o_lpdFluxes, unsigned int & o_uiNum_Points, const double & i_dMin_WL, const double & i_dMax_WL);
@@ -169,5 +184,18 @@ public:
 	{
 		m_lpHead = m_lpTail = NULL;
 	}
+};
+
+enum ABUNDANCE_TYPE {Solar,Seitenzahl_N100_2013};
+
+class ABUNDANCE_LIST
+{
+public:
+	double	m_dAbundances[128]; // ordered by z; neutrons not included; no differentiation between isotopes
+	double	m_dUncertainties[128];
+
+	void	Read_Table(const char * i_lpszFilename);
+	void	Read_Table(ABUNDANCE_TYPE i_eType);
+	void	Normalize_Groups(void);
 };
 

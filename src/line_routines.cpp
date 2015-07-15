@@ -147,7 +147,8 @@ double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_B
 
 unsigned int g_uiVelocity_Map_Alloc_Size = 0;
 double		* g_lpdVelocities = NULL;
-double		* g_lpdOpacity_Profile[2] = {NULL,NULL};
+double		** g_lpdOpacity_Profile = NULL;
+unsigned int	g_uiOP_Multi_Num_Ions = 0;
 ES::Synow::Grid * g_lpcGrid = NULL;
 ES::Synow::Grid * g_lpcGrid_Exp = NULL;
 ES::Synow::Opacity * g_lpcOpacity = NULL;
@@ -160,6 +161,38 @@ ES::Synow::Spectrum * g_lpcSpectrum_Exp = NULL;
 ES::Spectrum * g_lpcOutput = NULL;
 bool		g_bMin_Delta_Init = false;
 double		g_dMin_Delta = DBL_MAX;
+
+void Allocate_Opacity_Profile(unsigned int i_uiNum_Ions, bool i_bForce = false)
+{
+	if (i_uiNum_Ions > g_uiOP_Multi_Num_Ions || i_bForce)
+	{
+//		printf("OP delete \n");
+		if (g_lpdOpacity_Profile)
+		{
+			for (unsigned int uiI = 0; uiI < g_uiOP_Multi_Num_Ions; uiI++)
+				if (g_lpdOpacity_Profile[uiI])
+					delete [] g_lpdOpacity_Profile[uiI];
+			delete [] g_lpdOpacity_Profile;
+			g_lpdOpacity_Profile = NULL;
+		}
+//		printf("OP allocate \n");
+		g_lpdOpacity_Profile = new double *[i_uiNum_Ions];
+		if (g_uiVelocity_Map_Alloc_Size > 0)
+		{
+			for (unsigned int uiI = 0; uiI < i_uiNum_Ions; uiI++)
+				g_lpdOpacity_Profile[uiI] = new double[g_uiVelocity_Map_Alloc_Size];
+		}
+		else
+		{
+			for (unsigned int uiI = 0; uiI < i_uiNum_Ions; uiI++)
+				g_lpdOpacity_Profile[uiI] = NULL;
+		}
+		g_uiOP_Multi_Num_Ions = i_uiNum_Ions;
+//		printf("OP done \n");
+
+	}
+//	printf("Alloc OP: %i ions\n",g_uiOP_Multi_Num_Ions);
+}
 
 void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_Elements, const XDATASET * i_lpOpacity_Map)
 {
@@ -180,10 +213,6 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 //		printf("Realloc\n");
 		if (g_lpdVelocities)
 			delete [] g_lpdVelocities;
-		if (g_lpdOpacity_Profile[0])
-			delete [] g_lpdOpacity_Profile[0];
-		if (g_lpdOpacity_Profile[1])
-			delete [] g_lpdOpacity_Profile[1];
 		if (g_lpcGrid)
 			delete [] g_lpcGrid;
 		if (g_lpcOpacity)
@@ -205,14 +234,15 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 		if (g_lpcSpectrum_Exp)
 			delete [] g_lpcSpectrum_Exp;
 
-		g_lpdVelocities = new double[uiNum_Elements];
-		g_lpdOpacity_Profile[0] = new double[uiNum_Elements];
-		g_lpdOpacity_Profile[1] = new double[uiNum_Elements];
 		g_uiVelocity_Map_Alloc_Size = uiNum_Elements;
+		g_lpdVelocities = new double[uiNum_Elements];
 //		printf("%i\n",i_cOpacity_Map_A.GetNumElements());
 		g_lpcOutput = new ES::Spectrum(i_cTarget);
 		g_lpcReference = new ES::Spectrum( g_lpcOutput[0] );
+//		printf("Alloc OP\n");
+		Allocate_Opacity_Profile(g_uiOP_Multi_Num_Ions > 0 ? g_uiOP_Multi_Num_Ions : 2,true);
 
+//		printf("Set Velocities\n");
 		if (i_lpOpacity_Map)
 		{
 			for (unsigned int uiI = 1; uiI < i_lpOpacity_Map->GetNumElements(); uiI++)
@@ -225,6 +255,8 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 			for (unsigned int uiI = 0; uiI < uiNum_Elements; uiI++)
 				g_lpdVelocities[uiI] = (128.0 / (uiNum_Elements + 1.0)) * (uiI + 1); // between 0 and 128
 
+
+//		printf("es values\n");
 		g_lpcGrid = new ES::Synow::Grid(ES::Synow::Grid::create( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), g_dMin_Delta, uiNum_Elements, g_lpdVelocities));
 		g_lpcGrid_Exp = new ES::Synow::Grid(ES::Synow::Grid::create( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), g_dMin_Delta, 2048, g_lpdVelocities));
 
@@ -244,8 +276,9 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 			g_lpdVelocities[uiI - 1] = i_lpOpacity_Map->GetElement(0,uiI) * 1e-8;
 		}
 	}
-	else
+	else if (g_lpdVelocities)
 	{
+		
 		for (unsigned int uiI = 0; uiI < uiNum_Elements; uiI++)
 			g_lpdVelocities[uiI] = (128.0 / (uiNum_Elements + 1.0)) * (uiI + 1); // between 0 and 128
 	}
@@ -323,6 +356,73 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 
 }
 
+void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i_dPS_Temp_kK, const double & i_dPS_Velocity_kkms, ION_DATA * i_lpcIon_Data, unsigned int i_uiNum_Ions, ES::Spectrum &io_cOutput)
+{
+	if (io_cOutput.size() == 0)
+	{
+		fprintf(stderr,"Generate_Synow_Multi_Ion_Spectra: Output paramter has not been set up.  You must set the wavelength range and spacing before calling this function.\n");
+		return;
+	}
+		
+//	printf("allocate OP %i\n",i_uiNum_Ions);
+	Allocate_Opacity_Profile(i_uiNum_Ions);
+	Allocate_Synow_Classes(io_cOutput,0,i_lpcIon_Data[0].m_lpcOpacity_Map);
+
+	double	dVmax = i_lpcIon_Data[0].m_lpcOpacity_Map->GetElement(0,i_lpcIon_Data[0].m_lpcOpacity_Map->GetNumElements() - 1) * 1.0e-8;
+    // Grid object.
+	
+
+//	printf("setup\n");
+    // Attach setups one by one.
+		// Initialize Ion data
+    ES::Synow::Setup cSetup;
+	g_lpcOutput[0].zero_flux();
+
+//	double	dT_ref = i_cParameters.Get(0) * (i_cOpacity_Map_A.GetElement(2,0) - i_cOpacity_Map_A.GetElement(1,0)) + i_cOpacity_Map_A.GetElement(1,0);
+	double	dT_Scalar = pow(i_dT_days / i_lpcIon_Data[0].m_lpcOpacity_Map->GetElement(1,0),-2.0);
+//	printf("t scalar = %.2e (%.4f %.4f)\n",dT_Scalar,i_cParameters.Get(0),i_cOpacity_Map_A.GetElement(1,0));
+//	int iT_ref = (int )(i_cParameters.Get(0) + 0.5);
+//	if (iT_ref < 0)
+//		iT_ref = 0;
+//	if (iT_ref > (i_cOpacity_Map_A.GetNumColumns() - 2))
+//		iT_ref = i_cOpacity_Map_A.GetNumColumns() - 2;
+//	iT_ref++;
+
+    cSetup.a0 = 1.0;
+    cSetup.a1 = 0.0;
+    cSetup.a2 = 0.0;
+    cSetup.v_phot = i_dPS_Velocity_kkms;
+//	printf("Vphot = %.2f\n",cSetup.v_phot);
+    cSetup.v_outer = dVmax;
+    cSetup.t_phot = i_dPS_Temp_kK;
+
+//	printf("ion defs\n");
+	for (unsigned int uiI = 0; uiI < i_uiNum_Ions; uiI++)
+	{
+		cSetup.ions.push_back(i_lpcIon_Data[uiI].m_uiIon);
+		cSetup.active.push_back(true);
+		cSetup.log_tau.push_back(i_lpcIon_Data[uiI].m_dScalar);
+		cSetup.temp.push_back(i_lpcIon_Data[uiI].m_dExcitation_Temp);
+		cSetup.form.push_back(ES::Synow::Setup::form_user_profile);
+		cSetup.user_profile = g_lpdOpacity_Profile;
+		for (unsigned int uiJ = 0; uiJ < i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() - 1; uiJ++)
+		{
+	//		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
+			cSetup.user_profile[uiI][uiJ] = i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetElement(1,uiJ + 1) * dT_Scalar;
+		}
+	}
+	g_lpcGrid->reset(cSetup);
+//	printf("generate\n");
+    g_lpcGrid[0]( cSetup );
+//	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
+	io_cOutput = g_lpcOutput[0];
+//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
+
+//	printf("%.3e\n",o_cOutput.flux(100));
+//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
+
+}
+
 void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput)
 {
 //    o_cOutput = ES::Spectrum::create_from_range_and_size( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), i_cTarget.size());
@@ -333,9 +433,10 @@ void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_ui
 //	printf("%.3e\n",o_cOutput.flux(100));
 
     // Grid object.
-	
+//	printf("Allocate\n");
 	Allocate_Synow_Classes(i_cTarget,2048,NULL);
 
+//	printf("Setup\n");
 	double	dVmax = i_cParameters.Get(5);
 	if (i_cParameters.Get_Size() > 7 && i_cParameters.Get(10) > dVmax)
 		dVmax = i_cParameters.Get(10);
@@ -373,6 +474,7 @@ void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_ui
 	}
 
 	g_lpcGrid_Exp->reset(cSetup);
+//	printf("Generate\n");
     g_lpcGrid_Exp[0]( cSetup );
 //	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
 	o_cOutput = g_lpcOutput[0];
@@ -1502,5 +1604,348 @@ void Normalize_At_Red_Maxima(double * io_lpdWavelengths, double * io_lpdFluxes, 
 		}
 	}
 	Normalize(io_lpdFluxes,i_uiNum_Points,1.0 / o_dMaxima_Flux);
+}
+
+
+double Get_Element_Number(const char * i_lpszNuclide)
+{
+	double dZ;
+	char lpszElem[4] = {toupper(i_lpszNuclide[0]),0,0,0};
+	if (i_lpszNuclide[1] != 0)
+		lpszElem[1] = toupper(i_lpszNuclide[1]);
+	if (i_lpszNuclide[2] != 0 && lpszElem[0] == 'U' && lpszElem[1] == 'U' && ((i_lpszNuclide[2] >= 'a' && i_lpszNuclide[2] <= 'z') || (i_lpszNuclide[2] >= 'A' && i_lpszNuclide[2] <= 'Z')))
+		lpszElem[2] = toupper(i_lpszNuclide[2]);
+	if (strcmp(lpszElem,"H") == 0)
+		dZ = 1.0;
+	else if (strcmp(lpszElem,"HE") == 0)
+		dZ = 2.0;
+	else if (strcmp(lpszElem,"LI") == 0)
+		dZ = 3.0;
+	else if (strcmp(lpszElem,"BE") == 0)
+		dZ = 4.0;
+	else if (strcmp(lpszElem,"B") == 0)
+		dZ = 5.0;
+	else if (strcmp(lpszElem,"C") == 0)
+		dZ = 6.0;
+	else if (strcmp(lpszElem,"N") == 0)
+		dZ = 7.0;
+	else if (strcmp(lpszElem,"O") == 0)
+		dZ = 8.0;
+	else if (strcmp(lpszElem,"F") == 0)
+		dZ = 9.0;
+	else if (strcmp(lpszElem,"NE") == 0)
+		dZ = 10.0;
+	else if (strcmp(lpszElem,"NA") == 0)
+		dZ = 11.0;
+	else if (strcmp(lpszElem,"MG") == 0)
+		dZ = 12.0;
+	else if (strcmp(lpszElem,"AL") == 0)
+		dZ = 13.0;
+	else if (strcmp(lpszElem,"SI") == 0)
+		dZ = 14.0;
+	else if (strcmp(lpszElem,"P") == 0)
+		dZ = 15.0;
+	else if (strcmp(lpszElem,"S") == 0)
+		dZ = 16.0;
+	else if (strcmp(lpszElem,"CL") == 0)
+		dZ = 17.0;
+	else if (strcmp(lpszElem,"AR") == 0)
+		dZ = 18.0;
+	else if (strcmp(lpszElem,"K") == 0)
+		dZ = 19.0;
+	else if (strcmp(lpszElem,"CA") == 0)
+		dZ = 20.0;
+	else if (strcmp(lpszElem,"SC") == 0)
+		dZ = 21.0;
+	else if (strcmp(lpszElem,"TI") == 0)
+		dZ = 22.0;
+	else if (strcmp(lpszElem,"V") == 0)
+		dZ = 23.0;
+	else if (strcmp(lpszElem,"CR") == 0)
+		dZ = 24.0;
+	else if (strcmp(lpszElem,"MN") == 0)
+		dZ = 25.0;
+	else if (strcmp(lpszElem,"FE") == 0)
+		dZ = 26.0;
+	else if (strcmp(lpszElem,"CO") == 0)
+		dZ = 27.0;
+	else if (strcmp(lpszElem,"NI") == 0)
+		dZ = 28.0;
+	else if (strcmp(lpszElem,"CU") == 0)
+		dZ = 29.0;
+	else if (strcmp(lpszElem,"ZN") == 0)
+		dZ = 30.0;
+	else if (strcmp(lpszElem,"GA") == 0)
+		dZ = 31.0;
+	else if (strcmp(lpszElem,"GE") == 0)
+		dZ = 32.0;
+	else if (strcmp(lpszElem,"AS") == 0)
+		dZ = 33.0;
+	else if (strcmp(lpszElem,"SE") == 0)
+		dZ = 34.0;
+	else if (strcmp(lpszElem,"BR") == 0)
+		dZ = 35.0;
+	else if (strcmp(lpszElem,"KR") == 0)
+		dZ = 36.0;
+	else if (strcmp(lpszElem,"RB") == 0)
+		dZ = 37.0;
+	else if (strcmp(lpszElem,"SR") == 0)
+		dZ = 38.0;
+	else if (strcmp(lpszElem,"Y") == 0)
+		dZ = 39.0;
+	else if (strcmp(lpszElem,"ZR") == 0)
+		dZ = 40.0;
+	else if (strcmp(lpszElem,"NB") == 0)
+		dZ = 41.0;
+	else if (strcmp(lpszElem,"MO") == 0)
+		dZ = 42.0;
+	else if (strcmp(lpszElem,"TC") == 0)
+		dZ = 43.0;
+	else if (strcmp(lpszElem,"RU") == 0)
+		dZ = 44.0;
+	else if (strcmp(lpszElem,"RH") == 0)
+		dZ = 45.0;
+	else if (strcmp(lpszElem,"PD") == 0)
+		dZ = 46.0;
+	else if (strcmp(lpszElem,"AG") == 0)
+		dZ = 47.0;
+	else if (strcmp(lpszElem,"CD") == 0)
+		dZ = 48.0;
+	else if (strcmp(lpszElem,"IN") == 0)
+		dZ = 49.0;
+	else if (strcmp(lpszElem,"SN") == 0)
+		dZ = 50.0;
+	else if (strcmp(lpszElem,"SB") == 0)
+		dZ = 51.0;
+	else if (strcmp(lpszElem,"TE") == 0)
+		dZ = 52.0;
+	else if (strcmp(lpszElem,"I") == 0)
+		dZ = 53.0;
+	else if (strcmp(lpszElem,"XE") == 0)
+		dZ = 54.0;
+	else if (strcmp(lpszElem,"CS") == 0)
+		dZ = 55.0;
+	else if (strcmp(lpszElem,"BA") == 0)
+		dZ = 56.0;
+	else if (strcmp(lpszElem,"LA") == 0)
+		dZ = 57.0;
+	else if (strcmp(lpszElem,"CE") == 0)
+		dZ = 58.0;
+	else if (strcmp(lpszElem,"PR") == 0)
+		dZ = 59.0;
+	else if (strcmp(lpszElem,"ND") == 0)
+		dZ = 60.0;
+	else if (strcmp(lpszElem,"PM") == 0)
+		dZ = 61.0;
+	else if (strcmp(lpszElem,"SM") == 0)
+		dZ = 62.0;
+	else if (strcmp(lpszElem,"EU") == 0)
+		dZ = 63.0;
+	else if (strcmp(lpszElem,"GD") == 0)
+		dZ = 64.0;
+	else if (strcmp(lpszElem,"TB") == 0)
+		dZ = 65.0;
+	else if (strcmp(lpszElem,"DY") == 0)
+		dZ = 66.0;
+	else if (strcmp(lpszElem,"HO") == 0)
+		dZ = 67.0;
+	else if (strcmp(lpszElem,"ER") == 0)
+		dZ = 68.0;
+	else if (strcmp(lpszElem,"TM") == 0)
+		dZ = 69.0;
+	else if (strcmp(lpszElem,"YB") == 0)
+		dZ = 70.0;
+	else if (strcmp(lpszElem,"LU") == 0)
+		dZ = 71.0;
+	else if (strcmp(lpszElem,"HF") == 0)
+		dZ = 72.0;
+	else if (strcmp(lpszElem,"TA") == 0)
+		dZ = 73.0;
+	else if (strcmp(lpszElem,"W") == 0)
+		dZ = 74.0;
+	else if (strcmp(lpszElem,"RE") == 0)
+		dZ = 75.0;
+	else if (strcmp(lpszElem,"OS") == 0)
+		dZ = 76.0;
+	else if (strcmp(lpszElem,"IR") == 0)
+		dZ = 77.0;
+	else if (strcmp(lpszElem,"PT") == 0)
+		dZ = 78.0;
+	else if (strcmp(lpszElem,"AU") == 0)
+		dZ = 79.0;
+	else if (strcmp(lpszElem,"HG") == 0)
+		dZ = 80.0;
+	else if (strcmp(lpszElem,"TL") == 0)
+		dZ = 81.0;
+	else if (strcmp(lpszElem,"PB") == 0)
+		dZ = 82.0;
+	else if (strcmp(lpszElem,"BI") == 0)
+		dZ = 83.0;
+	else if (strcmp(lpszElem,"PO") == 0)
+		dZ = 84.0;
+	else if (strcmp(lpszElem,"AT") == 0)
+		dZ = 85.0;
+	else if (strcmp(lpszElem,"RN") == 0)
+		dZ = 86.0;
+	else if (strcmp(lpszElem,"FR") == 0)
+		dZ = 87.0;
+	else if (strcmp(lpszElem,"RA") == 0)
+		dZ = 88.0;
+	else if (strcmp(lpszElem,"AC") == 0)
+		dZ = 89.0;
+	else if (strcmp(lpszElem,"TH") == 0)
+		dZ = 90.0;
+	else if (strcmp(lpszElem,"PA") == 0)
+		dZ = 91.0;
+	else if (strcmp(lpszElem,"U") == 0)
+		dZ = 92.0;
+	else if (strcmp(lpszElem,"NP") == 0)
+		dZ = 93.0;
+	else if (strcmp(lpszElem,"PU") == 0)
+		dZ = 94.0;
+	else if (strcmp(lpszElem,"AM") == 0)
+		dZ = 95.0;
+	else if (strcmp(lpszElem,"CM") == 0)
+		dZ = 96.0;
+	else if (strcmp(lpszElem,"BK") == 0)
+		dZ = 97.0;
+	else if (strcmp(lpszElem,"CF") == 0)
+		dZ = 98.0;
+	else if (strcmp(lpszElem,"ES") == 0)
+		dZ = 99.0;
+	else if (strcmp(lpszElem,"FM") == 0)
+		dZ = 100.0;
+	else if (strcmp(lpszElem,"MD") == 0)
+		dZ = 101.0;
+	else if (strcmp(lpszElem,"NO") == 0)
+		dZ = 102.0;
+	else if (strcmp(lpszElem,"LR") == 0)
+		dZ = 103.0;
+	else if (strcmp(lpszElem,"RF") == 0)
+		dZ = 104.0;
+	else if (strcmp(lpszElem,"DB") == 0)
+		dZ = 105.0;
+	else if (strcmp(lpszElem,"SG") == 0)
+		dZ = 106.0;
+	else if (strcmp(lpszElem,"BH") == 0)
+		dZ = 107.0;
+	else if (strcmp(lpszElem,"HS") == 0)
+		dZ = 108.0;
+	else if (strcmp(lpszElem,"MT") == 0)
+		dZ = 109.0;
+	else if (strcmp(lpszElem,"DS") == 0)
+		dZ = 110.0;
+	else if (strcmp(lpszElem,"RG") == 0)
+		dZ = 111.0;
+	else if (strcmp(lpszElem,"CN") == 0)
+		dZ = 112.0;
+	else if (strcmp(lpszElem,"UUT") == 0)
+		dZ = 113.0;
+	else if (strcmp(lpszElem,"FL") == 0)
+		dZ = 114.0;
+	else if (strcmp(lpszElem,"UUP") == 0)
+		dZ = 115.0;
+	else if (strcmp(lpszElem,"LV") == 0)
+		dZ = 116.0;
+	else if (strcmp(lpszElem,"UUS") == 0)
+		dZ = 117.0;
+	else if (strcmp(lpszElem,"UUO") == 0)
+		dZ = 118.0;
+
+	return dZ;
+}
+
+void	ABUNDANCE_LIST::Read_Table(ABUNDANCE_TYPE i_eAbundance_Type)
+{
+	char * lpszData_Path = getenv("LINE_ANALYSIS_DATA_PATH");
+	if (lpszData_Path)
+	{
+		char lpszFilename[256] = {0};
+		switch (i_eAbundance_Type)
+		{
+		case Solar:
+			sprintf(lpszFilename,"%s/Solar_Abundance.csv",lpszData_Path);
+			break;
+		case Seitenzahl_N100_2013:
+			sprintf(lpszFilename,"%s/Seitenzahl_N100_2013.csv",lpszData_Path);
+			break;
+		}
+		if (lpszFilename[0] != 0)
+			Read_Table(lpszFilename);
+	}
+	else
+		fprintf(stderr,"LINE_ANALYSIS_DATA_PATH is not set.  Ensure this variable is set before \nusing this version of ABUNDANCE_LIST::Read_Table.\n");
+}
+void	ABUNDANCE_LIST::Read_Table(const char * i_lpszFilename)
+{
+	XDATASET_ADVANCED	cAbundance_File;
+	XDATASET_ADVANCED::DATATYPE	lpeRecord_Descriptor[] = {XDATASET_ADVANCED::XDT_STRING, XDATASET_ADVANCED::XDT_UINT, XDATASET_ADVANCED::XDT_DOUBLE, XDATASET_ADVANCED::XDT_DOUBLE, XDATASET_ADVANCED::XDT_STRING};
+	cAbundance_File.DescribeRecord(lpeRecord_Descriptor,5);
+	cAbundance_File.ReadDataFile(i_lpszFilename,false,',','\"');
+	memset(m_dAbundances,0,sizeof(m_dAbundances));
+	if (cAbundance_File.GetNumRows() > 0)
+	{
+		double	dAbd_Sum = 0.0;
+		for (unsigned int uiI = 0; uiI < cAbundance_File.GetNumRows(); uiI++)
+		{
+			double dZ = Get_Element_Number(cAbundance_File.GetElementString(0,uiI));
+			unsigned int uiZ = (unsigned int)(dZ);
+//			printf("Load %i %f\n",uiZ,cAbundance_File.GetElementDbl(2,uiI));
+			if (uiZ <= 118)
+			{
+				double	dAbd_Curr = pow(10.0,cAbundance_File.GetElementDbl(2,uiI));
+				m_dAbundances[uiZ] += dAbd_Curr;
+				m_dUncertainties[uiZ] += pow(10.0,cAbundance_File.GetElementDbl(3,uiI));
+				dAbd_Sum += dAbd_Curr;
+			}
+			else
+				fprintf(stderr,"Could not find atomic number for element %s in file %s.\n",cAbundance_File.GetElementString(0,uiI), i_lpszFilename);
+		}
+		double	dInv_Abd_Total = 1.0 / dAbd_Sum;
+		for (unsigned int uiZ = 0; uiZ < 128; uiZ++)
+		{
+			m_dAbundances[uiZ] *= dInv_Abd_Total;
+			m_dUncertainties[uiZ] *= dInv_Abd_Total;
+		}
+	}
+	else
+		fprintf(stderr,"Could not open abundance file %s.\n",i_lpszFilename);
+}
+
+// Gamezo et al abundance information is group abundance.  Normalize the abundances for the individual groups instead of whoel abundances
+void	ABUNDANCE_LIST::Normalize_Groups(void)
+{
+	// Mg group: F to Al
+	double	dSum = 0.0;
+	for (unsigned int uiZ = 9; uiZ < 14; uiZ++)
+		dSum += m_dAbundances[uiZ];
+	double	dInv_Abd_Total = 1.0 / dSum;
+	for (unsigned int uiZ = 9; uiZ < 14; uiZ++)
+	{
+		m_dAbundances[uiZ] *= dInv_Abd_Total;
+		m_dUncertainties[uiZ] *= dInv_Abd_Total;
+	}
+
+	// Si group: Si to Mn
+	dSum = 0.0;
+	for (unsigned int uiZ = 14; uiZ < 26; uiZ++)
+		dSum += m_dAbundances[uiZ];
+	dInv_Abd_Total = 1.0 / dSum;
+	for (unsigned int uiZ = 14; uiZ < 26; uiZ++)
+	{
+		m_dAbundances[uiZ] *= dInv_Abd_Total;
+		m_dUncertainties[uiZ] *= dInv_Abd_Total;
+	}
+
+	// Fe group: Fe to Uuo (really more like Fe to Zn or Ge)
+	dSum = 0.0;
+	for (unsigned int uiZ = 26; uiZ < 119; uiZ++)
+		dSum += m_dAbundances[uiZ];
+	dInv_Abd_Total = 1.0 / dSum;
+	for (unsigned int uiZ = 26; uiZ < 119; uiZ++)
+	{
+		m_dAbundances[uiZ] *= dInv_Abd_Total;
+		m_dUncertainties[uiZ] *= dInv_Abd_Total;
+	}
 }
 
