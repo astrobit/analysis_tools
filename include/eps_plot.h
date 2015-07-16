@@ -3,6 +3,8 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <vector>
+#include <cmath>
+#include <cstdio>
 
 
 namespace	epsplot
