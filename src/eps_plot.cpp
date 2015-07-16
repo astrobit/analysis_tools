@@ -1036,6 +1036,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 		cEPS.State_Pop();
 		cEPS.Comment("Axis labels and ticks");
 		cEPS.State_Push();
+		cEPS.Translate(dGraph_Offset_X,dGraph_Offset_Y);
 		cEPS.Set_Line_Width(2.0);
 		uiI = 0;
 		if (m_cX_Axis_Parameters.size() == 0 && cX_Axis_Default.m_dRange != 0.0)
@@ -1073,8 +1074,8 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			{
 				if (dVal >= cX_Axis_Default.m_dLower_Limit && dVal <= cX_Axis_Default.m_dUpper_Limit) // just to make sure
 				{
-					double dX = cX_Axis_Default.Scale(dVal) + dGraph_Offset_X;
-					double dY = (uiI % 2) * dGraph_Space_Y + dGraph_Offset_Y;
+					double dX = cX_Axis_Default.Scale(dVal);
+					double dY = (uiI % 2) * dGraph_Space_Y;
 					bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 					cEPS.Set_Line_Width(bMajor_Test ? cX_Axis_Default.m_cParameters.m_dMajor_Tick_Width : cX_Axis_Default.m_cParameters.m_dMinor_Tick_Width);
 					cEPS.Move_To(dX,dY);
@@ -1098,16 +1099,6 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 			{
 				// round minimum axis value to nearest major tick
-				double dDir;
-			
-				if ((*cAxis_Iter).m_cParameters.m_bInvert)
-				{
-					dDir = -1.0;
-				}
-				else
-				{
-					dDir = 1.0;
-				}
 				if (!(*cAxis_Iter).m_cParameters.m_bLog)
 				{
 					double dLogRange = log10(fabs((*cAxis_Iter).m_dRange));
@@ -1136,15 +1127,21 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					else
 						strcpy(lpszFormat,"%.0f");
 					double	dStart = XRoundNearest((*cAxis_Iter).m_dStart,dMinor_Ticks);
+					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
 					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : 5.0;
-					for (double dVal = dStart; dVal <= (*cAxis_Iter).m_dEnd; dVal += dMinor_Ticks * dDir)
+					if ((*cAxis_Iter).m_cParameters.m_bInvert)
+					{
+						dStart =  XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
+						dEnd =  XRoundNearest((*cAxis_Iter).m_dStart,dMinor_Ticks);
+					}
+					for (double dVal = dStart; dVal <= dEnd; dVal += dMinor_Ticks)
 					{
 						if (dVal >= (*cAxis_Iter).m_dLower_Limit && dVal <= (*cAxis_Iter).m_dUpper_Limit) // just to make sure
 						{
-							double dX = (*cAxis_Iter).Scale(dVal) + dGraph_Offset_X;
-							double dY = (uiI % 2) * dGraph_Space_Y + dGraph_Offset_Y;
+							double dX = (*cAxis_Iter).Scale(dVal);
+							double dY = (uiI % 2) * dGraph_Space_Y;
 							bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 							cEPS.Set_Line_Width(bMajor_Test ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Width : (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Width);
 							cEPS.Move_To(dX,dY);
@@ -1200,15 +1197,21 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			else
 				strcpy(lpszFormat,"%.0f");
 			double	dStart = XRoundNearest(cY_Axis_Default.m_dStart,dMinor_Ticks);
+			double	dEnd = XRoundNearest(cY_Axis_Default.m_dEnd,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
 			double	dDeltaText = ((uiI % 2) == 0) ? -(cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length) : 5.0;
-			for (double dVal = dStart; dVal <= cY_Axis_Default.m_dEnd; dVal += dMinor_Ticks)
+			if (cY_Axis_Default.m_cParameters.m_bInvert)
+			{
+				dStart =  XRoundNearest(cY_Axis_Default.m_dEnd,dMinor_Ticks);
+				dEnd =  XRoundNearest(cY_Axis_Default.m_dStart,dMinor_Ticks);
+			}
+			for (double dVal = dStart; dVal <= dEnd; dVal += dMinor_Ticks)
 			{
 				if (dVal >= cY_Axis_Default.m_dLower_Limit && dVal <= cY_Axis_Default.m_dUpper_Limit) // just to make sure
 				{
-					double dY = cY_Axis_Default.Scale(dVal) + dGraph_Offset_X;
-					double dX = (uiI % 2) * dGraph_Space_X + dGraph_Offset_X;
+					double dY = cY_Axis_Default.Scale(dVal);
+					double dX = (uiI % 2) * dGraph_Space_X;
 					bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 					cEPS.Set_Line_Width(bMajor_Test ? cY_Axis_Default.m_cParameters.m_dMajor_Tick_Width : cY_Axis_Default.m_cParameters.m_dMinor_Tick_Width);
 					cEPS.Move_To(dX,dY);
@@ -1232,16 +1235,6 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 			{
 				// round minimum axis value to nearest major tick
-				double dDir;
-			
-				if ((*cAxis_Iter).m_cParameters.m_bInvert)
-				{
-					dDir = -1.0;
-				}
-				else
-				{
-					dDir = 1.0;
-				}
 				if (!(*cAxis_Iter).m_cParameters.m_bLog)
 				{
 					double dLogRange = log10(fabs((*cAxis_Iter).m_dRange));
@@ -1274,12 +1267,19 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
 					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : 5.0;
-					for (double dVal = dStart; dVal <= dEnd; dVal += dMinor_Ticks * dDir)
+//					printf("Y %f %f %f (%f %f)\n",dStart,dEnd,dMinor_Ticks,(*cAxis_Iter).m_dLower_Limit,(*cAxis_Iter).m_dUpper_Limit);
+					if ((*cAxis_Iter).m_cParameters.m_bInvert)
+					{
+						dStart =  XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
+						dEnd =  XRoundNearest((*cAxis_Iter).m_dStart,dMinor_Ticks);
+					}
+
+					for (double dVal = dStart; dVal <= dEnd; dVal += dMinor_Ticks)
 					{
 						if (dVal >= (*cAxis_Iter).m_dLower_Limit && dVal <= (*cAxis_Iter).m_dUpper_Limit) // just to make sure
 						{
-							double dY = (*cAxis_Iter).Scale(dVal) + dGraph_Offset_X;
-							double dX = (uiI % 2) * dGraph_Space_X + dGraph_Offset_X;
+							double dY = (*cAxis_Iter).Scale(dVal);
+							double dX = (uiI % 2) * dGraph_Space_X;
 							bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 							cEPS.Set_Line_Width(bMajor_Test ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Width : (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Width);
 							cEPS.Move_To(dX,dY);
@@ -1288,6 +1288,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 							else
 								cEPS.Line_To(dX + dDeltaTickMinor,dY);
 							cEPS.Stroke();
+//							printf("%f (%f %f) (%f %f)\n",dVal,dX,dY,dX + dDeltaTickMajor,dY);
 							if (bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Major_Indices)
 							{
 								char lpszValue[16];
