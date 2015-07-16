@@ -666,15 +666,31 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
 	cX_Axis_Parameters.m_dLower_Limit = -50.0;
 	cX_Axis_Parameters.m_dUpper_Limit = 100.0;
+	cX_Axis_Parameters.m_bInvert = true;
 	cPlot.Modify_X_Axis_Parameters( uiX_Axis, cX_Axis_Parameters);
 	
 	double dWL_Ref = Get_WL_Ref(OINIR);
 	for (unsigned int uiI = 0; uiI < uiSpectra_Count; uiI++)
 	{
-		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-8;
+		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
+//		printf("%e %e %f\n",lpdSpectra_WL[uiI],lpdSpectra_Vel[uiI],dWL_Ref);
 	}
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	cPlot.Set_Plot_Filename(lpszFilename);
+	cPlot.Plot(cPlot_Parameters);
 
+
+	sprintf(lpszFilename,"%s.Si6355.eps",lpszOutput_Name);
+	
+	dWL_Ref = Get_WL_Ref(SI6355);
+	for (unsigned int uiI = 0; uiI < uiSpectra_Count; uiI++)
+	{
+		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
+//		printf("%e %e %f\n",lpdSpectra_WL[uiI],lpdSpectra_Vel[uiI],dWL_Ref);
+	}
+	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	cPlot.Set_Plot_Filename(lpszFilename);
+	cPlot.Plot(cPlot_Parameters);
 
 
 	sprintf(lpszFilename,"%s.dat",lpszOutput_Name);
