@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps
 
 .PHONY: all
 
@@ -229,6 +229,10 @@ $(BINDIR)/mve_vels: $(SRCDIR)/mve_velocity_plot.cpp $(XLIBSCHANGE)
 multiion: $(BINDIR)/multiion
 $(BINDIR)/multiion: $(SRCDIR)/multiion_spectra.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/multiion_spectra.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/multiion
+
+testeps: $(BINDIR)/testeps
+$(BINDIR)/testeps: $(SRCDIR)/testeps.cpp  $(LIBDIR)/libplotutil.a $(XLIBSCHANGE)
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/testeps.cpp $(ESFLAGS) $(PLOTUTILLIB) -lxio -lxstdlib -o $(BINDIR)/testeps
 
 clean:
 	-rm $(BINDIR)/*

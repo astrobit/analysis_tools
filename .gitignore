@@ -32,3 +32,7 @@ obj/*
 *.exe
 *.out
 *.app
+
+# test outputs
+test*.eps
+
