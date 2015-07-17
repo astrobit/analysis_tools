@@ -448,17 +448,21 @@ namespace	epsplot
 		double			m_dStart; // generated and used at plot time
 		double			m_dEnd; // generated and used at plot time
 
+		void Reset_Limits(void)
+		{
+			m_dScale = m_dRange = m_dUpper_Limit = m_dLower_Limit = nan("");
+		}
 		AXIS_METADATA(void) : m_cParameters()
 		{
 			m_bEnabled = true;
 			m_uiIdentifier = -1;
-			m_dScale = m_dRange = m_dUpper_Limit = m_dLower_Limit = nan("");
+			Reset_Limits();
 		}
 		AXIS_METADATA(const AXIS_PARAMETERS & i_cAxis_Parameters) : m_cParameters(i_cAxis_Parameters)
 		{
 			m_bEnabled = true;
 			m_uiIdentifier = -1;
-			m_dScale = m_dRange = m_dUpper_Limit = m_dLower_Limit = nan("");
+			Reset_Limits();
 		}
 
 		void Adjust_Limits(const double & i_dValue)

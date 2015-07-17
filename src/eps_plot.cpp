@@ -724,6 +724,15 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 		//double	dSingle_Plot_Space_X = dGraph_Space_X / i_cGrid.m_uiNum_Columns;
 		//double	dSingle_Plot_Space_Y = dGraph_Space_Y / i_cGrid.m_uiNum_Rows;
 
+		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Reset_Limits();
+		}
+		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Reset_Limits();
+		}
+
 		for (std::vector<PLOT_ITEM *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
 			PLOT_ITEM * lpCurr = *cPlot_Item_Iter;
