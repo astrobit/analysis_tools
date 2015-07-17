@@ -1866,6 +1866,9 @@ void	ABUNDANCE_LIST::Read_Table(ABUNDANCE_TYPE i_eAbundance_Type)
 		case Solar:
 			sprintf(lpszFilename,"%s/Solar_Abundance.csv",lpszData_Path);
 			break;
+		case CO_Rich:
+			sprintf(lpszFilename,"%s/CO_Rich_Abundance.csv",lpszData_Path);
+			break;
 		case Seitenzahl_N100_2013:
 			sprintf(lpszFilename,"%s/Seitenzahl_N100_2013.csv",lpszData_Path);
 			break;
