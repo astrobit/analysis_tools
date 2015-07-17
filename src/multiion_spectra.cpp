@@ -719,7 +719,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiPlot_Data_ID_Comp[9];
 	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
 	{
-		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI + 1);
 //		cLine_Parameters.m_eStipple = epsplot::SOLID;
 		uiPlot_Data_ID_Comp[uiI] = cPlot.Set_Plot_Data(lpdRef_Spectra_WL[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
 	}
@@ -753,7 +753,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
 	{
-		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI + 1);
 		cPlot.Modify_Plot_Data(uiPlot_Data_ID_Comp[uiI],lpdRef_Spectra_Vel[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
 	}
 
@@ -778,7 +778,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
 	{
-		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI + 1);
 		cPlot.Modify_Plot_Data(uiPlot_Data_ID_Comp[uiI],lpdRef_Spectra_Vel[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
 	}
 	cPlot.Set_Plot_Filename(lpszFilename);
@@ -802,7 +802,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
 	{
-		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI + 1);
 		cPlot.Modify_Plot_Data(uiPlot_Data_ID_Comp[uiI],lpdRef_Spectra_Vel[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
 	}
 	cPlot.Set_Plot_Filename(lpszFilename);
