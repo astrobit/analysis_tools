@@ -328,6 +328,17 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output-name",lpszOutput_Name,sizeof(lpszOutput_Name),"");
     unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
 	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
+	const char *	lpszRef_Spectrum[6];
+	lpszRef_Spectrum[0] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-1");
+	lpszRef_Spectrum[1] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-2");
+	lpszRef_Spectrum[2] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-3");
+	lpszRef_Spectrum[3] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-4");
+	lpszRef_Spectrum[4] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-5");
+	lpszRef_Spectrum[5] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-6");
+	lpszRef_Spectrum[6] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-7");
+	lpszRef_Spectrum[7] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-8");
+	lpszRef_Spectrum[8] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-9");
+
 	char lpszRef_Model_Extended[128] = {0};
 	if (lpszRef_Model && lpszRef_Model[0] >= '0' && lpszRef_Model[0] <= '9') // just a number, convert into "runXX")
 	{
@@ -555,6 +566,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	lpcSpectrum[1] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
 	lpcSpectrum[2] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
 	lpcSpectrum[3] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
+	ES::Spectrum cComparison_Spectra[9];
+	for (unsigned int uiI = 0; uiI < 9; uiI++)
+	{
+		if (lpszRef_Spectrum[uiI])
+			 cComparison_Spectra[uiI] = ES::Spectrum::create_from_ascii_file(lpszRef_Spectrum[uiI]);
+	}
 	XVECTOR cContinuum_Parameters(7);
 
 //		printf("here 1\n");
@@ -613,6 +630,44 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	Get_Spectra_Data(lpcSpectrum[2], lpdSpectra_WL_EO, lpdSpectra_Flux_EO, uiSpectra_Count_EO, dRange_Min, dRange_Max);
 	Get_Spectra_Data(lpcSpectrum[3], lpdSpectra_WL_SO, lpdSpectra_Flux_SO, uiSpectra_Count_SO, dRange_Min, dRange_Max);
 
+	double * lpdRef_Spectra_WL[9];
+	double * lpdRef_Spectra_Vel[9];
+	double * lpdRef_Spectra_Flux[9];
+
+	unsigned int uiRef_Spectra_Count[9];
+	unsigned int uiNum_Ref_Spectra = 0;
+	double	dRef_Flux = -1.0;
+	for (unsigned int uiI = 0; uiI < uiSpectra_Count && dRef_Flux < 0.0; uiI++)
+	{
+		if (lpdSpectra_WL[uiI] > 6500.0 && lpdSpectra_Flux[uiI] > 0.0)
+			dRef_Flux = lpdSpectra_Flux[uiI];
+	}
+	for (unsigned int uiI = 0; uiI < 9; uiI++)
+	{
+		lpdRef_Spectra_WL[uiI] = NULL;
+		lpdRef_Spectra_Flux[uiI] = NULL;
+		lpdRef_Spectra_Vel[uiI] = NULL;
+		uiRef_Spectra_Count[uiI] = 0;
+
+		if (cComparison_Spectra[uiI].size() > 0)
+		{
+			Get_Spectra_Data(cComparison_Spectra[uiI], lpdRef_Spectra_WL[uiNum_Ref_Spectra], lpdRef_Spectra_Flux[uiNum_Ref_Spectra], uiRef_Spectra_Count[uiNum_Ref_Spectra], dRange_Min, dRange_Max);
+			double dRef_Comp_Flux = -1.0;
+			for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiNum_Ref_Spectra] && dRef_Comp_Flux < 0.0; uiJ++)
+			{
+				if (lpdRef_Spectra_WL[uiNum_Ref_Spectra][uiJ] > 6500.0 && lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ] > 0.0)
+					dRef_Comp_Flux = lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ];
+			}
+			for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiNum_Ref_Spectra]; uiJ++)
+			{
+				lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ] *= (dRef_Flux / dRef_Comp_Flux);
+			}
+			lpdRef_Spectra_Vel[uiNum_Ref_Spectra] = new double[uiRef_Spectra_Count[uiNum_Ref_Spectra]];
+			uiNum_Ref_Spectra++;
+		}
+
+	}
+
 	lpdSpectra_Vel = new double[uiSpectra_Count];
 
 	epsplot::LINE_PARAMETERS cLine_Parameters;
@@ -661,6 +716,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
 
 	unsigned int uiPlot_Data_ID = cPlot.Set_Plot_Data(lpdSpectra_WL, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	unsigned int uiPlot_Data_ID_Comp[9];
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+	{
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+//		cLine_Parameters.m_eStipple = epsplot::SOLID;
+		uiPlot_Data_ID_Comp[uiI] = cPlot.Set_Plot_Data(lpdRef_Spectra_WL[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
+	}
+
+
 	cPlot.Set_Plot_Filename(lpszOutput_Name);
 	cPlot.Plot(cPlot_Parameters);
 
@@ -679,7 +743,20 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
 //		printf("%e %e %f\n",lpdSpectra_WL[uiI],lpdSpectra_Vel[uiI],dWL_Ref);
 	}
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+		for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiI]; uiJ++)
+		{
+			lpdRef_Spectra_Vel[uiI][uiJ] = -Compute_Velocity(lpdRef_Spectra_WL[uiI][uiJ], dWL_Ref) * 1.0e-3;
+		}
+
+	cLine_Parameters.m_eColor = epsplot::BLACK;
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+	{
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cPlot.Modify_Plot_Data(uiPlot_Data_ID_Comp[uiI],lpdRef_Spectra_Vel[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
+	}
+
 	cPlot.Set_Plot_Filename(lpszFilename);
 	cPlot.Plot(cPlot_Parameters);
 
@@ -692,7 +769,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
 //		printf("%e %e %f\n",lpdSpectra_WL[uiI],lpdSpectra_Vel[uiI],dWL_Ref);
 	}
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+		for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiI]; uiJ++)
+		{
+			lpdRef_Spectra_Vel[uiI][uiJ] = -Compute_Velocity(lpdRef_Spectra_WL[uiI][uiJ], dWL_Ref) * 1.0e-3;
+		}
+	cLine_Parameters.m_eColor = epsplot::BLACK;
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+	{
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cPlot.Modify_Plot_Data(uiPlot_Data_ID_Comp[uiI],lpdRef_Spectra_Vel[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
+	}
 	cPlot.Set_Plot_Filename(lpszFilename);
 	cPlot.Plot(cPlot_Parameters);
 
@@ -704,7 +792,19 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
 //		printf("%e %e %f\n",lpdSpectra_WL[uiI],lpdSpectra_Vel[uiI],dWL_Ref);
 	}
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+		for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiI]; uiJ++)
+		{
+			lpdRef_Spectra_Vel[uiI][uiJ] = -Compute_Velocity(lpdRef_Spectra_WL[uiI][uiJ], dWL_Ref) * 1.0e-3;
+		}
+
+	cLine_Parameters.m_eColor = epsplot::BLACK;
 	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
+	{
+		cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + uiI);
+		cPlot.Modify_Plot_Data(uiPlot_Data_ID_Comp[uiI],lpdRef_Spectra_Vel[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
+	}
 	cPlot.Set_Plot_Filename(lpszFilename);
 	cPlot.Plot(cPlot_Parameters);
 
