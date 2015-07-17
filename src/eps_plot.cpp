@@ -741,7 +741,56 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			RECTANGLE_ITEM * lpcRectangle = NULL;
 			TEXT_ITEM * lpcText = NULL;
 
-			double	dXminLcl = DBL_MAX, dXmaxLcl = -DBL_MAX, dYminLcl = DBL_MAX, dYmaxLcl = -DBL_MAX;
+//			double	dXminLcl = DBL_MAX, dXmaxLcl = -DBL_MAX;
+			AXIS_METADATA * lpX_Axis;
+
+			if (m_cX_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[0] >= m_cX_Axis_Parameters.size())
+				lpX_Axis = &cX_Axis_Default;
+			else
+				lpX_Axis = &m_cX_Axis_Parameters[lpCurr->m_uiPlot_Axes_To_Use[0]];
+
+			switch (lpCurr->m_eType)
+			{
+			case TYPE_LINE:
+				lpcLine = (LINE_ITEM *) lpCurr;
+				for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
+				{
+					lpX_Axis->Adjust_Limits(lpcLine->m_lpdData_X[uiJ]);
+				}
+				break;
+			case TYPE_SYMBOL:
+				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
+				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
+				{
+					lpX_Axis->Adjust_Limits(lpcSymbol->m_lpdData_X[uiJ]);
+				}
+				break;
+			case TYPE_RECTANGLE:
+				lpcRectangle = (RECTANGLE_ITEM *) lpCurr;
+				lpX_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
+				lpX_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max);
+				break;
+			case TYPE_TEXT:
+//				lpcText = (TEXT_ITEM *) lpCurr;
+				//Do not adjust axis limits to accomodate text.
+				break;
+			}
+		}
+		cX_Axis_Default.Finalize_Limit(dGraph_Space_X);
+		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Finalize_Limit(dGraph_Space_X);
+		}
+
+		for (std::vector<PLOT_ITEM *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
+		{
+			PLOT_ITEM * lpCurr = *cPlot_Item_Iter;
+			LINE_ITEM * lpcLine = NULL;
+			SYMBOL_ITEM * lpcSymbol = NULL;
+			RECTANGLE_ITEM * lpcRectangle = NULL;
+			TEXT_ITEM * lpcText = NULL;
+
+//			double	dYminLcl = DBL_MAX, dYmaxLcl = -DBL_MAX;
 			AXIS_METADATA * lpX_Axis;
 			AXIS_METADATA * lpY_Axis;
 
@@ -760,24 +809,27 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				lpcLine = (LINE_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
 				{
-					lpX_Axis->Adjust_Limits(lpcLine->m_lpdData_X[uiJ]);
-					lpY_Axis->Adjust_Limits(lpcLine->m_lpdData_Y[uiJ]);
+					if (lpcLine->m_lpdData_X[uiJ] >= lpX_Axis->m_dLower_Limit && lpcLine->m_lpdData_X[uiJ] <= lpX_Axis->m_dUpper_Limit)
+						lpY_Axis->Adjust_Limits(lpcLine->m_lpdData_Y[uiJ]);
 				}
 				break;
 			case TYPE_SYMBOL:
 				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 				{
-					lpX_Axis->Adjust_Limits(lpcSymbol->m_lpdData_X[uiJ]);
-					lpY_Axis->Adjust_Limits(lpcSymbol->m_lpdData_Y[uiJ]);
+					if (lpcLine->m_lpdData_X[uiJ] >= lpX_Axis->m_dLower_Limit && lpcLine->m_lpdData_X[uiJ] <= lpX_Axis->m_dUpper_Limit)
+						lpY_Axis->Adjust_Limits(lpcSymbol->m_lpdData_Y[uiJ]);
 				}
 				break;
 			case TYPE_RECTANGLE:
 				lpcRectangle = (RECTANGLE_ITEM *) lpCurr;
-				lpX_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
-				lpX_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max);
-				lpY_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
-				lpY_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_max);
+					if ((lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min >= lpX_Axis->m_dLower_Limit && lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min <= lpX_Axis->m_dUpper_Limit) ||
+(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max >= lpX_Axis->m_dLower_Limit && lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max <= lpX_Axis->m_dUpper_Limit) ||
+(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max < lpX_Axis->m_dLower_Limit && lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max > lpX_Axis->m_dUpper_Limit))
+				{
+					lpY_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
+					lpY_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_max);
+				}
 				break;
 			case TYPE_TEXT:
 //				lpcText = (TEXT_ITEM *) lpCurr;
@@ -785,13 +837,8 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				break;
 			}
 		}
-		cX_Axis_Default.Finalize_Limit(dGraph_Space_X);
 		cY_Axis_Default.Finalize_Limit(dGraph_Space_Y);
 
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
-		{
-			(*cAxis_Iter).Finalize_Limit(dGraph_Space_X);
-		}
 		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Finalize_Limit(dGraph_Space_Y);
