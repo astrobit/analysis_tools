@@ -348,6 +348,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cShell_Abd.Read_Table(Solar);
 	else if (strcmp(lpszShell_Abundance,"Seitenzahl") == 0)
 		cShell_Abd.Read_Table(Seitenzahl_N100_2013);
+	else if (strcmp(lpszShell_Abundance,"CO_Rich") == 0)
+		cShell_Abd.Read_Table(CO_Rich);
 	else
 		fprintf(stderr,"Unable to identify shell abundance type\n");
 
@@ -355,6 +357,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cEjecta_Abd.Read_Table(Solar);
 	else if (strcmp(lpszEjecta_Abundance,"Seitenzahl") == 0)
 		cEjecta_Abd.Read_Table(Seitenzahl_N100_2013);
+	else if (strcmp(lpszEjecta_Abundance,"CO_Rich") == 0)
+		cEjecta_Abd.Read_Table(CO_Rich);
 	else
 		fprintf(stderr,"Unable to identify ejecta abundance type\n");
 
@@ -664,8 +668,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	sprintf(lpszFilename,"%s.OI.eps",lpszOutput_Name);
 	cX_Axis_Parameters.Set_Title("Velocity [1,000 km/s]");
 	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
-	cX_Axis_Parameters.m_dLower_Limit = -50.0;
-	cX_Axis_Parameters.m_dUpper_Limit = 100.0;
+	cX_Axis_Parameters.m_dLower_Limit = -20.0;
+	cX_Axis_Parameters.m_dUpper_Limit = 50.0;
 	cX_Axis_Parameters.m_bInvert = true;
 	cPlot.Modify_X_Axis_Parameters( uiX_Axis, cX_Axis_Parameters);
 	
@@ -683,6 +687,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	sprintf(lpszFilename,"%s.Si6355.eps",lpszOutput_Name);
 	
 	dWL_Ref = Get_WL_Ref(SI6355);
+	for (unsigned int uiI = 0; uiI < uiSpectra_Count; uiI++)
+	{
+		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
+//		printf("%e %e %f\n",lpdSpectra_WL[uiI],lpdSpectra_Vel[uiI],dWL_Ref);
+	}
+	cPlot.Modify_Plot_Data(uiPlot_Data_ID,lpdSpectra_Vel, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+	cPlot.Set_Plot_Filename(lpszFilename);
+	cPlot.Plot(cPlot_Parameters);
+
+	sprintf(lpszFilename,"%s.CaNIR.eps",lpszOutput_Name);
+	
+	dWL_Ref = Get_WL_Ref(CANIR);
 	for (unsigned int uiI = 0; uiI < uiSpectra_Count; uiI++)
 	{
 		lpdSpectra_Vel[uiI] = -Compute_Velocity(lpdSpectra_WL[uiI], dWL_Ref) * 1.0e-3;
