@@ -22,9 +22,9 @@ namespace	epsplot
 	class COLOR_TRIPLET
 	{
 	public:
-		double		m_dRed;
-		double		m_dGreen;
-		double		m_dBlue;
+		double		m_dRed; // 0.0 - 1.0
+		double		m_dGreen; // 0.0 - 1.0
+		double		m_dBlue; // 0.0 - 1.0
 
 		COLOR_TRIPLET(void) {m_dRed = m_dGreen = m_dBlue = 0.0;}
 		COLOR_TRIPLET(const double & i_dRed, const double & i_dGreen, const double & i_dBlue)
@@ -303,6 +303,28 @@ namespace	epsplot
 			m_eType = SQUARE;
 		}
 	};
+	class TEXT_PARAMETERS
+	{
+	public:
+		PS_FONT m_eFont;
+		bool m_bItalic;
+		bool m_bBold;
+		int m_iFont_Size;
+		double m_dRotation;
+		PS_HORIZONTAL_JUSTIFICATION m_eHorizontal_Justification;
+		PS_VERTICAL_JUSTIFICATION m_eVertical_Justification;
+
+		TEXT_PARAMETERS(void)
+		{
+			m_eFont = TIMES;
+			m_bItalic = false;
+			m_bBold = false;
+			m_iFont_Size = 18;
+			m_dRotation = 0.0;
+			m_eHorizontal_Justification = LEFT;
+			m_eVertical_Justification = TOP;
+		}
+	};		
 
 	enum ITEM_TYPE {TYPE_LINE,TYPE_SYMBOL,TYPE_RECTANGLE,TYPE_TEXT};
 	class	PLOT_ITEM
@@ -386,51 +408,43 @@ namespace	epsplot
 			m_ePlot_Area_Fill_Color = BLACK;
 		}
 	};
-	class TEXT_ITEM : public PLOT_ITEM //@@TODO : Text is not yet implemented; this class is a placeholder
+	class TEXT_ITEM : public PLOT_ITEM
 	{
 	private:
-		const char * m_lpszText;
+		char * m_lpszText;
+		size_t m_uiText_Alloc_Len;
 	public:
-		PS_FONT m_eFont;
-		bool m_bItalic;
-		bool m_bBold;
-		int m_iFont_Size;
-		PS_HORIZONTAL_JUSTIFICATION m_eHoirzontal_Justification;
-		PS_VERTICAL_JUSTIFICATION m_eVertical_Justification;
-		COLOR	m_eColor;
+		TEXT_PARAMETERS	m_cText_Parameters;
+		LINE_PARAMETERS	m_cLine_Parameters; // stipple is ignored
 		double m_dX;
 		double m_dY;
-		double m_dRotation;
-		double m_dLine_Width;
 
-		TEXT_ITEM(void) : PLOT_ITEM(TYPE_TEXT)
+		TEXT_ITEM(void) : PLOT_ITEM(TYPE_TEXT), m_cText_Parameters(), m_cLine_Parameters()
 		{
-			m_eFont = TIMES;
-			m_bItalic = false;
-			m_bBold = false;
-			m_iFont_Size = 18;
-			m_eHoirzontal_Justification = LEFT;
-			m_eVertical_Justification = TOP;
-			m_eColor = BLACK;
 			m_dX = 0.0;
 			m_dY = 0.0;
 			m_lpszText = NULL;
-			m_dRotation = 0.0;
-			m_dLine_Width = 1.0;
+			m_uiText_Alloc_Len = 0;
 		}
 		~TEXT_ITEM(void)
 		{
 			if (m_lpszText)
 				delete [] m_lpszText;
 			m_lpszText = NULL;
+			m_uiText_Alloc_Len = 0;
 		}
 		void Set_Text(const char * i_lpszText)
 		{
+			size_t uiLen = strlen(i_lpszText) + 1;
+			if (uiLen > m_uiText_Alloc_Len)
+			{
+				if (m_lpszText)
+					delete [] m_lpszText;
+				m_uiText_Alloc_Len = uiLen;
+				m_lpszText = new char[m_uiText_Alloc_Len];
+			}
 			if (m_lpszText)
-				delete [] m_lpszText;
-			char * lpszText = new char[strlen(i_lpszText) + 1];
-			strcpy(lpszText,i_lpszText);
-			m_lpszText = lpszText;
+				strcpy(m_lpszText,i_lpszText);
 		}
 		const char * Get_Text(void) const {return m_lpszText;}
 	};
@@ -659,6 +673,9 @@ namespace	epsplot
 		unsigned int	Set_Rectangle_Data(const RECTANGLE & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
 		unsigned int	Modify_Rectangle_Data(unsigned int i_uiPlot_Data_ID, const RECTANGLE & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
 
+	// Methods for text
+		unsigned int	Set_Text_Data(const double & i_dX, const double & i_dY, const char * i_lpszText, const LINE_PARAMETERS & i_cLine_Parameters, const TEXT_PARAMETERS & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
+		unsigned int	Modify_Text_Data(unsigned int i_uiText_Data_ID, const double & i_dX, const double & i_dY, const char * i_lpszText, const LINE_PARAMETERS & i_cLine_Parameters, const TEXT_PARAMETERS & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
 
 	// Methods for plotting
 		void	Plot(const PAGE_PARAMETERS & i_cGrid);

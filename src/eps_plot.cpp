@@ -441,6 +441,48 @@ unsigned int	DATA::Set_Rectangle_Data(const RECTANGLE & i_cArea, bool i_bFill, C
 	return uiRet;
 }
 
+unsigned int	DATA::Set_Text_Data(const double & i_dX, const double & i_dY, const char * i_lpszText, const LINE_PARAMETERS & i_cLine_Parameters, const TEXT_PARAMETERS & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+{
+	unsigned int uiRet = -1;
+	TEXT_ITEM * lpItem = new TEXT_ITEM;
+	if (lpItem)
+	{
+		uiRet = m_vcPlot_Item_List.size();
+
+		lpItem->Set_Text(i_lpszText);
+		lpItem->m_cLine_Parameters = i_cLine_Parameters;
+		lpItem->m_cText_Parameters = i_cText_Parameters;
+		lpItem->m_dX = i_dX;
+		lpItem->m_dY = i_dY;
+		lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_Type;
+		lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_Type;
+
+		m_vcPlot_Item_List.push_back(lpItem);
+	}
+	return uiRet;
+}
+
+unsigned int	DATA::Modify_Text_Data(unsigned int i_uiText_Data_ID, const double & i_dX, const double & i_dY, const char * i_lpszText, const LINE_PARAMETERS & i_cLine_Parameters, const TEXT_PARAMETERS & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+{
+	unsigned int uiRet = -1;
+	PLOT_ITEM * lpPlot_Item = NULL;
+	TEXT_ITEM * lpItem = NULL;
+	if (i_uiText_Data_ID < m_vcPlot_Item_List.size())
+		lpPlot_Item = m_vcPlot_Item_List[i_uiText_Data_ID];
+	if (lpPlot_Item && lpPlot_Item->m_eType == TYPE_TEXT)
+		lpItem = (TEXT_ITEM *)lpPlot_Item;
+	if (lpItem)
+	{
+		lpItem->Set_Text(i_lpszText);
+		lpItem->m_cLine_Parameters = i_cLine_Parameters;
+		lpItem->m_cText_Parameters = i_cText_Parameters;
+		lpItem->m_dX = i_dX;
+		lpItem->m_dY = i_dY;
+		lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_Type;
+		lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_Type;
+	}
+}
+
 std::vector<AXIS_METADATA> * DATA::Get_Axis_Metedata_Vector_Ptr(AXIS i_eAxis)
 {
 	std::vector<AXIS_METADATA> * lpvcAxis_Data;
@@ -1003,7 +1045,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				}
 				if (lpcRectangle->m_bDraw_Border)
 				{
-					sprintf(lpszText,"Rect Broder %i\n",uiI);
+					sprintf(lpszText,"Rect Border %i\n",uiI);
 					cEPS.Comment(lpszText);
 
 					if (lpcRectangle->m_cPlot_Border_Info.m_eColor != eCurr_Color)
@@ -1041,6 +1083,33 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					dY = m_cY_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[1]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
 					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
 						cEPS.Line_To(dX,dY);
+					cEPS.Stroke();
+				}
+				break;
+			case TYPE_TEXT:
+				lpcText = (TEXT_ITEM *) lpCurr;
+				if (lpcText->m_cLine_Parameters.m_eColor != eCurr_Color)
+				{
+					eCurr_Color = lpcText->m_cLine_Parameters.m_eColor;
+					cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+				}
+				if (lpcText->m_cLine_Parameters.m_dWidth != dCurr_Line_Width)
+				{
+					dCurr_Line_Width = lpcText->m_cLine_Parameters.m_dWidth;
+					cEPS.Set_Line_Width(dCurr_Line_Width);
+				}
+
+				{
+					char lpszText[32];
+					sprintf(lpszText,"Text %i (%s)\n",uiI,lpcText->Get_Text());
+					cEPS.Comment(lpszText);
+					double dX = lpX_Axis->Scale(lpcText->m_dX);
+					double dY = lpY_Axis->Scale(lpcText->m_dY);
+
+					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					{
+						cEPS.Text(lpcText->m_cText_Parameters.m_eFont, lpcText->m_cText_Parameters.m_bItalic, lpcText->m_cText_Parameters.m_bBold, lpcText->m_cText_Parameters.m_iFont_Size, lpcText->m_cText_Parameters.m_eHorizontal_Justification, lpcText->m_cText_Parameters.m_eVertical_Justification, Get_Color(eCurr_Color),dX, dY, lpcText->Get_Text(), lpcText->m_cText_Parameters.m_dRotation, lpcText->m_cLine_Parameters.m_dWidth);
+					}
 				}
 				break;
 			default:
