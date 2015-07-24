@@ -18,6 +18,7 @@
 #include <wordexp.h>
 #include <model_spectra_db.h>
 #include <opacity_profile_data.h>
+#include <vector>
 
 class GAUSS_FIT_PARAMETERS
 {
@@ -300,6 +301,83 @@ double Get_WL_Ref(tFit_Region i_eFit_Region)
 	return dWL_Ref;
 }
 
+class LINE_ID
+{
+public:
+	unsigned int 	m_uiIon;
+	double			m_dStart_Wavelength;
+	double			m_dEnd_Wavelength;
+	double			m_dCont_Flux;
+	double			m_dDraw_Flux;
+	double			m_dFeature_Min;
+};
+
+
+#define FIT_BLUE_WL 4500.0
+#define FIT_RED_WL 9000.0
+void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, double & o_dTarget_Flux, double & o_dGenerated_Flux)
+{
+	unsigned int uiIdx = 0;
+	double	dLuminosity_Target = 0.0, dLuminosity_Synth = 0.0;
+	double	dFit_Delta_Lambda_T = 0.0;
+	double	dFit_Delta_Lambda_G = 0.0;
+	while (uiIdx < i_cTarget.size() && i_cTarget.wl(uiIdx) < FIT_BLUE_WL)
+		uiIdx++;
+//	dFit_Delta_Lambda = -i_cTarget.wl(uiIdx);
+
+	while (uiIdx < i_cTarget.size() && i_cTarget.wl(uiIdx) < FIT_RED_WL)
+	{
+		double dDelta_Lambda_T;
+		if (uiIdx > 0 && uiIdx  < (i_cTarget.size() - 1))
+			dDelta_Lambda_T = (i_cTarget.wl(uiIdx + 1) - i_cTarget.wl(uiIdx - 1)) * 0.5;
+		else if (uiIdx == 0)
+			dDelta_Lambda_T = i_cTarget.wl(uiIdx + 1) - i_cTarget.wl(uiIdx);
+		else if (uiIdx == (i_cTarget.size() - 1))
+			dDelta_Lambda_T = i_cTarget.wl(uiIdx) - i_cTarget.wl(uiIdx - 1);
+
+		dLuminosity_Target += i_cTarget.flux(uiIdx) * dDelta_Lambda_T;
+		dFit_Delta_Lambda_T += dDelta_Lambda_T;
+		uiIdx++;
+	}
+
+	uiIdx = 0;
+	while (uiIdx < i_cGenerated.size() && i_cGenerated.wl(uiIdx) < FIT_BLUE_WL)
+		uiIdx++;
+//	dFit_Delta_Lambda = -i_cTarget.wl(uiIdx);
+
+	while (uiIdx < i_cGenerated.size() && i_cGenerated.wl(uiIdx) < FIT_RED_WL)
+	{
+		double dDelta_Lambda_G;
+		if (uiIdx > 0 && uiIdx  < (i_cGenerated.size() - 1))
+			dDelta_Lambda_G = (i_cGenerated.wl(uiIdx + 1) - i_cGenerated.wl(uiIdx - 1)) * 0.5;
+		else if (uiIdx == 0)
+			dDelta_Lambda_G = i_cGenerated.wl(uiIdx + 1) - i_cGenerated.wl(uiIdx);
+		else if (uiIdx == (i_cGenerated.size() - 1))
+			dDelta_Lambda_G = i_cGenerated.wl(uiIdx) - i_cGenerated.wl(uiIdx - 1);
+
+		dLuminosity_Synth += i_cGenerated.flux(uiIdx) * dDelta_Lambda_G;
+
+		dFit_Delta_Lambda_G += dDelta_Lambda_G;
+		uiIdx++;
+
+	}
+	uiIdx--;
+//	dFit_Delta_Lambda += i_cTarget.wl(uiIdx);
+
+	dLuminosity_Target /= dFit_Delta_Lambda_T; 
+	dLuminosity_Synth /= dFit_Delta_Lambda_G; 
+//	double dSynth_Normalization = dLuminosity_Synth / dLuminosity_Target;
+	o_dTarget_Flux = dLuminosity_Target * 0.5;// * 1.1;
+	o_dGenerated_Flux = dLuminosity_Synth * 0.5; //dSynth_Normalization;
+
+//	o_dTarget_Flux = i_cTarget.flux(uiIdx);
+
+//	double dSynth_Normalization = dLuminosity_Synth / dLuminosity_Target;
+//	o_dTarget_Flux = 1.0;
+//	o_dGenerated_Flux = dSynth_Normalization * o_dTarget_Flux;
+}
+
+
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
@@ -314,6 +392,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	ION_DATA	* lpcIon_Data;
 	ION_DATA	* lpcIon_Data_EO;
 	ION_DATA	* lpcIon_Data_SO;
+	ION_DATA	lpcIon_Data_Individual[2];
 	char	lpszModel[16];
 
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
@@ -562,17 +641,23 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 //	printf("Spectra\n");
 	ES::Spectrum lpcSpectrum[4];
+	XVECTOR cContinuum_Parameters(7);
 	lpcSpectrum[0] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
 	lpcSpectrum[1] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
 	lpcSpectrum[2] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
 	lpcSpectrum[3] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
+	ES::Spectrum *lpcSpectra_Individual = new ES::Spectrum[uiIon_Count];
 	ES::Spectrum cComparison_Spectra[9];
 	for (unsigned int uiI = 0; uiI < 9; uiI++)
 	{
 		if (lpszRef_Spectrum[uiI])
 			 cComparison_Spectra[uiI] = ES::Spectrum::create_from_ascii_file(lpszRef_Spectrum[uiI]);
 	}
-	XVECTOR cContinuum_Parameters(7);
+	
+	for (unsigned int uiI = 0; uiI < uiIon_Count; uiI++)
+	{
+		 lpcSpectra_Individual[uiI] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
+	}
 
 //		printf("here 1\n");
 
@@ -612,6 +697,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_SO, uiIon_Count, lpcSpectrum[3]);
 
 //	printf("Plot\n");
+	
 
 
 	double * lpdSpectra_WL = NULL;
@@ -630,18 +716,104 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	Get_Spectra_Data(lpcSpectrum[2], lpdSpectra_WL_EO, lpdSpectra_Flux_EO, uiSpectra_Count_EO, dRange_Min, dRange_Max);
 	Get_Spectra_Data(lpcSpectrum[3], lpdSpectra_WL_SO, lpdSpectra_Flux_SO, uiSpectra_Count_SO, dRange_Min, dRange_Max);
 
+	double * lpdSpectra_Ind_WL = NULL;
+	double * lpdSpectra_Ind_Flux = NULL;
+	unsigned int uiSpectra_Ind_Count = 0;
+	std::vector<LINE_ID>	vLine_IDs;
+	for (unsigned int uiI = uiIon_Count - 1; uiI < uiIon_Count ; uiI--)
+	{
+		unsigned int uiIdx = uiI * 2;
+		lpcIon_Data_Individual[0] = lpcIon_Data[uiIdx];
+		lpcIon_Data_Individual[1] = lpcIon_Data[uiIdx + 1];
+
+		Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_Individual, 2, lpcSpectra_Individual[uiI]);
+		Get_Spectra_Data(lpcSpectra_Individual[uiI], lpdSpectra_Ind_WL, lpdSpectra_Ind_Flux, uiSpectra_Ind_Count, dRange_Min, dRange_Max);
+
+		double dStart_WL = -1.0;
+		double	dLcl_Sum = 0.0;
+		double	dInv_9 = 1.0 / 9.0;
+		double	dLcl_Min = DBL_MAX;
+		for (unsigned int uiJ = 0; uiJ < uiSpectra_Ind_Count; uiJ++)
+		{
+			lpdSpectra_Ind_Flux[uiJ] /= lpdContinuum_Flux[uiJ];
+			if (uiJ < 8)
+				dLcl_Sum += lpdSpectra_Ind_Flux[uiJ];
+		}
+//		printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum / 8.0)); // 8 because the 9th point is added in the next loop	
+		for (unsigned int uiJ = 4; uiJ < uiSpectra_Ind_Count - 4; uiJ++)
+		{
+			dLcl_Sum += lpdSpectra_Ind_Flux[uiJ + 4];
+			if (uiJ > 4)
+				dLcl_Sum -= lpdSpectra_Ind_Flux[uiJ - 5];
+//			if (uiJ <= 6)
+//				printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum * dInv_9)); // 8 because the 9th point is added in the next loop	
+			if ((dStart_WL > 0.0) && (dLcl_Sum * dInv_9) < dLcl_Min)
+				dLcl_Min = (dLcl_Sum * dInv_9);
+			if ((dLcl_Sum * dInv_9) < 0.97 && dStart_WL < 0.0)
+			{
+				dStart_WL = lpdSpectra_Ind_WL[uiJ];
+//				printf("Start %f\n",dStart_WL);
+			}
+			else if ((dLcl_Sum * dInv_9) > 0.97 && dStart_WL > 0.0)
+			{
+				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 50.0)
+				{
+					(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiJ];
+					if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
+						(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
+				}
+				else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > 50.0) // make sure it isn't just a tiny depression
+				{
+					LINE_ID	cLine_ID;
+					bool bFound = false;
+					cLine_ID.m_dStart_Wavelength = dStart_WL;
+					cLine_ID.m_dEnd_Wavelength = lpdSpectra_Ind_WL[uiJ];
+					cLine_ID.m_uiIon = lpcIon_Data[uiIdx].m_uiIon;
+					cLine_ID.m_dCont_Flux = lpdContinuum_Flux[uiJ];
+					cLine_ID.m_dDraw_Flux = lpdContinuum_Flux[uiJ];
+					cLine_ID.m_dFeature_Min = dLcl_Min;
+					
+					vLine_IDs.push_back(cLine_ID);
+				}
+//				printf("End %f: Med %f\n",lpdSpectra_Ind_WL[uiJ],cLine_ID.m_dWavelength);
+				dStart_WL = -1.0;
+				dLcl_Min = DBL_MAX;
+			}
+		}
+		if (dStart_WL > 0.0)
+		{
+			if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 50.0)
+			{
+				(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
+				if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
+					(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
+			}
+			else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > 50.0) // make sure it isn't just a tiny depression
+			{
+
+				LINE_ID	cLine_ID;
+
+				cLine_ID.m_dStart_Wavelength = dStart_WL;
+				cLine_ID.m_dEnd_Wavelength = lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
+				cLine_ID.m_uiIon = lpcIon_Data[uiIdx].m_uiIon;
+				cLine_ID.m_dCont_Flux = lpdContinuum_Flux[uiSpectra_Ind_Count - 1];
+				cLine_ID.m_dDraw_Flux = lpdContinuum_Flux[uiSpectra_Ind_Count - 1];
+				cLine_ID.m_dFeature_Min = dLcl_Min;
+				vLine_IDs.push_back(cLine_ID);
+	//			printf("End %f: Med %f\n",lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1],cLine_ID.m_dWavelength);
+
+				dStart_WL = -1.0;
+			}
+		}
+	}
+
 	double * lpdRef_Spectra_WL[9];
 	double * lpdRef_Spectra_Vel[9];
 	double * lpdRef_Spectra_Flux[9];
 
 	unsigned int uiRef_Spectra_Count[9];
 	unsigned int uiNum_Ref_Spectra = 0;
-	double	dRef_Flux = -1.0;
-	for (unsigned int uiI = 0; uiI < uiSpectra_Count && dRef_Flux < 0.0; uiI++)
-	{
-		if (lpdSpectra_WL[uiI] > 6500.0 && lpdSpectra_Flux[uiI] > 0.0)
-			dRef_Flux = lpdSpectra_Flux[uiI];
-	}
+
 	for (unsigned int uiI = 0; uiI < 9; uiI++)
 	{
 		lpdRef_Spectra_WL[uiI] = NULL;
@@ -651,18 +823,19 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		if (cComparison_Spectra[uiI].size() > 0)
 		{
+			double	dModel_Flux;
+			double dComparison_Flux;
+			Get_Normalization_Fluxes(lpcSpectrum[1], cComparison_Spectra[uiI], dModel_Flux, dComparison_Flux);
 			Get_Spectra_Data(cComparison_Spectra[uiI], lpdRef_Spectra_WL[uiNum_Ref_Spectra], lpdRef_Spectra_Flux[uiNum_Ref_Spectra], uiRef_Spectra_Count[uiNum_Ref_Spectra], dRange_Min, dRange_Max);
-			double dRef_Comp_Flux = -1.0;
-			for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiNum_Ref_Spectra] && dRef_Comp_Flux < 0.0; uiJ++)
-			{
-				if (lpdRef_Spectra_WL[uiNum_Ref_Spectra][uiJ] > 6500.0 && lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ] > 0.0)
-					dRef_Comp_Flux = lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ];
-			}
 			for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiNum_Ref_Spectra]; uiJ++)
 			{
-				lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ] *= (dRef_Flux / dRef_Comp_Flux);
+				lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ] *= (dModel_Flux / dComparison_Flux);
 			}
 			lpdRef_Spectra_Vel[uiNum_Ref_Spectra] = new double[uiRef_Spectra_Count[uiNum_Ref_Spectra]];
+//			printf("%e %e\n",dModel_Flux,dComparison_Flux);
+//			for (unsigned int uiJ = 0; uiJ < uiRef_Spectra_Count[uiNum_Ref_Spectra] && lpdRef_Spectra_WL[uiNum_Ref_Spectra][uiJ] < 6505.0; uiJ++)
+//				if (lpdRef_Spectra_WL[uiNum_Ref_Spectra][uiJ] > 6500.0)
+//					printf("%e\n",lpdRef_Spectra_Flux[uiNum_Ref_Spectra][uiJ]);
 			uiNum_Ref_Spectra++;
 		}
 
@@ -699,6 +872,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	epsplot::DATA cPlot;
 	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
 	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+	epsplot::TEXT_PARAMETERS	cText_Paramters;
 
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
@@ -715,6 +889,110 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
 	unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
 
+	for (unsigned int uiI = 0; uiI < vLine_IDs.size(); uiI++)
+	{
+		double	dRef_Abs = (1.0 - vLine_IDs[uiI].m_dFeature_Min);
+//		unsigned int uiCount = 0;
+		unsigned int uiCount_Bigger = 0;
+		for (unsigned int uiJ = 0; uiJ < vLine_IDs.size(); uiJ++)
+		{
+			double dWL_I = 0.5 * (vLine_IDs[uiI].m_dStart_Wavelength + vLine_IDs[uiI].m_dEnd_Wavelength);
+			double dWL_J = 0.5 * (vLine_IDs[uiJ].m_dStart_Wavelength + vLine_IDs[uiJ].m_dEnd_Wavelength);
+
+			if (uiI != uiJ && fabs(dWL_I - dWL_J) < 500.0)
+			{
+				double dLcl_Abs = (1.0 - vLine_IDs[uiJ].m_dFeature_Min);
+//				uiCount++;
+				if (dLcl_Abs > dRef_Abs)
+					uiCount_Bigger++;
+			}
+		}
+		vLine_IDs[uiI].m_dDraw_Flux = vLine_IDs[uiI].m_dCont_Flux + 0.125 * uiCount_Bigger;
+	}
+
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_1, epsplot::COLOR_TRIPLET(1.000,0.750,0.750));
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_2, epsplot::COLOR_TRIPLET(0.750,1.000,0.750));
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_3, epsplot::COLOR_TRIPLET(0.750,0.750,1.000));
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_4, epsplot::COLOR_TRIPLET(0.750,1.000,1.000));
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_5, epsplot::COLOR_TRIPLET(1.000,1.000,0.750));
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_6, epsplot::COLOR_TRIPLET(1.000,0.750,1.000));
+	cPlot.Define_Custom_Color(epsplot::CLR_CUSTOM_7, epsplot::COLOR_TRIPLET(0.750,0.750,0.750));
+
+	double dChart_Max = 0.0;
+	for (unsigned int uiI = 0; uiI < uiSpectra_Count; uiI++)
+	{
+		if (dChart_Max < lpdSpectra_Flux[uiI])
+			dChart_Max = lpdSpectra_Flux[uiI];
+	}
+	unsigned int uiIon = vLine_IDs[0].m_uiIon;
+	cLine_Parameters.m_eColor = epsplot::BLACK;
+	epsplot::COLOR eFill_Color = epsplot::CLR_CUSTOM_7;
+	unsigned int uiIon_Ctr = 0;
+	for (unsigned int uiI = 0; uiI < vLine_IDs.size(); uiI++)
+	{
+		cText_Paramters.m_eHorizontal_Justification = epsplot::CENTER;
+		unsigned int uiElem = vLine_IDs[uiI].m_uiIon / 100;
+		unsigned int uiState = vLine_IDs[uiI].m_uiIon % 100;
+		char lpszRoman_Num[8];
+		char lpszElem[4];
+		xRomanNumeralGenerator(lpszRoman_Num, uiState + 1);
+		xGet_Element_Symbol(uiElem, lpszElem);
+
+		char lpszText[8];
+		sprintf(lpszText,"%s %s",lpszElem,lpszRoman_Num);
+		double dWL_I = 0.5 * (vLine_IDs[uiI].m_dStart_Wavelength + vLine_IDs[uiI].m_dEnd_Wavelength);
+
+		if (uiIon != vLine_IDs[uiI].m_uiIon)
+		{
+			switch (cLine_Parameters.m_eColor)
+			{
+			case epsplot::BLACK:
+				cLine_Parameters.m_eColor = epsplot::RED;
+				eFill_Color = epsplot::CLR_CUSTOM_1;
+				break;
+			case epsplot::RED:
+				cLine_Parameters.m_eColor = epsplot::BLUE;
+				eFill_Color = epsplot::CLR_CUSTOM_3;
+				break;
+			case epsplot::GREEN:
+				cLine_Parameters.m_eColor = epsplot::YELLOW;
+				eFill_Color = epsplot::CLR_CUSTOM_5;
+				break;
+			case epsplot::BLUE:
+				cLine_Parameters.m_eColor = epsplot::GREEN;
+				eFill_Color = epsplot::CLR_CUSTOM_2;
+				break;
+			case epsplot::YELLOW:
+				cLine_Parameters.m_eColor = epsplot::MAGENTA;
+				eFill_Color = epsplot::CLR_CUSTOM_6;
+				break;
+			case epsplot::MAGENTA:
+				cLine_Parameters.m_eColor = epsplot::CYAN;
+				eFill_Color = epsplot::CLR_CUSTOM_4;
+				break;
+			case epsplot::CYAN:
+				cLine_Parameters.m_eColor = epsplot::BLACK;
+				eFill_Color = epsplot::CLR_CUSTOM_7;
+				break;
+			}
+			uiIon = vLine_IDs[uiI].m_uiIon;
+			uiIon_Ctr++;
+		}
+
+		epsplot::RECTANGLE cRect;
+		cRect.m_dX_min = vLine_IDs[uiI].m_dStart_Wavelength;
+		cRect.m_dX_max = vLine_IDs[uiI].m_dEnd_Wavelength;
+		cRect.m_dY_min = 0;//uiIon_Ctr * 0.125;
+		cRect.m_dY_max = dChart_Max - (uiIon_Ctr + 1) * 0.125;
+
+		cPlot.Set_Rectangle_Data(cRect, true, eFill_Color, true, cLine_Parameters, uiX_Axis, uiY_Axis);
+
+		
+//		cPlot.Set_Text_Data(dWL_I, vLine_IDs[uiI].m_dDraw_Flux, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
+		cPlot.Set_Text_Data(dWL_I, cRect.m_dY_max + 0.005, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
+	}
+	cLine_Parameters.m_eColor = epsplot::BLACK;
+
 	unsigned int uiPlot_Data_ID = cPlot.Set_Plot_Data(lpdSpectra_WL, lpdSpectra_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 	unsigned int uiPlot_Data_ID_Comp[9];
 	for (unsigned int uiI = 0; uiI < uiNum_Ref_Spectra; uiI++)
@@ -723,7 +1001,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //		cLine_Parameters.m_eStipple = epsplot::SOLID;
 		uiPlot_Data_ID_Comp[uiI] = cPlot.Set_Plot_Data(lpdRef_Spectra_WL[uiI], lpdRef_Spectra_Flux[uiI], uiRef_Spectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
 	}
-
 
 	cPlot.Set_Plot_Filename(lpszOutput_Name);
 	cPlot.Plot(cPlot_Parameters);
@@ -816,6 +1093,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	fprintf(fileOut," comb",lpszModel);
 	fprintf(fileOut," EO",lpszModel);
 	fprintf(fileOut," SO",lpszModel);
+	for (unsigned int uiJ = 0; uiJ < uiIon_Count; uiJ++)
+	{
+		fprintf(fileOut, " %i",lpcIon_Data[uiJ * 2].m_uiIon);
+	}
 	fprintf(fileOut,"\n");
 	for (unsigned int uiI = 0; uiI < uiContinuum_Count; uiI++)
 	{
@@ -824,6 +1105,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fprintf(fileOut, " %f",lpcSpectrum[1].flux(uiI));
 		fprintf(fileOut, " %f",lpcSpectrum[2].flux(uiI));
 		fprintf(fileOut, " %f",lpcSpectrum[3].flux(uiI));
+		for (unsigned int uiJ = 0; uiJ < uiIon_Count; uiJ++)
+		{
+			fprintf(fileOut, " %f",lpcSpectra_Individual[uiJ].flux(uiI));
+		}
+
 		fprintf(fileOut, "\n");
 	}
 	fclose(fileOut);
