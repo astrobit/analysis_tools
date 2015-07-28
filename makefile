@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest
 
 .PHONY: all
 
@@ -233,6 +233,16 @@ $(BINDIR)/multiion: $(SRCDIR)/multiion_spectra.cpp $(LIBDIR)/libplotutil.a $(XLI
 testeps: $(BINDIR)/testeps
 $(BINDIR)/testeps: $(SRCDIR)/testeps.cpp  $(LIBDIR)/libplotutil.a $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/testeps.cpp $(ESFLAGS) $(PLOTUTILLIB) -lxio -lxstdlib -o $(BINDIR)/testeps
+
+libcomp: $(LIBDIR)/libcomp.a
+$(LIBDIR)/libcomp.a: $(SRCDIR)/compositions.cpp $(INCLUDEDIR)/compositions.h  $(XLIBSCHANGE)
+	$(CCOMP) $(CFLAGS) $(ESFLAGS) $(SRCDIR)/compositions.cpp -o $(TMPDIR)/compositions.o
+	-rm $(LIBDIR)/libcomp.a
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libcomp.a $(TMPDIR)/compositions.o
+
+sahatest: $(BINDIR)/sahatest
+$(BINDIR)/sahatest: $(SRCDIR)/saha_test.cpp  $(LIBDIR)/libcomp.a $(XLIBSCHANGE)
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/saha_test.cpp $(ESFLAGS) -lcomp -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/sahatest
 
 clean:
 	-rm $(BINDIR)/*
