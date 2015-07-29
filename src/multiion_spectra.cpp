@@ -636,7 +636,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double	dLine_Tau_Eff = log10(dLambda * dOscillator_Strength / (dRef_Lambda * dRef_Oscillator_Strength) *  exp(-(dEnergy - dRef_Energy) / 0.86173324));
 		double	dEjecta_Abd_Eff = log10(cEjecta_Abd.m_dAbundances[uiElem]); // ejecta is normalized to group; group scalar handles relative level
 //		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
-		double	dShell_Abd_Eff = log10(cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiElem == 1 ? 1 : 2 * uiElem)).m_lpdIon_Fraction[uiIon_State] / cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx).m_lpdIon_Fraction[uiRef_Ion % 100]);
+		COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiElem == 1 ? 1 : 2 * uiElem));
+		COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
+		double	dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
 
 
 		dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
