@@ -19,6 +19,7 @@
 #include <model_spectra_db.h>
 #include <opacity_profile_data.h>
 #include <vector>
+#include <compositions.h>
 
 class GAUSS_FIT_PARAMETERS
 {
@@ -456,6 +457,51 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cEjecta_Abd.Normalize_Groups();
 	Process_Ion_List(lpszIon_List, lpuiIon_List, uiIon_Count);
 
+	COMPOSITION_SET	cEjecta_Comp[5];
+	COMPOSITION_SET	cShell_Comp;
+	unsigned int uiEjecta_Elem_Cnt = 0;
+	unsigned int uiShell_Elem_Cnt = 0;
+	unsigned int uiEjecta_Ref_Comp_Idx = -1;
+	unsigned int uiShell_Ref_Comp_Idx = -1;
+
+	for (unsigned int uiI = 0; uiI < 128; uiI++)
+	{
+		if (cEjecta_Abd.m_dAbundances[uiI] > 1.0e-12)
+			uiEjecta_Elem_Cnt++;
+		if (cShell_Abd.m_dAbundances[uiI] > 1.0e-12)
+			uiShell_Elem_Cnt++;
+	}
+
+	uiEjecta_Elem_Cnt = 0;
+	uiShell_Elem_Cnt = 0;
+	cEjecta_Comp[0].Allocate(uiEjecta_Elem_Cnt);
+	cShell_Comp.Allocate(uiShell_Elem_Cnt);
+	for (unsigned int uiI = 0; uiI < 128; uiI++)
+	{
+		if (cEjecta_Abd.m_dAbundances[uiI] > 1.0e-12)
+		{
+			if (uiI == (uiRef_Ion/ 100))
+				uiEjecta_Ref_Comp_Idx = uiEjecta_Elem_Cnt;
+			cEjecta_Comp[0].Initialize_Composition(uiEjecta_Elem_Cnt, uiI + 1, uiI == 0 ? (uiI + 1) : (2 * (uiI + 1))); // H or alpha series.  for the A doesnt matter all that much
+			cEjecta_Comp[0].Set_Composition(uiEjecta_Elem_Cnt,cEjecta_Abd.m_dAbundances[uiI]);// warning: these may be group abundances!
+			uiEjecta_Elem_Cnt++;
+		}
+		if (cShell_Abd.m_dAbundances[uiI] > 1.0e-12)
+		{
+			if (uiI == (uiRef_Ion/ 100))
+				uiShell_Ref_Comp_Idx = uiShell_Elem_Cnt;
+			cShell_Comp.Initialize_Composition(uiShell_Elem_Cnt, uiI + 1, uiI == 0 ? (uiI + 1) : (2 * (uiI + 1))); // H or alpha series.  for the A doesnt matter all that much
+			cShell_Comp.Set_Composition(uiShell_Elem_Cnt,cShell_Abd.m_dAbundances[uiI]);// warning: these may be group abundances!
+			uiShell_Elem_Cnt++;
+		}
+	}
+	cEjecta_Comp[1] = cEjecta_Comp[0];
+	cEjecta_Comp[2] = cEjecta_Comp[0];
+	cEjecta_Comp[3] = cEjecta_Comp[0];
+	cEjecta_Comp[4] = cEjecta_Comp[0];
+	cEjecta_Comp[5] = cEjecta_Comp[0];
+
+
 //	printf("Model\n");
 	if (lpszModel_List_String[0] == 'r' && lpszModel_List_String[1] == 'u' && lpszModel_List_String[2] == 'n')
 		strcpy(lpszModel,lpszModel_List_String);
@@ -478,6 +524,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double	dShell_Scalar_Ref = -1.0;
 	double	dEjecta_Scalar_Prof = -1.0;
 	double	dShell_Scalar_Prof = -1.0;
+	double	dEjecta_Dens_Ref = -1.0;
+	double	dShell_Dens_Ref = -1.0;
 
 	unsigned int	uiRef_Elem = uiRef_Ion / 100;
 //	printf("Ref Lines\n");
@@ -511,41 +559,47 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cPhotosphere.ReadDataFile(lpszFilename,false,false,',');
 
 //	printf("Ref Model\n");
+	OPACITY_PROFILE_DATA	cOpacity_Profile_Ref;
 	if (lpszRef_Model)
 	{
 		
-		OPACITY_PROFILE_DATA	cOpacity_Profile_Ref;
 		char lpszOpacity_Profile[128];
 		sprintf(lpszOpacity_Profile,"%s/opacity_map_scalars.opdata",lpszRef_Model_Extended);
 		cOpacity_Profile_Ref.Load(lpszOpacity_Profile);
-		if (uiRef_Elem == 6)
-			dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::CARBON);
-		else if (uiRef_Elem == 8)
-			dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::OXYGEN);
-		else if (uiRef_Elem >= 9 && uiRef_Elem <= 13)
-			dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::MAGNESIUM);
-		else if (uiRef_Elem >= 14 && uiRef_Elem <= 25)
-			dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::SILICON);
-		else
-			dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::IRON);
+	}
+	else
+		cOpacity_Profile_Ref = cOpacity_Profile;
 
-		dShell_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
+	if (uiRef_Elem == 6)
+	{
+		dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::CARBON);
+		dEjecta_Dens_Ref= cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::CARBON);
+	}
+	else if (uiRef_Elem == 8)
+	{
+		dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::OXYGEN);
+		dEjecta_Dens_Ref= cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::OXYGEN);
+	}
+	else if (uiRef_Elem >= 9 && uiRef_Elem <= 13)
+	{
+		dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::MAGNESIUM);
+		dEjecta_Dens_Ref= cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::MAGNESIUM);
+	}
+	else if (uiRef_Elem >= 14 && uiRef_Elem <= 25)
+	{
+		dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::SILICON);
+		dEjecta_Dens_Ref= cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::SILICON);
 	}
 	else
 	{
-		if (uiRef_Elem == 6)
-			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::CARBON);
-		else if (uiRef_Elem == 8)
-			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::OXYGEN);
-		else if (uiRef_Elem >= 9 && uiRef_Elem <= 13)
-			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::MAGNESIUM);
-		else if (uiRef_Elem >= 14 && uiRef_Elem <= 25)
-			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SILICON);
-		else
-			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::IRON);
-
-		dShell_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
+		dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::IRON);
+		dEjecta_Dens_Ref= cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::IRON);
 	}
+
+	dShell_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
+	dShell_Dens_Ref = cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::SHELL);
+
+	cShell_Comp.Zaghloul_Saha(dPS_Temp,dShell_Dens_Ref);
 
 	lpcIon_Data = new ION_DATA[uiIon_Count * 2];
 	lpcIon_Data_EO = new ION_DATA[uiIon_Count];
@@ -569,6 +623,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		unsigned int uiJJ = 2 * uiI;
 		unsigned int uiElem = lpuiIon_List[uiI] / 100;
+		unsigned int uiIon_State = (lpuiIon_List[uiI] % 100);
 		uiRef_Idx = Find_Ion_Index_Ref(cRef_Lines,lpuiIon_List[uiI]);
 //		printf("Ion ref idx: %i %i %i\n",uiRef_Idx,lpuiIon_List[uiI],uiJJ);
 
@@ -580,7 +635,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			dOscillator_Strength = 1.0e-20; // make it a small positive value since we are taking the log
 		double	dLine_Tau_Eff = log10(dLambda * dOscillator_Strength / (dRef_Lambda * dRef_Oscillator_Strength) *  exp(-(dEnergy - dRef_Energy) / 0.86173324));
 		double	dEjecta_Abd_Eff = log10(cEjecta_Abd.m_dAbundances[uiElem]); // ejecta is normalized to group; group scalar handles relative level
-		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
+//		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
+		double	dShell_Abd_Eff = log10(cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiElem == 1 ? 1 : 2 * uiElem)).m_lpdIon_Fraction[uiIon_State] / cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx).m_lpdIon_Fraction[uiRef_Ion % 100]);
+
 
 		dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 
@@ -739,6 +796,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (uiJ < 8)
 				dLcl_Sum += lpdSpectra_Ind_Flux[uiJ];
 		}
+		const double k_dFeature_ID_Threshold = 0.85;
 //		printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum / 8.0)); // 8 because the 9th point is added in the next loop	
 		for (unsigned int uiJ = 4; uiJ < uiSpectra_Ind_Count - 4; uiJ++)
 		{
@@ -749,12 +807,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //				printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum * dInv_9)); // 8 because the 9th point is added in the next loop	
 			if ((dStart_WL > 0.0) && (dLcl_Sum * dInv_9) < dLcl_Min)
 				dLcl_Min = (dLcl_Sum * dInv_9);
-			if ((dLcl_Sum * dInv_9) < 0.97 && dStart_WL < 0.0)
+			if ((dLcl_Sum * dInv_9) < k_dFeature_ID_Threshold && dStart_WL < 0.0)
 			{
 				dStart_WL = lpdSpectra_Ind_WL[uiJ];
 //				printf("Start %f\n",dStart_WL);
 			}
-			else if ((dLcl_Sum * dInv_9) > 0.97 && dStart_WL > 0.0)
+			else if ((dLcl_Sum * dInv_9) > k_dFeature_ID_Threshold && dStart_WL > 0.0)
 			{
 				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 50.0)
 				{
@@ -985,7 +1043,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cRect.m_dY_min = 0;//uiIon_Ctr * 0.125;
 		cRect.m_dY_max = dChart_Max - (uiIon_Ctr + 1) * 0.125;
 
-		cPlot.Set_Rectangle_Data(cRect, true, eFill_Color, true, cLine_Parameters, uiX_Axis, uiY_Axis);
+//		cPlot.Set_Rectangle_Data(cRect, true, eFill_Color, true, cLine_Parameters, uiX_Axis, uiY_Axis);
 
 		
 //		cPlot.Set_Text_Data(dWL_I, vLine_IDs[uiI].m_dDraw_Flux, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);

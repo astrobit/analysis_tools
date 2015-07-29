@@ -227,8 +227,8 @@ $(BINDIR)/mve_vels: $(SRCDIR)/mve_velocity_plot.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/mve_velocity_plot.cpp -lxio -lxstdlib -o $(BINDIR)/mve_vels
 
 multiion: $(BINDIR)/multiion
-$(BINDIR)/multiion: $(SRCDIR)/multiion_spectra.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/multiion_spectra.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/multiion
+$(BINDIR)/multiion: $(SRCDIR)/multiion_spectra.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libcomp.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/multiion_spectra.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -lcomp -llinerout -lxmath -lxastro -lxio -lxstdlib -o $(BINDIR)/multiion
 
 testeps: $(BINDIR)/testeps
 $(BINDIR)/testeps: $(SRCDIR)/testeps.cpp  $(LIBDIR)/libplotutil.a $(XLIBSCHANGE)
