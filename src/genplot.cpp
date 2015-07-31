@@ -118,6 +118,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cPlot.Set_Plot_Filename(lpszFilename);
 				cPlot.Plot(cPlot_Parameters);
 			}
+			else
+				fprintf(stderr,"No x or y values\n");
 		}	
+		else
+			fprintf(stderr,"No data in file\n");
 	}
+	else
+		fprintf(stderr,"Data file not specified\n");
 }
