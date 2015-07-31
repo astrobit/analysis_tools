@@ -381,6 +381,7 @@ void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum 
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
+//	printf("Start\n");
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	char lpszOutput_Name[256];
 	GAUSS_FIT_PARAMETERS * lpgfpParamters;
@@ -472,10 +473,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			uiShell_Elem_Cnt++;
 	}
 
-	uiEjecta_Elem_Cnt = 0;
-	uiShell_Elem_Cnt = 0;
 	cEjecta_Comp[0].Allocate(uiEjecta_Elem_Cnt);
 	cShell_Comp.Allocate(uiShell_Elem_Cnt);
+	uiEjecta_Elem_Cnt = 0;
+	uiShell_Elem_Cnt = 0;
+//	printf("Allocating composition sets \n");
 	for (unsigned int uiI = 0; uiI < 128; uiI++)
 	{
 		if (cEjecta_Abd.m_dAbundances[uiI] > 1.0e-12)
@@ -616,6 +618,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		strcpy(lpszOutput_Name, cResults.we_wordv[0]);
 		wordfree(&cResults);
 	}
+//	printf("Ion list\n");
 	sprintf(lpszFilename,"%s.ions.dat",lpszOutput_Name);
 	FILE * fileOut = fopen(lpszFilename,"wt");
 	fprintf(fileOut,"ion, PVF scalar, HVF scalar\n");
@@ -635,10 +638,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			dOscillator_Strength = 1.0e-20; // make it a small positive value since we are taking the log
 		double	dLine_Tau_Eff = log10(dLambda * dOscillator_Strength / (dRef_Lambda * dRef_Oscillator_Strength) *  exp(-(dEnergy - dRef_Energy) / 0.86173324));
 		double	dEjecta_Abd_Eff = log10(cEjecta_Abd.m_dAbundances[uiElem]); // ejecta is normalized to group; group scalar handles relative level
-//		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
-		COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiElem == 1 ? 1 : 2 * uiElem));
-		COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
-		double	dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
+		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
+//		unsigned int uiA = 2 * uiElem;
+//		if (uiElem == 1)
+//			uiA = 1;
+//		COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiA));
+//		COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
+//		double	dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
+		printf("shell effective abundance: composition z %i, ion state %i is %e\n",uiElem,uiIon_State,dShell_Abd_Eff);
 
 
 		dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
