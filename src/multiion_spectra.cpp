@@ -396,7 +396,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	ION_DATA	* lpcIon_Data_SO;
 	ION_DATA	lpcIon_Data_Individual[2];
 	char	lpszModel[16];
-
+	double dFeature_ID_Threshold = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--feature-ID-threshold",0.85);
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
 	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);
 	double	dEjecta_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-scalar",1.0);
@@ -805,7 +805,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (uiJ < 8)
 				dLcl_Sum += lpdSpectra_Ind_Flux[uiJ];
 		}
-		const double k_dFeature_ID_Threshold = 0.85;
+//		const double k_dFeature_ID_Threshold = 0.85;
+		printf("feature ID threshold is %f.\n",dFeature_ID_Threshold);
 //		printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum / 8.0)); // 8 because the 9th point is added in the next loop	
 		for (unsigned int uiJ = 4; uiJ < uiSpectra_Ind_Count - 4; uiJ++)
 		{
@@ -816,12 +817,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //				printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum * dInv_9)); // 8 because the 9th point is added in the next loop	
 			if ((dStart_WL > 0.0) && (dLcl_Sum * dInv_9) < dLcl_Min)
 				dLcl_Min = (dLcl_Sum * dInv_9);
-			if ((dLcl_Sum * dInv_9) < k_dFeature_ID_Threshold && dStart_WL < 0.0)
+			if ((dLcl_Sum * dInv_9) < dFeature_ID_Threshold && dStart_WL < 0.0)
 			{
 				dStart_WL = lpdSpectra_Ind_WL[uiJ];
 //				printf("Start %f\n",dStart_WL);
 			}
-			else if ((dLcl_Sum * dInv_9) > k_dFeature_ID_Threshold && dStart_WL > 0.0)
+			else if ((dLcl_Sum * dInv_9) > dFeature_ID_Threshold && dStart_WL > 0.0)
 			{
 				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 50.0)
 				{
