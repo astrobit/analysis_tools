@@ -29,30 +29,32 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (lpszColumnList)
 			{
 				uiY_Count = 0;
-				while (lpszColumnList[0] != 0)
+				const char * lpszCursor = lpszColumnList;
+				while (lpszCursor[0] != 0)
 				{
 					// bypass initial junk
-					while (lpszColumnList[0] != 0 && (lpszColumnList[0] < '0' || lpszColumnList[0] > '9'))
-						lpszColumnList++;
-					if (lpszColumnList[0] >= '0' && lpszColumnList[0] <= '9')
+					while (lpszCursor[0] != 0 && (lpszCursor[0] < '0' || lpszCursor[0] > '9'))
+						lpszCursor++;
+					if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 						uiY_Count++;
-					while (lpszColumnList[0] != 0 && lpszColumnList[0] >= '0' && lpszColumnList[0] <= '9')
-						lpszColumnList++;
+					while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
+						lpszCursor++;
 				}
 				lpdY_Values = new double * [uiY_Count];
 				uiY_Count = 0;
-				while (lpszColumnList[0] != 0)
+				lpszCursor = lpszColumnList;
+				while (lpszCursor[0] != 0)
 				{
 					// bypass initial junk
-					while (lpszColumnList[0] != 0 && (lpszColumnList[0] < '0' || lpszColumnList[0] > '9'))
-						lpszColumnList++;
-					if (lpszColumnList[0] >= '0' && lpszColumnList[0] <= '9')
+					while (lpszCursor[0] != 0 && (lpszCursor[0] < '0' || lpszCursor[0] > '9'))
+						lpszCursor++;
+					if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 					{
-						lpdY_Values[uiY_Count] = cData.GetElementArray(atoi(lpszColumnList));
+						lpdY_Values[uiY_Count] = cData.GetElementArray(atoi(lpszCursor));
 						uiY_Count++;
 					}
-					while (lpszColumnList[0] != 0 && lpszColumnList[0] >= '0' && lpszColumnList[0] <= '9')
-						lpszColumnList++;
+					while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
+						lpszCursor++;
 				}
 				
 			}
@@ -111,7 +113,30 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
 				{
 					cLine_Parameters.m_eColor = epsplot::COLOR(epsplot::BLACK + (uiI % 7));
-
+					switch (cLine_Parameters.m_eColor)
+					{
+					case epsplot::BLACK:
+						printf("Graph %i: black\n",uiI);
+						break;
+					case epsplot::RED:
+						printf("Graph %i: red\n",uiI);
+						break;
+					case epsplot::GREEN:
+						printf("Graph %i: green\n",uiI);
+						break;
+					case epsplot::BLUE:
+						printf("Graph %i: blue\n",uiI);
+						break;
+					case epsplot::CYAN:
+						printf("Graph %i: cyan\n",uiI);
+						break;
+					case epsplot::MAGENTA:
+						printf("Graph %i: magenta\n",uiI);
+						break;
+					case epsplot::YELLOW:
+						printf("Graph %i: yellow\n",uiI);
+						break;
+					}
 					cPlot.Set_Plot_Data(lpdX_Values, lpdY_Values[uiI], uiNum_Elements, cLine_Parameters, uiX_Axis, uiY_Axis);
 				}
 
@@ -119,7 +144,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cPlot.Plot(cPlot_Parameters);
 			}
 			else
-				fprintf(stderr,"No x or y values\n");
+			{
+				if (!lpdX_Values)
+					fprintf(stderr,"No x values\n");
+				if (!lpdY_Values)
+					fprintf(stderr,"No y values\n");
+				if (uiY_Count == 0)
+					fprintf(stderr,"y count = 0\n");
+			}
 		}	
 		else
 			fprintf(stderr,"No data in file\n");
