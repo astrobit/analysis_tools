@@ -824,13 +824,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			else if ((dLcl_Sum * dInv_9) > dFeature_ID_Threshold && dStart_WL > 0.0)
 			{
-				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 50.0)
+				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 500.0)
 				{
 					(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiJ];
 					if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
 						(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
 				}
-				else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > 50.0) // make sure it isn't just a tiny depression
+				else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > 500.0) // make sure it isn't just a tiny depression
 				{
 					LINE_ID	cLine_ID;
 					bool bFound = false;
@@ -850,13 +850,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		if (dStart_WL > 0.0)
 		{
-			if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 50.0)
+			if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 500.0)
 			{
 				(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
 				if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
 					(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
 			}
-			else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > 50.0) // make sure it isn't just a tiny depression
+			else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > 500.0) // make sure it isn't just a tiny depression
 			{
 
 				LINE_ID	cLine_ID;
@@ -994,6 +994,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 	unsigned int uiIon = vLine_IDs[0].m_uiIon;
 	cLine_Parameters.m_eColor = epsplot::BLACK;
+
+	epsplot::LINE_PARAMETERS	cLP_Temp;
+	cLP_Temp = cLine_Parameters;
 	epsplot::COLOR eFill_Color = epsplot::CLR_CUSTOM_7;
 	unsigned int uiIon_Ctr = 0;
 	for (unsigned int uiI = 0; uiI < vLine_IDs.size(); uiI++)
@@ -1057,7 +1060,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		
 //		cPlot.Set_Text_Data(dWL_I, vLine_IDs[uiI].m_dDraw_Flux, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
-		cPlot.Set_Text_Data(dWL_I, cRect.m_dY_max + 0.005, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
+//		cPlot.Set_Text_Data(dWL_I, cRect.m_dY_max + 0.005, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
+		cPlot.Set_Text_Data(dWL_I, cRect.m_dY_max + 0.005, lpszText, cLP_Temp, cText_Paramters, uiX_Axis, uiY_Axis);
+
 	}
 	cLine_Parameters.m_eColor = epsplot::BLACK;
 
