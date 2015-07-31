@@ -5,8 +5,8 @@
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
-	char * lpszX_Axis_Title = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-title");
-	char * lpszY_Axis_Title = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-title");
+	const char * lpszX_Axis_Title = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-title");
+	const char * lpszY_Axis_Title = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-title");
 	unsigned int * lpuiData_Columns = NULL;
 	double * lpdX_Values = NULL;
 	double ** lpdY_Values = NULL;
