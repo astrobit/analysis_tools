@@ -21,7 +21,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 	if (lpszDatafile)
 	{
-		cData.ReadDataFile(lpszDatafile,bWhitespace_Separated,false);
+		cData.ReadDataFile(lpszDatafile,bWhitespace_Separated,false,bWhitespace_Separated ? 0 : ',', uiHeader_Lines);
 		if (cData.GetNumElements() > 0)
 		{
 			lpdX_Values = cData.GetElementArray(uiX_Axis_Column);
