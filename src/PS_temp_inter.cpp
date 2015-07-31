@@ -259,18 +259,21 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	double	dTemp;
 	do
 	{
-		char lpszTemp_Str[256];
+		char lpszTemp_Str[16];
 
 		fprintf(stdout,"Enter temp (in kK) to test ( or -1 to quit): ");
 		fflush(stdout);
-		gets(lpszTemp_Str);
-		dTemp = atof(lpszTemp_Str);
+		fgets(lpszTemp_Str,16,stdin);
+		char * lpszCursor = lpszTemp_Str;
+		while (lpszCursor[0] == ' ' || lpszCursor[0] == '\t')
+			lpszCursor++;
+		dTemp = atof(lpszCursor);
 		if (dTemp > 0.0 && dTemp < 8.0)
 		{
-			char lpszResponse[256];
+			char lpszResponse[8];
 			fprintf(stdout,"Really? ");
 			fflush(stdout);
-			gets(lpszResponse);
+			fgets(lpszResponse,8,stdin);
 			if (lpszResponse[0] != 'y' && lpszResponse[0] != 'Y' && lpszResponse[0] != 't' && lpszResponse[0] != 'T')
 				dTemp = -1.0;
 		}
