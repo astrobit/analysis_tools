@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot
 
 .PHONY: all
 
@@ -243,6 +243,10 @@ $(LIBDIR)/libcomp.a: $(SRCDIR)/compositions.cpp $(INCLUDEDIR)/compositions.h  $(
 sahatest: $(BINDIR)/sahatest
 $(BINDIR)/sahatest: $(SRCDIR)/saha_test.cpp  $(LIBDIR)/libcomp.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/saha_test.cpp $(ESFLAGS) $(ESLIBS) -lcomp -llinerout -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/sahatest
+
+genplot: $(BINDIR)/genplot
+$(BINDIR)/genplot: $(SRCDIR)/genplot.cpp  $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/genplot.cpp $(PLOTUTILLIB) -lxio -lxstdlib -o $(BINDIR)/genplot
 
 clean:
 	-rm $(BINDIR)/*
