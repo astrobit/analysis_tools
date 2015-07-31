@@ -6,6 +6,11 @@
 
 class COMPOSITION
 {
+public:
+	unsigned int	m_uiZ;
+	unsigned int	m_uiA;
+	double			m_dMass_Fraction;
+	double *		m_lpdIon_Fraction; // ordered 0->Z (I, II, ... Z + I)
 private:
 	const XASTRO_ATOMIC_IONIZATION_DATA * m_lpcIon_Data;
 	const XASTRO_ATOMIC_PARTITION_FUNCTION_DATA * m_lpcPF_Data;
@@ -14,23 +19,27 @@ private:
 
 	void Copy(const COMPOSITION & i_cRHO)
 	{
+//		printf("Copying %i\n",i_cRHO.m_uiZ);
 		m_uiZ = i_cRHO.m_uiZ;
 		m_uiA = i_cRHO.m_uiA;
 		m_dMass_Fraction = i_cRHO.m_dMass_Fraction;
+//		printf("delete ion fraction\n");
 		if (m_lpdIon_Fraction)
 			delete [] m_lpdIon_Fraction;
 		m_lpdIon_Fraction = new double[m_uiZ + 1];
+//		printf("copy ion fraction\n");
+		//@@TODO: should really check to confirm that ion fraction really did get allocated, but this is only a problem if we are running out of memory anyway
+//		if (!m_lpdIon_Fraction)
+//			printf("Warning : did not allocate ion fraction!\n");
+//		if (!i_cRHO.m_lpdIon_Fraction)
+//			printf("Warning : RHO doesn't have an ion fraction array!\n");
 		memcpy(m_lpdIon_Fraction,i_cRHO.m_lpdIon_Fraction,sizeof(double) * (m_uiZ + 1));
+//		printf("copy atomic data pointers\n");
 		m_lpcIon_Data =  i_cRHO.m_lpcIon_Data;
 		m_lpcPF_Data =  i_cRHO.m_lpcPF_Data;
 		m_lpcPF_Data_Irwin =  i_cRHO.m_lpcPF_Data_Irwin;
 	}
 public:
-	unsigned int	m_uiZ;
-	unsigned int	m_uiA;
-	double			m_dMass_Fraction;
-	double *		m_lpdIon_Fraction; // ordered 0->Z (I, II, ... Z + I)
-
 	double Get_Partition_Function(unsigned int i_uiIon_State, const double & i_dTemperature_K, const double & i_dNumber_Density_cm3)
 	{
 		double dRet = 1.0;
@@ -134,8 +143,8 @@ private:
 		m_dNe = i_cRHO.m_dNe; // average effective atomic charge
 		m_dNn = i_cRHO.m_dNn; // average effective atomic charge
 
-		m_dDensity_Ref = i_cRHO.m_dDensity_Ref; // density for which Nn and Ni is computed
-		m_bMass_Fraction_Change = false;
+		m_dDensity_Ref = 0.0;//i_cRHO.m_dDensity_Ref; // density for which Nn and Ni is computed
+		m_bMass_Fraction_Change = true; // will need to recompute everything
 	}
 
 public:
@@ -222,7 +231,10 @@ public:
 		m_uiNum_Compositions = 0;
 		m_lpdCompositions = NULL;
 		m_dZav = 1.0e-3; // rough guess for starting value.  Probably will want to scale this with temp & density?
-
+		m_dNe = 0.0;
+		m_dNn = 0.0;
+		m_dDensity_Ref = 0.0;
+		m_bMass_Fraction_Change = false;
 		m_dSaha_Coeff = 2.0 * pow(2.0 * g_cConstants.dPi * g_XASTRO.k_dme * g_XASTRO.k_dKb / (g_XASTRO.k_dh * g_XASTRO.k_dh),1.5);
 	}
 	COMPOSITION_SET(const COMPOSITION_SET & i_cRHO)

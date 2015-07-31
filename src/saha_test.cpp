@@ -37,8 +37,8 @@ int main(void)
 
 	for (double dTemp = 5000.0; dTemp <= 30000.0; dTemp += 5000.0)
 	{
-		cComp.Zaghloul_Saha(dTemp, 0.0000001,10000);
-		cComp_Solar.Zaghloul_Saha(dTemp, 0.0000001,10000);
+		cComp.Zaghloul_Saha(dTemp, 3.414688e-9,10000);
+		cComp_Solar.Zaghloul_Saha(dTemp, 3.414688e-9,10000);
 		printf("Temp = %.0f\n",dTemp);
 		printf("----- H/He -----\n");
 		printf("H: %.2e %.2e\n",(cComp.Get_Composition(0)).m_lpdIon_Fraction[0],(cComp.Get_Composition(0)).m_lpdIon_Fraction[1]);

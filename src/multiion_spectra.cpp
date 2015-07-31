@@ -465,11 +465,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiEjecta_Ref_Comp_Idx = -1;
 	unsigned int uiShell_Ref_Comp_Idx = -1;
 
+	double	dAbd_Threshold = 1.0e-12;
 	for (unsigned int uiI = 0; uiI < 128; uiI++)
 	{
-		if (cEjecta_Abd.m_dAbundances[uiI] > 1.0e-12)
+		if (cEjecta_Abd.m_dAbundances[uiI] > dAbd_Threshold)
 			uiEjecta_Elem_Cnt++;
-		if (cShell_Abd.m_dAbundances[uiI] > 1.0e-12)
+		if (cShell_Abd.m_dAbundances[uiI] > dAbd_Threshold)
 			uiShell_Elem_Cnt++;
 	}
 
@@ -480,28 +481,29 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //	printf("Allocating composition sets \n");
 	for (unsigned int uiI = 0; uiI < 128; uiI++)
 	{
-		if (cEjecta_Abd.m_dAbundances[uiI] > 1.0e-12)
+//	printf("%i\n",uiI);
+		if (cEjecta_Abd.m_dAbundances[uiI] > dAbd_Threshold)
 		{
 			if (uiI == (uiRef_Ion/ 100))
 				uiEjecta_Ref_Comp_Idx = uiEjecta_Elem_Cnt;
-			cEjecta_Comp[0].Initialize_Composition(uiEjecta_Elem_Cnt, uiI + 1, uiI == 0 ? (uiI + 1) : (2 * (uiI + 1))); // H or alpha series.  for the A doesnt matter all that much
+			cEjecta_Comp[0].Initialize_Composition(uiEjecta_Elem_Cnt, uiI, uiI == 0 ? uiI : (2 * uiI)); // H or alpha series.  for the A doesnt 
 			cEjecta_Comp[0].Set_Composition(uiEjecta_Elem_Cnt,cEjecta_Abd.m_dAbundances[uiI]);// warning: these may be group abundances!
 			uiEjecta_Elem_Cnt++;
 		}
-		if (cShell_Abd.m_dAbundances[uiI] > 1.0e-12)
+		if (cShell_Abd.m_dAbundances[uiI] > dAbd_Threshold)
 		{
 			if (uiI == (uiRef_Ion/ 100))
 				uiShell_Ref_Comp_Idx = uiShell_Elem_Cnt;
-			cShell_Comp.Initialize_Composition(uiShell_Elem_Cnt, uiI + 1, uiI == 0 ? (uiI + 1) : (2 * (uiI + 1))); // H or alpha series.  for the A doesnt matter all that much
+			cShell_Comp.Initialize_Composition(uiShell_Elem_Cnt, uiI, uiI == 0 ? uiI : (2 * uiI)); // H or alpha series.  for the A doesnt matter all that much
 			cShell_Comp.Set_Composition(uiShell_Elem_Cnt,cShell_Abd.m_dAbundances[uiI]);// warning: these may be group abundances!
 			uiShell_Elem_Cnt++;
 		}
 	}
+///	printf("copying ejecta compositions\n");
 	cEjecta_Comp[1] = cEjecta_Comp[0];
 	cEjecta_Comp[2] = cEjecta_Comp[0];
 	cEjecta_Comp[3] = cEjecta_Comp[0];
 	cEjecta_Comp[4] = cEjecta_Comp[0];
-	cEjecta_Comp[5] = cEjecta_Comp[0];
 
 
 //	printf("Model\n");
@@ -600,8 +602,24 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 	dShell_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 	dShell_Dens_Ref = cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::SHELL);
+//	double dTime_Ref = cOpacity_Profile.m_dReference_Time_s;
+	double dShell_Dens_Ref_t = dShell_Dens_Ref * pow(dDay * 86400.0 / cOpacity_Profile.m_dReference_Time_s,-2.0);
 
-	cShell_Comp.Zaghloul_Saha(dPS_Temp,dShell_Dens_Ref);
+	printf("---- ion states ----\n");
+	printf("density = %e, temp = %f\n",dShell_Dens_Ref_t,dPS_Temp * 1000.0);
+	cShell_Comp.Zaghloul_Saha(dPS_Temp * 1000.0,dShell_Dens_Ref_t);
+
+	for (unsigned int uiI = 0; uiI < cShell_Comp.Get_Num_Compositions(); uiI++)
+	{
+		unsigned int uiZmax = cShell_Comp.Get_Composition(uiI).m_uiZ;
+		printf("[%i]:",uiZmax);
+		uiZmax++; // neutral up to fully ionized
+		if (uiZmax > 4)
+			uiZmax = 4;
+		for (unsigned int uiZ = 0; uiZ < uiZmax; uiZ++)
+			printf("\t%.2e",(cShell_Comp.Get_Composition(uiI)).m_lpdIon_Fraction[uiZ]);
+		printf("\n");
+	}
 
 	lpcIon_Data = new ION_DATA[uiIon_Count * 2];
 	lpcIon_Data_EO = new ION_DATA[uiIon_Count];
@@ -639,11 +657,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double	dLine_Tau_Eff = log10(dLambda * dOscillator_Strength / (dRef_Lambda * dRef_Oscillator_Strength) *  exp(-(dEnergy - dRef_Energy) / 0.86173324));
 		double	dEjecta_Abd_Eff = log10(cEjecta_Abd.m_dAbundances[uiElem]); // ejecta is normalized to group; group scalar handles relative level
 		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
-//		unsigned int uiA = 2 * uiElem;
-//		if (uiElem == 1)
-//			uiA = 1;
-//		COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiA));
-//		COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
+		unsigned int uiA = 2 * uiElem;
+		if (uiElem == 1)
+			uiA = 1;
+		COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiA));
+		COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
+
 //		double	dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
 		printf("shell effective abundance: composition z %i, ion state %i is %e\n",uiElem,uiIon_State,dShell_Abd_Eff);
 
@@ -807,6 +826,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 //		const double k_dFeature_ID_Threshold = 0.85;
 		printf("feature ID threshold is %f.\n",dFeature_ID_Threshold);
+		const double k_dDelta_WL_Threshold = 125.0;
 //		printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum / 8.0)); // 8 because the 9th point is added in the next loop	
 		for (unsigned int uiJ = 4; uiJ < uiSpectra_Ind_Count - 4; uiJ++)
 		{
@@ -824,13 +844,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			else if ((dLcl_Sum * dInv_9) > dFeature_ID_Threshold && dStart_WL > 0.0)
 			{
-				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 500.0)
+				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < k_dDelta_WL_Threshold)
 				{
 					(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiJ];
 					if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
 						(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
 				}
-				else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > 500.0) // make sure it isn't just a tiny depression
+				else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > k_dDelta_WL_Threshold) // make sure it isn't just a tiny depression
 				{
 					LINE_ID	cLine_ID;
 					bool bFound = false;
@@ -850,13 +870,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		if (dStart_WL > 0.0)
 		{
-			if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < 500.0)
+			if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < k_dDelta_WL_Threshold)
 			{
 				(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
 				if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
 					(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
 			}
-			else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > 500.0) // make sure it isn't just a tiny depression
+			else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > k_dDelta_WL_Threshold) // make sure it isn't just a tiny depression
 			{
 
 				LINE_ID	cLine_ID;
