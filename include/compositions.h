@@ -211,7 +211,7 @@ public:
 		}
 		return uiRet;
 	}
-	
+	unsigned int Get_Num_Compositions(void) const {return m_uiNum_Compositions;}
 	
 	void	Zaghloul_Saha(const double & i_dTemperature_K, const double & i_dDensity_g_cm3, unsigned int ITMAX = 20000); // 10000 seems to be the right # of iters; 20000 to be safe.
 

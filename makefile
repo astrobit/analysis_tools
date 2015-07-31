@@ -241,8 +241,8 @@ $(LIBDIR)/libcomp.a: $(SRCDIR)/compositions.cpp $(INCLUDEDIR)/compositions.h  $(
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libcomp.a $(TMPDIR)/compositions.o
 
 sahatest: $(BINDIR)/sahatest
-$(BINDIR)/sahatest: $(SRCDIR)/saha_test.cpp  $(LIBDIR)/libcomp.a $(XLIBSCHANGE)
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/saha_test.cpp $(ESFLAGS) -lcomp -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/sahatest
+$(BINDIR)/sahatest: $(SRCDIR)/saha_test.cpp  $(LIBDIR)/libcomp.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/saha_test.cpp $(ESFLAGS) $(ESLIBS) -lcomp -llinerout -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/sahatest
 
 clean:
 	-rm $(BINDIR)/*
