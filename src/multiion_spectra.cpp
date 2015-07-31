@@ -409,6 +409,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output-name",lpszOutput_Name,sizeof(lpszOutput_Name),"");
     unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
 	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
+	bool	bUse_Saha = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-saha");
 	const char *	lpszRef_Spectrum[6];
 	lpszRef_Spectrum[0] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-1");
 	lpszRef_Spectrum[1] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-2");
@@ -660,10 +661,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		unsigned int uiA = 2 * uiElem;
 		if (uiElem == 1)
 			uiA = 1;
-		COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiA));
-		COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
 
-//		double	dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
+		if (bUse_Saha)
+		{
+			COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiA));
+			COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
+			dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
+		}
 		printf("shell effective abundance: composition z %i, ion state %i is %e\n",uiElem,uiIon_State,dShell_Abd_Eff);
 
 
