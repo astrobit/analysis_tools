@@ -15,6 +15,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiX_Axis_Column = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-column",0);
 	unsigned int uiHeader_Lines  = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--header-lines",0);
 	bool	bWhitespace_Separated = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--whitespace-separated");
+	bool	bX_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-axis-log");
+	bool	bY_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-axis-log");
 
 	XDATASET	cData;
 
@@ -106,6 +108,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
 				if (lpszY_Axis_Title)
 					cY_Axis_Parameters.Set_Title(lpszY_Axis_Title);
+				cX_Axis_Parameters.m_bLog = bX_Axis_Log;
+				cY_Axis_Parameters.m_bLog = bY_Axis_Log;
 
 				unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
 				unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
