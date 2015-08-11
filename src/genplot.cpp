@@ -24,7 +24,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	if (lpszDatafile)
 	{
 		cData.ReadDataFile(lpszDatafile,bWhitespace_Separated,false,bWhitespace_Separated ? 0 : ',', uiHeader_Lines);
-		printf("finished reading file %s\n",lpszDatafile);
 		if (cData.GetNumElements() > 0)
 		{
 			lpdX_Values = cData.GetElementArray(uiX_Axis_Column);
@@ -82,10 +81,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 			if (lpdX_Values && lpdY_Values && uiY_Count > 0)
 			{
+				unsigned int uiNum_Elements = cData.GetNumElements();
 				char lpszFilename[256];
 				sprintf(lpszFilename,"%s.eps",lpszDatafile);
-				printf("generating plot, output to %s\n",lpszFilename);
-				unsigned int uiNum_Elements = cData.GetNumElements();
 
 
 				epsplot::PAGE_PARAMETERS	cPlot_Parameters;
@@ -103,7 +101,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cPlot_Parameters.m_uiNum_Rows = 1;
 				cPlot_Parameters.m_dWidth_Inches = 11.0;
 				cPlot_Parameters.m_dHeight_Inches = 8.5;
-
 				if (lpszX_Axis_Title)
 					cX_Axis_Parameters.Set_Title(lpszX_Axis_Title);
 				cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
@@ -147,7 +144,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 				cPlot.Set_Plot_Filename(lpszFilename);
 				cPlot.Plot(cPlot_Parameters);
-				printf("Done\n");
+				printf("Plot output to  %s\n",lpszFilename);
 			}
 			else
 			{
