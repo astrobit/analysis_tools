@@ -163,7 +163,7 @@ namespace	epsplot
 			}
 			if (i_lpszTitle == NULL && m_lpszTitle != NULL)
 				m_lpszTitle[0] = 0;
-			else
+			else if (i_lpszTitle != NULL && m_lpszTitle != NULL)
 				strcpy(m_lpszTitle,i_lpszTitle);
 		}
 		const char * Get_Title(void) const {return m_lpszTitle;}
