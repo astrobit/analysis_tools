@@ -20,17 +20,26 @@ void Resample(const double & i_dVmax, const XDATASET & i_cData, XDATASET & io_cR
 		double dRin = dR - 0.5 * dDelta_R;
 		double dRout = dR + 0.5 * dDelta_R;
 		double dVol = dVol_Const * (dRout * dRout * dRout - dRin * dRin * dRin);
+		if (dVol < 0.0)
+			dVol *= -1.0;
 		double dMass = dDens * dVol;
 		double	dVin = i_cData.GetElement(26,uiI);
 		double	dVout = i_cData.GetElement(27,uiI);
-		unsigned int uiVin_Idx = (unsigned int)((dVin / i_dVmax) * 127);
-		unsigned int uiVout_Idx = (unsigned int)((dVout / i_dVmax) * 127);
-		if (uiVout_Idx < uiVin_Idx)
-		{
-			unsigned int uiTemp = uiVin_Idx;
-			uiVin_Idx = uiVout_Idx;
-			uiVout_Idx = uiTemp;
-		}
+		double dV = i_cData.GetElement(25,uiI);
+		double dVmin = dVin;
+		double dVmax = dVout;
+		if (dV < dVmin)
+			dVmin = dV;
+		if (dVout < dVmin)
+			dVmin = dVout;
+		if (dV > dVmax)
+			dVmax = dV;
+		if (dVin > dVmax)
+			dVmax = dVin;
+		double dVin_Idx = ((dVmin / i_dVmax) * 128);
+		double dVout_Idx = ((dVmax / i_dVmax) * 128);
+		unsigned int uiVin_Idx = (dVin_Idx - fmod(dVin_Idx,1.0) + 0.1);
+		unsigned int uiVout_Idx = (dVout_Idx - fmod(dVout_Idx,1.0) + 0.1);
 		double dVel_Frac = (1.0 / (uiVout_Idx - uiVin_Idx + 1));
 
 		if (i_bGroup_Abundances)
@@ -93,13 +102,13 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	{
 		unsigned int uiFile_Num = atoi(i_lpszArg_Values[1]);
 		cShell_Abundance.Read_Table(Solar);
-		cShell_Abundance.Read_Table(Seitenzahl_N100_2013);
+		cEjecta_Abundance.Read_Table(Seitenzahl_N100_2013);
 		cEjecta_Abundance.Normalize_Groups();
 
-		sprintf(lpszFilename,"ejecta_%4i.xdataset",uiFile_Num);
+		sprintf(lpszFilename,"ejecta%04i.xdataset",uiFile_Num);
 		cEjecta.ReadDataFileBin(lpszFilename);
 
-		sprintf(lpszFilename,"shell_%4i.xdataset",uiFile_Num);
+		sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
 		cShell.ReadDataFileBin(lpszFilename);
 
 		double	dVmax = 0.0;
@@ -133,6 +142,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		}
 		Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
 		Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
+		cCombined_Data.SaveDataFileBin("resampled.xdataset");
 
 		FILE * fileDensity = fopen("density.dat","wt");
 		FILE * fileAbundance = fopen("abundance.dat","wt");
@@ -154,9 +164,17 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			double dRout = dVout * 86400.0;
 			double dVol = dVol_Const * (dRout * dRout * dRout - dRin * dRin * dRin);
 			fprintf(fileDensity,"%i %.1f %e\n",uiI + 1, cCombined_Data.GetElement(0,uiI) * 1.0e-5, dMass / dVol);
+			
 			fprintf(fileAbundance,"%i",uiI + 1);
 			for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
-				fprintf(fileAbundance," %.8e", cCombined_Data.GetElement(uiJ,uiI) / dMass);
+			{
+				if (dMass > 0.0)
+					fprintf(fileAbundance," %.8e", cCombined_Data.GetElement(uiJ,uiI) / dMass);
+				else if (uiJ == 1)
+					fprintf(fileAbundance," 1.0");
+				else
+					fprintf(fileAbundance," 0.0");
+			}
 			fprintf(fileAbundance,"\n");
 		}
 	}
