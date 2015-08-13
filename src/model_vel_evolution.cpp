@@ -167,7 +167,7 @@ public:
 };
 
 
-void Process_Model_List(const char * lpszModel_List_String, const char ** o_lpszModel_List, unsigned int o_uiModel_Count)
+void Process_Model_List(const char * lpszModel_List_String, const char ** &o_lpszModel_List, unsigned int &o_uiModel_Count)
 {
 	char * lpszCursor = (char *)lpszModel_List_String;
 	// count number of models to process
@@ -395,7 +395,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(eScalar_Type);
 			dShell_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 		}
-
+		printf("model count %i\n",uiModel_Count);
 		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 		{
 			char lpszOpacity_File_Ejecta[64], lpszOpacity_File_Shell[64];
