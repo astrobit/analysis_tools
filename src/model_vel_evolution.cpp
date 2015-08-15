@@ -225,6 +225,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	bool	bFull_Spectrum = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--full-spectrum");
     unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
 	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
+	bool	bNo_Ref_Model = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--no-ref-model");
 	char lpszRef_Model_Extended[128] = {0};
 	const char *	lpszIon_List = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ions");
 	char lpszShell_Abundance[128];
@@ -511,13 +512,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cParameters.Set(2,dPS_Temp);
 
 				cParameters.Set(3,10.0); // fix excitation temp
-//				cParameters.Set(4,dEjecta_Scalar);
-				cParameters.Set(4,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
+				if (bNo_Ref_Model)
+					cParameters.Set(4,dEjecta_Scalar);
+				else
+					cParameters.Set(4,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
 //				printf("%.5e %.5e\n",dEjecta_Scalar,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
 				if (bShell)
 				{
 					cParameters.Set(5,10.0); // fix excitation temp
-					cParameters.Set(6,dShell_Scalar + log10(dShell_Scalar_Prof / dShell_Scalar_Ref));
+					if (bNo_Ref_Model)
+						cParameters.Set(6,dShell_Scalar);
+					else
+						cParameters.Set(6,dShell_Scalar + log10(dShell_Scalar_Prof / dShell_Scalar_Ref));
 				}
 
 				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]) == 0)
