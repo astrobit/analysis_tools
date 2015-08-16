@@ -1872,6 +1872,9 @@ void	ABUNDANCE_LIST::Read_Table(ABUNDANCE_TYPE i_eAbundance_Type)
 		case Seitenzahl_N100_2013:
 			sprintf(lpszFilename,"%s/Seitenzahl_N100_2013.csv",lpszData_Path);
 			break;
+		case Seitenzahl_Ca_Rich:
+			sprintf(lpszFilename,"%s/Seitenzahl_N100_2013_Ca_Rich.csv",lpszData_Path);
+			break;
 		}
 		if (lpszFilename[0] != 0)
 			Read_Table(lpszFilename);

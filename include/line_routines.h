@@ -186,7 +186,7 @@ public:
 	}
 };
 
-enum ABUNDANCE_TYPE {Solar,Seitenzahl_N100_2013,CO_Rich};
+enum ABUNDANCE_TYPE {Solar,Seitenzahl_N100_2013,CO_Rich,Seitenzahl_Ca_Rich};
 
 class ABUNDANCE_LIST
 {
