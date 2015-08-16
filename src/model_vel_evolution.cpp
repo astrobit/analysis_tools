@@ -700,7 +700,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fprintf(fileCaption,"magenta, ");
 				break;
 			}
-			switch (eColor)
+			switch (eStipple)
 			{
 			case epsplot::SOLID:
 				fprintf(fileCaption,"solid)");
