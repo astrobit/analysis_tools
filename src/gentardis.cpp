@@ -8,6 +8,9 @@
 #include <line_routines.h>
 
 
+#define NUM_ZONES	256
+
+
 void Resample(const double & i_dVmax, const XDATASET & i_cData, XDATASET & io_cResampled, const ABUNDANCE_LIST & i_cAbundance, bool i_bGroup_Abundances)
 {
 	double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
@@ -36,8 +39,8 @@ void Resample(const double & i_dVmax, const XDATASET & i_cData, XDATASET & io_cR
 			dVmax = dV;
 		if (dVin > dVmax)
 			dVmax = dVin;
-		double dVin_Idx = ((dVmin / i_dVmax) * 128);
-		double dVout_Idx = ((dVmax / i_dVmax) * 128);
+		double dVin_Idx = ((dVmin / i_dVmax) * NUM_ZONES);
+		double dVout_Idx = ((dVmax / i_dVmax) * NUM_ZONES);
 		unsigned int uiVin_Idx = (dVin_Idx - fmod(dVin_Idx,1.0) + 0.1);
 		unsigned int uiVout_Idx = (dVout_Idx - fmod(dVout_Idx,1.0) + 0.1);
 		double dVel_Frac = (1.0 / (uiVout_Idx - uiVin_Idx + 1));
@@ -95,87 +98,119 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	XDATASET cEjecta;
 	XDATASET cShell;
 	XDATASET	cCombined_Data;
-	ABUNDANCE_LIST	cShell_Abundance;
+	ABUNDANCE_LIST	cShell_Abundance[4];
 	ABUNDANCE_LIST	cEjecta_Abundance;
 
 	if (i_iArg_Count == 2)
 	{
 		unsigned int uiFile_Num = atoi(i_lpszArg_Values[1]);
-		cShell_Abundance.Read_Table(Solar);
+		cShell_Abundance[0].Read_Table(Solar);
+		cShell_Abundance[1].Read_Table(Seitenzahl_N100_2013);
+		cShell_Abundance[2].Read_Table(CO_Rich);
+		cShell_Abundance[3].Read_Table(Seitenzahl_Ca_Rich);
 		cEjecta_Abundance.Read_Table(Seitenzahl_N100_2013);
 		cEjecta_Abundance.Normalize_Groups();
 
 		sprintf(lpszFilename,"ejecta%04i.xdataset",uiFile_Num);
 		cEjecta.ReadDataFileBin(lpszFilename);
 
-		sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
-		cShell.ReadDataFileBin(lpszFilename);
 
-		double	dVmax = 0.0;
-		if (cShell.GetNumElements() > 0)
+		if (cEjecta.GetNumElements() > 0)
 		{
-			for (unsigned int uiI = 0; uiI < cShell.GetNumElements(); uiI++)
+			sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
+			cShell.ReadDataFileBin(lpszFilename);
+
+			double	dVmax = 0.0;
+			if (cShell.GetNumElements() > 0)
 			{
-				if (dVmax < cShell.GetElement(27,uiI))
-					dVmax = cShell.GetElement(27,uiI);
-				if (dVmax < cShell.GetElement(25,uiI))
-					dVmax = cShell.GetElement(25,uiI);
+				for (unsigned int uiI = 0; uiI < cShell.GetNumElements(); uiI++)
+				{
+					if (dVmax < cShell.GetElement(27,uiI))
+						dVmax = cShell.GetElement(27,uiI);
+					if (dVmax < cShell.GetElement(25,uiI))
+						dVmax = cShell.GetElement(25,uiI);
+				}
 			}
-		}
-		else
-		{
-			for (unsigned int uiI = 0; uiI < cEjecta.GetNumElements(); uiI++)
+			else
 			{
-				if (dVmax < cEjecta.GetElement(27,uiI))
-					dVmax = cEjecta.GetElement(27,uiI);
-				if (dVmax < cEjecta.GetElement(25,uiI))
-					dVmax = cEjecta.GetElement(25,uiI);
+				for (unsigned int uiI = 0; uiI < cEjecta.GetNumElements(); uiI++)
+				{
+					if (dVmax < cEjecta.GetElement(27,uiI))
+						dVmax = cEjecta.GetElement(27,uiI);
+					if (dVmax < cEjecta.GetElement(25,uiI))
+						dVmax = cEjecta.GetElement(25,uiI);
+				}
 			}
-		}
 
-		cCombined_Data.Allocate(29,128);
-		cCombined_Data.Zero(); // make sure all abundances are 0
-		for (unsigned int uiI = 0; uiI < 128; uiI++)
-		{
-			cCombined_Data.SetElement(0,uiI,((uiI + 0.5) / 128.0 * dVmax));
+			cCombined_Data.Allocate(29,NUM_ZONES);
 
-		}
-		Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
-		Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
-		cCombined_Data.SaveDataFileBin("resampled.xdataset");
-
-		FILE * fileDensity = fopen("density.dat","wt");
-		FILE * fileAbundance = fopen("abundance.dat","wt");
-
-		fprintf(fileDensity,"1 days\n"); 
-		double	dDelta_v = (cCombined_Data.GetElement(0,1) - cCombined_Data.GetElement(0,0)) * 0.5;
-		double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
-		for (unsigned int uiI = 0; uiI < 128; uiI++)
-		{
-			double	dMass = 0.0;
-			for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
+			for (unsigned int uiAbd = 0; uiAbd < 4; uiAbd++)
 			{
-				dMass += cCombined_Data.GetElement(uiJ,uiI);
-			}
-			double dV = cCombined_Data.GetElement(0,uiI) * 86400.0;
-			double dVin = dV - dDelta_v;
-			double dVout = dV + dDelta_v;
-			double dRin = dVin * 86400.0;
-			double dRout = dVout * 86400.0;
-			double dVol = dVol_Const * (dRout * dRout * dRout - dRin * dRin * dRin);
-			fprintf(fileDensity,"%i %.1f %e\n",uiI + 1, cCombined_Data.GetElement(0,uiI) * 1.0e-5, dMass / dVol);
+				cCombined_Data.Zero(); // make sure all abundances are 0
+				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+				{
+					cCombined_Data.SetElement(0,uiI,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
+
+				}
+
+				Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
+				Resample(dVmax,cShell,cCombined_Data,cShell_Abundance[uiAbd],false);
+				cCombined_Data.SaveDataFileBin("resampled.xdataset");
+
+				FILE * fileDensity = NULL;
+				FILE * fileAbundance = NULL;
+				switch (uiAbd)
+				{
+				case 0:
+					fileDensity = fopen("density.dat","wt");
+					fileAbundance = fopen("abundance_solar.dat","wt");
+					break;
+				case 1:
+					fileAbundance = fopen("abundance_Seitenzahl.dat","wt");
+					break;
+				case 2:
+					fileAbundance = fopen("abundance_CO_rich.dat","wt");
+					break;
+				case 3:
+					fileAbundance = fopen("abundance_Ca_rich.dat","wt");
+					break;
+				}
+				if (fileDensity)
+					fprintf(fileDensity,"1 day\n"); 
+				double	dDelta_v = (cCombined_Data.GetElement(0,1) - cCombined_Data.GetElement(0,0)) * 0.5;
+				double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
+				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+				{
+					double	dMass = 0.0;
+					for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
+					{
+						dMass += cCombined_Data.GetElement(uiJ,uiI);
+					}
+					double dV = cCombined_Data.GetElement(0,uiI);
+					double dVin = dV - dDelta_v;
+					double dVout = dV + dDelta_v;
+					double dRin = dVin * 86400.0;
+					double dRout = dVout * 86400.0;
+					double dVol = dVol_Const * (dRout * dRout * dRout - dRin * dRin * dRin);
+					if (fileDensity)
+						fprintf(fileDensity,"%i %.1f %e\n",uiI + 1, cCombined_Data.GetElement(0,uiI) * 1.0e-5, dMass / dVol);
 			
-			fprintf(fileAbundance,"%i",uiI + 1);
-			for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
-			{
-				if (dMass > 0.0)
-					fprintf(fileAbundance," %.8e", cCombined_Data.GetElement(uiJ,uiI) / dMass);
-				else if (uiJ == 1)
-					fprintf(fileAbundance," 1.0");
-				else
-					fprintf(fileAbundance," 0.0");
+					fprintf(fileAbundance,"%i",uiI + 1);
+					for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
+					{
+						if (dMass > 0.0)
+							fprintf(fileAbundance," %.8e", cCombined_Data.GetElement(uiJ,uiI) / dMass);
+						else if (uiJ == 1)
+							fprintf(fileAbundance," 1.0");
+						else
+							fprintf(fileAbundance," 0.0");
+					}
+					fprintf(fileAbundance,"\n");
+				}
+				if (fileDensity)
+					fclose(fileDensity);
+				fclose(fileAbundance);
 			}
-			fprintf(fileAbundance,"\n");
 		}
 	}
 	return 0;
