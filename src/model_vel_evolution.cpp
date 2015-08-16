@@ -298,8 +298,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cParam.m_dTime_After_Explosion = dDay;
 //	cParam.m_dPhotosphere_Velocity_kkms = dPS_Velocity;
 	cParam.m_dPhotosphere_Temp_kK = dPS_Temp;
-	cParam.m_dEjecta_Log_Scalar = dEjecta_Scalar;
-	cParam.m_dShell_Log_Scalar = dShell_Scalar;
 	cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
 	cParam.m_dShell_Effective_Temperature_kK = 10.0;
 
@@ -506,24 +504,27 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cOpacity_Map_Shell.ReadDataFileBin(lpszOpacity_File_Shell);
 				bool bShell = cOpacity_Map_Shell.GetNumElements() != 0;
 
+				cParam.m_dEjecta_Log_Scalar = dEjecta_Scalar;
+				cParam.m_dShell_Log_Scalar = dShell_Scalar;
+				if (!bNo_Ref_Model)
+				{
+					cParam.m_dEjecta_Log_Scalar += log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref);
+					cParam.m_dShell_Log_Scalar += log10(dShell_Scalar_Prof / dShell_Scalar_Ref);
+				}
+
+
 				cParameters.Set_Size(bShell ? 7 : 5);
 				cParameters.Set(0,dDay);
 				cParameters.Set(1,cContinuum_Parameters.Get(0));
 				cParameters.Set(2,dPS_Temp);
 
 				cParameters.Set(3,10.0); // fix excitation temp
-				if (bNo_Ref_Model)
-					cParameters.Set(4,dEjecta_Scalar);
-				else
-					cParameters.Set(4,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
+				cParameters.Set(4,cParam.m_dEjecta_Log_Scalar);
 //				printf("%.5e %.5e\n",dEjecta_Scalar,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
 				if (bShell)
 				{
 					cParameters.Set(5,10.0); // fix excitation temp
-					if (bNo_Ref_Model)
-						cParameters.Set(6,dShell_Scalar);
-					else
-						cParameters.Set(6,dShell_Scalar + log10(dShell_Scalar_Prof / dShell_Scalar_Ref));
+					cParameters.Set(6,cParam.m_dShell_Log_Scalar);
 				}
 
 				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]) == 0)
