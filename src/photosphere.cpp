@@ -192,14 +192,21 @@ int main(int iArgC,const char * lpszArgV[])
 	double * lpdVolume_tref;
 
 	unsigned int uiNum_Points;
-
-	if (!xParse_Command_Line_Exists(iArgC,lpszArgV,"--file"))
+	if (xParse_Command_Line_Exists(iArgC,lpszArgV,"--filenum"))
 	{
-		fprintf(stderr,"Usage: photosphere --file=<filename>\n");
+		unsigned int uiFile = xParse_Command_Line_UInt(iArgC,lpszArgV,"--filenum");
+		sprintf(lpszFile_To_Read,"explos_hdf5_chk_%04i",uiFile);
+	}
+	else if (xParse_Command_Line_Exists(iArgC,lpszArgV,"--file"))
+	{
+		xParse_Command_Line_String(iArgC,lpszArgV,"--file",lpszFile_To_Read,256);
+	}
+	else
+	{
+		fprintf(stderr,"Usage: photosphere --file=<filename>\n or:   photosphere --filenum=<number>\n The filenum option will load file explos_hdf5_chk_X; uses format %%04i, so user does not need to specify leading zeros.\n");
 		exit(0);
 	}
 
-	xParse_Command_Line_String(iArgC,lpszArgV,"--file",lpszFile_To_Read,256);
 	if (lpszFile_To_Read[0] == 0)
 	{
 		printf("No FLASH file specified.  Exiting...\n");
