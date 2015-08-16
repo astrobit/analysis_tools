@@ -17,6 +17,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	bool	bWhitespace_Separated = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--whitespace-separated");
 	bool	bX_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-axis-log");
 	bool	bY_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-axis-log");
+	char lpszOutput_File[256];
+	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output",lpszOutput_File,sizeof(lpszOutput_File),"");
 
 	XDATASET	cData;
 
@@ -83,7 +85,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			{
 				unsigned int uiNum_Elements = cData.GetNumElements();
 				char lpszFilename[256];
-				sprintf(lpszFilename,"%s.eps",lpszDatafile);
+				if (lpszOutput_File[0] != 0)
+					strcpy(lpszFilename,lpszOutput_File);
+				else
+					sprintf(lpszFilename,"%s.eps",lpszDatafile);
+					
 
 
 				epsplot::PAGE_PARAMETERS	cPlot_Parameters;
@@ -144,7 +150,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 				cPlot.Set_Plot_Filename(lpszFilename);
 				cPlot.Plot(cPlot_Parameters);
-				printf("Plot output to  %s\n",lpszFilename);
+				printf("Plot output to %s\n",lpszFilename);
 			}
 			else
 			{
