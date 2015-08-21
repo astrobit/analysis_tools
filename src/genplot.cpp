@@ -17,10 +17,16 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	bool	bWhitespace_Separated = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--whitespace-separated");
 	bool	bX_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-axis-log");
 	bool	bY_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-axis-log");
+	double	dX_min = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-min",nan(""));
+	double	dX_max = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-max",nan(""));
+	double	dY_min = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-min",nan(""));
+	double	dY_max = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-max",nan(""));
 	char lpszOutput_File[256];
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output",lpszOutput_File,sizeof(lpszOutput_File),"");
 
 	XDATASET	cData;
+
+
 
 
 	if (lpszDatafile)
@@ -114,6 +120,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cY_Axis_Parameters.Set_Title(lpszY_Axis_Title);
 				cX_Axis_Parameters.m_bLog = bX_Axis_Log;
 				cY_Axis_Parameters.m_bLog = bY_Axis_Log;
+				if (!isnan(dX_min))
+					cX_Axis_Parameters.m_dLower_Limit = dX_min;
+				if (!isnan(dX_max))
+					cX_Axis_Parameters.m_dUpper_Limit = dX_max;
+				if (!isnan(dY_min))
+					cY_Axis_Parameters.m_dLower_Limit = dY_min;
+				if (!isnan(dY_max))
+					cY_Axis_Parameters.m_dUpper_Limit = dY_max;
 
 				unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
 				unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
@@ -166,5 +180,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fprintf(stderr,"No data in file\n");
 	}
 	else
-		fprintf(stderr,"Data file not specified\n");
+	{
+		fprintf(stderr,"Usage: genplot --file=<file> [OPTIONS]\n");
+		fprintf(stderr,"Command line options:\n");
+		fprintf(stderr,"\t--x-title=<string> : specify title of x-axis\n");
+		fprintf(stderr,"\t--y-title=<string> : specify title of y-axis\n");
+		fprintf(stderr,"\t--x-column=<col #> : specify which column to use as x axis\n");
+		fprintf(stderr,"\t--y-columns=\"#,#,#,#,#,...,#\" : specify columns to use for plotting data.\n");
+		fprintf(stderr,"\t--header-lines=# : specify how many rows of the data file to ignore\n\t\t(non numeric data will cause a fault)\n");
+		fprintf(stderr,"\t--whitespace-separated : by default, the file is assumed to be comma\n\t\tseparated.  Use this if columns in the data files are separated by\n\t\tspaces or tabs.\n");
+		fprintf(stderr,"\t--x-axis-log: use a log scale for the x axis\n\t\t[NOTE: this currently doesn't work well]\n");
+		fprintf(stderr,"\t--y-axis-log: use a log scale for the y axis\n\t\t[NOTE: this currently doesn't work well]\n");
+		fprintf(stderr,"\t--output=<outfile>: output plot to <outfile>.  Default file name for\n\t\toutput is <file>.eps\n");
+		fprintf(stderr,"\t--x-min=#: Lower limit for x axis\n");
+		fprintf(stderr,"\t--x-max=#: Upper limit for x axis\n");
+		fprintf(stderr,"\t--y-min=#: Lower limit for y axis\n");
+		fprintf(stderr,"\t--y-max=#: Upper limit for y axis\n");
+	}
 }
