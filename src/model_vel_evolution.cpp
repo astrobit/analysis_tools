@@ -212,6 +212,54 @@ void Process_Model_List(const char * lpszModel_List_String, const char ** &o_lps
 		}
 	}
 }
+
+
+void Process_Day_List(const char * lpszDay_List_String, double * &o_lpdDay_List, unsigned int &o_uiDay_Count)
+{
+	char * lpszCursor = (char *)lpszDay_List_String;
+	// count number of models to process
+	o_uiDay_Count = 0;
+	while (lpszCursor && lpszCursor[0] != 0)
+	{
+		// bypass whitespace
+		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
+			lpszCursor++;
+		// count model
+		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
+		{
+			o_uiDay_Count++;
+			while (lpszCursor[0] != 0 && lpszCursor[0] != ',')
+				lpszCursor++;
+		}
+		if(lpszCursor[0] == ',')
+			lpszCursor++; // bypass comma
+	}
+	// allocate model name pointer list
+	o_lpdDay_List = new double [o_uiDay_Count];
+	// count number of models to process
+	o_uiDay_Count = 0;
+	lpszCursor = (char *)lpszDay_List_String; // reset cursor
+	while (lpszCursor && lpszCursor[0] != 0)
+	{
+		// bypass whitespace
+		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
+			lpszCursor++;
+		// add pointer to model name and count model
+		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
+		{
+			o_lpdDay_List[o_uiDay_Count] = atof(lpszCursor);
+			o_uiDay_Count++;
+			while (lpszCursor[0] != 0 && lpszCursor[0] != ',')
+				lpszCursor++;
+		}
+		if(lpszCursor[0] == ',')
+		{
+			lpszCursor[0] = 0;
+			lpszCursor++; // bypass comma
+		}
+	}
+}
+
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
@@ -227,7 +275,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
 	bool	bNo_Ref_Model = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--no-ref-model");
 	char lpszRef_Model_Extended[128] = {0};
-	const char *	lpszIon_List = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ions");
+//	const char *	lpszIon_List = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ions");
 	char lpszShell_Abundance[128];
 	char lpszEjecta_Abundance[128];
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-abundance",lpszShell_Abundance,sizeof(lpszShell_Abundance),"");
@@ -249,6 +297,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 //	printf("here 0\n");
 	// get model list string
+	const char *	lpszDay_List_String = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--days");
+	double * lpdDay_List;
+	unsigned int uiDay_Count;
+	Process_Day_List(lpszDay_List_String, lpdDay_List, uiDay_Count);
+
 	const char *	lpszModel_List_String = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--models");
 	const char ** lpszModel_List;
 	unsigned int uiModel_Count;
@@ -394,7 +447,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(eScalar_Type);
 			dShell_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 		}
-		printf("model count %i\n",uiModel_Count);
 		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 		{
 			char lpszOpacity_File_Ejecta[64], lpszOpacity_File_Shell[64];
@@ -832,7 +884,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cEO_Unflat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpcSpectrum[uiI][2].flux(uiJ),dWL_Ref, lpdSpectra_Flux_EO[uiI][uiJ] < 1.0);
 					cSO_Unflat.Process_Vmin(lpdSpectra_WL[uiI][uiJ],lpcSpectrum[uiI][3].flux(uiJ),dWL_Ref, lpdSpectra_Flux_SO[uiI][uiJ] < 1.0);
 
-					bIn_feature |= (1.0 - lpdSpectra_Flux[uiI][uiJ]) > 1.0e-4;
+					bIn_feature |= (1.0 - lpdSpectra_Flux[uiI][uiJ]) > 1.0e-2;
 					//printf("%.0f %.5f\n",lpdSpectra_WL[uiI][uiJ],lpdSpectra_Flux[uiI][uiJ]);
 					if (!bIn_feature)
 						uiContinuum_Blue_Idx = uiJ;
@@ -858,11 +910,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				uiContinuum_Red_Idx = uiMin_Flux_Idx;
 				if (uiMin_Flux_Idx != (unsigned int)(-1))
 				{
-					while (uiContinuum_Blue_Idx > 0 && lpdSpectra_Flux[uiI][uiContinuum_Blue_Idx] < 0.9999)
+					while (uiContinuum_Blue_Idx > 0 && lpdSpectra_Flux[uiI][uiContinuum_Blue_Idx] < 0.99)
 						uiContinuum_Blue_Idx--;
 					for (unsigned int uiJ = uiMin_Flux_Idx; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 					{
-						if (lpdSpectra_Flux[uiI][uiJ] > 0.9999 && lpcSpectrum[uiI][1].flux(uiJ) > dP_Cygni_Peak_Flux)
+						if (lpdSpectra_Flux[uiI][uiJ] > 0.99 && lpcSpectrum[uiI][1].flux(uiJ) > dP_Cygni_Peak_Flux)
 						{
 							dP_Cygni_Peak_Flux = lpcSpectrum[uiI][1].flux(uiJ);
 							uiContinuum_Red_Idx = uiJ;
