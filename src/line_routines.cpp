@@ -1934,10 +1934,10 @@ void	ABUNDANCE_LIST::Normalize_Groups(void)
 
 	// Si group: Si to Mn
 	dSum = 0.0;
-	for (unsigned int uiZ = 14; uiZ < 26; uiZ++)
+	for (unsigned int uiZ = 14; uiZ < 21; uiZ++)
 		dSum += m_dAbundances[uiZ];
 	dInv_Abd_Total = 1.0 / dSum;
-	for (unsigned int uiZ = 14; uiZ < 26; uiZ++)
+	for (unsigned int uiZ = 14; uiZ < 21; uiZ++)
 	{
 		m_dAbundances[uiZ] *= dInv_Abd_Total;
 		m_dUncertainties[uiZ] *= dInv_Abd_Total;
@@ -1945,10 +1945,10 @@ void	ABUNDANCE_LIST::Normalize_Groups(void)
 
 	// Fe group: Fe to Uuo (really more like Fe to Zn or Ge)
 	dSum = 0.0;
-	for (unsigned int uiZ = 26; uiZ < 119; uiZ++)
+	for (unsigned int uiZ = 21; uiZ < 119; uiZ++)
 		dSum += m_dAbundances[uiZ];
 	dInv_Abd_Total = 1.0 / dSum;
-	for (unsigned int uiZ = 26; uiZ < 119; uiZ++)
+	for (unsigned int uiZ = 21; uiZ < 119; uiZ++)
 	{
 		m_dAbundances[uiZ] *= dInv_Abd_Total;
 		m_dUncertainties[uiZ] *= dInv_Abd_Total;
