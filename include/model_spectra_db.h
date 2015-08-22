@@ -152,7 +152,7 @@ namespace msdb
 		// The following functions are for database manipulation.  General purpose users should not use these
 		dbid			Get_DB_ID(const PARAMETERS & i_cParameters) const;
 		dbid			Get_Parameters(dbid i_dbidID, PARAMETERS & o_cParameters) const;
-		void			Update_Spectrum(dbid i_dbidRecord_ID, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & i_cSpectrum) const;
+		dbid			Update_Spectrum(dbid i_dbidRecord_ID, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & i_cSpectrum) const;
 		void			Delete_Spectrum(dbid i_dbidRecord_ID, SPECTRUM_TYPE i_eSpectrum_Type) const;
 	};
 
