@@ -180,6 +180,7 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 				for (unsigned int uiJ = 0; uiJ < cDatafile.GetNumElements(); uiJ++)
 				{
 					unsigned int uiModel = cDatafile.GetElement(0,uiJ);	
+					printf("Considering data for model %i\n",uiModel);
 					if (cFull_Map[uiDay].count(uiModel) == 0) 
 					{
 						printf("Gathering data for model %i\n",uiModel);
