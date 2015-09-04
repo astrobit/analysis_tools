@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb
 
 .PHONY: all
 
@@ -260,6 +260,9 @@ gather_pEW_vels: $(BINDIR)/gather_pEW_vels
 $(BINDIR)/gather_pEW_vels: $(SRCDIR)/gather_pEW_vels.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_pEW_vels.cpp -lxmath -lxio -lxstdlib -o $(BINDIR)/gather_pEW_vels
 
+test_msdb: $(BINDIR)/test_msdb
+$(BINDIR)/test_msdb: $(SRCDIR)/msdb_test.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/msdb_test.cpp $(ESFLAGS) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/test_msdb
 
 clean:
 	-rm $(BINDIR)/*
