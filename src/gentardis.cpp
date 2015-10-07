@@ -25,7 +25,7 @@ public:
 	}
 };
 
-/*PEREIRA_DATA	g_cPereira_Data[] = {
+PEREIRA_DATA	g_cPereira_Data[] = {
 							PEREIRA_DATA(2.49, 7.9712932209),
 							PEREIRA_DATA(3.39, 8.2662490688),
 							PEREIRA_DATA(4.39, 8.4905376815),
@@ -44,11 +44,11 @@ public:
 							PEREIRA_DATA(20.39, 9.4324414496),
 							PEREIRA_DATA(21.39, 9.399067754),
 							PEREIRA_DATA(24.39, 9.3250812657) };
-*/
-PEREIRA_DATA	g_cPereira_Data[] = {
-							PEREIRA_DATA(2.49, 7.9712932209),
-							PEREIRA_DATA(8.39, 9.1489900066),
-							PEREIRA_DATA(18.39, 9.4653704764)};
+
+//PEREIRA_DATA	g_cPereira_Data[] = {
+//							PEREIRA_DATA(2.49, 7.9712932209),
+//							PEREIRA_DATA(8.39, 9.1489900066),
+//							PEREIRA_DATA(18.39, 9.4653704764)};
 
 
 
@@ -243,6 +243,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				case 3:
 					fileAbundance = fopen("tardis/abundance_Ca_rich.dat","wt");
 					break;
+				}
+				if(!fileAbundance)
+				{
+					fprintf(stderr,"Gentardis: unable to open one or more output files.  Make sure that the `tardis' directory has been created.\n");
+					if (fileDensity)
+						fclose(fileDensity);
+					if (fileAbundance)
+						fclose(fileAbundance);
+					exit(-1);
 				}
 				if (fileDensity)
 					fprintf(fileDensity,"1 day\n"); 
