@@ -183,6 +183,8 @@ dbid	DATABASE::Get_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES::S
 	{
 		PARAMETERS cParameters = Generate_Corrected_Parameters(cParameters_ID,i_eSpectrum_Type);
 		dbidID = Get_DB_ID(cParameters);
+		if (dbidID != i_dbidID)
+			fprintf(stderr,"Warning: msdb get_spectrum by ID may retrieve wrong spectrum\n");
 		if (dbidID > 0)
 		{
 			char lpszFilename[256];
@@ -203,6 +205,7 @@ dbid	DATABASE::Get_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES::S
 				break;
 			}
 			sprintf(lpszFilename,"%s/%i%llu%c.spec",m_lpszSpectra_Path,cParameters.m_uiModel_ID,i_dbidID,chType);
+//			printf("reading %i:%s\n",i_dbidID,lpszFilename);
 			FILE * fileSpectrum = fopen(lpszFilename,"rb");
 			if (fileSpectrum)
 			{
@@ -227,6 +230,8 @@ dbid	DATABASE::Get_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES::S
 			else
 				dbidID = 0;
 		}
+		else
+			fprintf(stderr,"msdb failed to find entry for Get_Spectrum by ID\n");
 	}
 	return dbidID;
 }
@@ -234,7 +239,10 @@ dbid	DATABASE::Get_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES::S
 
 dbid	DATABASE::Add_Spectrum(const PARAMETERS & i_cParameters, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & i_cSpectrum) const
 {
-	dbid dbidID = Get_DB_ID(Generate_Corrected_Parameters(i_cParameters,i_eSpectrum_Type));
+	PARAMETERS cCorr_Param = Generate_Corrected_Parameters(i_cParameters,i_eSpectrum_Type);
+	dbid dbidID = Get_DB_ID(cCorr_Param);
+//	if (dbidID != 0)
+//		printf("Found id %i\n",dbidID);
 	if (dbidID == 0)
 	{ // parameters aren't listed in parameter table.  Add them.
 		if (m_lpszFile_Path)
@@ -248,20 +256,22 @@ dbid	DATABASE::Add_Spectrum(const PARAMETERS & i_cParameters, SPECTRUM_TYPE i_eS
 				fseek(fileDatabase,0,SEEK_SET); // rewind to beginning of file
 				fwrite(&cDatabase_Header,sizeof(cDatabase_Header),1,fileDatabase); // update header with new size
 				PARAMETERS cParameters = i_cParameters;
-				DATABASE_RECORD	cRecord(cDatabase_Header.m_uiNum_Records,Generate_Corrected_Parameters(i_cParameters,i_eSpectrum_Type));
+				DATABASE_RECORD	cRecord(cDatabase_Header.m_uiNum_Records,cCorr_Param);
 				PARAMETERS cParam = cRecord.Get_Parameters();
 //				printf("Model id at write: %i\n",cParam.m_uiModel_ID);
 				fseek(fileDatabase,0,SEEK_END); // forward to end of file
 				cRecord.Write_Record(fileDatabase);
 				fclose(fileDatabase);
 				dbidID = cRecord.Get_ID();
+				if (dbidID == 0)
+					fprintf(stderr,"msdb: Parameter save failed\n");
 			}
 			else
 				printf("Failed to open database for edit\n");
 		}
 	}
 	if (dbidID != 0)
-		Write_Spectrum(dbidID, i_cParameters.m_uiModel_ID, i_eSpectrum_Type, i_cSpectrum);
+		Write_Spectrum(dbidID, cCorr_Param.m_uiModel_ID, i_eSpectrum_Type, i_cSpectrum);
 
 	return dbidID;
 }
@@ -287,8 +297,9 @@ dbid DATABASE::Update_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES
 		PARAMETERS	cParams;
 		if (Get_Parameters(i_dbidID,cParams) == i_dbidID)
 		{
-			dbidID = Get_DB_ID(Generate_Corrected_Parameters(cParams,i_eSpectrum_Type));
-			Write_Spectrum(dbidID, cParams.m_uiModel_ID, i_eSpectrum_Type, i_cSpectrum);
+			PARAMETERS cCorr_Param = Generate_Corrected_Parameters(cParams,i_eSpectrum_Type);
+			dbidID = Get_DB_ID(cCorr_Param);
+			Write_Spectrum(dbidID, cCorr_Param.m_uiModel_ID, i_eSpectrum_Type, i_cSpectrum);
 		}
 	}
 	return dbidID;
@@ -322,6 +333,7 @@ dbid	DATABASE::Write_Spectrum(dbid i_dbID, unsigned int i_uiModel_ID, msdb::SPEC
 			break;
 		}
 		sprintf(lpszFilename,"%s/%i%llu%c.spec",m_lpszSpectra_Path,i_uiModel_ID,dbidID,chType);
+		//printf("Writing %i:%s\n",dbidID,lpszFilename);
 		FILE * fileSpectrum = fopen(lpszFilename,"wb");
 		if (fileSpectrum)
 		{

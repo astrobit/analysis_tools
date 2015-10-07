@@ -54,6 +54,27 @@ namespace msdb
 		double	m_dWavelength_Range_Lower_Ang;
 		double	m_dWavelength_Range_Upper_Ang;
 		double	m_dWavelength_Delta_Ang;
+		double	m_dEjecta_Scalar_Time_Power_Law; // the power law which determines the rate at which the features weaken over time for the ejecta
+		double	m_dShell_Scalar_Time_Power_Law; // the power law which determines the rate at which the features weaken over time for the shell
+
+		USER_PARAMETERS(void)
+		{
+			m_uiModel_ID = 0;
+			m_uiIon = 100; // Hydrogen
+			m_eFeature = CaNIR;
+			m_dTime_After_Explosion = 18.0;
+			m_dPhotosphere_Velocity_kkms = 12.0;
+			m_dPhotosphere_Temp_kK = 10.0;
+			m_dEjecta_Log_Scalar = 1.0;
+			m_dShell_Log_Scalar = 1.0;
+			m_dEjecta_Effective_Temperature_kK = 10.0;
+			m_dShell_Effective_Temperature_kK = 10.0;
+			m_dWavelength_Range_Lower_Ang = 1500.0;
+			m_dWavelength_Range_Upper_Ang = 10000.0;
+			m_dWavelength_Delta_Ang = 1.0;
+			m_dEjecta_Scalar_Time_Power_Law = -2.0;
+			m_dShell_Scalar_Time_Power_Law = -2.0;
+		}
 	};
 
 
@@ -86,29 +107,29 @@ namespace msdb
 			m_uiIon = i_cUser_Parameters.m_uiIon;
 			m_dPhotosphere_Velocity_kkms = i_cUser_Parameters.m_dPhotosphere_Velocity_kkms;
 			m_dPhotosphere_Temp_kK = i_cUser_Parameters.m_dPhotosphere_Temp_kK;
-			Set_Ejecta_Effective_Scalar(i_cUser_Parameters.m_dTime_After_Explosion, i_cUser_Parameters.m_eFeature, i_cUser_Parameters.m_dEjecta_Effective_Temperature_kK, i_cUser_Parameters.m_dEjecta_Log_Scalar);
-			Set_Shell_Effective_Scalar(i_cUser_Parameters.m_dTime_After_Explosion, i_cUser_Parameters.m_eFeature, i_cUser_Parameters.m_dShell_Effective_Temperature_kK, i_cUser_Parameters.m_dShell_Log_Scalar);
+			Set_Ejecta_Effective_Scalar(i_cUser_Parameters.m_dTime_After_Explosion, i_cUser_Parameters.m_eFeature, i_cUser_Parameters.m_dEjecta_Effective_Temperature_kK, i_cUser_Parameters.m_dEjecta_Log_Scalar,i_cUser_Parameters.m_dEjecta_Scalar_Time_Power_Law);
+			Set_Shell_Effective_Scalar(i_cUser_Parameters.m_dTime_After_Explosion, i_cUser_Parameters.m_eFeature, i_cUser_Parameters.m_dShell_Effective_Temperature_kK, i_cUser_Parameters.m_dShell_Log_Scalar,i_cUser_Parameters.m_dShell_Scalar_Time_Power_Law);
 			m_dWavelength_Range_Lower_Ang = i_cUser_Parameters.m_dWavelength_Range_Lower_Ang;
 			m_dWavelength_Range_Upper_Ang = i_cUser_Parameters.m_dWavelength_Range_Upper_Ang;
 			m_dWavelength_Delta_Ang = i_cUser_Parameters.m_dWavelength_Delta_Ang;
 		}
-		double Generate_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar) const
+		double Generate_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar, const double & i_dScalar_Power = -2.0) const
 		{
 			double	dRet = nan("");
 			// 5.039... = log10 (e) / (k_B * 1000K)
 			// Boltzmann constant from http://en.wikipedia.org/wiki/Boltzmann_constant, Ret. 27 May 2015, 17:40pm
 			// days after explosion adjustment is relative to 1.0 day
 			if (Test_Ion(i_eFeature, m_uiIon))
-				dRet = i_dLog_Scalar - 2.0 * log10(i_dDays_After_Explosion) - Get_Line_Reference_Energy(i_eFeature) * 5.03977864393654450859 * (1.0 / i_dEffective_Temperature_kK - 0.1); // effective temp relative to 10,000 K
+				dRet = i_dLog_Scalar + i_dScalar_Power * log10(i_dDays_After_Explosion) - Get_Line_Reference_Energy(i_eFeature) * 5.03977864393654450859 * (1.0 / i_dEffective_Temperature_kK - 0.1); // effective temp relative to 10,000 K
 			return dRet;
 		}
-		void	Set_Ejecta_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar)
+		void	Set_Ejecta_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar, const double & i_dScalar_Power = -2.0)
 		{
-			m_dEjecta_Effective_Log_Scalar = Generate_Effective_Scalar(i_dDays_After_Explosion, i_eFeature, i_dEffective_Temperature_kK, i_dLog_Scalar);
+			m_dEjecta_Effective_Log_Scalar = Generate_Effective_Scalar(i_dDays_After_Explosion, i_eFeature, i_dEffective_Temperature_kK, i_dLog_Scalar, i_dScalar_Power);
 		}
-		void	Set_Shell_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar)
+		void	Set_Shell_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar, const double & i_dScalar_Power = -2.0)
 		{
-			m_dShell_Effective_Log_Scalar = Generate_Effective_Scalar(i_dDays_After_Explosion, i_eFeature, i_dEffective_Temperature_kK, i_dLog_Scalar);
+			m_dShell_Effective_Log_Scalar = Generate_Effective_Scalar(i_dDays_After_Explosion, i_eFeature, i_dEffective_Temperature_kK, i_dLog_Scalar, i_dScalar_Power);
 		}
 	};
 
