@@ -15,11 +15,20 @@ public:
 	XDATASET * m_lpcOpacity_Map;
 	double		m_dScalar;
 	double		m_dExcitation_Temp;
+	double		m_dTime_Power_Law;
+	ION_DATA(void)
+	{
+		m_uiIon = 2001;
+		m_lpcOpacity_Map = NULL;
+		m_dScalar = 1.0;
+		m_dExcitation_Temp = 10.0;
+		m_dTime_Power_Law = -2.0;
+	}
 };
 
 
 void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i_dPS_Temp_kK, const double & i_dPS_Velocity_kkms, ION_DATA * i_lpcIon_Data, unsigned int i_uiNum_Ions, ES::Spectrum &io_cOutput);
-void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput);
+void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput, const double & i_dTime_Power_Law_A = -2.0, const double & i_dTime_Power_Law_B = -2.0);
 void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput);
 
 

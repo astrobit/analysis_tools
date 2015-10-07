@@ -284,7 +284,7 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 	}
 }
 
-void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput)
+void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput, const double & i_dPower_Law_A, const double & i_dPower_Law_B)
 {
 	Allocate_Synow_Classes(i_cTarget,0,&i_cOpacity_Map_A);
 //    o_cOutput = ES::Spectrum::create_from_range_and_size( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), i_cTarget.size());
@@ -304,7 +304,8 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 	g_lpcOutput[0].zero_flux();
 
 //	double	dT_ref = i_cParameters.Get(0) * (i_cOpacity_Map_A.GetElement(2,0) - i_cOpacity_Map_A.GetElement(1,0)) + i_cOpacity_Map_A.GetElement(1,0);
-	double	dT_Scalar = pow(i_cParameters.Get(0) / i_cOpacity_Map_A.GetElement(1,0),-2.0);
+//	double	dT_Scalar = pow(i_cParameters.Get(0) / i_cOpacity_Map_A.GetElement(1,0),-2.0);
+	double dT_ref = i_cParameters.Get(0) / i_cOpacity_Map_A.GetElement(1,0);
 //	printf("t scalar = %.2e (%.4f %.4f)\n",dT_Scalar,i_cParameters.Get(0),i_cOpacity_Map_A.GetElement(1,0));
 //	int iT_ref = (int )(i_cParameters.Get(0) + 0.5);
 //	if (iT_ref < 0)
@@ -329,7 +330,7 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 	for (unsigned int uiI = 0; uiI < i_cOpacity_Map_A.GetNumElements() - 1; uiI++)
 	{
 //		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
-		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(1,uiI + 1) * dT_Scalar;
+		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_A);
 	}
 	if (i_cOpacity_Map_B.GetNumElements() > 0)
 	{
@@ -341,7 +342,7 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 		for (unsigned int uiI = 0; uiI < i_cOpacity_Map_B.GetNumElements() - 1; uiI++)
 		{
 //			cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(iT_ref,uiI + 1);
-			cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(1,uiI + 1) * dT_Scalar;
+			cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_B);
 		}
 	}
 
@@ -364,63 +365,80 @@ void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i
 		return;
 	}
 		
+	io_cOutput.zero_out();
 //	printf("allocate OP %i\n",i_uiNum_Ions);
-	Allocate_Opacity_Profile(i_uiNum_Ions);
-	Allocate_Synow_Classes(io_cOutput,0,i_lpcIon_Data[0].m_lpcOpacity_Map);
+	XDATASET * lpVelocity_Info_Map = NULL;
+	for (unsigned int uiI = 0; uiI < i_uiNum_Ions && lpVelocity_Info_Map == NULL; uiI++)
+		if (i_lpcIon_Data[uiI].m_lpcOpacity_Map && i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() > 0)
+			lpVelocity_Info_Map = i_lpcIon_Data[uiI].m_lpcOpacity_Map;
+	if (!lpVelocity_Info_Map)
+	{
+		fprintf(stderr,"Generate_Synow_Multi_Ion_Spectra: no valid velocity map.\n");
+		return;
+	}
+	if (lpVelocity_Info_Map)
+	{
+		Allocate_Opacity_Profile(i_uiNum_Ions);
+		Allocate_Synow_Classes(io_cOutput,0,lpVelocity_Info_Map);
 
-	double	dVmax = i_lpcIon_Data[0].m_lpcOpacity_Map->GetElement(0,i_lpcIon_Data[0].m_lpcOpacity_Map->GetNumElements() - 1) * 1.0e-8;
-    // Grid object.
+		double	dVmax = lpVelocity_Info_Map->GetElement(0,lpVelocity_Info_Map->GetNumElements() - 1) * 1.0e-8;
+		// Grid object.
 	
 
-//	printf("setup\n");
-    // Attach setups one by one.
-		// Initialize Ion data
-    ES::Synow::Setup cSetup;
-	g_lpcOutput[0].zero_flux();
+	//	printf("setup\n");
+		// Attach setups one by one.
+			// Initialize Ion data
+		ES::Synow::Setup cSetup;
+		g_lpcOutput[0].zero_flux();
 
-//	double	dT_ref = i_cParameters.Get(0) * (i_cOpacity_Map_A.GetElement(2,0) - i_cOpacity_Map_A.GetElement(1,0)) + i_cOpacity_Map_A.GetElement(1,0);
-	double	dT_Scalar = pow(i_dT_days / i_lpcIon_Data[0].m_lpcOpacity_Map->GetElement(1,0),-2.0);
-//	printf("t scalar = %.2e (%.4f %.4f)\n",dT_Scalar,i_cParameters.Get(0),i_cOpacity_Map_A.GetElement(1,0));
-//	int iT_ref = (int )(i_cParameters.Get(0) + 0.5);
-//	if (iT_ref < 0)
-//		iT_ref = 0;
-//	if (iT_ref > (i_cOpacity_Map_A.GetNumColumns() - 2))
-//		iT_ref = i_cOpacity_Map_A.GetNumColumns() - 2;
-//	iT_ref++;
+	//	double	dT_ref = i_cParameters.Get(0) * (i_cOpacity_Map_A.GetElement(2,0) - i_cOpacity_Map_A.GetElement(1,0)) + i_cOpacity_Map_A.GetElement(1,0);
+	//	double	dT_Scalar = pow(i_dT_days / i_lpcIon_Data[0].m_lpcOpacity_Map->GetElement(1,0),-2.0);
+	//	printf("t scalar = %.2e (%.4f %.4f)\n",dT_Scalar,i_cParameters.Get(0),i_cOpacity_Map_A.GetElement(1,0));
+	//	int iT_ref = (int )(i_cParameters.Get(0) + 0.5);
+	//	if (iT_ref < 0)
+	//		iT_ref = 0;
+	//	if (iT_ref > (i_cOpacity_Map_A.GetNumColumns() - 2))
+	//		iT_ref = i_cOpacity_Map_A.GetNumColumns() - 2;
+	//	iT_ref++;
 
-    cSetup.a0 = 1.0;
-    cSetup.a1 = 0.0;
-    cSetup.a2 = 0.0;
-    cSetup.v_phot = i_dPS_Velocity_kkms;
-//	printf("Vphot = %.2f\n",cSetup.v_phot);
-    cSetup.v_outer = dVmax;
-    cSetup.t_phot = i_dPS_Temp_kK;
+		cSetup.a0 = 1.0;
+		cSetup.a1 = 0.0;
+		cSetup.a2 = 0.0;
+		cSetup.v_phot = i_dPS_Velocity_kkms;
+	//	printf("Vphot = %.2f\n",cSetup.v_phot);
+		cSetup.v_outer = dVmax;
+		cSetup.t_phot = i_dPS_Temp_kK;
 
-//	printf("ion defs\n");
-	for (unsigned int uiI = 0; uiI < i_uiNum_Ions; uiI++)
-	{
-		cSetup.ions.push_back(i_lpcIon_Data[uiI].m_uiIon);
-		cSetup.active.push_back(true);
-		cSetup.log_tau.push_back(i_lpcIon_Data[uiI].m_dScalar);
-		cSetup.temp.push_back(i_lpcIon_Data[uiI].m_dExcitation_Temp);
-		cSetup.form.push_back(ES::Synow::Setup::form_user_profile);
-		cSetup.user_profile = g_lpdOpacity_Profile;
-		for (unsigned int uiJ = 0; uiJ < i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() - 1; uiJ++)
+	//	printf("ion defs\n");
+		for (unsigned int uiI = 0; uiI < i_uiNum_Ions; uiI++)
 		{
-	//		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
-			cSetup.user_profile[uiI][uiJ] = i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetElement(1,uiJ + 1) * dT_Scalar;
+			if (i_lpcIon_Data[uiI].m_lpcOpacity_Map && i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() > 0)
+			{
+				printf("Setting up ion %i, scalar %f\n",i_lpcIon_Data[uiI].m_uiIon,i_lpcIon_Data[uiI].m_dScalar);
+				double	dT_Scalar = pow(i_dT_days / i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetElement(1,0),i_lpcIon_Data[uiI].m_dTime_Power_Law);
+				cSetup.ions.push_back(i_lpcIon_Data[uiI].m_uiIon);
+				cSetup.active.push_back(true);
+				cSetup.log_tau.push_back(i_lpcIon_Data[uiI].m_dScalar);
+				cSetup.temp.push_back(i_lpcIon_Data[uiI].m_dExcitation_Temp);
+				cSetup.form.push_back(ES::Synow::Setup::form_user_profile);
+				cSetup.user_profile = g_lpdOpacity_Profile;
+				for (unsigned int uiJ = 0; uiJ < i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() - 1; uiJ++)
+				{
+			//		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
+					cSetup.user_profile[uiI][uiJ] = i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetElement(1,uiJ + 1) * dT_Scalar;
+				}
+			}
 		}
+		g_lpcGrid->reset(cSetup);
+	//	printf("generate\n");
+		g_lpcGrid[0]( cSetup );
+	//	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
+		io_cOutput = g_lpcOutput[0];
+	//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
+
+	//	printf("%.3e\n",o_cOutput.flux(100));
+	//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
 	}
-	g_lpcGrid->reset(cSetup);
-//	printf("generate\n");
-    g_lpcGrid[0]( cSetup );
-//	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
-	io_cOutput = g_lpcOutput[0];
-//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
-
-//	printf("%.3e\n",o_cOutput.flux(100));
-//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
-
 }
 
 void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput)
