@@ -868,9 +868,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			else
 				lpdGaussian_Dbl_Flux[uiI] = 1.5;
 		}
-			cLine_Parameters.m_eColor = epsplot::BLACK;
-			cLine_Parameters.m_eStipple = epsplot::SHORT_DASH;
-			cPlot.Set_Plot_Data(lpdSpectra_WL, lpdCombined_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
+		cLine_Parameters.m_eColor = epsplot::BLACK;
+		cLine_Parameters.m_eStipple = epsplot::SHORT_DASH;
+		cPlot.Set_Plot_Data(lpdSpectra_WL, lpdCombined_Flux, uiSpectra_Count, cLine_Parameters, uiX_Axis, uiY_Axis);
 
 		if (vA_Single.Get_Size() > 0)
 		{
