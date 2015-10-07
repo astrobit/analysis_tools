@@ -23,12 +23,15 @@ class DATA_CONTAINER
 {
 public:
 	unsigned int m_uiModel;
+	FIT_DATA	m_cFlat_Raw;
+	FIT_DATA	m_cFlat_Ejecta;
+	FIT_DATA	m_cFlat_Shell;
 	FIT_DATA	m_cJeff_SF;
 	FIT_DATA	m_cJeff_DF;
 	FIT_DATA	m_cFlat_SF;
 	FIT_DATA	m_cFlat_DF;
 
-	DATA_CONTAINER(void) : m_uiModel(0), m_cJeff_SF(), m_cJeff_DF(), m_cFlat_SF(), m_cFlat_DF() {}
+	DATA_CONTAINER(void) : m_uiModel(0), m_cJeff_SF(), m_cJeff_DF(), m_cFlat_SF(), m_cFlat_DF(), m_cFlat_Raw(), m_cFlat_Ejecta(), m_cFlat_Shell() {}
 };
 
 class GAUSS_FIT_PARAMETERS
@@ -152,6 +155,97 @@ double Compute_pEW(XVECTOR & i_vA, const double & i_dWL_Min, const double & i_dW
 	}
 	return dpEW;
 }
+
+enum GROUP {RAW,EJECTA,SHELL,JEFF_FIT,FLAT_FIT,ALL};
+enum COMPONENT {PEW, VELOCITY};
+void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eComponent, const std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> > & i_cFull_Map)
+{
+	FILE * fileFile = fopen(i_lpszFilename,"wt");
+	const FIT_DATA * lpCtr = NULL;
+
+
+	if (i_eGroup != ALL)
+	{
+		fprintf(fileFile,"Day");
+		for (std::map<unsigned int, DATA_CONTAINER>::const_iterator cIterJ = (i_cFull_Map.begin())->second.begin(); cIterJ != (i_cFull_Map.begin())->second.end(); cIterJ++)
+		{
+			fprintf(fileFile,", %i",cIterJ->first);
+		}
+		fprintf(fileFile,"\n");
+	}
+	else
+		fprintf(fileFile,"Day, Model, v min (min - combined flat), v min (min - ejecta flat), v min (min - shell flat), v min (Jeff - single), v min (Jeff - double), v min (Flat - single), v min (Flat- double), pEW (combined flat), pEW (ejecta flat), pEW (shell flat), pEW (Jeff - single), pEW (Jeff - double), pEW (Flat - single), pEW (Flat- double)\n");
+	for (std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> >::const_iterator cIterI = i_cFull_Map.begin(); cIterI != i_cFull_Map.end(); cIterI++)
+	{
+		if (i_eGroup != ALL)
+		fprintf(fileFile,"%i",cIterI->first);
+		for (std::map<unsigned int, DATA_CONTAINER>::const_iterator cIterJ = cIterI->second.begin(); cIterJ != cIterI->second.end(); cIterJ++)
+		{
+			if (i_eGroup == ALL)
+			{
+				fprintf(fileFile,"%i",cIterI->first);
+				fprintf(fileFile,", %i",cIterJ->first);
+				for (unsigned int uiI = 0; uiI < 2; uiI++)
+				{
+					for (unsigned int uiJ = 0; uiJ <=6; uiJ++)
+					{
+						switch (uiJ)
+						{
+						case 0: lpCtr = &cIterJ->second.m_cFlat_Raw; break;
+						case 1: lpCtr = &cIterJ->second.m_cFlat_Ejecta; break;
+						case 2: lpCtr = &cIterJ->second.m_cFlat_Shell; break;
+						case 3: lpCtr = &cIterJ->second.m_cJeff_SF; break;
+						case 4: lpCtr = &cIterJ->second.m_cJeff_DF; break;
+						case 5: lpCtr = &cIterJ->second.m_cFlat_SF; break;
+						case 6: lpCtr = &cIterJ->second.m_cFlat_DF; break;
+						}
+						if (uiI == 0 && lpCtr->m_dVel < 500. ||
+							uiI == 0 && lpCtr->m_dVel > 40000.0 ||
+							uiI != 0 && lpCtr->m_dpEW < 1.)
+							fprintf(fileFile,", ");
+						else if (uiI == 0)
+							fprintf(fileFile,", %.0f",lpCtr->m_dVel);
+						else
+							fprintf(fileFile,", %.1f",lpCtr->m_dpEW);
+					}
+				}
+				fprintf(fileFile,"\n");
+			}
+			else
+			{
+				switch (i_eGroup)
+				{
+				case RAW:
+					lpCtr = &cIterJ->second.m_cFlat_Raw;
+					break;
+				case EJECTA:
+					lpCtr = &cIterJ->second.m_cFlat_Ejecta;
+					break;
+				case SHELL:
+					lpCtr = &cIterJ->second.m_cFlat_Shell;
+					break;
+				case JEFF_FIT:
+					lpCtr = &cIterJ->second.m_cJeff_SF;
+					break;
+				case FLAT_FIT:
+					lpCtr = &cIterJ->second.m_cFlat_SF;
+					break;
+				}
+				if (i_eComponent == VELOCITY && lpCtr->m_dVel < 500. ||
+					i_eComponent == VELOCITY && lpCtr->m_dVel > 40000.0 ||
+					i_eComponent != VELOCITY && lpCtr->m_dpEW < 1.)
+					fprintf(fileFile,", ");
+				else if (i_eComponent == VELOCITY)
+					fprintf(fileFile,", %.0f",lpCtr->m_dVel);
+				else
+					fprintf(fileFile,", %.1f",lpCtr->m_dpEW);
+			}
+		}
+		if (i_eGroup != ALL)
+			fprintf(fileFile,"\n");
+	}
+	fclose(fileFile);
+}
 int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 {
 	std::map<unsigned int, DATA_CONTAINER>	cMap;
@@ -187,6 +281,12 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 						DATA_CONTAINER cData;
 						XVECTOR vA(3);
 						cData.m_uiModel = uiModel;
+						cData.m_cFlat_Raw.m_dpEW = cDatafile.GetElement(1,uiJ);
+						cData.m_cFlat_Raw.m_dVel = cDatafile.GetElement(2,uiJ);
+						cData.m_cFlat_Ejecta.m_dpEW = cDatafile.GetElement(3,uiJ);
+						cData.m_cFlat_Ejecta.m_dVel = cDatafile.GetElement(4,uiJ);
+						cData.m_cFlat_Shell.m_dpEW = cDatafile.GetElement(5,uiJ);
+						cData.m_cFlat_Shell.m_dVel = cDatafile.GetElement(6,uiJ);
 						if (cDatafile.GetElement(19,uiJ) != -1)
 						{
 							vA.Set(0,cDatafile.GetElement(15,uiJ));
@@ -245,55 +345,21 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 		}
 	}
 
-	
-	FILE * fileAll = fopen("vel_pEW_data.csv","wt");
-	fprintf(fileAll,"Day, Model, v min (Jeff - single), v min (Jeff - double), v min (Flat - single), v min (Flat- double), pEW (Jeff - single), pEW (Jeff - double), pEW (Flat - single), pEW (Flat- double)\n");
 
-	FILE * fileJeffVmin = fopen("vel_Jeff_data.csv","wt");
-	FILE * fileFlatVmin = fopen("vel_Flat_data.csv","wt");
-	FILE * fileJeffpEW = fopen("pEW_Jeff_data.csv","wt");
-	FILE * fileFlatpEW = fopen("pEW_Flat_data.csv","wt");
-	fprintf(fileJeffVmin,"Day");
-	fprintf(fileFlatVmin,"Day");
-	fprintf(fileJeffpEW,"Day");
-	fprintf(fileFlatpEW,"Day");
-	for (std::map<unsigned int, DATA_CONTAINER>::iterator cIterJ = (cFull_Map.begin())->second.begin(); cIterJ != (cFull_Map.begin())->second.end(); cIterJ++)
-	{
-		fprintf(fileJeffVmin,", %i",cIterJ->first);
-		fprintf(fileFlatVmin,", %i",cIterJ->first);
-		fprintf(fileJeffpEW,", %i",cIterJ->first);
-		fprintf(fileFlatpEW,", %i",cIterJ->first);
-	}
-	fprintf(fileJeffVmin,"\n");
-	fprintf(fileFlatVmin,"\n");
-	fprintf(fileJeffpEW,"\n");
-	fprintf(fileFlatpEW,"\n");
+	Write_Datafile("vel_pEW_data.csv",ALL,VELOCITY,cFull_Map);
 
-	for (std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> >::iterator cIterI = cFull_Map.begin(); cIterI != cFull_Map.end(); cIterI++)
-	{
-		fprintf(fileJeffVmin,"%i",cIterI->first);
-		fprintf(fileFlatVmin,"%i",cIterI->first);
-		fprintf(fileJeffpEW,"%i",cIterI->first);
-		fprintf(fileFlatpEW,"%i",cIterI->first);
-		for (std::map<unsigned int, DATA_CONTAINER>::iterator cIterJ = cIterI->second.begin(); cIterJ != cIterI->second.end(); cIterJ++)
-		{
-			fprintf(fileAll,"%i, %i, %.0f, %.0f, %.0f, %.0f, %.1f, %.1f, %.1f, %.1f\n",cIterI->first,cIterJ->first,cIterJ->second.m_cJeff_SF.m_dVel,cIterJ->second.m_cJeff_DF.m_dVel,cIterJ->second.m_cFlat_SF.m_dVel,cIterJ->second.m_cFlat_DF.m_dVel,cIterJ->second.m_cJeff_SF.m_dpEW,cIterJ->second.m_cJeff_DF.m_dpEW,cIterJ->second.m_cFlat_SF.m_dpEW,cIterJ->second.m_cFlat_DF.m_dpEW);
+	Write_Datafile("vel_Jeff_data.csv",JEFF_FIT,VELOCITY,cFull_Map);
+	Write_Datafile("vel_Flat_data.csv",FLAT_FIT,VELOCITY,cFull_Map);
+	Write_Datafile("vel_Raw_data.csv",RAW,VELOCITY,cFull_Map);
+	Write_Datafile("vel_Ejecta_data.csv",EJECTA,VELOCITY,cFull_Map);
+	Write_Datafile("vel_Shell_data.csv",SHELL,VELOCITY,cFull_Map);
 
-			fprintf(fileJeffVmin,", %.0f",cIterJ->second.m_cJeff_SF.m_dVel);
-			fprintf(fileFlatVmin,", %.0f",cIterJ->second.m_cFlat_SF.m_dVel);
-			fprintf(fileJeffpEW,", %.1f",cIterJ->second.m_cJeff_SF.m_dpEW);
-			fprintf(fileFlatpEW,", %.1f",cIterJ->second.m_cFlat_SF.m_dpEW);
-		}
-		fprintf(fileJeffVmin,"\n");
-		fprintf(fileFlatVmin,"\n");
-		fprintf(fileJeffpEW,"\n");
-		fprintf(fileFlatpEW,"\n");
-	}
-	fclose(fileAll);
-	fclose(fileJeffVmin);
-	fclose(fileFlatVmin);
-	fclose(fileJeffpEW);
-	fclose(fileFlatpEW);
+	Write_Datafile("pEW_Jeff_data.csv",JEFF_FIT,PEW,cFull_Map);
+	Write_Datafile("pEW_Flat_data.csv",FLAT_FIT,PEW,cFull_Map);
+	Write_Datafile("pEW_Raw_data.csv",RAW,PEW,cFull_Map);
+	Write_Datafile("pEW_Ejecta_data.csv",EJECTA,PEW,cFull_Map);
+	Write_Datafile("pEW_Shell_data.csv",SHELL,PEW,cFull_Map);
+
 
 	return 0;
 }

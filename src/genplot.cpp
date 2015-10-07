@@ -21,6 +21,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double	dX_max = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-max",nan(""));
 	double	dY_min = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-min",nan(""));
 	double	dY_max = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-max",nan(""));
+	bool	bCycle_Line_Style = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--cycle-line-style");
 	char lpszOutput_File[256];
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output",lpszOutput_File,sizeof(lpszOutput_File),"");
 
@@ -50,7 +51,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 						lpszCursor++;
 				}
-				lpdY_Values = new double * [uiY_Count];
+				lpuiData_Columns = new unsigned int [uiY_Count];
 				uiY_Count = 0;
 				lpszCursor = lpszColumnList;
 				while (lpszCursor[0] != 0)
@@ -60,7 +61,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						lpszCursor++;
 					if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 					{
-						lpdY_Values[uiY_Count] = cData.GetElementArray(atoi(lpszCursor));
+						lpuiData_Columns[uiY_Count] = atoi(lpszCursor);
 						uiY_Count++;
 					}
 					while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
@@ -73,107 +74,150 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				unsigned int uiNum_Col = cData.GetNumColumns();
 				if (uiNum_Col > 1)
 				{
-					lpdY_Values = new double * [uiNum_Col - 1];
+					lpuiData_Columns = new unsigned int [uiNum_Col - 1];
 					uiY_Count = 0;
 					for (unsigned int uiI = 0; uiI < uiNum_Col; uiI++)
 					{
 						if (uiI != uiX_Axis_Column)
 						{
-							lpdY_Values[uiY_Count] = cData.GetElementArray(uiI);
+							lpuiData_Columns[uiY_Count] = uiI;
 							uiY_Count++;
 						}
 					}
 				}
 			}
-
-
-			if (lpdX_Values && lpdY_Values && uiY_Count > 0)
+			if (uiY_Count > 0)
 			{
-				unsigned int uiNum_Elements = cData.GetNumElements();
-				char lpszFilename[256];
-				if (lpszOutput_File[0] != 0)
-					strcpy(lpszFilename,lpszOutput_File);
-				else
-					sprintf(lpszFilename,"%s.eps",lpszDatafile);
+				std::vector<epsplot::eps_pair> * lpvData = new std::vector<epsplot::eps_pair>[uiY_Count];
+				if (lpvData)
+				{
+					unsigned int uiNum_Rows = cData.GetNumRows();
+					for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
+					{
+						for (unsigned int uiJ =0; uiJ < uiNum_Rows; uiJ++)
+						{
+							if (!cData.IsElementEmpty(lpuiData_Columns[uiI],uiJ) && !cData.IsElementEmpty(uiX_Axis_Column,uiJ))
+							{
+								lpvData[uiI].push_back(epsplot::eps_pair(cData.GetElement(uiX_Axis_Column,uiJ),cData.GetElement(lpuiData_Columns[uiI],uiJ)));
+							}
+						}
+					}
+
+					char lpszFilename[256];
+					if (lpszOutput_File[0] != 0)
+						strcpy(lpszFilename,lpszOutput_File);
+					else
+						sprintf(lpszFilename,"%s.eps",lpszDatafile);
 					
 
 
-				epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-				epsplot::DATA cPlot;
-				epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-				epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
-				epsplot::TEXT_PARAMETERS	cText_Paramters;
-				epsplot::LINE_PARAMETERS cLine_Parameters;
-				cLine_Parameters.m_dWidth = 1.0;
-				cLine_Parameters.m_eColor = epsplot::BLACK;
-				cLine_Parameters.m_eStipple = epsplot::SOLID;
+					epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+					epsplot::DATA cPlot;
+					epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
+					epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+					epsplot::TEXT_PARAMETERS	cText_Paramters;
+					epsplot::LINE_PARAMETERS cLine_Parameters;
+					cLine_Parameters.m_dWidth = 1.0;
+					cLine_Parameters.m_eColor = epsplot::BLACK;
+					cLine_Parameters.m_eStipple = epsplot::SOLID;
 
 
-				cPlot_Parameters.m_uiNum_Columns = 1;
-				cPlot_Parameters.m_uiNum_Rows = 1;
-				cPlot_Parameters.m_dWidth_Inches = 11.0;
-				cPlot_Parameters.m_dHeight_Inches = 8.5;
-				if (lpszX_Axis_Title)
-					cX_Axis_Parameters.Set_Title(lpszX_Axis_Title);
-				cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
-				if (lpszY_Axis_Title)
-					cY_Axis_Parameters.Set_Title(lpszY_Axis_Title);
-				cX_Axis_Parameters.m_bLog = bX_Axis_Log;
-				cY_Axis_Parameters.m_bLog = bY_Axis_Log;
-				if (!isnan(dX_min))
-					cX_Axis_Parameters.m_dLower_Limit = dX_min;
-				if (!isnan(dX_max))
-					cX_Axis_Parameters.m_dUpper_Limit = dX_max;
-				if (!isnan(dY_min))
-					cY_Axis_Parameters.m_dLower_Limit = dY_min;
-				if (!isnan(dY_max))
-					cY_Axis_Parameters.m_dUpper_Limit = dY_max;
+					cPlot_Parameters.m_uiNum_Columns = 1;
+					cPlot_Parameters.m_uiNum_Rows = 1;
+					cPlot_Parameters.m_dWidth_Inches = 11.0;
+					cPlot_Parameters.m_dHeight_Inches = 8.5;
+					if (lpszX_Axis_Title)
+						cX_Axis_Parameters.Set_Title(lpszX_Axis_Title);
+					cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+					if (lpszY_Axis_Title)
+						cY_Axis_Parameters.Set_Title(lpszY_Axis_Title);
+					cX_Axis_Parameters.m_bLog = bX_Axis_Log;
+					cY_Axis_Parameters.m_bLog = bY_Axis_Log;
+					if (!isnan(dX_min))
+						cX_Axis_Parameters.m_dLower_Limit = dX_min;
+					if (!isnan(dX_max))
+						cX_Axis_Parameters.m_dUpper_Limit = dX_max;
+					if (!isnan(dY_min))
+						cY_Axis_Parameters.m_dLower_Limit = dY_min;
+					if (!isnan(dY_max))
+						cY_Axis_Parameters.m_dUpper_Limit = dY_max;
 
-				unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
-				unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
+					unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
+					unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
 
-				for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
-				{
-					cLine_Parameters.m_eColor = epsplot::COLOR(epsplot::BLACK + (uiI % 7));
-					switch (cLine_Parameters.m_eColor)
+					for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
 					{
-					case epsplot::BLACK:
-						printf("Graph %i: black\n",uiI);
-						break;
-					case epsplot::RED:
-						printf("Graph %i: red\n",uiI);
-						break;
-					case epsplot::GREEN:
-						printf("Graph %i: green\n",uiI);
-						break;
-					case epsplot::BLUE:
-						printf("Graph %i: blue\n",uiI);
-						break;
-					case epsplot::CYAN:
-						printf("Graph %i: cyan\n",uiI);
-						break;
-					case epsplot::MAGENTA:
-						printf("Graph %i: magenta\n",uiI);
-						break;
-					case epsplot::YELLOW:
-						printf("Graph %i: yellow\n",uiI);
-						break;
+						printf("Graph %i: ",uiI);
+						cLine_Parameters.m_eColor = epsplot::COLOR(epsplot::BLACK + (uiI % 7));
+						switch (cLine_Parameters.m_eColor)
+						{
+						case epsplot::BLACK:
+							printf("black");
+							break;
+						case epsplot::RED:
+							printf("red");
+							break;
+						case epsplot::GREEN:
+							printf("green");
+							break;
+						case epsplot::BLUE:
+							printf("blue");
+							break;
+						case epsplot::CYAN:
+							printf("cyan");
+							break;
+						case epsplot::MAGENTA:
+							printf("magenta");
+							break;
+						case epsplot::YELLOW:
+							printf("yellow");
+							break;
+						}
+						if (bCycle_Line_Style)
+						{
+							cLine_Parameters.m_eStipple = epsplot::STIPPLE(epsplot::SOLID + (uiI % 8));
+							switch (cLine_Parameters.m_eStipple)
+							{
+							case epsplot::SOLID:
+								printf(", -----");
+								break;
+							case epsplot::SHORT_DASH:
+								printf(", - - ");
+								break;
+							case epsplot::LONG_DASH:
+								printf(", -- -- ");
+								break;
+							case epsplot::LONG_SHORT_DASH:
+								printf(", -- - -- ");
+								break;
+							case epsplot::DOTTED:
+								printf(", . . .");
+								break;
+							case epsplot::SHORT_DASH_DOTTED:
+								printf(", - . - ");
+								break;
+							case epsplot::LONG_DASH_DOTTED:
+								printf(", -- . --");
+								break;
+							}
+						}
+						printf("\n",uiI);
+						cPlot.Set_Plot_Data(lpvData[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
 					}
-					cPlot.Set_Plot_Data(lpdX_Values, lpdY_Values[uiI], uiNum_Elements, cLine_Parameters, uiX_Axis, uiY_Axis);
-				}
 
-				cPlot.Set_Plot_Filename(lpszFilename);
-				cPlot.Plot(cPlot_Parameters);
-				printf("Plot output to %s\n",lpszFilename);
-			}
-			else
-			{
-				if (!lpdX_Values)
-					fprintf(stderr,"No x values\n");
-				if (!lpdY_Values)
-					fprintf(stderr,"No y values\n");
-				if (uiY_Count == 0)
-					fprintf(stderr,"y count = 0\n");
+					cPlot.Set_Plot_Filename(lpszFilename);
+					cPlot.Plot(cPlot_Parameters);
+					printf("Plot output to %s\n",lpszFilename);
+				}
+				else
+				{
+					if (!lpdX_Values)
+						fprintf(stderr,"No x values\n");
+					if (!lpdY_Values)
+						fprintf(stderr,"No y values\n");
+					if (uiY_Count == 0)
+						fprintf(stderr,"y count = 0\n");
+				}
 			}
 		}	
 		else
