@@ -17,7 +17,35 @@ namespace	epsplot
 	enum STIPPLE {SOLID, SHORT_DASH, LONG_DASH, LONG_SHORT_DASH, DOTTED, SHORT_DASH_DOTTED, LONG_DASH_DOTTED, LONG_SHORT_DASH_DOTTED, STPL_CUSTOM_1, STPL_CUSTOM_2, STPL_CUSTOM_3, STPL_CUSTOM_4, STPL_CUSTOM_5, STPL_CUSTOM_6, STPL_CUSTOM_7, STPL_CUSTOM_8, STPL_CUSTOM_9, STPL_CUSTOM_10, STPL_CUSTOM_11, STPL_CUSTOM_12, STPL_CUSTOM_13, STPL_CUSTOM_14, STPL_CUSTOM_15, STPL_CUSTOM_16};
 	enum SYMBOL_TYPE {SQUARE, CIRCLE, TRIANGLE_UP, TRIANGLE_DOWN, TRIANGLE_LEFT, TRIANGLE_RIGHT, DIAMOND, TIMES_SYMB, PLUS_SYMB, DASH_SYMB, ASTERISK_SYMB, STAR5, STAR6, SYMB_CUSTOM_1, SYMB_CUSTOM_2, SYMB_CUSTOM_3, SYMB_CUSTOM_4, SYMB_CUSTOM_5, SYMB_CUSTOM_6, SYMB_CUSTOM_7, SYMB_CUSTOM_8, SYMB_CUSTOM_9, SYMB_CUSTOM_10, SYMB_CUSTOM_11, SYMB_CUSTOM_12, SYMB_CUSTOM_13, SYMB_CUSTOM_14, SYMB_CUSTOM_15, SYMB_CUSTOM_16};
 	enum	AXIS {X_AXIS,Y_AXIS,Z_AXIS};
+	class eps_pair
+	{
+	public:
+		double	m_dX;
+		double	m_dY;
 
+		eps_pair(void) {m_dX = m_dY = 0.0;}
+		eps_pair(const double & i_dX, const double & i_dY) {m_dX = i_dX; m_dY = i_dY;}
+		eps_pair operator +(const eps_pair & i_cRHO) const
+		{
+			return eps_pair(m_dX + i_cRHO.m_dX,m_dY + i_cRHO.m_dY);
+		}
+		eps_pair operator -(const eps_pair & i_cRHO) const
+		{
+			return eps_pair(m_dX + i_cRHO.m_dX,m_dY + i_cRHO.m_dY);
+		}
+		eps_pair & operator +=(const eps_pair & i_cRHO)
+		{
+			m_dX += i_cRHO.m_dX;
+			m_dY += i_cRHO.m_dY;
+			return *this;
+		}
+		eps_pair & operator -=(const eps_pair & i_cRHO)
+		{
+			m_dX -= i_cRHO.m_dX;
+			m_dY -= i_cRHO.m_dY;
+			return *this;
+		}
+	};
 
 	class COLOR_TRIPLET
 	{
@@ -349,46 +377,41 @@ namespace	epsplot
 	class LINE_ITEM : public PLOT_ITEM
 	{
 	public:
-		double * m_lpdData_Y;
-		double * m_lpdData_X;
+
+		eps_pair * m_lppData;
 		unsigned int m_uiNum_Points;
 		LINE_PARAMETERS	m_cPlot_Line_Info;
 
 		LINE_ITEM(void) : PLOT_ITEM(TYPE_LINE), m_cPlot_Line_Info()
 		{
-			m_lpdData_X = m_lpdData_Y = NULL;
+			m_lppData = NULL;
 			m_uiNum_Points = 0;
 		}
 		~LINE_ITEM(void)
 		{
-			if (m_lpdData_X)
-				delete [] m_lpdData_X;
-			if (m_lpdData_Y)
-				delete [] m_lpdData_Y;
-			m_lpdData_X = m_lpdData_Y = NULL;
+			if (m_lppData)
+				delete [] m_lppData;
+			m_lppData = NULL;
 			m_uiNum_Points = 0;
 		}
 	};
 	class SYMBOL_ITEM : public PLOT_ITEM //@@TODO : Symbols are not yet implemented; this class is a placeholder
 	{
 	public:
-		double * m_lpdData_Y;
-		double * m_lpdData_X;
+		eps_pair * m_lppData;
 		unsigned int m_uiNum_Points;
 		SYMBOL_PARAMETERS	m_cPlot_Symbol_Info;
 
 		SYMBOL_ITEM(void) : PLOT_ITEM(TYPE_SYMBOL), m_cPlot_Symbol_Info()
 		{
-			m_lpdData_X = m_lpdData_Y = NULL;
+			m_lppData = NULL;
 			m_uiNum_Points = 0;
 		}
 		~SYMBOL_ITEM(void)
 		{
-			if (m_lpdData_X)
-				delete [] m_lpdData_X;
-			if (m_lpdData_Y)
-				delete [] m_lpdData_Y;
-			m_lpdData_X = m_lpdData_Y = NULL;
+			if (m_lppData)
+				delete [] m_lppData;
+			m_lppData = NULL;
 			m_uiNum_Points = 0;
 		}
 	};
@@ -631,7 +654,11 @@ namespace	epsplot
 	// Methods for setting data to be plotted
 		unsigned int	Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, COLOR i_eColor, STIPPLE i_eStipple, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, const double & i_dLine_Width);
 		unsigned int	Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Set_Plot_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Set_Plot_Data(const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 
 	// Methods for controlling axes
 		unsigned int	Set_X_Axis_Parameters(const char * i_lpszAxis_Title, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax);

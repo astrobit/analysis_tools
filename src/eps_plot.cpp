@@ -353,18 +353,91 @@ unsigned int	DATA::Set_Plot_Data(const double * i_lpdX_Values, const double * i_
 			lpLine_Data->m_cPlot_Line_Info.m_dWidth = i_cLine_Parameters.m_dWidth;
 		else
 			lpLine_Data->m_cPlot_Line_Info.m_dWidth = 1.0;
-		if (lpLine_Data->m_lpdData_X)
-			delete [] lpLine_Data->m_lpdData_X;
-		lpLine_Data->m_lpdData_X = NULL;
-		if (lpLine_Data->m_lpdData_Y)
-			delete [] lpLine_Data->m_lpdData_Y;
-		lpLine_Data->m_lpdData_Y = NULL;
+		if (lpLine_Data->m_lppData)
+			delete [] lpLine_Data->m_lppData;
+		lpLine_Data->m_lppData = NULL;
 		if (i_uiNum_Points > 0)
 		{
-			lpLine_Data->m_lpdData_X = new double [i_uiNum_Points];
-			lpLine_Data->m_lpdData_Y = new double [i_uiNum_Points];
-			memcpy(lpLine_Data->m_lpdData_X,i_lpdX_Values,sizeof(double) * i_uiNum_Points);
-			memcpy(lpLine_Data->m_lpdData_Y,i_lpdY_Values,sizeof(double) * i_uiNum_Points);
+			lpLine_Data->m_lppData = new eps_pair [i_uiNum_Points];
+			for (unsigned int uiI = 0; uiI < i_uiNum_Points; uiI++)
+			{
+				lpLine_Data->m_lppData[uiI].m_dX = i_lpdX_Values[uiI];
+				lpLine_Data->m_lppData[uiI].m_dY = i_lpdY_Values[uiI];
+			}
+		}
+
+		uiRet = m_vcPlot_Item_List.size();
+		m_vcPlot_Item_List.push_back(lpLine_Data);
+	}
+	return uiRet;
+}
+
+unsigned int	DATA::Set_Plot_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+
+{
+	unsigned int uiRet = -1;
+	LINE_ITEM * lpLine_Data = new LINE_ITEM;
+
+	if (i_vdX_Values.size() != i_vdY_Values.size())
+	{
+		fprintf(stderr,"epsplot::DATA Error! Set_Plot_Data called using std::vector, but X and Y vectors differ in size.\n");
+	}
+	if (lpLine_Data && i_vdX_Values.size() == i_vdY_Values.size() && i_vdX_Values.size() > 0)
+	{
+		unsigned int uiNum_Points = i_vdX_Values.size();
+		lpLine_Data->m_uiNum_Points = uiNum_Points;
+		lpLine_Data->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_Type;
+		lpLine_Data->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_Type;
+		lpLine_Data->m_cPlot_Line_Info = i_cLine_Parameters;
+		if (i_cLine_Parameters.m_dWidth >= 0.0)
+			lpLine_Data->m_cPlot_Line_Info.m_dWidth = i_cLine_Parameters.m_dWidth;
+		else
+			lpLine_Data->m_cPlot_Line_Info.m_dWidth = 1.0;
+		if (lpLine_Data->m_lppData)
+			delete [] lpLine_Data->m_lppData;
+		lpLine_Data->m_lppData = NULL;
+		if (uiNum_Points > 0)
+		{
+			lpLine_Data->m_lppData = new eps_pair [uiNum_Points];
+			for (unsigned int uiI = 0; uiI < uiNum_Points; uiI++)
+			{
+				lpLine_Data->m_lppData[uiI].m_dX = i_vdX_Values[uiI];
+				lpLine_Data->m_lppData[uiI].m_dY = i_vdY_Values[uiI];
+			}
+		}
+
+		uiRet = m_vcPlot_Item_List.size();
+		m_vcPlot_Item_List.push_back(lpLine_Data);
+	}
+	return uiRet;
+}
+unsigned int	DATA::Set_Plot_Data(const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+
+{
+	unsigned int uiRet = -1;
+	LINE_ITEM * lpLine_Data = new LINE_ITEM;
+
+	if (lpLine_Data && i_vpValues.size() > 0)
+	{
+		unsigned int uiNum_Points = i_vpValues.size();
+		lpLine_Data->m_uiNum_Points = uiNum_Points;
+		lpLine_Data->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_Type;
+		lpLine_Data->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_Type;
+		lpLine_Data->m_cPlot_Line_Info = i_cLine_Parameters;
+		if (i_cLine_Parameters.m_dWidth >= 0.0)
+			lpLine_Data->m_cPlot_Line_Info.m_dWidth = i_cLine_Parameters.m_dWidth;
+		else
+			lpLine_Data->m_cPlot_Line_Info.m_dWidth = 1.0;
+		if (lpLine_Data->m_lppData)
+			delete [] lpLine_Data->m_lppData;
+		lpLine_Data->m_lppData = NULL;
+		if (uiNum_Points > 0)
+		{
+			lpLine_Data->m_lppData = new eps_pair [uiNum_Points];
+			for (unsigned int uiI = 0; uiI < uiNum_Points; uiI++)
+			{
+				lpLine_Data->m_lppData[uiI] = i_vpValues[uiI];
+			}
 		}
 
 		uiRet = m_vcPlot_Item_List.size();
@@ -394,25 +467,109 @@ unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double 
 					lpLine_Data->m_cPlot_Line_Info.m_dWidth = i_cLine_Parameters.m_dWidth;
 				else
 					lpLine_Data->m_cPlot_Line_Info.m_dWidth = 1.0;
-				if (lpLine_Data->m_lpdData_X)
-					delete [] lpLine_Data->m_lpdData_X;
-				lpLine_Data->m_lpdData_X = NULL;
-				if (lpLine_Data->m_lpdData_Y)
-					delete [] lpLine_Data->m_lpdData_Y;
-				lpLine_Data->m_lpdData_Y = NULL;
+				if (lpLine_Data->m_lppData)
+					delete [] lpLine_Data->m_lppData;
+				lpLine_Data->m_lppData = NULL;
 				if (i_uiNum_Points > 0)
 				{
-					lpLine_Data->m_lpdData_X = new double [i_uiNum_Points];
-					lpLine_Data->m_lpdData_Y = new double [i_uiNum_Points];
-					memcpy(lpLine_Data->m_lpdData_X,i_lpdX_Values,sizeof(double) * i_uiNum_Points);
-					memcpy(lpLine_Data->m_lpdData_Y,i_lpdY_Values,sizeof(double) * i_uiNum_Points);
+					lpLine_Data->m_lppData = new eps_pair [i_uiNum_Points];
+					for (unsigned int uiI = 0; uiI < i_uiNum_Points; uiI++)
+					{
+						lpLine_Data->m_lppData[uiI].m_dX = i_lpdX_Values[uiI];
+						lpLine_Data->m_lppData[uiI].m_dY = i_lpdY_Values[uiI];
+					}
 				}
 			}
 		}
 	}
 	return uiRet;
 }
+unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 
+{
+	unsigned int uiRet = -1;
+	if (i_vdX_Values.size() != i_vdY_Values.size())
+	{
+		fprintf(stderr,"epsplot::DATA Error! Modify_Plot_Data called using std::vector, but X and Y vectors differ in size.\n");
+	}
+
+	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
+	{
+		LINE_ITEM * lpLine_Data = (LINE_ITEM *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
+		if (lpLine_Data)
+		{
+			uiRet = i_uiPlot_Data_ID;
+			if (lpLine_Data->m_eType == TYPE_LINE)
+			{
+				uiRet = (uintptr_t) lpLine_Data;
+
+				unsigned int uiNum_Points = i_vdX_Values.size();
+
+				lpLine_Data->m_uiNum_Points = uiNum_Points;
+				lpLine_Data->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+				lpLine_Data->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+				lpLine_Data->m_cPlot_Line_Info = i_cLine_Parameters;
+				if (i_cLine_Parameters.m_dWidth >= 0.0)
+					lpLine_Data->m_cPlot_Line_Info.m_dWidth = i_cLine_Parameters.m_dWidth;
+				else
+					lpLine_Data->m_cPlot_Line_Info.m_dWidth = 1.0;
+				if (lpLine_Data->m_lppData)
+					delete [] lpLine_Data->m_lppData;
+				lpLine_Data->m_lppData = NULL;
+				if (uiNum_Points > 0)
+				{
+					lpLine_Data->m_lppData = new eps_pair [uiNum_Points];
+					for (unsigned int uiI = 0; uiI < uiNum_Points; uiI++)
+					{
+						lpLine_Data->m_lppData[uiI].m_dX = i_vdX_Values[uiI];
+						lpLine_Data->m_lppData[uiI].m_dY = i_vdY_Values[uiI];
+					}
+				}
+			}
+		}
+	}
+	return uiRet;
+}
+unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+
+{
+	unsigned int uiRet = -1;
+	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
+	{
+		LINE_ITEM * lpLine_Data = (LINE_ITEM *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
+		if (lpLine_Data)
+		{
+			uiRet = i_uiPlot_Data_ID;
+			if (lpLine_Data->m_eType == TYPE_LINE)
+			{
+				uiRet = (uintptr_t) lpLine_Data;
+
+				unsigned int uiNum_Points = i_vpValues.size();
+
+				lpLine_Data->m_uiNum_Points = uiNum_Points;
+				lpLine_Data->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+				lpLine_Data->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+				lpLine_Data->m_cPlot_Line_Info = i_cLine_Parameters;
+				if (i_cLine_Parameters.m_dWidth >= 0.0)
+					lpLine_Data->m_cPlot_Line_Info.m_dWidth = i_cLine_Parameters.m_dWidth;
+				else
+					lpLine_Data->m_cPlot_Line_Info.m_dWidth = 1.0;
+				if (lpLine_Data->m_lppData)
+					delete [] lpLine_Data->m_lppData;
+				lpLine_Data->m_lppData = NULL;
+				if (uiNum_Points > 0)
+				{
+					lpLine_Data->m_lppData = new eps_pair [uiNum_Points];
+					for (unsigned int uiI = 0; uiI < uiNum_Points; uiI++)
+					{
+						lpLine_Data->m_lppData[uiI] = i_vpValues[uiI];
+					}
+				}
+			}
+		}
+	}
+	return uiRet;
+}
 
 
 unsigned int	DATA::Set_Rectangle_Data(const RECTANGLE & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
@@ -797,14 +954,14 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				lpcLine = (LINE_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
 				{
-					lpX_Axis->Adjust_Limits(lpcLine->m_lpdData_X[uiJ]);
+					lpX_Axis->Adjust_Limits(lpcLine->m_lppData[uiJ].m_dX);
 				}
 				break;
 			case TYPE_SYMBOL:
 				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 				{
-					lpX_Axis->Adjust_Limits(lpcSymbol->m_lpdData_X[uiJ]);
+					lpX_Axis->Adjust_Limits(lpcSymbol->m_lppData[uiJ].m_dX);
 				}
 				break;
 			case TYPE_RECTANGLE:
@@ -851,16 +1008,16 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				lpcLine = (LINE_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
 				{
-					if (lpcLine->m_lpdData_X[uiJ] >= lpX_Axis->m_dLower_Limit && lpcLine->m_lpdData_X[uiJ] <= lpX_Axis->m_dUpper_Limit)
-						lpY_Axis->Adjust_Limits(lpcLine->m_lpdData_Y[uiJ]);
+					if (lpcLine->m_lppData[uiJ].m_dX >= lpX_Axis->m_dLower_Limit && lpcLine->m_lppData[uiJ].m_dX <= lpX_Axis->m_dUpper_Limit)
+						lpY_Axis->Adjust_Limits(lpcLine->m_lppData[uiJ].m_dY);
 				}
 				break;
 			case TYPE_SYMBOL:
 				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 				{
-					if (lpcLine->m_lpdData_X[uiJ] >= lpX_Axis->m_dLower_Limit && lpcLine->m_lpdData_X[uiJ] <= lpX_Axis->m_dUpper_Limit)
-						lpY_Axis->Adjust_Limits(lpcSymbol->m_lpdData_Y[uiJ]);
+					if (lpcLine->m_lppData[uiJ].m_dX >= lpX_Axis->m_dLower_Limit && lpcLine->m_lppData[uiJ].m_dX <= lpX_Axis->m_dUpper_Limit)
+						lpY_Axis->Adjust_Limits(lpcSymbol->m_lppData[uiJ].m_dY);
 				}
 				break;
 			case TYPE_RECTANGLE:
@@ -992,8 +1149,8 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						bool bFirst = true;
 						for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
 						{
-							double dX = lpX_Axis->Scale(lpcLine->m_lpdData_X[uiJ]);
-							double dY = lpY_Axis->Scale(lpcLine->m_lpdData_Y[uiJ]);
+							double dX = lpX_Axis->Scale(lpcLine->m_lppData[uiJ].m_dX);
+							double dY = lpY_Axis->Scale(lpcLine->m_lppData[uiJ].m_dY);
 
 							if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
 							{
