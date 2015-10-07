@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry
 
 .PHONY: all
 
@@ -212,7 +212,7 @@ replot: $(BINDIR)/replot
 
 modelvelev:$(BINDIR)/modelvelev
 $(BINDIR)/modelvelev: $(SRCDIR)/model_vel_evolution.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h $(LIBDIR)/libmsdb.a
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/model_vel_evolution.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/modelvelev
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/model_vel_evolution.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxastro -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/modelvelev
 
 diffusion: $(BINDIR)/diffusion
 $(BINDIR)/diffusion: $(SRCDIR)/diffusion.cpp $(XLIBSCHANGE)
@@ -263,6 +263,14 @@ $(BINDIR)/gather_pEW_vels: $(SRCDIR)/gather_pEW_vels.cpp $(XLIBSCHANGE)
 test_msdb: $(BINDIR)/test_msdb
 $(BINDIR)/test_msdb: $(SRCDIR)/msdb_test.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/msdb_test.cpp $(ESFLAGS) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/test_msdb
+
+Vega_filters: $(BINDIR)/Vega_filters
+$(BINDIR)/Vega_filters: $(SRCDIR)/Vega_filter_flux.cpp $(XLIBSCHANGE)
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/Vega_filter_flux.cpp -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/Vega_filters
+
+gather_photometry: $(BINDIR)/gather_photometry
+$(BINDIR)/gather_photometry: $(SRCDIR)/gather_photometry.cpp $(XLIBSCHANGE)
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_photometry.cpp -lxio -lxstdlib -o $(BINDIR)/gather_photometry
 
 clean:
 	-rm $(BINDIR)/*
