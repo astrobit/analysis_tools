@@ -20,6 +20,85 @@
 #include <opacity_profile_data.h>
 #include <vector>
 #include <compositions.h>
+#include <xastro.h>
+
+// Data from Pereira 2014 for SN 2011fe
+class PEREIRA_DATA
+{
+public:
+	double m_dEpoch;// estimate of time after explosion based on assumed time from Pereira 2014
+	double m_dLog_Luminosity;
+	PEREIRA_DATA(const double & i_dEpoch, const double & i_dLog_Luminosity)
+	{
+		m_dEpoch = i_dEpoch;
+		m_dLog_Luminosity = i_dLog_Luminosity;
+	}
+};
+
+PEREIRA_DATA	g_cPereira_Data[] = {
+							PEREIRA_DATA(2.49, 7.9712932209),
+							PEREIRA_DATA(3.39, 8.2662490688),
+							PEREIRA_DATA(4.39, 8.4905376815),
+							PEREIRA_DATA(5.39, 8.6960240873),
+							PEREIRA_DATA(6.39, 8.8683090601),
+							PEREIRA_DATA(7.39, 9.0071674775),
+							PEREIRA_DATA(8.39, 9.1489900066),
+							PEREIRA_DATA(9.39, 9.2108707374),
+							PEREIRA_DATA(10.49, 9.3104132661),
+							PEREIRA_DATA(11.39, 9.3629143399),
+							PEREIRA_DATA(12.39, 9.4265611637),
+							PEREIRA_DATA(16.39, 9.4857671829),
+							PEREIRA_DATA(17.39, 9.4699865816),
+							PEREIRA_DATA(18.39, 9.4653704764),
+							PEREIRA_DATA(19.39, 9.453610882),
+							PEREIRA_DATA(20.39, 9.4324414496),
+							PEREIRA_DATA(21.39, 9.399067754),
+							PEREIRA_DATA(24.39, 9.3250812657) };
+
+double g_lpPereira_Days[] = {
+	2.49,
+	3.39,
+	4.39,
+	5.39,
+	6.39,
+	7.39,
+	8.39,
+	9.39,
+	10.49,
+	11.39,
+	12.39,
+	16.39,
+	17.39,
+	18.39,
+	19.39,
+	20.39,
+	21.39,
+	24.39};
+
+double g_lpPereira_Luminosity[] = {
+	7.9712932209,
+	8.2662490688,
+	8.4905376815,
+	8.6960240873,
+	8.8683090601,
+	9.0071674775,
+	9.1489900066,
+	9.2108707374,
+	9.3104132661,
+	9.3629143399,
+	9.4265611637,
+	9.4857671829,
+	9.4699865816,
+	9.4653704764,
+	9.4536108820,
+	9.4324414496,
+	9.3990677540,
+	9.3250812657 };
+
+unsigned int g_uiPereira_Count = sizeof(g_lpPereira_Luminosity)/sizeof(double);
+
+XSPLINE_DATA	g_splPereira_Data(g_lpPereira_Days,g_lpPereira_Luminosity,g_uiPereira_Count);
+
 
 class GAUSS_FIT_PARAMETERS
 {
@@ -223,7 +302,7 @@ void Process_Ion_List(const char * i_lpszIon_List_String, unsigned int * &o_lpui
 	while (lpszCursor && lpszCursor[0] != 0)
 	{
 		// bypass whitespace
-		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
+		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t' || lpszCursor[0] == '\"' || lpszCursor[0] == '\''))
 			lpszCursor++;
 		// count model
 		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
@@ -244,7 +323,7 @@ void Process_Ion_List(const char * i_lpszIon_List_String, unsigned int * &o_lpui
 	while (lpszCursor && lpszCursor[0] != 0)
 	{
 		// bypass whitespace
-		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
+		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t' || lpszCursor[0] == '\"' || lpszCursor[0] == '\''))
 			lpszCursor++;
 		// add pointer to model name and count model
 		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
@@ -381,7 +460,7 @@ void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum 
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
-//	printf("Start\n");
+	bool	bNo_Shell = false;
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	char lpszOutput_Name[256];
 	GAUSS_FIT_PARAMETERS * lpgfpParamters;
@@ -396,9 +475,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	ION_DATA	* lpcIon_Data_SO;
 	ION_DATA	lpcIon_Data_Individual[2];
 	char	lpszModel[16];
+	bool bVerbose = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--verbose");
+	if (bVerbose)
+		printf("Start\n");
 	double dFeature_ID_Threshold = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--feature-ID-threshold",0.85);
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
 	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);
+	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
 	double	dEjecta_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-scalar",1.0);
 	double	dShell_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-scalar",1.0);
 	unsigned int uiRef_Ion = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-ion",1.0);
@@ -421,6 +504,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	lpszRef_Spectrum[7] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-8");
 	lpszRef_Spectrum[8] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-9");
 
+//	printf("Ref 1 is %s\n",lpszRef_Spectrum[0]);
+
 	char lpszRef_Model_Extended[128] = {0};
 	if (lpszRef_Model && lpszRef_Model[0] >= '0' && lpszRef_Model[0] <= '9') // just a number, convert into "runXX")
 	{
@@ -436,13 +521,16 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 
 
-//	printf("Abundance\n");
+	if (bVerbose)
+		printf("Abundance\n");
 	if (strcmp(lpszShell_Abundance,"Solar") == 0)
 		cShell_Abd.Read_Table(Solar);
 	else if (strcmp(lpszShell_Abundance,"Seitenzahl") == 0)
 		cShell_Abd.Read_Table(Seitenzahl_N100_2013);
 	else if (strcmp(lpszShell_Abundance,"CO_Rich") == 0)
 		cShell_Abd.Read_Table(CO_Rich);
+	else if (strcmp(lpszShell_Abundance,"Ca_Rich") == 0)
+		cShell_Abd.Read_Table(Seitenzahl_Ca_Rich);
 	else
 		fprintf(stderr,"Unable to identify shell abundance type\n");
 
@@ -452,6 +540,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cEjecta_Abd.Read_Table(Seitenzahl_N100_2013);
 	else if (strcmp(lpszEjecta_Abundance,"CO_Rich") == 0)
 		cEjecta_Abd.Read_Table(CO_Rich);
+	else if (strcmp(lpszEjecta_Abundance,"Ca_Rich") == 0)
+		cEjecta_Abd.Read_Table(Seitenzahl_Ca_Rich);
 	else
 		fprintf(stderr,"Unable to identify ejecta abundance type\n");
 
@@ -479,7 +569,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cShell_Comp.Allocate(uiShell_Elem_Cnt);
 	uiEjecta_Elem_Cnt = 0;
 	uiShell_Elem_Cnt = 0;
-//	printf("Allocating composition sets \n");
+	if (bVerbose)
+		printf("Allocating composition sets \n");
 	for (unsigned int uiI = 0; uiI < 128; uiI++)
 	{
 //	printf("%i\n",uiI);
@@ -500,14 +591,16 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			uiShell_Elem_Cnt++;
 		}
 	}
-///	printf("copying ejecta compositions\n");
+	if (bVerbose)
+		printf("copying ejecta compositions\n");
 	cEjecta_Comp[1] = cEjecta_Comp[0];
 	cEjecta_Comp[2] = cEjecta_Comp[0];
 	cEjecta_Comp[3] = cEjecta_Comp[0];
 	cEjecta_Comp[4] = cEjecta_Comp[0];
 
 
-//	printf("Model\n");
+	if (bVerbose)
+		printf("Model\n");
 	if (lpszModel_List_String[0] == 'r' && lpszModel_List_String[1] == 'u' && lpszModel_List_String[2] == 'n')
 		strcpy(lpszModel,lpszModel_List_String);
 	else if (lpszModel_List_String[0] >= '0' && lpszModel_List_String[0] <= '9')
@@ -533,7 +626,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double	dShell_Dens_Ref = -1.0;
 
 	unsigned int	uiRef_Elem = uiRef_Ion / 100;
-//	printf("Ref Lines\n");
+	if (bVerbose)
+		printf("Ref Lines\n");
 	cRef_Lines.ReadDataFile(getenv("SYNXX_REF_LINE_DATA_PATH"),true,false);
 	unsigned int uiRef_Idx = Find_Ion_Index_Ref(cRef_Lines,uiRef_Ion);
 
@@ -543,7 +637,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //	printf("Ref line data: %f %f %f\n",dRef_Lambda,dRef_Oscillator_Strength,dRef_Energy);
 
 
-//	printf("Opacity Maps\n");
+	if (bVerbose)
+		printf("Opacity Maps\n");
 	
 	char lpszFilename[256];
 	sprintf(lpszFilename,"%s/opacity_map_ejecta.C.xdataset",lpszModel);
@@ -563,7 +658,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	sprintf(lpszFilename,"%s/photosphere.csv",lpszModel);
 	cPhotosphere.ReadDataFile(lpszFilename,false,false,',');
 
-//	printf("Ref Model\n");
+	if (bVerbose)
+		printf("Ref Model\n");
 	OPACITY_PROFILE_DATA	cOpacity_Profile_Ref;
 	if (lpszRef_Model)
 	{
@@ -575,7 +671,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	else
 		cOpacity_Profile_Ref = cOpacity_Profile;
 
-	if (uiRef_Elem == 6)
+	if (uiRef_Elem < 6 || uiRef_Elem == 7)
+	{
+		dEjecta_Scalar_Ref = 1.0;
+		dEjecta_Dens_Ref = 1.0e-10;
+	}
+	else if (uiRef_Elem == 6)
 	{
 		dEjecta_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::CARBON);
 		dEjecta_Dens_Ref= cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::CARBON);
@@ -602,26 +703,44 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 
 	dShell_Scalar_Ref = cOpacity_Profile_Ref.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
-	dShell_Dens_Ref = cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::SHELL);
-//	double dTime_Ref = cOpacity_Profile.m_dReference_Time_s;
+	printf("Shell scalar %e\n",dShell_Scalar_Ref);
+	if (dShell_Scalar_Ref != 0.0)
+	{
+		dShell_Dens_Ref = cOpacity_Profile_Ref.Get_Density(OPACITY_PROFILE_DATA::SHELL);
+	}
+	else
+	{
+		bNo_Shell = true;
+		dShell_Scalar_Ref = 1.0e-30;
+		dShell_Dens_Ref = 1.0e-5; // very low density
+	}
+	//	double dTime_Ref = cOpacity_Profile.m_dReference_Time_s;
 	double dShell_Dens_Ref_t = dShell_Dens_Ref * pow(dDay * 86400.0 / cOpacity_Profile.m_dReference_Time_s,-2.0);
 
-	printf("---- ion states ----\n");
-	printf("density = %e, temp = %f\n",dShell_Dens_Ref_t,dPS_Temp * 1000.0);
-	cShell_Comp.Zaghloul_Saha(dPS_Temp * 1000.0,dShell_Dens_Ref_t);
-
-	for (unsigned int uiI = 0; uiI < cShell_Comp.Get_Num_Compositions(); uiI++)
+	if (bVerbose && !bNo_Shell)
 	{
-		unsigned int uiZmax = cShell_Comp.Get_Composition(uiI).m_uiZ;
-		printf("[%i]:",uiZmax);
-		uiZmax++; // neutral up to fully ionized
-		if (uiZmax > 4)
-			uiZmax = 4;
-		for (unsigned int uiZ = 0; uiZ < uiZmax; uiZ++)
-			printf("\t%.2e",(cShell_Comp.Get_Composition(uiI)).m_lpdIon_Fraction[uiZ]);
-		printf("\n");
-	}
+		printf("---- ion states ----\n");
+		printf("density = %e, temp = %f\n",dShell_Dens_Ref_t,dPS_Temp * 1000.0);
+		cShell_Comp.Zaghloul_Saha(dPS_Temp * 1000.0,dShell_Dens_Ref_t);
 
+		for (unsigned int uiI = 0; uiI < cShell_Comp.Get_Num_Compositions(); uiI++)
+		{
+			unsigned int uiZmax = cShell_Comp.Get_Composition(uiI).m_uiZ;
+			printf("[%i]:",uiZmax);
+			uiZmax++; // neutral up to fully ionized
+			if (uiZmax > 4)
+				uiZmax = 4;
+			for (unsigned int uiZ = 0; uiZ < uiZmax; uiZ++)
+				printf("\t%.2e",(cShell_Comp.Get_Composition(uiI)).m_lpdIon_Fraction[uiZ]);
+			printf("\n");
+		}
+	}
+//	}
+//	else
+//	{
+//		printf("No shell\n");
+//		//bNo_Shell = true;
+//	}
 	lpcIon_Data = new ION_DATA[uiIon_Count * 2];
 	lpcIon_Data_EO = new ION_DATA[uiIon_Count];
 	lpcIon_Data_SO = new ION_DATA[uiIon_Count];
@@ -637,7 +756,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		strcpy(lpszOutput_Name, cResults.we_wordv[0]);
 		wordfree(&cResults);
 	}
-//	printf("Ion list\n");
+	if (bVerbose)
+		printf("Ion list\n");
 	sprintf(lpszFilename,"%s.ions.dat",lpszOutput_Name);
 	FILE * fileOut = fopen(lpszFilename,"wt");
 	fprintf(fileOut,"ion, PVF scalar, HVF scalar\n");
@@ -656,29 +776,44 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (dOscillator_Strength == 0.0)
 			dOscillator_Strength = 1.0e-20; // make it a small positive value since we are taking the log
 		double	dLine_Tau_Eff = log10(dLambda * dOscillator_Strength / (dRef_Lambda * dRef_Oscillator_Strength) *  exp(-(dEnergy - dRef_Energy) / 0.86173324));
-		double	dEjecta_Abd_Eff = log10(cEjecta_Abd.m_dAbundances[uiElem]); // ejecta is normalized to group; group scalar handles relative level
-		double	dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
+		double	dEjecta_Abd_Eff = -40.0;
+		if (cEjecta_Abd.m_dAbundances[uiElem] > 0.0)
+			dEjecta_Abd_Eff = log10(cEjecta_Abd.m_dAbundances[uiElem]); // ejecta is normalized to group; group scalar handles relative level
+		double	dShell_Abd_Eff = -40.0;
+
+		if (!bNo_Shell && cShell_Abd.m_dAbundances[uiElem] > 0.0 && cShell_Abd.m_dAbundances[uiRef_Elem] > 0.0)
+			dShell_Abd_Eff = log10(cShell_Abd.m_dAbundances[uiElem] / cShell_Abd.m_dAbundances[uiRef_Elem]);
 		unsigned int uiA = 2 * uiElem;
 		if (uiElem == 1)
 			uiA = 1;
 
-		if (bUse_Saha)
+		if (bUse_Saha && !bNo_Shell)
 		{
 			COMPOSITION cShell_Elem_Comp = cShell_Comp.Get_Composition(cShell_Comp.Find_Comp_Idx(uiElem, uiA));
 			COMPOSITION cRef_Comp = cShell_Comp.Get_Composition(uiShell_Ref_Comp_Idx);
 			dShell_Abd_Eff = log10(cShell_Elem_Comp.m_dMass_Fraction * cShell_Elem_Comp.m_lpdIon_Fraction[uiIon_State] / (cRef_Comp.m_dMass_Fraction * cRef_Comp.m_lpdIon_Fraction[uiRef_Ion % 100]));
+				
 		}
+		else if (bNo_Shell)
+			dShell_Abd_Eff = -20.0;
 		printf("shell effective abundance: composition z %i, ion state %i is %e\n",uiElem,uiIon_State,dShell_Abd_Eff);
 
-
-		dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
+		dShell_Scalar_Prof = dShell_Scalar_Ref;
+		if(!bNo_Shell)
+			dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 
 //		printf("Ion ref line data: %i %f %f %f %f %f %f %.2e %.2e\n",lpuiIon_List[uiI], dLambda,dOscillator_Strength,dEnergy,cEjecta_Abd.m_dAbundances[uiElem],cShell_Abd.m_dAbundances[uiElem],dShell_Abd_Eff,dShell_Scalar_Prof,dShell_Scalar_Ref);
 
 		lpcIon_Data[uiJJ].m_uiIon = lpuiIon_List[uiI];
 		lpcIon_Data[uiJJ].m_dScalar = dEjecta_Scalar + dLine_Tau_Eff + dEjecta_Abd_Eff;
 		lpcIon_Data[uiJJ].m_dExcitation_Temp = 10.0;
-		if (uiElem == 6)
+		lpcIon_Data[uiJJ].m_dTime_Power_Law = -4.0;
+		if (uiElem < 6 || uiElem == 7)
+		{
+			dEjecta_Scalar_Prof = 1e-60;
+			lpcIon_Data[uiJJ].m_lpcOpacity_Map = NULL;
+		}
+		else if (uiElem == 6)
 		{
 			dEjecta_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::CARBON);
 			lpcIon_Data[uiJJ].m_lpcOpacity_Map = &cC_Opacity;
@@ -704,23 +839,36 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpcIon_Data[uiJJ].m_lpcOpacity_Map = &cFe_Opacity;
 		}
 		lpcIon_Data[uiJJ].m_dScalar += log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref);
+		if (isinf(lpcIon_Data[uiJJ].m_dScalar) || isnan(lpcIon_Data[uiJJ].m_dScalar))
+			lpcIon_Data[uiJJ].m_dScalar = -20.0;
 
 		lpcIon_Data[uiJJ + 1].m_uiIon = lpuiIon_List[uiI];
 		lpcIon_Data[uiJJ + 1].m_dExcitation_Temp = 10.0;
-		lpcIon_Data[uiJJ + 1].m_lpcOpacity_Map = &cShell_Opacity;
-		lpcIon_Data[uiJJ + 1].m_dScalar = dShell_Scalar + dLine_Tau_Eff + dShell_Abd_Eff + log10(dShell_Scalar_Prof / dShell_Scalar_Ref);;
+		if (!bNo_Shell)
+			lpcIon_Data[uiJJ + 1].m_lpcOpacity_Map = &cShell_Opacity;
+		else
+			lpcIon_Data[uiJJ + 1].m_lpcOpacity_Map = NULL;
+		if (!bNo_Shell)
+			lpcIon_Data[uiJJ + 1].m_dScalar = dShell_Scalar + dLine_Tau_Eff + dShell_Abd_Eff + log10(dShell_Scalar_Prof / dShell_Scalar_Ref);
+		else
+			lpcIon_Data[uiJJ + 1].m_dScalar = -40.0;
+		if (isinf(lpcIon_Data[uiJJ + 1].m_dScalar) || isnan(lpcIon_Data[uiJJ + 1].m_dScalar))
+			lpcIon_Data[uiJJ + 1].m_dScalar = -20.0;
+
 //		printf("%i %.1e %.1e %.1e %.1e %.1e %.1e\n",lpuiIon_List[uiI],lpcIon_Data[uiJJ + 1].m_dScalar, dShell_Scalar,dLine_Tau_Eff,dShell_Abd_Eff,log10(dShell_Scalar_Prof / dShell_Scalar_Ref));
+
+		lpcIon_Data[uiJJ + 1].m_dTime_Power_Law = -4.0;
 
 		lpcIon_Data_EO[uiI] = lpcIon_Data[uiJJ];
 		lpcIon_Data_SO[uiI] = lpcIon_Data[uiJJ + 1];
 
 		fprintf(fileOut,"%i, %.6f, %.6f \n", lpcIon_Data[uiJJ].m_uiIon, lpcIon_Data[uiJJ].m_dScalar, lpcIon_Data[uiJJ + 1].m_dScalar);
 	}
-	
+	fclose(fileOut);
 //	FILE * fileOut;
 
-	double dRange_Min = 1000.0;
-	double dRange_Max = 10000.0;
+	double dRange_Min = 500.0;
+	double dRange_Max = 15000.0;
 	
 	// generate model spectra
 	double dWavelength_Delta_Ang = 1.25;
@@ -728,7 +876,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		//printf("%f %f %f\n", cParam.m_dWavelength_Range_Lower_Ang,cParam.m_dWavelength_Range_Upper_Ang,cParam.m_dWavelength_Delta_Ang);
 
 
-//	printf("Spectra\n");
+	if (bVerbose)
+		printf("Spectra\n");
 	ES::Spectrum lpcSpectrum[4];
 	XVECTOR cContinuum_Parameters(7);
 	lpcSpectrum[0] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, dWavelength_Delta_Ang);
@@ -751,8 +900,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 //		printf("here 1\n");
 
 
-//	printf("Photosphere\n");
-	double dPS_Velocity = -1.0;
+	if (bVerbose)
+		printf("Photosphere\n");
 	for (unsigned int uiJ = 0; uiJ  < cPhotosphere.GetNumElements() && dPS_Velocity == -1.0; uiJ++)
 	{
 		if (dDay == cPhotosphere.GetElement(0,uiJ))
@@ -775,18 +924,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cContinuum_Parameters.Set(5,128.0); // PS ion vmax
 	cContinuum_Parameters.Set(6,1.0); // PS ion vscale
 
-//	printf("Continuum\n");
+	if (bVerbose)
+		printf("Continuum\n");
 	Generate_Synow_Spectra_Exp(lpcSpectrum[0],2001,cContinuum_Parameters,lpcSpectrum[0]); // ion irrelevant for this 
 
-//	printf("Generate combined\n");
+	if (bVerbose)
+		printf("Generate combined\n");
 	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data, uiIon_Count * 2, lpcSpectrum[1]);
 //	printf("Generate EO\n");
 //	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_EO, uiIon_Count, lpcSpectrum[2]);
 //	printf("Generate SO\n");
 //	Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_SO, uiIon_Count, lpcSpectrum[3]);
 
-//	printf("Plot\n");
-	
+	if (bVerbose)
+		printf("Plot\n");
+	fflush(stdout);
 
 
 	double * lpdSpectra_WL = NULL;
@@ -814,87 +966,90 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		unsigned int uiIdx = uiI * 2;
 		lpcIon_Data_Individual[0] = lpcIon_Data[uiIdx];
 		lpcIon_Data_Individual[1] = lpcIon_Data[uiIdx + 1];
-
-		Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_Individual, 2, lpcSpectra_Individual[uiI]);
-		Get_Spectra_Data(lpcSpectra_Individual[uiI], lpdSpectra_Ind_WL, lpdSpectra_Ind_Flux, uiSpectra_Ind_Count, dRange_Min, dRange_Max);
-
-		double dStart_WL = -1.0;
-		double	dLcl_Sum = 0.0;
-		double	dInv_9 = 1.0 / 9.0;
-		double	dLcl_Min = DBL_MAX;
-		for (unsigned int uiJ = 0; uiJ < uiSpectra_Ind_Count; uiJ++)
+		if (lpcIon_Data[uiIdx].m_lpcOpacity_Map != NULL || lpcIon_Data[uiIdx + 1].m_lpcOpacity_Map != NULL)
 		{
-			lpdSpectra_Ind_Flux[uiJ] /= lpdContinuum_Flux[uiJ];
-			if (uiJ < 8)
-				dLcl_Sum += lpdSpectra_Ind_Flux[uiJ];
-		}
-//		const double k_dFeature_ID_Threshold = 0.85;
-		printf("feature ID threshold is %f.\n",dFeature_ID_Threshold);
-		const double k_dDelta_WL_Threshold = 125.0;
-//		printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum / 8.0)); // 8 because the 9th point is added in the next loop	
-		for (unsigned int uiJ = 4; uiJ < uiSpectra_Ind_Count - 4; uiJ++)
-		{
-			dLcl_Sum += lpdSpectra_Ind_Flux[uiJ + 4];
-			if (uiJ > 4)
-				dLcl_Sum -= lpdSpectra_Ind_Flux[uiJ - 5];
-//			if (uiJ <= 6)
-//				printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum * dInv_9)); // 8 because the 9th point is added in the next loop	
-			if ((dStart_WL > 0.0) && (dLcl_Sum * dInv_9) < dLcl_Min)
-				dLcl_Min = (dLcl_Sum * dInv_9);
-			if ((dLcl_Sum * dInv_9) < dFeature_ID_Threshold && dStart_WL < 0.0)
+			Generate_Synow_Multi_Ion_Spectra(dDay, dPS_Temp, dPS_Velocity, lpcIon_Data_Individual, 2, lpcSpectra_Individual[uiI]);
+			Get_Spectra_Data(lpcSpectra_Individual[uiI], lpdSpectra_Ind_WL, lpdSpectra_Ind_Flux, uiSpectra_Ind_Count, dRange_Min, dRange_Max);
+			fflush(stdout);
+
+			double dStart_WL = -1.0;
+			double	dLcl_Sum = 0.0;
+			double	dInv_9 = 1.0 / 9.0;
+			double	dLcl_Min = DBL_MAX;
+			for (unsigned int uiJ = 0; uiJ < uiSpectra_Ind_Count; uiJ++)
 			{
-				dStart_WL = lpdSpectra_Ind_WL[uiJ];
-//				printf("Start %f\n",dStart_WL);
+				lpdSpectra_Ind_Flux[uiJ] /= lpdContinuum_Flux[uiJ];
+				if (uiJ < 8)
+					dLcl_Sum += lpdSpectra_Ind_Flux[uiJ];
 			}
-			else if ((dLcl_Sum * dInv_9) > dFeature_ID_Threshold && dStart_WL > 0.0)
+	//		const double k_dFeature_ID_Threshold = 0.85;
+			printf("feature ID threshold is %f.\n",dFeature_ID_Threshold);
+			const double k_dDelta_WL_Threshold = 125.0;
+	//		printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum / 8.0)); // 8 because the 9th point is added in the next loop	
+			for (unsigned int uiJ = 4; uiJ < uiSpectra_Ind_Count - 4; uiJ++)
+			{
+				dLcl_Sum += lpdSpectra_Ind_Flux[uiJ + 4];
+				if (uiJ > 4)
+					dLcl_Sum -= lpdSpectra_Ind_Flux[uiJ - 5];
+	//			if (uiJ <= 6)
+	//				printf("%i: %f\n",lpcIon_Data[uiIdx].m_uiIon,(dLcl_Sum * dInv_9)); // 8 because the 9th point is added in the next loop	
+				if ((dStart_WL > 0.0) && (dLcl_Sum * dInv_9) < dLcl_Min)
+					dLcl_Min = (dLcl_Sum * dInv_9);
+				if ((dLcl_Sum * dInv_9) < dFeature_ID_Threshold && dStart_WL < 0.0)
+				{
+					dStart_WL = lpdSpectra_Ind_WL[uiJ];
+	//				printf("Start %f\n",dStart_WL);
+				}
+				else if ((dLcl_Sum * dInv_9) > dFeature_ID_Threshold && dStart_WL > 0.0)
+				{
+					if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < k_dDelta_WL_Threshold)
+					{
+						(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiJ];
+						if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
+							(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
+					}
+					else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > k_dDelta_WL_Threshold) // make sure it isn't just a tiny depression
+					{
+						LINE_ID	cLine_ID;
+						bool bFound = false;
+						cLine_ID.m_dStart_Wavelength = dStart_WL;
+						cLine_ID.m_dEnd_Wavelength = lpdSpectra_Ind_WL[uiJ];
+						cLine_ID.m_uiIon = lpcIon_Data[uiIdx].m_uiIon;
+						cLine_ID.m_dCont_Flux = lpdContinuum_Flux[uiJ];
+						cLine_ID.m_dDraw_Flux = lpdContinuum_Flux[uiJ];
+						cLine_ID.m_dFeature_Min = dLcl_Min;
+					
+						vLine_IDs.push_back(cLine_ID);
+					}
+	//				printf("End %f: Med %f\n",lpdSpectra_Ind_WL[uiJ],cLine_ID.m_dWavelength);
+					dStart_WL = -1.0;
+					dLcl_Min = DBL_MAX;
+				}
+			}
+			if (dStart_WL > 0.0)
 			{
 				if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < k_dDelta_WL_Threshold)
 				{
-					(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiJ];
+					(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
 					if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
 						(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
 				}
-				else if (lpdSpectra_Ind_WL[uiJ] - dStart_WL > k_dDelta_WL_Threshold) // make sure it isn't just a tiny depression
+				else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > k_dDelta_WL_Threshold) // make sure it isn't just a tiny depression
 				{
+
 					LINE_ID	cLine_ID;
-					bool bFound = false;
+
 					cLine_ID.m_dStart_Wavelength = dStart_WL;
-					cLine_ID.m_dEnd_Wavelength = lpdSpectra_Ind_WL[uiJ];
+					cLine_ID.m_dEnd_Wavelength = lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
 					cLine_ID.m_uiIon = lpcIon_Data[uiIdx].m_uiIon;
-					cLine_ID.m_dCont_Flux = lpdContinuum_Flux[uiJ];
-					cLine_ID.m_dDraw_Flux = lpdContinuum_Flux[uiJ];
+					cLine_ID.m_dCont_Flux = lpdContinuum_Flux[uiSpectra_Ind_Count - 1];
+					cLine_ID.m_dDraw_Flux = lpdContinuum_Flux[uiSpectra_Ind_Count - 1];
 					cLine_ID.m_dFeature_Min = dLcl_Min;
-					
 					vLine_IDs.push_back(cLine_ID);
+		//			printf("End %f: Med %f\n",lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1],cLine_ID.m_dWavelength);
+
+					dStart_WL = -1.0;
 				}
-//				printf("End %f: Med %f\n",lpdSpectra_Ind_WL[uiJ],cLine_ID.m_dWavelength);
-				dStart_WL = -1.0;
-				dLcl_Min = DBL_MAX;
-			}
-		}
-		if (dStart_WL > 0.0)
-		{
-			if (vLine_IDs.size() > 0 && (vLine_IDs.back()).m_uiIon == lpcIon_Data[uiIdx].m_uiIon && (dStart_WL - (vLine_IDs.back()).m_dEnd_Wavelength) < k_dDelta_WL_Threshold)
-			{
-				(vLine_IDs.back()).m_dEnd_Wavelength =  lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
-				if (dLcl_Min < (vLine_IDs.back()).m_dFeature_Min)
-					(vLine_IDs.back()).m_dFeature_Min = dLcl_Min;
-			}
-			else if (lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1] - dStart_WL > k_dDelta_WL_Threshold) // make sure it isn't just a tiny depression
-			{
-
-				LINE_ID	cLine_ID;
-
-				cLine_ID.m_dStart_Wavelength = dStart_WL;
-				cLine_ID.m_dEnd_Wavelength = lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1];
-				cLine_ID.m_uiIon = lpcIon_Data[uiIdx].m_uiIon;
-				cLine_ID.m_dCont_Flux = lpdContinuum_Flux[uiSpectra_Ind_Count - 1];
-				cLine_ID.m_dDraw_Flux = lpdContinuum_Flux[uiSpectra_Ind_Count - 1];
-				cLine_ID.m_dFeature_Min = dLcl_Min;
-				vLine_IDs.push_back(cLine_ID);
-	//			printf("End %f: Med %f\n",lpdSpectra_Ind_WL[uiSpectra_Ind_Count - 1],cLine_ID.m_dWavelength);
-
-				dStart_WL = -1.0;
 			}
 		}
 	}
@@ -1197,21 +1352,63 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	fprintf(fileOut,"\n");
 	for (unsigned int uiI = 0; uiI < uiContinuum_Count; uiI++)
 	{
-		fprintf(fileOut, "%f",lpcSpectrum[0].wl(uiI));
-		fprintf(fileOut, " %f",lpcSpectrum[0].flux(uiI));
-		fprintf(fileOut, " %f",lpcSpectrum[1].flux(uiI));
-		fprintf(fileOut, " %f",lpcSpectrum[2].flux(uiI));
-		fprintf(fileOut, " %f",lpcSpectrum[3].flux(uiI));
+		fprintf(fileOut, "%.17e",lpcSpectrum[0].wl(uiI));
+		fprintf(fileOut, " %.17e",lpcSpectrum[0].flux(uiI));
+		fprintf(fileOut, " %.17e",lpcSpectrum[1].flux(uiI));
+		fprintf(fileOut, " %.17e",lpcSpectrum[2].flux(uiI));
+		fprintf(fileOut, " %.17e",lpcSpectrum[3].flux(uiI));
 		for (unsigned int uiJ = 0; uiJ < uiIon_Count; uiJ++)
 		{
-			fprintf(fileOut, " %f",lpcSpectra_Individual[uiJ].flux(uiI));
+			fprintf(fileOut, " %.17e",lpcSpectra_Individual[uiJ].flux(uiI));
 		}
 
 		fprintf(fileOut, "\n");
 	}
 	fclose(fileOut);
 
+	unsigned int uiPLast = g_uiPereira_Count - 1;
+	double	dLuminosity;
+	if (dDay >= g_lpPereira_Days[0] && dDay <= g_lpPereira_Days[uiPLast])
+	{
+		dLuminosity = g_splPereira_Data.Interpolate(dDay);
+	}
+	else if (dDay < g_lpPereira_Days[0])
+	{
+		dLuminosity = (g_lpPereira_Luminosity[1] - g_lpPereira_Luminosity[0]) * (dDay - g_lpPereira_Days[0]) / (g_lpPereira_Days[1] - g_lpPereira_Days[0]) + g_lpPereira_Luminosity[0];
+	}
+	else if (dDay > g_lpPereira_Days[uiPLast])
+	{
+		dLuminosity = (g_lpPereira_Luminosity[uiPLast] - g_lpPereira_Luminosity[uiPLast - 1]) * (dDay - g_lpPereira_Days[uiPLast - 1]) / (g_lpPereira_Days[uiPLast] - g_lpPereira_Days[uiPLast - 1]) + g_lpPereira_Luminosity[uiPLast - 1];
+	}
+	dLuminosity = pow(10.0,dLuminosity) * g_XASTRO.k_dLsun;
 
+	sprintf(lpszFilename,"%s.photometry.csv",lpszOutput_Name);
+	FILE * filePhotometry = fopen(lpszFilename,"wt");
+	fprintf(filePhotometry,"Day, Model, u ,b, v, uvw1, uvw2, uvm2, white\n");
+	double	dDelta_Wl = lpcSpectrum[1].wl(1) - lpcSpectrum[1].wl(0);
+//				double * lpdFlux_Corr_Spectrum = new double[lpuiSpectra_Count[uiI]];
+	double	dSwift_u = 0.0,dSwift_v = 0.0,dSwift_b = 0.0,dSwift_uvw1 = 0.0,dSwift_uvm2 = 0.0,dSwift_uvw2 = 0.0,dSwift_white = 0.0;
+	double	dSum = 0.0;
+	for (unsigned int uiJ = 0; uiJ < lpcSpectrum[1].size(); uiJ++)
+	{
+		dSum += lpcSpectrum[1].flux(uiJ);
+	}
+	double dLum_Model = dLuminosity / (lpcSpectrum[1].wl(lpcSpectrum[1].size() - 1) - lpcSpectrum[1].wl(0));
+	for (unsigned int uiJ = 0; uiJ < lpcSpectrum[1].size(); uiJ++)
+	{
+		double dFlux = lpcSpectrum[1].flux(uiJ) / dSum * dLum_Model;
+		dSwift_u += dFlux * (g_XASTRO_Filter_Swift_u << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+		dSwift_v += dFlux * (g_XASTRO_Filter_Swift_v << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+		dSwift_b += dFlux * (g_XASTRO_Filter_Swift_b << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+		dSwift_uvw1 += dFlux * (g_XASTRO_Filter_Swift_uvw1 << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+		dSwift_uvw2 += dFlux * (g_XASTRO_Filter_Swift_uvw2 << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+		dSwift_uvm2 += dFlux * (g_XASTRO_Filter_Swift_uvm2 << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+		dSwift_white += dFlux * (g_XASTRO_Filter_Swift_white << lpcSpectrum[1].wl(uiJ)) * dDelta_Wl;
+	}
+	double	dAbs_Mag_Vega = -5.0 * log10(0.1/0.13023);
+	fprintf(filePhotometry,"%.2f, %s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e\n",dDay,lpszModel_List_String,
+		XA_Compute_Magnitude(dSwift_u,g_XASTRO_Vega_u_lum,dAbs_Mag_Vega),XA_Compute_Magnitude(dSwift_b,g_XASTRO_Vega_b_lum,dAbs_Mag_Vega),XA_Compute_Magnitude(dSwift_v,g_XASTRO_Vega_v_lum,dAbs_Mag_Vega),XA_Compute_Magnitude(dSwift_uvw1,g_XASTRO_Vega_uvw1_lum,dAbs_Mag_Vega),XA_Compute_Magnitude(dSwift_uvw2,g_XASTRO_Vega_uvw2_lum,dAbs_Mag_Vega),XA_Compute_Magnitude(dSwift_uvm2,g_XASTRO_Vega_uvm2_lum,dAbs_Mag_Vega),XA_Compute_Magnitude(dSwift_white,g_XASTRO_Vega_white_lum,dAbs_Mag_Vega));
+	fclose(filePhotometry);	
 	delete [] lpdSpectra_WL;
 	delete [] lpdSpectra_Vel;
 	delete [] lpdSpectra_Flux;
