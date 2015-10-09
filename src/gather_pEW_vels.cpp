@@ -201,7 +201,7 @@ void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eCo
 						}
 						if (uiI == 0 && lpCtr->m_dVel < 500. ||
 							uiI == 0 && lpCtr->m_dVel > 40000.0 ||
-							uiI != 0 && lpCtr->m_dpEW < 1.)
+							uiI != 0 && lpCtr->m_dpEW < 0.)
 							fprintf(fileFile,", ");
 						else if (uiI == 0)
 							fprintf(fileFile,", %.0f",lpCtr->m_dVel);
@@ -233,7 +233,7 @@ void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eCo
 				}
 				if (i_eComponent == VELOCITY && lpCtr->m_dVel < 500. ||
 					i_eComponent == VELOCITY && lpCtr->m_dVel > 40000.0 ||
-					i_eComponent != VELOCITY && lpCtr->m_dpEW < 1.)
+					i_eComponent != VELOCITY && lpCtr->m_dpEW < 0.)
 					fprintf(fileFile,", ");
 				else if (i_eComponent == VELOCITY)
 					fprintf(fileFile,", %.0f",lpCtr->m_dVel);
