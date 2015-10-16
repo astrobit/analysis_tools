@@ -2,17 +2,27 @@
 #include <xio.h>
 #include <xstdlib.h>
 
+class PLOTS
+{
+public:
+	unsigned int m_uiX_Column;
+	unsigned int m_uiY_Column;
+	epsplot::COLOR	m_eColor;
+	bool					m_bUse_Stipple;
+	epsplot::STIPPLE	m_eStipple;
+	bool					m_bUse_Symbol;
+	epsplot::SYMBOL_TYPE	m_eSymbol;
+};
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	const char * lpszX_Axis_Title = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-title");
 	const char * lpszY_Axis_Title = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-title");
-	unsigned int * lpuiData_Columns = NULL;
-	double * lpdX_Values = NULL;
-	double ** lpdY_Values = NULL;
+	PLOTS * lpcPlots = NULL;
 	const char * lpszDatafile = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--file");
 	const char * lpszColumnList = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--y-columns");
-	unsigned int uiX_Axis_Column = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-column",0);
+	unsigned int uiX_Axis_Column = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-column",-1);
+	const char * lpszX_Columns = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-columns");
 	unsigned int uiHeader_Lines  = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--header-lines",0);
 	bool	bWhitespace_Separated = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--whitespace-separated");
 	bool	bX_Axis_Log = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--x-axis-log");
@@ -35,11 +45,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cData.ReadDataFile(lpszDatafile,bWhitespace_Separated,false,bWhitespace_Separated ? 0 : ',', uiHeader_Lines);
 		if (cData.GetNumElements() > 0)
 		{
-			lpdX_Values = cData.GetElementArray(uiX_Axis_Column);
 			unsigned int uiY_Count = 0;
+			unsigned int uiX_Count = 0;
 			if (lpszColumnList)
 			{
 				uiY_Count = 0;
+				uiX_Count = 0;
 				const char * lpszCursor = lpszColumnList;
 				while (lpszCursor[0] != 0)
 				{
@@ -51,7 +62,27 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 						lpszCursor++;
 				}
-				lpuiData_Columns = new unsigned int [uiY_Count];
+				// parse the X column list
+				if (uiX_Axis_Column == -1)
+				{
+					lpszCursor = lpszX_Columns;
+					while (lpszCursor && lpszCursor[0] != 0)
+					{
+						// bypass initial junk
+						while (lpszCursor[0] != 0 && (lpszCursor[0] < '0' || lpszCursor[0] > '9'))
+							lpszCursor++;
+						if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
+							uiX_Count++;
+						while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
+							lpszCursor++;
+					}
+				}
+				if (uiX_Axis_Column == -1 && uiX_Count != uiY_Count)
+				{
+					fprintf(stderr,"X column has not been specified and number of Y columns specified does not equate the number of X columns specified.\n");
+					exit(1);
+				}
+				lpcPlots = new PLOTS [uiY_Count];
 				uiY_Count = 0;
 				lpszCursor = lpszColumnList;
 				while (lpszCursor[0] != 0)
@@ -61,11 +92,31 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						lpszCursor++;
 					if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 					{
-						lpuiData_Columns[uiY_Count] = atoi(lpszCursor);
+						lpcPlots[uiY_Count].m_uiY_Column = atoi(lpszCursor);
+						if (uiX_Axis_Column != -1)
+							lpcPlots[uiY_Count].m_uiX_Column = uiX_Axis_Column;
 						uiY_Count++;
 					}
 					while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
 						lpszCursor++;
+				}
+				if (uiX_Axis_Column == -1)
+				{
+					uiX_Count = 0;
+					lpszCursor = lpszX_Columns;
+					while (lpszCursor[0] != 0)
+					{
+						// bypass initial junk
+						while (lpszCursor[0] != 0 && (lpszCursor[0] < '0' || lpszCursor[0] > '9'))
+							lpszCursor++;
+						if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
+						{
+							lpcPlots[uiX_Count].m_uiX_Column = atoi(lpszCursor);
+							uiX_Count++;
+						}
+						while (lpszCursor[0] != 0 && lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
+							lpszCursor++;
+					}
 				}
 				
 			}
@@ -74,13 +125,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				unsigned int uiNum_Col = cData.GetNumColumns();
 				if (uiNum_Col > 1)
 				{
-					lpuiData_Columns = new unsigned int [uiNum_Col - 1];
+					lpcPlots = new PLOTS [uiNum_Col - 1];
 					uiY_Count = 0;
 					for (unsigned int uiI = 0; uiI < uiNum_Col; uiI++)
 					{
 						if (uiI != uiX_Axis_Column)
 						{
-							lpuiData_Columns[uiY_Count] = uiI;
+							lpcPlots[uiY_Count].m_uiX_Column = uiX_Axis_Column;
+							lpcPlots[uiY_Count].m_uiY_Column = uiI;
 							uiY_Count++;
 						}
 					}
@@ -96,9 +148,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					{
 						for (unsigned int uiJ =0; uiJ < uiNum_Rows; uiJ++)
 						{
-							if (!cData.IsElementEmpty(lpuiData_Columns[uiI],uiJ) && !cData.IsElementEmpty(uiX_Axis_Column,uiJ))
+							if (!cData.IsElementEmpty(lpcPlots[uiI].m_uiY_Column,uiJ) && !cData.IsElementEmpty(lpcPlots[uiI].m_uiX_Column,uiJ))
 							{
-								lpvData[uiI].push_back(epsplot::eps_pair(cData.GetElement(uiX_Axis_Column,uiJ),cData.GetElement(lpuiData_Columns[uiI],uiJ)));
+								lpvData[uiI].push_back(epsplot::eps_pair(cData.GetElement(lpcPlots[uiI].m_uiX_Column,uiJ),cData.GetElement(lpcPlots[uiI].m_uiY_Column,uiJ)));
 							}
 						}
 					}
@@ -148,6 +200,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
 					{
 						printf("Graph %i: ",uiI);
+						printf("(%i,%i) ",lpcPlots[uiI].m_uiX_Column,lpcPlots[uiI].m_uiY_Column);
 						cLine_Parameters.m_eColor = epsplot::COLOR(epsplot::BLACK + (uiI % 7));
 						switch (cLine_Parameters.m_eColor)
 						{
@@ -211,10 +264,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 				else
 				{
-					if (!lpdX_Values)
-						fprintf(stderr,"No x values\n");
-					if (!lpdY_Values)
-						fprintf(stderr,"No y values\n");
 					if (uiY_Count == 0)
 						fprintf(stderr,"y count = 0\n");
 				}
@@ -222,6 +271,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}	
 		else
 			fprintf(stderr,"No data in file\n");
+		if (lpcPlots)
+			delete [] lpcPlots;
 	}
 	else
 	{
