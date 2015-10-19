@@ -359,6 +359,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	char lpszEjecta_Abundance[128];
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-abundance",lpszShell_Abundance,sizeof(lpszShell_Abundance),"");
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-abundance",lpszEjecta_Abundance,sizeof(lpszShell_Abundance),"");
+	double	dEjecta_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-power-law",4.0);
+	double	dShell_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-power-law",4.0);
 
 
 	if (lpszRef_Model && lpszRef_Model[0] >= '0' && lpszRef_Model[0] <= '9') // just a number, convert into "runXX")
@@ -653,8 +655,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cParam.m_dShell_Log_Scalar += log10(dShell_Scalar_Prof / dShell_Scalar_Ref);
 				}
 
-				cParam.m_dEjecta_Scalar_Time_Power_Law = -4.0;
-				cParam.m_dShell_Scalar_Time_Power_Law = -4.0;
+				cParam.m_dEjecta_Scalar_Time_Power_Law = -dEjecta_Power_Law;
+				cParam.m_dShell_Scalar_Time_Power_Law = -dShell_Power_Law;
 
 
 				cParameters.Set_Size(bShell ? 7 : 5);
