@@ -675,7 +675,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]) == 0)
 				{
-					Generate_Synow_Spectra(lpcSpectrum[uiI][1], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1],-4.0,-4.0);
+					Generate_Synow_Spectra(lpcSpectrum[uiI][1], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1],-dEjecta_Power_Law,-dShell_Power_Law);
 					printf("Adding to db for %s...",lpszModel_Name);
 					fflush(stdout);
 					msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]);
@@ -691,14 +691,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					else
 					{
 						cParameters.Set(6,-40.0);
-						Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][2],-4.0,-4.0);
+						Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][2],-dEjecta_Power_Law,-dShell_Power_Law);
 						printf(".");
 						fflush(stdout);
 						cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]);
 
 						cParameters.Set(6,dShell_Scalar);
 						cParameters.Set(4,-40.0);
-						Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3],-4.0,-4.0);
+						Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3],-dEjecta_Power_Law,-dShell_Power_Law);
 						printf(".");
 						fflush(stdout);
 						cMSDB.Add_Spectrum(dbidID, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]);
@@ -711,7 +711,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					if (cMSDB.Get_Spectrum(cParam, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]) == 0)
 					{
 						cParameters.Set(6,-40.0);
-						Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1],-4.0,-4.0);
+						Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1],-dEjecta_Power_Law,-dShell_Power_Law);
 						printf("Adding E-O to db for %s...",lpszModel_Name);
 						fflush(stdout);
 						msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]);
@@ -722,7 +722,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						if (cMSDB.Get_Spectrum(cParam, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]) == 0)
 						{
 							cParameters.Set(4,-40.0);
-							Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3],-4.0,-4.0);
+							Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3],-dEjecta_Power_Law,-dShell_Power_Law);
 							printf("Adding S-O to db for %s...",lpszModel_Name);
 							fflush(stdout);
 							msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]);
