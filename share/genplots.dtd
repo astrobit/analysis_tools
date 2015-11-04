@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|PLOT+)*>
+<!ATTLIST GRAPH
+	outputfile CDATA #REQUIRED
+	title		CDATA #IMPLIED
+	layout		(portrait|landscale|user) #IMPLIED
+	size		(a4|letter|user) #IMPLIED
+	width		CDATA #IMPLIED
+	height		CDATA #IMPLIED
+>
+<!ELEMENT COLOR EMPTY>
+<!ATTLIST COLOR
+	name	CDATA #REQUIRED
+	red		CDATA	#REQUIRED
+	green	CDATA	#REQUIRED
+	blue	CDATA	#REQUIRED
+>
+<!ELEMENT PLOT (PLOTDATA?|PLOTFILE?)>
+<!ATTLIST PLOT
+	color	CDATA #IMPLIED
+	style	(none|default|solid|sdash|ldash|lsdash|dot|sdashdot|ldashdot|lsdashdot) #IMPLIED
+	width	CDATA #IMPLIED
+	symbol	(none|default|square|circle|triup|tridn|trilt|trirt|diamond|times|plus|dash|asterisk|star4|star5|star6) #IMPLIED
+	symbolsize CDATA #IMPLIED
+	yoffset	CDATA #IMPLIED 
+	xoffset CDATA #IMPLIED
+	xaxisid	CDATA #IMPLIED
+	yaxisid CDATA #IMPLIED
+>
+<!ELEMENT PLOTDATA (TUPLE*)>
+<!ELEMENT TUPLE EMPTY>
+<!ATTLIST TUPLE
+	x	CDATA	#REQUIRED
+	y	CDATA	#REQUIRED
+>
+<!ELEMENT PLOTFILE EMPTY>
+<!ATTLIST PLOTFILE
+	fileid	CDATA	#REQUIRED
+	xcol	CDATA	#REQUIRED
+	ycol	CDATA	#REQUIRED
+>
+<!ELEMENT SOURCEFILE EMPTY>
+<!ATTLIST SOURCEFILE
+	name	CDATA #REQUIRED
+	fileid	ID	#REQUIRED
+	separator	CDATA	#IMPLIED
+	headerlines		CDATA	#REQUIRED
+	wsseparated		(true|false)	#REQUIRED
+	hasstrings		(true|false)	#IMPLIED
+>
+<!ELEMENT AXIS EMPTY>
+<!ATTLIST AXIS
+	title	CDATA	#IMPLIED
+	axisid	ID		#REQUIRED
+	log	(true|false) #IMPLIED
+	invert (true|false) #IMPLIED
+	direction (x|y) #REQUIRED
+	min		CDATA	#IMPLIED
+	max		CDATA	#IMPLIED
+>
+	

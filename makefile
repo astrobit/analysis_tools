@@ -18,6 +18,7 @@ ESFLAGS= -fopenmp
 ESLIBS= -les -lm -lyaml-cpp -lcfitsio 
 XLIBSPATH=~/xlibs
 XLIBSCHANGE=$(XLIBSPATH)/lib/libxio.a $(XLIBSPATH)/lib/libxstdlib.a $(XLIBSPATH)/lib/libxmath.a $(XLIBSPATH)/lib/libxastro.a $(XLIBSPATH)/lib/libxflash.a
+XMLINCLUDE= -I/usr/include/libxml2
 
 $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utilities.h $(XLIBSCHANGE) $(INCLUDEDIR)/eps_plot.h $(SRCDIR)/eps_plot.cpp
 	$(CCOMP) $(CFLAGS) $(SRCDIR)/Plot_Utilities.cpp -o $(TMPDIR)/Plot_Utilities.o
@@ -246,7 +247,7 @@ $(BINDIR)/sahatest: $(SRCDIR)/saha_test.cpp  $(LIBDIR)/libcomp.a $(XLIBSCHANGE) 
 
 genplot: $(BINDIR)/genplot
 $(BINDIR)/genplot: $(SRCDIR)/genplot.cpp  $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/genplot.cpp $(PLOTUTILLIB) -lxio -lxstdlib -o $(BINDIR)/genplot
+	$(CCOMP) $(CLFLAGS) -std=c++11 $(XMLINCLUDE) $(SRCDIR)/genplot.cpp $(PLOTUTILLIB) -lxio -lxstdlib -lxml2 -o $(BINDIR)/genplot
 
 gentardis: $(BINDIR)/gentardis
 $(BINDIR)/gentardis: $(SRCDIR)/gentardis.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a

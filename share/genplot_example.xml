@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE GRAPH SYSTEM "genplots.dtd">
+<GRAPH outputfile="test.eps">
+<SOURCEFILE name="src.csv" fileid="xyz" headerlines="1" wsseparated="false"/>
+<PLOT>
+<PLOTDATA>
+<TUPLE x="1" y="1"/>
+<TUPLE x="2" y="2"/>
+<TUPLE x="3" y="9"/>
+<TUPLE x="4" y="16"/>
+</PLOTDATA>
+</PLOT>
+</GRAPH>
+
