@@ -57,7 +57,7 @@ public:
 };
 inline bool Test_Attr_Content(const xmlAttr * i_lpAttr)
 {
-	return (i_lpAttr && i_lpAttr->children && i_lpAttr->children->type == XML_CDATA_SECTION_NODE);
+	return (i_lpAttr && i_lpAttr->children && i_lpAttr->children->type == XML_TEXT_NODE);
 }
 const char * Attr_Get_String(const xmlAttr * i_lpAttr)
 {
@@ -341,7 +341,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 			cPlot_Parameters.m_dWidth_Inches = 11.0;
 			cPlot_Parameters.m_dHeight_Inches = 8.5;
 		}
-		xmlNode * lpCurr_Node = i_lpRoot_Element;
+		xmlNode * lpCurr_Node = i_lpRoot_Element->children;
 		// first go through and identify all sourcefiles, colors, and axes
 		while (lpCurr_Node)
 		{
@@ -504,12 +504,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 			lpCurr_Node = lpCurr_Node->next;
 		}
 
-
-
 		// process plots
-		lpCurr_Node = i_lpRoot_Element;
+		lpCurr_Node = i_lpRoot_Element->children;
 		while (lpCurr_Node)
 		{
+//			if (lpCurr_Node && lpCurr_Node->name)
+//				printf("%s\n",lpCurr_Node->name);
 			if (lpCurr_Node->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->name,"PLOT") == 0)
 			{
 				const char * lpszColor = NULL;
@@ -640,17 +640,19 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					cSymbol_Parameters.m_dSize = dSymbol_Size;
 					cSymbol_Parameters.m_eColor = cLine_Parameters.m_eColor;
 					std::vector < epsplot::eps_pair> cData;
-
-					if (lpCurr_Node->children && lpCurr_Node->children->type == XML_ELEMENT_NODE)
+					xmlNode * lpData_Node = lpCurr_Node->children;
+					while (lpData_Node && lpData_Node->type != XML_ELEMENT_NODE)
+						lpData_Node = lpData_Node->next;
+					if (lpData_Node && lpData_Node->type == XML_ELEMENT_NODE)
 					{
-						if (strcmp(lpCurr_Node->children->name,"PLOTFILE") == 0)
+						if (strcmp(lpData_Node->name,"PLOTFILE") == 0)
 						{
 							const char * lpszFile_ID = NULL;
 							unsigned int uiX_Column=0;
 							unsigned int uiY_Column=1;
-							if (lpCurr_Node->children->properties)
+							if (lpData_Node->properties)
 							{
-								xmlAttr * lpCurr_Attr = lpCurr_Node->children->properties;
+								xmlAttr * lpCurr_Attr = lpData_Node->properties;
 								while (lpCurr_Attr)
 								{
 									if (strcmp(lpCurr_Attr->name,"fileid") == 0)
@@ -694,11 +696,15 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 								fprintf(stderr,"genplot: file ID not specified for plot.\n");
 							}
 						}
-						else if (strcmp(lpCurr_Node->children->name,"PLOTDATA") == 0)
+						else if (strcmp(lpData_Node->name,"PLOTDATA") == 0)
 						{
-							if (lpCurr_Node->children->children && lpCurr_Node->children->children->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->children->children->name,"TUPLE") == 0)
+							xmlNode * lpPair_Node = lpData_Node->children;
+							while (lpPair_Node && lpPair_Node->type != XML_ELEMENT_NODE)
+								lpPair_Node = lpPair_Node->next;
+
+							if (lpPair_Node && lpPair_Node->type == XML_ELEMENT_NODE && strcmp(lpPair_Node->name,"TUPLE") == 0)
 							{
-								xmlNode * lpCurr_Tuple = lpCurr_Node->children->children;
+								xmlNode * lpCurr_Tuple = lpPair_Node;
 								epsplot::eps_pair	cPair;
 								while (lpCurr_Tuple)
 								{

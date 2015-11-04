@@ -2,12 +2,14 @@
 <!DOCTYPE GRAPH SYSTEM "genplots.dtd">
 <GRAPH outputfile="test.eps">
 <SOURCEFILE name="src.csv" fileid="xyz" headerlines="1" wsseparated="false"/>
-<PLOT>
+<PLOT color="red" width="4.0" style="ldash">
 <PLOTDATA>
 <TUPLE x="1" y="1"/>
-<TUPLE x="2" y="2"/>
+<TUPLE x="2" y="4"/>
 <TUPLE x="3" y="9"/>
 <TUPLE x="4" y="16"/>
+<TUPLE x="5" y="25"/>
+<TUPLE x="6" y="36"/>
 </PLOTDATA>
 </PLOT>
 </GRAPH>
