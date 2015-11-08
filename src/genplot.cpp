@@ -30,8 +30,7 @@ public:
 	{
 		if (i_cRHO.m_lpszFilename)
 		{
-			m_lpszFilename = new char[strlen(i_cRHO.m_lpszFilename) + 1];
-			strcpy(m_lpszFilename,i_cRHO.m_lpszFilename);
+			Set_File(i_cRHO.m_lpszFilename);
 			m_xdDataset = i_cRHO.m_xdDataset;
 		}
 	}
@@ -102,7 +101,7 @@ bool Attr_Get_Bool(const xmlAttr * i_lpAttr, bool i_bDefault)
 {
 	bool bRet = i_bDefault;
 	if (Test_Attr_Content(i_lpAttr))
-		bRet = strcmp((char *)i_lpAttr->children->content,"true");
+		bRet = (strcmp((char *)i_lpAttr->children->content,"true") == 0);
 	return bRet;
 }
 char Attr_Get_Char(const xmlAttr * i_lpAttr, unsigned int i_uiDefault)
@@ -225,7 +224,6 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 	epsplot::COLOR eDefault_Color = epsplot::BLACK;
 	epsplot::STIPPLE eDefault_Stipple = epsplot::SOLID;
 	epsplot::SYMBOL_TYPE eDefault_Symbol = epsplot::SQUARE;
-
 	cColor_Map["black"] = epsplot::BLACK;
 	cColor_Map["Black"] = epsplot::BLACK;
 	cColor_Map["BLACK"] = epsplot::BLACK;
@@ -672,7 +670,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							}
 							if (lpszFile_ID && cSource_Files.count(std::string(lpszFile_ID)) != 0)
 							{
-								XDATASET cSF_Data = cSource_Files[lpszFile_ID].m_xdDataset;
+								XDATASET &cSF_Data(cSource_Files[lpszFile_ID].m_xdDataset);
+								printf("Parsing file %s for cols %i and %i.\n",cSource_Files[lpszFile_ID].Get_File(),uiX_Column,uiY_Column);
 								if (cSF_Data.GetNumColumns() > uiY_Column && cSF_Data.GetNumColumns() > uiX_Column)
 								{
 									for (unsigned int uiI = 0; uiI < cSF_Data.GetNumRows(); uiI++)
@@ -801,6 +800,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
 		xmlNodePtr root_node = xmlNewNode(NULL, BAD_CAST "GRAPH");
+		const char * lpszDTD_Path = getenv("LINE_ANALYSIS_DATA_PATH");
+		if (lpszDTD_Path)
+		{
+			char *lpszDTD_Full_Path = new char[strlen(lpszDTD_Path) + 16];
+			sprintf(lpszDTD_Full_Path,"%s/genplots.dtd",lpszDTD_Path);
+			xmlDtdPtr dtd = xmlCreateIntSubset(doc, BAD_CAST "GRAPH", NULL, BAD_CAST lpszDTD_Full_Path);
+			delete [] lpszDTD_Full_Path;
+		}
 		xmlDocSetRootElement(doc, root_node);
 		if (lpszOutput_File && lpszOutput_File[0] != 0)
 			xmlNewProp(root_node,BAD_CAST "outputfile", BAD_CAST lpszOutput_File);
@@ -937,7 +944,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						lpszCursor++;
 				}
 			}
-			for (unsigned int uiI = 0; uiI < uiX_Count; uiI++)
+			for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
 			{
 				xmlNodePtr plotnode = xmlNewChild(root_node,NULL, BAD_CAST "PLOT",NULL);
 				if (bUse_X_Axis)
@@ -991,6 +998,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 		}
 		Parse_XML(root_node);
+	   xmlSaveFormatFileEnc("plot.xml", doc, "UTF-8", 1);
 
 	}
 	else
