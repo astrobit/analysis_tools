@@ -94,7 +94,7 @@ double Attr_Get_Double(const xmlAttr * i_lpAttr, double i_dDefault)
 {
 	double dRet = i_dDefault;
 	if (Test_Attr_Content(i_lpAttr))
-		dRet = atoi((char *)i_lpAttr->children->content);
+		dRet = atof((char *)i_lpAttr->children->content);
 	return dRet;
 }
 bool Attr_Get_Bool(const xmlAttr * i_lpAttr, bool i_bDefault)
