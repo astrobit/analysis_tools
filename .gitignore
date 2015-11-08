@@ -35,4 +35,5 @@ obj/*
 
 # test outputs
 test*.eps
+share/*.eps
 
