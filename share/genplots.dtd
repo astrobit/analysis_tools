@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|PLOT+)*>
+<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|PLOT+|TEXT*)*>
 <!ATTLIST GRAPH
 	outputfile CDATA #REQUIRED
 	title		CDATA #IMPLIED
@@ -14,6 +14,20 @@
 	red		CDATA	#REQUIRED
 	green	CDATA	#REQUIRED
 	blue	CDATA	#REQUIRED
+>
+<!ELEMENT TEXT #PCDATA>
+<!ATTLIST TEXT
+	color	CDATA #IMPLIED
+	width	CDATA #IMPLIED
+	font	(times|helvetica|courier|symbol) #IMPLIED
+	italic	(true|false) #IMPLIED
+	bold	(true|false) #IMPLIED
+	angle   CDATA #IMPLIED
+	size    CDATA #IMPLIED
+	xaxisid	CDATA #IMPLIED
+	yaxisid CDATA #IMPLIED
+	x		CDATA #REQUIRED
+	y		CDATA #REQUIRED
 >
 <!ELEMENT PLOT (PLOTDATA?|PLOTFILE?)>
 <!ATTLIST PLOT
