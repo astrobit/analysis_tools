@@ -15,12 +15,12 @@
 	green	CDATA	#REQUIRED
 	blue	CDATA	#REQUIRED
 >
-<!ELEMENT TEXT #PCDATA>
+<!ELEMENT TEXT (#PCDATA)>
 <!ATTLIST TEXT
 	color	CDATA #IMPLIED
 	width	CDATA #IMPLIED
 	font	(times|helvetica|courier|symbol) #IMPLIED
-	italic	(true|false) #IMPLIED
+	italics	(true|false) #IMPLIED
 	bold	(true|false) #IMPLIED
 	angle   CDATA #IMPLIED
 	size    CDATA #IMPLIED
