@@ -1372,6 +1372,12 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						sprintf(lpszValue,lpszFormat,dVal);
 						cEPS.Text(TIMES,false,false,cX_Axis_Default.m_cParameters.m_dMajor_Label_Size,CENTER,BOTTOM,Get_Color(cX_Axis_Default.m_cParameters.m_eMajor_Label_Color),dX,dY + dDeltaText, lpszValue);
 					}
+					else if (!bMajor_Test && cX_Axis_Default.m_cParameters.m_bLabel_Minor_Indices)
+					{
+						char lpszValue[16];
+						sprintf(lpszValue,lpszFormat,dVal);
+						cEPS.Text(TIMES,false,false,cX_Axis_Default.m_cParameters.m_dMinor_Label_Size,CENTER,BOTTOM,Get_Color(cX_Axis_Default.m_cParameters.m_eMinor_Label_Color),dX,dY + dDeltaText, lpszValue);
+					}
 				
 				}
 			}
@@ -1406,6 +1412,8 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dLog_Major = floor(log10(dMajor_Ticks));
 					if (dLog_Major < 0.0)
 						sprintf(lpszFormat,"%%.%.0ff",-dLog_Major);
+					else if (dLog_Major > 3)
+						strcpy(lpszFormat,"%.2e");
 					else
 						strcpy(lpszFormat,"%.0f");
 					double	dStart = XRoundNearest((*cAxis_Iter).m_dStart,dMinor_Ticks);
@@ -1438,15 +1446,87 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 								sprintf(lpszValue,lpszFormat,dVal);
 								cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),dX,dY + dDeltaText, lpszValue);
 							}
+							else if (!bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Minor_Indices)
+							{
+								char lpszValue[16];
+								sprintf(lpszValue,lpszFormat,dVal);
+								cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMinor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMinor_Label_Color),dX,dY + dDeltaText, lpszValue);
+							}
 						
 						}
 					}
 
 				}
-				//@@TODO log scale marks
-	//			else
-	//			{
-	//			}
+				else
+				{
+					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
+					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
+					double	dRange_Lower = (*cAxis_Iter).m_dStart;
+					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
+					if (!isnan(dRange_Lower) && !isnan(dRange_Upper))
+					{
+						double dLower = floor(dRange_Lower) - 1.0;
+						double dUpper = floor(dRange_Upper) + 1.0;
+						for (double dPower = dLower; dPower <= dUpper; dPower += 1.0)
+						{
+							double dMult = pow(10.0,dPower);
+							for (unsigned int uiScalar = 1; uiScalar < 10; uiScalar ++)
+							{
+								double dVal = dMult * uiScalar;
+								double dX = (*cAxis_Iter).Scale(dVal);
+								double dY = (uiI % 2) * dGraph_Space_Y;
+								bool bMajor_Test = (uiScalar == 1);
+								if ((*cAxis_Iter).m_dLower_Limit <= dVal  && dVal <= (*cAxis_Iter).m_dUpper_Limit)
+								{
+									cEPS.Set_Line_Width(bMajor_Test ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Width : (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Width);
+									cEPS.Move_To(dX,dY);
+									if (bMajor_Test)
+										cEPS.Line_To(dX,dY + dDeltaTickMajor);
+									else
+										cEPS.Line_To(dX,dY + dDeltaTickMinor);
+									cEPS.Stroke();
+									if (bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Major_Indices)
+									{
+										char lpszFormat[16];
+										if (dVal > 1000.0 || dVal < 0.001)
+											strcpy(lpszFormat,"%.2e");
+										else if (dVal < 0.01)
+											strcpy(lpszFormat,"%.3f");
+										else if (dVal < 0.1)
+											strcpy(lpszFormat,"%.2f");
+										else if (dVal < 1.0)
+											strcpy(lpszFormat,"%.1f");
+										else
+											strcpy(lpszFormat,"%.0f");
+										char lpszValue[16];
+										sprintf(lpszValue,lpszFormat,dVal);
+										cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),dX,dY + dDeltaText, lpszValue);
+									}
+									else if (!bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Minor_Indices)
+									{
+										char lpszFormat[16];
+										if (dVal > 1000.0 || dVal < 0.001)
+											strcpy(lpszFormat,"%.2e");
+										else if (dVal < 0.01)
+											strcpy(lpszFormat,"%.3f");
+										else if (dVal < 0.1)
+											strcpy(lpszFormat,"%.2f");
+										else if (dVal < 1.0)
+											strcpy(lpszFormat,"%.1f");
+										else
+											strcpy(lpszFormat,"%.0f");
+										char lpszValue[16];
+										sprintf(lpszValue,lpszFormat,dVal);
+										cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMinor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMinor_Label_Color),dX,dY + dDeltaText, lpszValue);
+									}
+								}
+							}
+						}
+					}
+					else
+						fprintf(stderr,"epsplot: x-axis is requested with log values, but range includes a negative number or zero (%f, %f).\n",dRange_Lower,dRange_Upper);
+				}
 				uiI++; // indicates axis at top or bottom of graph
 			}
 		}
@@ -1476,6 +1556,8 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			double	dLog_Major = floor(log10(dMajor_Ticks));
 			if (dLog_Major < 0.0)
 				sprintf(lpszFormat,"%%.%.0ff",-dLog_Major);
+			else if (dLog_Major > 3)
+				strcpy(lpszFormat,"%.2e");
 			else
 				strcpy(lpszFormat,"%.0f");
 			double	dStart = XRoundNearest(cY_Axis_Default.m_dStart,dMinor_Ticks);
@@ -1507,6 +1589,12 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						char lpszValue[16];
 						sprintf(lpszValue,lpszFormat,dVal);
 						cEPS.Text(TIMES,false,false,cY_Axis_Default.m_cParameters.m_dMajor_Label_Size,CENTER,BOTTOM,Get_Color(cY_Axis_Default.m_cParameters.m_eMajor_Label_Color),dX + dDeltaText, dY, lpszValue, 90.0);
+					}
+					else if (!bMajor_Test && cY_Axis_Default.m_cParameters.m_bLabel_Minor_Indices)
+					{
+						char lpszValue[16];
+						sprintf(lpszValue,lpszFormat,dVal);
+						cEPS.Text(TIMES,false,false,cY_Axis_Default.m_cParameters.m_dMinor_Label_Size,CENTER,BOTTOM,Get_Color(cY_Axis_Default.m_cParameters.m_eMinor_Label_Color),dX + dDeltaText, dY, lpszValue, 90.0);
 					}
 				
 				}
@@ -1542,13 +1630,15 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dLog_Major = floor(log10(dMajor_Ticks));
 					if (dLog_Major < 0.0)
 						sprintf(lpszFormat,"%%.%.0ff",-dLog_Major);
+					else if (dLog_Major > 3)
+						strcpy(lpszFormat,"%.2e");
 					else
 						strcpy(lpszFormat,"%.0f");
 					double	dStart = XRoundNearest((*cAxis_Iter).m_dStart,dMinor_Ticks);
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : 5.0;
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
 //					printf("Y %f %f %f (%f %f)\n",dStart,dEnd,dMinor_Ticks,(*cAxis_Iter).m_dLower_Limit,(*cAxis_Iter).m_dUpper_Limit);
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
@@ -1577,15 +1667,88 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 								sprintf(lpszValue,lpszFormat,dVal);
 								cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),dX + dDeltaText, dY, lpszValue, 90.0);
 							}
+							else if (!bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Minor_Indices)
+							{
+								char lpszValue[16];
+								sprintf(lpszValue,lpszFormat,dVal);
+								cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMinor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMinor_Label_Color),dX + dDeltaText, dY, lpszValue, 90.0);
+							}
 						
 						}
 					}
 
 				}
-				//@@TODO log scale marks
-	//			else
-	//			{
-	//			}
+				else
+				{
+					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
+					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
+					double	dRange_Lower = (*cAxis_Iter).m_dStart;
+					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
+					if (!isnan(dRange_Lower) && !isnan(dRange_Upper))
+					{
+						double dLower = floor(dRange_Lower) - 1.0;
+						double dUpper = floor(dRange_Upper) + 1.0;
+						for (double dPower = dLower; dPower <= dUpper; dPower += 1.0)
+						{
+							double dMult = pow(10.0,dPower);
+							for (unsigned int uiScalar = 1; uiScalar < 10; uiScalar ++)
+							{
+								double dVal = dMult * uiScalar;
+								double dY = (*cAxis_Iter).Scale(dVal);
+								double dX = (uiI % 2) * dGraph_Space_X;
+								bool bMajor_Test = (uiScalar == 1);
+								if ((*cAxis_Iter).m_dLower_Limit <= dVal  && dVal <= (*cAxis_Iter).m_dUpper_Limit)
+								{
+									cEPS.Set_Line_Width(bMajor_Test ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Width : (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Width);
+									cEPS.Move_To(dX,dY);
+									if (bMajor_Test)
+										cEPS.Line_To(dX + dDeltaTickMajor,dY);
+									else
+										cEPS.Line_To(dX + dDeltaTickMinor,dY);
+									cEPS.Stroke();
+		//							printf("%f (%f %f) (%f %f)\n",dVal,dX,dY,dX + dDeltaTickMajor,dY);
+									if (bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Major_Indices)
+									{
+										char lpszFormat[16];
+										if (dVal > 1000.0 || dVal < 0.001)
+											strcpy(lpszFormat,"%.2e");
+										else if (dVal < 0.01)
+											strcpy(lpszFormat,"%.3f");
+										else if (dVal < 0.1)
+											strcpy(lpszFormat,"%.2f");
+										else if (dVal < 1.0)
+											strcpy(lpszFormat,"%.1f");
+										else
+											strcpy(lpszFormat,"%.0f");
+										char lpszValue[16];
+										sprintf(lpszValue,lpszFormat,dVal);
+										cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),dX + dDeltaText, dY, lpszValue, 90.0);
+									}
+									else if (!bMajor_Test && (*cAxis_Iter).m_cParameters.m_bLabel_Minor_Indices)
+									{
+										char lpszFormat[16];
+										if (dVal > 1000.0 || dVal < 0.001)
+											strcpy(lpszFormat,"%.2e");
+										else if (dVal < 0.01)
+											strcpy(lpszFormat,"%.3f");
+										else if (dVal < 0.1)
+											strcpy(lpszFormat,"%.2f");
+										else if (dVal < 1.0)
+											strcpy(lpszFormat,"%.1f");
+										else
+											strcpy(lpszFormat,"%.0f");
+										char lpszValue[16];
+										sprintf(lpszValue,lpszFormat,dVal);
+										cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMinor_Label_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eMinor_Label_Color),dX + dDeltaText, dY, lpszValue, 90.0);
+									}
+								}
+							}
+						}
+					}
+					else
+						fprintf(stderr,"epsplot: y-axis is requested with log values, but range includes a negative number or zero (%f, %f).\n",dRange_Lower,dRange_Upper);
+				}
 				uiI++; // indicates axis at top or bottom of graph
 			}
 		}

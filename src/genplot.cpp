@@ -480,6 +480,14 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							{
 								chDirection = Attr_Get_Char(lpCurr_Attr,0);
 							}
+							else if (strcmp(lpCurr_Attr->name,"displaymajorindices") == 0)
+							{
+								cAxis.m_bLabel_Major_Indices = Attr_Get_Bool(lpCurr_Attr,false);
+							}
+							else if (strcmp(lpCurr_Attr->name,"displayminorindices") == 0)
+							{
+								cAxis.m_bLabel_Minor_Indices = Attr_Get_Bool(lpCurr_Attr,false);
+							}
 							lpCurr_Attr = lpCurr_Attr->next;
 						}
 						if(lpszID && chDirection != 0)

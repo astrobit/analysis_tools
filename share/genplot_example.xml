@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE GRAPH SYSTEM "genplots.dtd">
-<GRAPH outputfile="test.eps">
+<GRAPH outputfile="genplot_example.eps">
 <SOURCEFILE name="genplot_example.csv" fileid="xyz" headerlines="1" wsseparated="false"/>
 <PLOT color="red" width="4.0" style="ldash">
 <PLOTDATA>
@@ -15,8 +15,8 @@
 <PLOT>
 <PLOTFILE fileid="xyz" xcol="0" ycol="1"/>
 </PLOT>
-<PLOT>
-<PLOTFILE fileid="xyz" xcol="0" ycol="1" style="sdash"/>
+<PLOT style="sdash">
+<PLOTFILE fileid="xyz" xcol="0" ycol="1"/>
 </PLOT>
 <TEXT x="3" y="50" color="blue" width="2.0">example</TEXT>
 </GRAPH>

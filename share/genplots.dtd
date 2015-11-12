@@ -73,5 +73,7 @@
 	direction (x|y) #REQUIRED
 	min		CDATA	#IMPLIED
 	max		CDATA	#IMPLIED
+	displaymajorindices (true|false) #IMPLIED
+	displayminorindices (true|false) #IMPLIED
 >
 	

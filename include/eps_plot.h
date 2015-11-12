@@ -3,6 +3,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <vector>
+#include <string>
 #include <cmath>
 #include <cstdio>
 
@@ -102,11 +103,10 @@ namespace	epsplot
 	class AXIS_PARAMETERS
 	{
 	private:
-		char * 	m_lpszTitle;
-		size_t	m_uiTitle_Size_Alloc;
+		std::string	m_sTitle;
 		void	Copy(const AXIS_PARAMETERS & i_cRHO)
 		{
-			Set_Title(i_cRHO.m_lpszTitle);
+			m_sTitle = i_cRHO.m_sTitle;
 			m_bLog = i_cRHO.m_bLog;
 			m_bInvert = i_cRHO.m_bInvert;
 			m_dLower_Limit = i_cRHO.m_dLower_Limit;
@@ -127,14 +127,12 @@ namespace	epsplot
 			m_dMinor_Tick_Length = i_cRHO.m_dMinor_Tick_Length;
 			m_bLabel_Major_Indices = i_cRHO.m_bLabel_Major_Indices;
 			m_bLabel_Minor_Indices = i_cRHO.m_bLabel_Minor_Indices;
-		}
-		void	Zero(void)
-		{
-			m_lpszTitle = NULL;
-			m_uiTitle_Size_Alloc = 0;
+			m_sMajor_Index_Format = i_cRHO.m_sMajor_Index_Format;
+			m_sMinor_Index_Format = i_cRHO.m_sMajor_Index_Format;
 		}
 		void	Set_Defaults(void)
 		{
+			m_sTitle = "";
 			m_bLog = m_bInvert = false;
 			m_dLower_Limit = nan("");
 			m_dUpper_Limit = nan("");
@@ -154,6 +152,8 @@ namespace	epsplot
 			m_dMinor_Tick_Length = 10.0;
 			m_bLabel_Major_Indices = true;
 			m_bLabel_Minor_Indices = false;
+			m_sMajor_Index_Format = "m";
+			m_sMinor_Index_Format = "";
 		}
 	public:
 		double	m_dLine_Width; // Points
@@ -170,6 +170,8 @@ namespace	epsplot
 		COLOR	m_eMajor_Tick_Color;
 		COLOR	m_eMinor_Tick_Color;
 		COLOR	m_eTitle_Color;
+		std::string	m_sMajor_Index_Format;
+		std::string	m_sMinor_Index_Format;
 		bool	m_bLog;
 		bool	m_bInvert;
 		double	m_dLower_Limit; // note: use nan to indicate no limit
@@ -178,26 +180,11 @@ namespace	epsplot
 		bool	m_bLabel_Minor_Indices; //@@TODO not implemented
 		void	Set_Title(const char * i_lpszTitle)
 		{
-			size_t iLen = 0;
-			if (i_lpszTitle)
-				iLen = strlen(i_lpszTitle);
-			
-			if (m_uiTitle_Size_Alloc < iLen)
-			{
-				if (m_lpszTitle)
-					delete [] m_lpszTitle;
-				m_lpszTitle = new char[iLen];
-				m_uiTitle_Size_Alloc = iLen;
-			}
-			if (i_lpszTitle == NULL && m_lpszTitle != NULL)
-				m_lpszTitle[0] = 0;
-			else if (i_lpszTitle != NULL && m_lpszTitle != NULL)
-				strcpy(m_lpszTitle,i_lpszTitle);
+			m_sTitle = i_lpszTitle;
 		}
-		const char * Get_Title(void) const {return m_lpszTitle;}
+		const char * Get_Title(void) const {return m_sTitle.c_str();}
 		AXIS_PARAMETERS(const AXIS_PARAMETERS & i_cRHO)
 		{
-			Zero();
 			Copy(i_cRHO);
 		}
 		AXIS_PARAMETERS & operator =(const AXIS_PARAMETERS & i_cRHO)
@@ -207,18 +194,15 @@ namespace	epsplot
 		}
 		AXIS_PARAMETERS(void)
 		{
-			Zero();
 			Set_Defaults();
 		}
 		AXIS_PARAMETERS(const char * i_lpszAxis_Description)
 		{ // simplify code by allowing a constructor with the only a title
-			Zero();
 			Set_Defaults();
 			Set_Title(i_lpszAxis_Description);
 		}
 		AXIS_PARAMETERS(const char * i_lpszAxis_Description, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax)
 		{ // simplify code by allowing a constructor with the most common parameters
-			Zero();
 			Set_Defaults();
 			Set_Title(i_lpszAxis_Description);
 			m_bLog = i_bLog_Axis;
@@ -230,10 +214,6 @@ namespace	epsplot
 		}
 		~AXIS_PARAMETERS(void)
 		{
-			if (m_lpszTitle)
-				delete [] m_lpszTitle;
-			m_lpszTitle = NULL;
-			m_uiTitle_Size_Alloc = 0;
 		}
 	};
 
@@ -523,13 +503,19 @@ namespace	epsplot
 
 			if (m_cParameters.m_bLog && m_cParameters.m_bInvert)
 			{
-				m_dStart = log10(m_dUpper_Limit);
-				m_dEnd = log10(m_dLower_Limit);
+				if (m_dUpper_Limit > 0.0 && m_dLower_Limit > 0.0)
+				{
+					m_dStart = log10(m_dUpper_Limit);
+					m_dEnd = log10(m_dLower_Limit);
+				}
 			}
 			else if (m_cParameters.m_bLog)
 			{
-				m_dStart = log10(m_dLower_Limit);
-				m_dEnd = log10(m_dUpper_Limit);
+				if (m_dUpper_Limit > 0.0 && m_dLower_Limit > 0.0)
+				{
+					m_dStart = log10(m_dLower_Limit);
+					m_dEnd = log10(m_dUpper_Limit);
+				}
 			}
 			else if (m_cParameters.m_bInvert)
 			{
@@ -541,6 +527,8 @@ namespace	epsplot
 				m_dStart = m_dLower_Limit;
 				m_dEnd = m_dUpper_Limit;
 			}
+			if (m_cParameters.m_bLog)
+				m_dScale = i_dGraph_Space / fabs(m_dEnd - m_dStart);
 
 
 			if (m_cParameters.m_bInvert)
