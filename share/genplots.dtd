@@ -26,6 +26,8 @@
 	size    CDATA #IMPLIED
 	xaxisid	CDATA #IMPLIED
 	yaxisid CDATA #IMPLIED
+	horizontaljustification (left|center|right) #IMPLIED
+	verticaljustification (top|middle|bottom) #IMPLIED
 	x		CDATA #REQUIRED
 	y		CDATA #REQUIRED
 >
