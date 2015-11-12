@@ -508,7 +508,149 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 		{
 //			if (lpCurr_Node && lpCurr_Node->name)
 //				printf("%s\n",lpCurr_Node->name);
-			if (lpCurr_Node->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->name,"PLOT") == 0)
+			if (lpCurr_Node->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->name,"TEXT") == 0)
+			{
+				const char * lpszColor = NULL;
+				const char * lpszFont = NULL;
+				const char * lpszHoriz_Justification = NULL;
+				const char * lpszVert_Justification = NULL;
+				bool	bBold = false, bItalics = false;
+				int	iSize = 18;
+				double dWidth = 1.0;
+				double	dAngle = 0.0;
+				double dX;
+				double dY;
+				const char * lpszX_Axis_ID = NULL;
+				const char * lpszY_Axis_ID = NULL;
+				bool bFault = false;
+				if (lpCurr_Node->properties)
+				{
+					xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
+					while (lpCurr_Attr)
+					{
+						if (strcmp(lpCurr_Attr->name,"color") == 0)
+						{
+							lpszColor = Attr_Get_String(lpCurr_Attr);
+						}
+						else if (strcmp(lpCurr_Attr->name,"width") == 0)
+						{
+							dWidth = Attr_Get_Double(lpCurr_Attr,2.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"angle") == 0)
+						{
+							dAngle = Attr_Get_Double(lpCurr_Attr,0.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"size") == 0)
+						{
+							iSize = Attr_Get_Int(lpCurr_Attr,18);
+						}
+						else if (strcmp(lpCurr_Attr->name,"x") == 0)
+						{
+							dX = Attr_Get_Double(lpCurr_Attr,0.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"y") == 0)
+						{
+							dY = Attr_Get_Double(lpCurr_Attr,0.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"xaxisid") == 0)
+						{
+							lpszX_Axis_ID = Attr_Get_String(lpCurr_Attr);
+						}
+						else if (strcmp(lpCurr_Attr->name,"yaxisid") == 0)
+						{
+							lpszY_Axis_ID = Attr_Get_String(lpCurr_Attr);
+						}
+						else if (strcmp(lpCurr_Attr->name,"bold") == 0)
+						{
+							bBold = Attr_Get_Bool(lpCurr_Attr,false);
+						}
+						else if (strcmp(lpCurr_Attr->name,"italics") == 0)
+						{
+							bItalics = Attr_Get_Bool(lpCurr_Attr,false);
+						}
+						else if (strcmp(lpCurr_Attr->name,"font") == 0)
+						{
+							lpszFont = Attr_Get_String(lpCurr_Attr);
+						}
+						else if (strcmp(lpCurr_Attr->name,"horizontaljustification") == 0)
+						{
+							lpszHoriz_Justification = Attr_Get_String(lpCurr_Attr);
+						}
+						else if (strcmp(lpCurr_Attr->name,"verticaljustification") == 0)
+						{
+							lpszVert_Justification = Attr_Get_String(lpCurr_Attr);
+						}
+						lpCurr_Attr = lpCurr_Attr->next;
+					}
+				}
+
+				if (lpszX_Axis_ID && cX_Axes.count(std::string(lpszX_Axis_ID)) == 0)
+				{
+					bFault = true;
+					fprintf(stderr,"genplot: unable to idenfity x axis id %s.\n",lpszX_Axis_ID);
+				}
+				if (lpszY_Axis_ID && cY_Axes.count(std::string(lpszY_Axis_ID)) == 0)
+				{
+					bFault = true;
+					fprintf(stderr,"genplot: unable to idenfity y axis id %s.\n",lpszY_Axis_ID);
+				}
+				bool bDefault_Color = (!lpszColor || strcmp(lpszColor,"default") == 0);
+				if (!bFault)
+				{
+
+					epsplot::TEXT_PARAMETERS	cText_Paramters;
+					epsplot::LINE_PARAMETERS 	cLine_Parameters;
+					cLine_Parameters.m_dWidth = dWidth;
+				
+					if (bDefault_Color)
+					{
+						cLine_Parameters.m_eColor = eDefault_Color;
+						eDefault_Color = (epsplot::COLOR)(eDefault_Color + 1);
+						if (eDefault_Color > epsplot::MAGENTA)
+							eDefault_Color = epsplot::BLACK;
+					}
+					else
+						cLine_Parameters.m_eColor = cColor_Map[std::string(lpszColor)];
+					if (!lpszFont || strcmp(lpszFont,"times") == 0)
+						cText_Paramters.m_eFont = epsplot::TIMES;
+					else if (strcmp(lpszFont,"helvetica") == 0)
+						cText_Paramters.m_eFont = epsplot::HELVETICA;
+					else if (strcmp(lpszFont,"courier") == 0)
+						cText_Paramters.m_eFont = epsplot::COURIER;
+					else if (strcmp(lpszFont,"symbol") == 0)
+						cText_Paramters.m_eFont = epsplot::SYMBOL;
+
+					cText_Paramters.m_bItalic = bItalics;
+					cText_Paramters.m_bBold = bBold;
+					cText_Paramters.m_iFont_Size = iSize;
+					cText_Paramters.m_dRotation = dAngle;
+
+					if (!lpszHoriz_Justification || strcmp(lpszHoriz_Justification,"left") == 0)
+						cText_Paramters.m_eHorizontal_Justification = epsplot::LEFT;
+					else if (strcmp(lpszHoriz_Justification,"center") == 0)
+						cText_Paramters.m_eHorizontal_Justification = epsplot::CENTER;
+					else if (strcmp(lpszHoriz_Justification,"right") == 0)
+						cText_Paramters.m_eHorizontal_Justification = epsplot::RIGHT;
+
+					if (!lpszVert_Justification || strcmp(lpszVert_Justification,"top") == 0)
+						cText_Paramters.m_eVertical_Justification = epsplot::TOP;
+					else if (strcmp(lpszVert_Justification,"middle") == 0)
+						cText_Paramters.m_eVertical_Justification = epsplot::MIDDLE;
+					else if (strcmp(lpszVert_Justification,"bottom") == 0)
+						cText_Paramters.m_eVertical_Justification = epsplot::BOTTOM;
+
+					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? -1 : cX_Axes[std::string(lpszX_Axis_ID)];
+					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? -1 : cY_Axes[std::string(lpszY_Axis_ID)];
+					if (lpCurr_Node->children && lpCurr_Node->children->type == XML_TEXT_NODE && lpCurr_Node->children->content)
+					{
+						printf("Text : ");
+						PrintColor(cLine_Parameters.m_eColor);
+						printf("\n");
+						cPlot.Set_Text_Data( dX, dY, (const char *)lpCurr_Node->children->content, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
+					}
+				}
+			}
+			else if (lpCurr_Node->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->name,"PLOT") == 0)
 			{
 				const char * lpszColor = NULL;
 				const char * lpszStyle = NULL;
