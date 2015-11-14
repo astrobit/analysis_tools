@@ -31,6 +31,124 @@ const double		g_dStipple_Std_Long_Dash_Dotted[] = {4,4,1,4};
 const double		g_dStipple_Std_Long_Short_Dash_Dotted[] = {4,4,2,4,1,4};
 const double		g_dStipple_Std_Long_Short_Dot_Short_Dash[] = {4,4,2,4,1,4,2,4};
 
+class SYMBOL_CONTAINER
+{
+public:
+	std::vector<eps_pair>	m_vSquare;
+	std::vector<eps_pair>	m_vCircle;
+	std::vector<eps_pair>	m_vTriangle_Up;
+	std::vector<eps_pair>	m_vTriangle_Down;
+	std::vector<eps_pair>	m_vTriangle_Left;
+	std::vector<eps_pair>	m_vTriangle_Right;
+	std::vector<eps_pair>	m_vDiamond;
+	std::vector<eps_pair>	m_vTimes;
+	std::vector<eps_pair>	m_vPlus;
+	std::vector<eps_pair>	m_vDash;
+	std::vector<eps_pair>	m_vAsterisk;
+	std::vector<eps_pair>	m_vStar_4;
+	std::vector<eps_pair>	m_vStar_5;
+	std::vector<eps_pair>	m_vStar_6;
+	std::vector<eps_pair>	m_vUser_Symbols[16];
+
+	SYMBOL_CONTAINER(void)
+	{
+		m_vSquare.push_back(eps_pair(-0.5,-0.5));
+		m_vSquare.push_back(eps_pair(-0.5, 0.5));
+		m_vSquare.push_back(eps_pair( 0.5, 0.5));
+		m_vSquare.push_back(eps_pair( 0.5,-0.5));
+		double	dPi = acos(-1.0);
+		double dAngle;
+		for (dAngle = 0.0; dAngle < (2. * dPi); dAngle += ((2. * dPi) / 32.))
+		{
+			m_vCircle.push_back(eps_pair(0.5*sin(dAngle),0.5*cos(dAngle)));
+		}
+
+		m_vTriangle_Up.push_back(eps_pair(-0.5,-0.5));
+		m_vTriangle_Up.push_back(eps_pair( 0.0, 0.5));
+		m_vTriangle_Up.push_back(eps_pair( 0.5,-0.5));
+
+		m_vTriangle_Down.push_back(eps_pair( 0.5, 0.5));
+		m_vTriangle_Down.push_back(eps_pair( 0.0,-0.5));
+		m_vTriangle_Down.push_back(eps_pair(-0.5, 0.5));
+
+		m_vTriangle_Left.push_back(eps_pair( 0.5,-0.5));
+		m_vTriangle_Left.push_back(eps_pair(-0.5, 0.0));
+		m_vTriangle_Left.push_back(eps_pair( 0.5, 0.5));
+
+		m_vTriangle_Right.push_back(eps_pair(-0.5, 0.5));
+		m_vTriangle_Right.push_back(eps_pair( 0.5, 0.0));
+		m_vTriangle_Right.push_back(eps_pair(-0.5,-0.5));
+
+		m_vDiamond.push_back(eps_pair(-0.5, 0.0));
+		m_vDiamond.push_back(eps_pair( 0.0, 0.5));
+		m_vDiamond.push_back(eps_pair( 0.5, 0.0));
+		m_vDiamond.push_back(eps_pair( 0.0,-0.5));
+
+		m_vTimes.push_back(eps_pair(-0.5			, 0.5 - 1./12.	));
+		m_vTimes.push_back(eps_pair(-0.5 + 1/12.	, 0.5			));
+		m_vTimes.push_back(eps_pair(0.0			, 1/12.			));
+		m_vTimes.push_back(eps_pair( 0.5 - 1/12.	, 0.5			));
+		m_vTimes.push_back(eps_pair( 0.5			, 0.5 - 1./12.	));
+		m_vTimes.push_back(eps_pair(1/12.		, 0.0			));
+		m_vTimes.push_back(eps_pair( 0.5			,-0.5 + 1./12.	));
+		m_vTimes.push_back(eps_pair( 0.5 - 1/12.	,-0.5			));
+		m_vTimes.push_back(eps_pair(0.0			, -1/12.		));
+		m_vTimes.push_back(eps_pair(-0.5 + 1/12.	,-0.5			));
+		m_vTimes.push_back(eps_pair(-0.5			,-0.5 + 1./12.	));
+		m_vTimes.push_back(eps_pair(-1/12.		, 0.0			));
+
+		m_vDash.push_back(eps_pair(-0.5			, 1/12.			));
+		m_vDash.push_back(eps_pair( 0.5			, 1/12.			));
+		m_vDash.push_back(eps_pair( 0.5			,-1/12.			));
+		m_vDash.push_back(eps_pair(-0.5			,-1/12.			));
+
+		m_vPlus.push_back(eps_pair(-0.5			, 1/12.			));
+		m_vPlus.push_back(eps_pair(-1/12.		, 1/12.			));
+		m_vPlus.push_back(eps_pair(-1/12.		, 0.5			));
+		m_vPlus.push_back(eps_pair( 1/12.		, 0.5			));
+		m_vPlus.push_back(eps_pair( 1/12.		, 1/12.			));
+		m_vPlus.push_back(eps_pair( 0.5			, 1/12.			));
+		m_vPlus.push_back(eps_pair( 0.5			,-1/12.			));
+		m_vPlus.push_back(eps_pair( 1/12.		,-1/12.			));
+		m_vPlus.push_back(eps_pair( 1/12.		,-0.5			));
+		m_vPlus.push_back(eps_pair(-1/12.		,-0.5			));
+		m_vPlus.push_back(eps_pair(-1/12.		,-1/12.			));
+		m_vPlus.push_back(eps_pair(-0.5			,-1/12.			));
+
+		for (unsigned int uiArm = 0; uiArm < 8; uiArm++)
+		{
+			dAngle = uiArm * dPi * 0.25;
+			m_vAsterisk.push_back(eps_pair(-0.5 * cos(dAngle) - 1/12. * sin(dAngle),-1/12.*cos(dAngle) + 0.5 * sin(dAngle)));
+			m_vAsterisk.push_back(eps_pair(-0.5 * cos(dAngle) + 1/12. * sin(dAngle), 1/12.*cos(dAngle) + 0.5 * sin(dAngle)));
+			m_vAsterisk.push_back(eps_pair( 0.0, 0.0));
+		}
+
+		for (unsigned int uiArm = 0; uiArm < 4; uiArm++)
+		{
+			dAngle = uiArm * dPi * 0.5;
+			m_vStar_4.push_back(eps_pair(-0.5 * cos(dAngle), 0.5 * sin(dAngle)));
+			m_vStar_4.push_back(eps_pair(-2./12. * cos(dAngle) + 2./12.*sin(dAngle), 2./12. * cos(dAngle) + 2./12.*sin(dAngle)));
+		}
+
+		for (unsigned int uiArm = 0; uiArm < 5; uiArm++)
+		{
+			dAngle = uiArm * dPi * 0.4;
+			m_vStar_5.push_back(eps_pair(-2./12. * cos(dAngle) + 2./12.*sin(dAngle), 2./12. * cos(dAngle) + 2./12.*sin(dAngle)));
+			m_vStar_5.push_back(eps_pair(0.5 * sin(dAngle), 0.5 * cos(dAngle)));
+		}
+
+		for (unsigned int uiArm = 0; uiArm < 6; uiArm++)
+		{
+			dAngle = uiArm * dPi / 3.;
+			m_vStar_6.push_back(eps_pair(-2./12. * cos(dAngle) + 2./12.*sin(dAngle), 2./12. * cos(dAngle) + 2./12.*sin(dAngle)));
+			m_vStar_6.push_back(eps_pair(0.5 * sin(dAngle), 0.5 * cos(dAngle)));
+		}
+	}
+};
+
+SYMBOL_CONTAINER	g_cSymbol_Containers;
+
+
 EPSFILE::EPSFILE(const char * i_lpszFormat)
 {
 	strcpy(m_lpszFormat,i_lpszFormat);
@@ -326,6 +444,11 @@ void EPSFILE::Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, i
 //
 //----------------------------------------------------------------------------
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Line Plots
+//
+///////////////////////////////////////////////////////////////////////////////
 
 unsigned int	DATA::Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, COLOR i_eColor, STIPPLE i_eStipple, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type, const double & i_dLine_Width)
 {
@@ -571,6 +694,129 @@ unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::ve
 	return uiRet;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Symbols
+//
+///////////////////////////////////////////////////////////////////////////////
+unsigned int	DATA::Set_Symbol_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+{
+	unsigned int uiRet = -1;
+	if (i_lpdX_Values && i_lpdY_Values && i_uiNum_Points > 0)
+	{
+		SYMBOL_ITEM * lpItem = new SYMBOL_ITEM;
+
+		if (lpItem)
+		{
+			lpItem->m_uiNum_Points = i_uiNum_Points;
+			lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+			lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+			lpItem->m_cPlot_Symbol_Info = i_cSymbol_Parameters;
+		
+			if (i_cSymbol_Parameters.m_dSize >= 0.0)
+				lpItem->m_cPlot_Symbol_Info.m_dSize = i_cSymbol_Parameters.m_dSize;
+			else
+				lpItem->m_cPlot_Symbol_Info.m_dSize = 1.0;
+			lpItem->m_lppData = new eps_pair [lpItem->m_uiNum_Points];
+			for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+			{
+				lpItem->m_lppData[uiI].m_dX = i_lpdX_Values[uiI];
+				lpItem->m_lppData[uiI].m_dY = i_lpdY_Values[uiI];
+			}
+
+			uiRet = m_vcPlot_Item_List.size();
+			m_vcPlot_Item_List.push_back(lpItem);
+		}
+	}
+	return uiRet;
+}
+unsigned int	DATA::Set_Symbol_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+{
+	unsigned int uiRet = -1;
+	if (i_vdX_Values.size() != i_vdY_Values.size())
+	{
+		fprintf(stderr,"epsplot::DATA Error! Set_Symbol_Data called using std::vector, but X and Y vectors differ in size.\n");
+	}
+	else if (i_vdX_Values.size() > 0)
+	{
+		SYMBOL_ITEM * lpItem = new SYMBOL_ITEM;
+		if (lpItem)
+		{
+			lpItem->m_uiNum_Points = i_vdX_Values.size();
+			lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+			lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+			lpItem->m_cPlot_Symbol_Info = i_cSymbol_Parameters;
+		
+			if (i_cSymbol_Parameters.m_dSize >= 0.0)
+				lpItem->m_cPlot_Symbol_Info.m_dSize = i_cSymbol_Parameters.m_dSize;
+			else
+				lpItem->m_cPlot_Symbol_Info.m_dSize = 1.0;
+			lpItem->m_lppData = new eps_pair [lpItem->m_uiNum_Points];
+			if (lpItem->m_lppData)
+			{
+				for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+				{
+					lpItem->m_lppData[uiI].m_dX = i_vdX_Values[uiI];
+					lpItem->m_lppData[uiI].m_dY = i_vdY_Values[uiI];
+				}
+
+				uiRet = m_vcPlot_Item_List.size();
+				m_vcPlot_Item_List.push_back(lpItem);
+			}
+		}
+	}
+	return uiRet;
+}
+unsigned int	DATA::Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+{
+	unsigned int uiRet = -1;
+	if (i_vpValues.size() > 0)
+	{
+		SYMBOL_ITEM * lpItem = new SYMBOL_ITEM;
+		if (lpItem)
+		{
+			lpItem->m_uiNum_Points = i_vpValues.size();
+			lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+			lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+			lpItem->m_cPlot_Symbol_Info = i_cSymbol_Parameters;
+		
+			if (i_cSymbol_Parameters.m_dSize >= 0.0)
+				lpItem->m_cPlot_Symbol_Info.m_dSize = i_cSymbol_Parameters.m_dSize;
+			else
+				lpItem->m_cPlot_Symbol_Info.m_dSize = 1.0;
+			lpItem->m_lppData = new eps_pair [lpItem->m_uiNum_Points];
+			if (lpItem->m_lppData)
+			{
+				for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+				{
+					lpItem->m_lppData[uiI].m_dX = i_vpValues[uiI].m_dX;
+					lpItem->m_lppData[uiI].m_dY = i_vpValues[uiI].m_dY;
+				}
+
+				uiRet = m_vcPlot_Item_List.size();
+				m_vcPlot_Item_List.push_back(lpItem);
+				//printf("#pts %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_uiNum_Points);
+				//printf("xaxis%i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_uiPlot_Axes_To_Use[0]);
+				//printf("yaxis %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_uiPlot_Axes_To_Use[1]);
+				//printf("size %f\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_dSize);
+				//printf("fill %c\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_bFilled ? 't' : 'f');
+				//printf("color %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_eColor);
+				//printf("trype %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_eType);
+			}
+		}
+	}
+	return uiRet;
+}
+
+unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+///////////////////////////////////////////////////////////////////////////////
+//
+// Rectangle
+//
+///////////////////////////////////////////////////////////////////////////////
 
 unsigned int	DATA::Set_Rectangle_Data(const RECTANGLE & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 {
@@ -884,6 +1130,99 @@ const double *	DATA::Get_Stipple(STIPPLE i_eStipple, unsigned int & o_uiStipple_
 	return lpdRet;
 }
 
+
+void DATA::Draw_Symbol(EPSFILE & io_cEPS, const double & i_dX, const double & i_dY, const SYMBOL_PARAMETERS & i_cSymbol_Param)
+{
+	double dSize = i_cSymbol_Param.m_dSize;
+	std::vector<eps_pair> *vSymbol;
+	switch (i_cSymbol_Param.m_eType)
+	{
+	case SQUARE:
+		vSymbol = &g_cSymbol_Containers.m_vSquare;
+		break;
+	case CIRCLE:
+		vSymbol = &g_cSymbol_Containers.m_vCircle;
+		break;
+	case TRIANGLE_UP:
+		vSymbol = &g_cSymbol_Containers.m_vTriangle_Up;
+		break;
+	case TRIANGLE_DOWN:
+		vSymbol = &g_cSymbol_Containers.m_vTriangle_Down;
+		break;
+	case TRIANGLE_LEFT:
+		vSymbol = &g_cSymbol_Containers.m_vTriangle_Left;
+		break;
+	case TRIANGLE_RIGHT:
+		vSymbol = &g_cSymbol_Containers.m_vTriangle_Right;
+		break;
+	case DIAMOND:
+		vSymbol = &g_cSymbol_Containers.m_vDiamond;
+		break;
+	case TIMES_SYMB:
+		vSymbol = &g_cSymbol_Containers.m_vTimes;
+		break;
+	case PLUS_SYMB:
+		vSymbol = &g_cSymbol_Containers.m_vPlus;
+		break;
+	case DASH_SYMB:
+		vSymbol = &g_cSymbol_Containers.m_vDash;
+		break;
+	case ASTERISK_SYMB:
+		vSymbol = &g_cSymbol_Containers.m_vAsterisk;
+		break;
+	case STAR4:
+		vSymbol = &g_cSymbol_Containers.m_vStar_4;
+		break;
+	case STAR5:
+		vSymbol = &g_cSymbol_Containers.m_vStar_5;
+		break;
+	case STAR6:
+		vSymbol = &g_cSymbol_Containers.m_vStar_6;
+		break;
+	case SYMB_CUSTOM_1:
+	case SYMB_CUSTOM_2:
+	case SYMB_CUSTOM_3:
+	case SYMB_CUSTOM_4:
+	case SYMB_CUSTOM_5:
+	case SYMB_CUSTOM_6:
+	case SYMB_CUSTOM_7:
+	case SYMB_CUSTOM_8:
+	case SYMB_CUSTOM_9:
+	case SYMB_CUSTOM_10:
+	case SYMB_CUSTOM_11:
+	case SYMB_CUSTOM_12:
+	case SYMB_CUSTOM_13:
+	case SYMB_CUSTOM_14:
+	case SYMB_CUSTOM_15:
+	case SYMB_CUSTOM_16:
+		{
+			unsigned int uiIdx = i_cSymbol_Param.m_eType - SYMB_CUSTOM_1;
+			vSymbol = &(g_cSymbol_Containers.m_vUser_Symbols[uiIdx]);
+		}
+		break;
+	default:
+		vSymbol = NULL;
+		break;
+	}
+	if (vSymbol)
+	{
+		for (unsigned int uiI = 0; uiI < vSymbol->size(); uiI++)
+		{
+			if (uiI == 0)
+				io_cEPS.Move_To(vSymbol[0][uiI].m_dX * dSize + i_dX,vSymbol[0][uiI].m_dY * dSize + i_dY);
+			else
+				io_cEPS.Line_To(vSymbol[0][uiI].m_dX * dSize + i_dX,vSymbol[0][uiI].m_dY * dSize + i_dY);
+		}
+		if (i_cSymbol_Param.m_bFilled)
+			io_cEPS.Fill();
+		else
+		{
+			io_cEPS.Line_To(vSymbol[0][0].m_dX * dSize + i_dX,vSymbol[0][0].m_dY * dSize + i_dY);
+			io_cEPS.Stroke();
+		}
+	}
+}
+
 void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 {
 	COLOR_TRIPLET	cBlue(0.0,0.0,1.0);
@@ -1016,7 +1355,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 				{
-					if (lpcLine->m_lppData[uiJ].m_dX >= lpX_Axis->m_dLower_Limit && lpcLine->m_lppData[uiJ].m_dX <= lpX_Axis->m_dUpper_Limit)
+					if (lpcSymbol->m_lppData[uiJ].m_dX >= lpX_Axis->m_dLower_Limit && lpcSymbol->m_lppData[uiJ].m_dX <= lpX_Axis->m_dUpper_Limit)
 						lpY_Axis->Adjust_Limits(lpcSymbol->m_lppData[uiJ].m_dY);
 				}
 				break;
@@ -1268,6 +1607,30 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						cEPS.Text(lpcText->m_cText_Parameters.m_eFont, lpcText->m_cText_Parameters.m_bItalic, lpcText->m_cText_Parameters.m_bBold, lpcText->m_cText_Parameters.m_iFont_Size, lpcText->m_cText_Parameters.m_eHorizontal_Justification, lpcText->m_cText_Parameters.m_eVertical_Justification, Get_Color(eCurr_Color),dX, dY, lpcText->Get_Text(), lpcText->m_cText_Parameters.m_dRotation, lpcText->m_cLine_Parameters.m_dWidth);
 					}
 				}
+				break;
+			case TYPE_SYMBOL:
+				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
+				if (lpcSymbol->m_cPlot_Symbol_Info.m_eColor != eCurr_Color)
+				{
+					eCurr_Color = lpcSymbol->m_cPlot_Symbol_Info.m_eColor;
+					cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+				}
+				{
+					char lpszText[32];
+					sprintf(lpszText,"Symbol %i\n",uiI);
+					cEPS.Comment(lpszText);
+					for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
+					{
+						double dX = lpX_Axis->Scale(lpcSymbol->m_lppData[uiJ].m_dX);
+						double dY = lpY_Axis->Scale(lpcSymbol->m_lppData[uiJ].m_dY);
+
+						if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+						{
+							Draw_Symbol(cEPS,dX,dY,lpcSymbol->m_cPlot_Symbol_Info);
+						}
+					}
+				}
+
 				break;
 			default:
 				break;

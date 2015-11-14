@@ -304,11 +304,13 @@ namespace	epsplot
 		SYMBOL_TYPE	m_eType;
 		double		m_dSize;
 		COLOR		m_eColor;
+		bool		m_bFilled;
 		SYMBOL_PARAMETERS(void)
 		{
 			m_eColor = BLACK;
-			m_dSize = 1.0;
+			m_dSize = 12.0;
 			m_eType = SQUARE;
+			m_bFilled = true;
 		}
 	};
 	class TEXT_PARAMETERS
@@ -567,6 +569,7 @@ namespace	epsplot
 		std::vector<AXIS_METADATA>	m_cX_Axis_Parameters;
 		std::vector<AXIS_METADATA>	m_cY_Axis_Parameters;
 
+		void Draw_Symbol(EPSFILE & io_cEPS, const double & i_dX, const double & i_dY, const SYMBOL_PARAMETERS & i_cSymbol_Param);
 		void	Deallocate_Plot_Data(void)
 		{
 			for (std::vector<PLOT_ITEM *>::iterator	cIterator = m_vcPlot_Item_List.begin(); cIterator != m_vcPlot_Item_List.end(); cIterator++)
@@ -618,6 +621,7 @@ namespace	epsplot
 		}
 		void	Null_Pointers(void)
 		{
+			m_vcPlot_Item_List.clear();
 			m_lpszTitle = NULL;
 			m_lpszFilename = NULL;
 
@@ -647,6 +651,13 @@ namespace	epsplot
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+
+		unsigned int	Set_Symbol_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Set_Symbol_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 
 	// Methods for controlling axes
 		unsigned int	Set_X_Axis_Parameters(const char * i_lpszAxis_Title, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax);

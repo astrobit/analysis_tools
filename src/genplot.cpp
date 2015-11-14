@@ -199,6 +199,55 @@ void PrintStyle(epsplot::STIPPLE i_eStipple)
 		break;
 	}
 }
+
+void PrintSymbolType(epsplot::SYMBOL_TYPE i_eType)
+{
+	switch (i_eType)
+	{
+	case epsplot::SQUARE:
+		printf(", square");
+		break;
+	case epsplot::CIRCLE:
+		printf(", circle");
+		break;
+	case epsplot::TRIANGLE_UP:
+		printf(", triangle(up)");
+		break;
+	case epsplot::TRIANGLE_DOWN:
+		printf(", triangle(down)");
+		break;
+	case epsplot::TRIANGLE_LEFT:
+		printf(", triangle(left)");
+		break;
+	case epsplot::TRIANGLE_RIGHT:
+		printf(", triangle(right)");
+		break;
+	case epsplot::DIAMOND:
+		printf(", diamond");
+		break;
+	case epsplot::TIMES_SYMB:
+		printf(", times");
+		break;
+	case epsplot::PLUS_SYMB:
+		printf(", plus");
+		break;
+	case epsplot::DASH_SYMB:
+		printf(", dash");
+		break;
+	case epsplot::ASTERISK_SYMB:
+		printf(", asterisk");
+		break;
+	case epsplot::STAR4:
+		printf(", 4-point star");
+		break;
+	case epsplot::STAR5:
+		printf(", 5-point star");
+		break;
+	case epsplot::STAR6:
+		printf(", 6-point star");
+		break;
+	}
+}
 int strcmp(const xmlChar * i_lpszLHO, const char * i_lpszRHO)
 {
 	return strcmp((char *) i_lpszLHO,i_lpszRHO);
@@ -647,8 +696,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					else if (strcmp(lpszVert_Justification,"bottom") == 0)
 						cText_Paramters.m_eVertical_Justification = epsplot::BOTTOM;
 
-					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? -1 : cX_Axes[std::string(lpszX_Axis_ID)];
-					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? -1 : cY_Axes[std::string(lpszY_Axis_ID)];
+					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
+					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
 					if (lpCurr_Node->children && lpCurr_Node->children->type == XML_TEXT_NODE && lpCurr_Node->children->content)
 					{
 						printf("Text : ");
@@ -663,12 +712,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				const char * lpszColor = NULL;
 				const char * lpszStyle = NULL;
 				const char * lpszSymbol = NULL;
-				double dWidth;
-				double dX_Offset;
-				double dY_Offset;
+				double dWidth = 2.0;
+				double dX_Offset = 0.0;
+				double dY_Offset = 0.0;
 				const char * lpszX_Axis_ID = NULL;
 				const char * lpszY_Axis_ID = NULL;
-				double dSymbol_Size;
+				double dSymbol_Size = 12.0;
 				bool bFault = false;
 				if (lpCurr_Node->properties)
 				{
@@ -745,6 +794,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				bool bDefault_Color = (!lpszColor || strcmp(lpszColor,"default") == 0);
 				bool bNo_Symbol = (!lpszSymbol || strcmp(lpszSymbol,"none") == 0);
 				bool bNo_Line = (lpszStyle && strcmp(lpszStyle,"none") == 0);
+				printf("No symbol: %c\n",bNo_Symbol ? 't' : 'f');
 				if (!bFault)
 				{
 
@@ -783,11 +833,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					else if (!bNo_Symbol)
 						cSymbol_Parameters.m_eType = cSymbol_Map[std::string(lpszSymbol)];
 
-					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? -1 : cX_Axes[std::string(lpszX_Axis_ID)];
-					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? -1 : cY_Axes[std::string(lpszY_Axis_ID)];
+					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
+					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
 					cSymbol_Parameters.m_dSize = dSymbol_Size;
 					cSymbol_Parameters.m_eColor = cLine_Parameters.m_eColor;
 					std::vector < epsplot::eps_pair> cData;
+					cData.clear();
 					xmlNode * lpData_Node = lpCurr_Node->children;
 					while (lpData_Node && lpData_Node->type != XML_ELEMENT_NODE)
 						lpData_Node = lpData_Node->next;
@@ -879,7 +930,14 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					if (cData.size() > 0)
 					{
 						if (!bNo_Symbol)
-							; // @@TODO
+						{
+							printf("Symbol : ");
+							PrintColor(cSymbol_Parameters.m_eColor);
+							printf(" ");
+							PrintSymbolType(cSymbol_Parameters.m_eType);
+							printf("\n");
+							cPlot.Set_Symbol_Data(cData,cSymbol_Parameters,uiX_Axis,uiY_Axis);
+						}
 						if (!bNo_Line)
 						{
 							printf("Plot : ");
