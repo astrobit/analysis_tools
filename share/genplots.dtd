@@ -63,6 +63,7 @@
 	size		CDATA #IMPLIED
 	color		CDATA #IMPLIED
 	width		CDATA #IMPLIED
+	style		(solid|sdash|ldash|lsdash|dot|sdashdot|ldashdot|lsdashdot) #IMPLIED
 >
 <!ELEMENT ERRORBARFILE EMPTY>
 <!ATTLIST ERRORBARFILE

@@ -1682,13 +1682,6 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					dCurr_Line_Width = lpcErrorbar->m_cPlot_Line_Info.m_dWidth;
 					cEPS.Set_Line_Width(dCurr_Line_Width);
 				}
-				if (lpcErrorbar->m_cPlot_Line_Info.m_eStipple != eCurr_Stipple)
-				{
-					eCurr_Stipple = lpcErrorbar->m_cPlot_Line_Info.m_eStipple;
-					unsigned int uiStipple_Size;
-					const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
-					cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
-				}
 				{
 					
 					char lpszText[32];
@@ -1744,12 +1737,20 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 								!isnan(p3.m_dX) && !isinf(p3.m_dX) && !isnan(p3.m_dY) && !isinf(p3.m_dY) &&
 								!isnan(p4.m_dX) && !isinf(p4.m_dX) && !isnan(p4.m_dY) && !isinf(p4.m_dY))
 							{
+								if (lpcErrorbar->m_cPlot_Line_Info.m_eStipple != eCurr_Stipple)
+								{
+									eCurr_Stipple = lpcErrorbar->m_cPlot_Line_Info.m_eStipple;
+									unsigned int uiStipple_Size;
+									const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+									cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+								}
 								cEPS.Move_To(p1.m_dX,p1.m_dY);
 								cEPS.Line_To(p2.m_dX,p2.m_dY);
 								cEPS.Stroke();
 								// make the end-lines solid
 								if (eCurr_Stipple != epsplot::SOLID)
 								{
+					printf("Set stipple solid\n");
 									eCurr_Stipple = epsplot::SOLID;
 									unsigned int uiStipple_Size;
 									const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);

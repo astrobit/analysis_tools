@@ -24,7 +24,7 @@
 <VALUE> 36 </VALUE>
 </ERRORBARDATA>
 </ERRORBAR>
-<ERRORBAR direction="ydown" >
+<ERRORBAR direction="ydown" style="ldash">
 <ERRORBARDATA>
 <VALUE> 2 </VALUE>
 <VALUE> 8 </VALUE>

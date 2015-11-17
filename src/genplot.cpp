@@ -933,7 +933,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							}
 							else if (strcmp(lpData_Node->name,"ERRORBAR") == 0)
 							{
-								const char * lpszDirection = NULL, * lpszType = NULL, *lpszColor = NULL;
+								const char * lpszDirection = NULL, * lpszType = NULL, *lpszColor = NULL, *lpszStyle = NULL;
 								double dSize = 4.0;
 								double dWidth = 1.0;
 								if (lpData_Node->properties)
@@ -961,6 +961,10 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 										{
 											lpszColor = Attr_Get_String(lpCurr_Attr);
 										}
+										else if (strcmp(lpCurr_Attr->name,"style") == 0)
+										{
+											lpszStyle = Attr_Get_String(lpCurr_Attr);
+										}
 										lpCurr_Attr = lpCurr_Attr->next;
 									}
 								}
@@ -976,6 +980,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 								if (lpszColor && strcmp(lpszColor,"default") != 0)
 									cErrorbar_Line_Parameters[uiEB_Idx].m_eColor = cColor_Map[std::string(lpszColor)];
 								cErrorbar_Line_Parameters[uiEB_Idx].m_dWidth = dWidth;
+								if (lpszStyle)
+								{
+									printf("style %s\n",lpszStyle);
+									cErrorbar_Line_Parameters[uiEB_Idx].m_eStipple = cStipple_Map[std::string(lpszStyle)];
+								}
+
 
 								cErrorbar_Parameters[uiEB_Idx].m_eDirection = (epsplot::ERRORBAR_DIRECTION)(uiEB_Idx + epsplot::ERRORBAR_X_LEFT);
 								cErrorbar_Parameters[uiEB_Idx].m_dTip_Width = dSize;
@@ -983,9 +993,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = epsplot::ERRORBAR_TIP_LINE;
 								else if (strcmp(lpszType,"arrow") == 0)
 									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = epsplot::ERRORBAR_TIP_ARROW;
-//@@TODO inplement line-arrow type
-//								else if (strcmp(lpszType,"linearrow") == 0)
-//									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = ERRORBAR_TIP_ARROW;
+								else if (strcmp(lpszType,"linearrow") == 0)
+									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = epsplot::ERRORBAR_TIP_LINE_AND_ARROW;
 								xmlNode * lpEB_Data_Node = lpData_Node->children;
 								while (lpEB_Data_Node)
 								{
@@ -1079,6 +1088,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 								{
 									cErrorbar_Line_Parameters[uiI].m_eColor = cSymbol_Parameters.m_eColor;
 								}
+									printf("stip %i\n",cErrorbar_Line_Parameters[uiI].m_eStipple);
 								cErrorbar_Parameters[uiI].m_uiAssociated_Plot = uiPlot;
 								if (cErrorbar_Data[uiI].size() > 0)
 									cPlot.Set_Errorbar_Data(cErrorbar_Parameters[uiI], cErrorbar_Data[uiI], cErrorbar_Line_Parameters[uiI]);
@@ -1101,6 +1111,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 										cErrorbar_Line_Parameters[uiI].m_eColor = cSymbol_Parameters.m_eColor;
 									}
 									cErrorbar_Parameters[uiI].m_uiAssociated_Plot = uiPlot;
+									printf("stip %i\n",cErrorbar_Line_Parameters[uiI].m_eStipple);
 									if (cErrorbar_Data[uiI].size() > 0)
 									{
 										cPlot.Set_Errorbar_Data(cErrorbar_Parameters[uiI], cErrorbar_Data[uiI], cErrorbar_Line_Parameters[uiI]);
