@@ -3,9 +3,9 @@
 <GRAPH outputfile="genplot_example3.eps">
 <SOURCEFILE name="genplot_example.csv" fileid="xyz" headerlines="1" wsseparated="false"/>
 <AXIS direction="x" axisid="xaxis1" log="true" displaymajorindices="true" displayminorindices="true" title="X-axis" min="0.9" max="10"/>
-<AXIS direction="y" axisid="yaxis1" displaymajorindices="false" title="Y-axis" min="0" max="1000"/>
+<AXIS direction="y" axisid="yaxis1" displaymajorindices="true" title="Y-axis" min="-100" max="100"/>
 <AXIS direction="y" axisid="yaxis2" log="true" displaymajorindices="true" title="Y2-axis" min="0.1" max="1000"/>
-<PLOT yaxisid="yaxis1" xaxisid="xaxis1" color="red" width="4.0" style="ldash">
+<PLOT yaxisid="yaxis1" xaxisid="xaxis1" color="red" width="4.0" style="ldash" yoffset="5.0">
 <PLOTDATA>
 <TUPLE x="1" y="1"/>
 <TUPLE x="2" y="4"/>
@@ -14,6 +14,26 @@
 <TUPLE x="5" y="25"/>
 <TUPLE x="6" y="36"/>
 </PLOTDATA>
+<ERRORBAR direction="yup" >
+<ERRORBARDATA>
+<VALUE> 1.0 </VALUE>
+<VALUE> 4.0 </VALUE>
+<VALUE> 9.0 </VALUE>
+<VALUE> 16 </VALUE>
+<VALUE> 25 </VALUE>
+<VALUE> 36 </VALUE>
+</ERRORBARDATA>
+</ERRORBAR>
+<ERRORBAR direction="ydown" >
+<ERRORBARDATA>
+<VALUE> 2 </VALUE>
+<VALUE> 8 </VALUE>
+<VALUE> 18 </VALUE>
+<VALUE> 32 </VALUE>
+<VALUE> 50 </VALUE>
+<VALUE> 72 </VALUE>
+</ERRORBARDATA>
+</ERRORBAR>
 </PLOT>
 <PLOT yaxisid="yaxis1" >
 <PLOTFILE fileid="xyz" xcol="0" ycol="1"/>
@@ -26,6 +46,20 @@
 </PLOT>
 <PLOT yaxisid="yaxis2" style="none" symbol="circle" color="magenta" xoffset="0.1" >
 <PLOTFILE fileid="xyz" xcol="0" ycol="1"/>
+
+<ERRORBAR direction="xleft">
+<ERRORBARFILE fileid="xyz" col="2"/>
+</ERRORBAR>
+<ERRORBAR direction="xright">
+<ERRORBARFILE fileid="xyz" col="2"/>
+</ERRORBAR>
+<ERRORBAR direction="yup">
+<ERRORBARFILE fileid="xyz" col="3"/>
+</ERRORBAR>
+<ERRORBAR direction="ydown">
+<ERRORBARFILE fileid="xyz" col="3"/>
+</ERRORBAR>
+
 </PLOT>
 <TEXT yaxisid="yaxis1" x="3" y="50" color="blue" width="2.0">example</TEXT>
 </GRAPH>

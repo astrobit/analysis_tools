@@ -794,7 +794,6 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				bool bDefault_Color = (!lpszColor || strcmp(lpszColor,"default") == 0);
 				bool bNo_Symbol = (!lpszSymbol || strcmp(lpszSymbol,"none") == 0);
 				bool bNo_Line = (lpszStyle && strcmp(lpszStyle,"none") == 0);
-				printf("No symbol: %c\n",bNo_Symbol ? 't' : 'f');
 				if (!bFault)
 				{
 
@@ -838,94 +837,231 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					cSymbol_Parameters.m_dSize = dSymbol_Size;
 					cSymbol_Parameters.m_eColor = cLine_Parameters.m_eColor;
 					std::vector < epsplot::eps_pair> cData;
-					cData.clear();
-					xmlNode * lpData_Node = lpCurr_Node->children;
-					while (lpData_Node && lpData_Node->type != XML_ELEMENT_NODE)
-						lpData_Node = lpData_Node->next;
-					if (lpData_Node && lpData_Node->type == XML_ELEMENT_NODE)
-					{
-						if (strcmp(lpData_Node->name,"PLOTFILE") == 0)
-						{
-							const char * lpszFile_ID = NULL;
-							unsigned int uiX_Column=0;
-							unsigned int uiY_Column=1;
-							if (lpData_Node->properties)
-							{
-								xmlAttr * lpCurr_Attr = lpData_Node->properties;
-								while (lpCurr_Attr)
-								{
-									if (strcmp(lpCurr_Attr->name,"fileid") == 0)
-									{
-										lpszFile_ID = Attr_Get_String(lpCurr_Attr);
-									}
-									else if (strcmp(lpCurr_Attr->name,"xcol") == 0)
-									{
-										uiX_Column = Attr_Get_Uint(lpCurr_Attr,0);
-									}
-									else if (strcmp(lpCurr_Attr->name,"ycol") == 0)
-									{
-										uiY_Column = Attr_Get_Uint(lpCurr_Attr,1);
-									}
-									lpCurr_Attr = lpCurr_Attr->next;
-								}
-							}
-							if (lpszFile_ID && cSource_Files.count(std::string(lpszFile_ID)) != 0)
-							{
-								XDATASET &cSF_Data(cSource_Files[lpszFile_ID].m_xdDataset);
-								printf("Parsing file %s for cols %i and %i.\n",cSource_Files[lpszFile_ID].Get_File(),uiX_Column,uiY_Column);
-								if (cSF_Data.GetNumColumns() > uiY_Column && cSF_Data.GetNumColumns() > uiX_Column)
-								{
-									for (unsigned int uiI = 0; uiI < cSF_Data.GetNumRows(); uiI++)
-									{
-										if (!cSF_Data.IsElementEmpty(uiX_Column,uiI) && !cSF_Data.IsElementEmpty(uiY_Column,uiI))
-										{
-											epsplot::eps_pair cPair;
-											cPair.m_dX = cSF_Data.GetElement(uiX_Column,uiI) + dX_Offset;
-											cPair.m_dY = cSF_Data.GetElement(uiY_Column,uiI) + dY_Offset;
-											cData.push_back(cPair);
-										}
-									}
-								}
-							}
-							else if (lpszFile_ID)
-							{
-								fprintf(stderr,"genplot: unable to find file ID %s.\n",lpszFile_ID);
-							}
-							else
-							{
-								fprintf(stderr,"genplot: file ID not specified for plot.\n");
-							}
-						}
-						else if (strcmp(lpData_Node->name,"PLOTDATA") == 0)
-						{
-							xmlNode * lpPair_Node = lpData_Node->children;
-							while (lpPair_Node && lpPair_Node->type != XML_ELEMENT_NODE)
-								lpPair_Node = lpPair_Node->next;
+					std::vector <double> cErrorbar_Data[4]; // 0 = x left, 1 = x right, 2 = y up, 3 = y down
+					epsplot::ERRORBAR_PARAMETERS cErrorbar_Parameters[4];
+					epsplot::LINE_PARAMETERS 	cErrorbar_Line_Parameters[4];
 
-							if (lpPair_Node && lpPair_Node->type == XML_ELEMENT_NODE && strcmp(lpPair_Node->name,"TUPLE") == 0)
+					cData.clear();
+					for (unsigned int uiI = 0; uiI < 4; uiI++)
+					{
+						cErrorbar_Data[uiI].clear();
+						cErrorbar_Line_Parameters[uiI].m_eColor = (epsplot::COLOR) -1;
+						cErrorbar_Line_Parameters[uiI].m_eStipple = epsplot::SOLID;
+					}
+					xmlNode * lpData_Node = lpCurr_Node->children;
+					while (lpData_Node)
+					{
+						if (lpData_Node && lpData_Node->type == XML_ELEMENT_NODE)
+						{
+							if (strcmp(lpData_Node->name,"PLOTFILE") == 0)
 							{
-								xmlNode * lpCurr_Tuple = lpPair_Node;
-								epsplot::eps_pair	cPair;
-								while (lpCurr_Tuple)
+								const char * lpszFile_ID = NULL;
+								unsigned int uiX_Column=0;
+								unsigned int uiY_Column=1;
+								if (lpData_Node->properties)
 								{
-									xmlAttr * lpCurr_Attr = lpCurr_Tuple->properties;
+									xmlAttr * lpCurr_Attr = lpData_Node->properties;
 									while (lpCurr_Attr)
 									{
-										if (strcmp(lpCurr_Attr->name,"x") == 0)
+										if (strcmp(lpCurr_Attr->name,"fileid") == 0)
 										{
-											cPair.m_dX = Attr_Get_Double(lpCurr_Attr,0.0);
+											lpszFile_ID = Attr_Get_String(lpCurr_Attr);
 										}
-										else if (strcmp(lpCurr_Attr->name,"y") == 0)
+										else if (strcmp(lpCurr_Attr->name,"xcol") == 0)
 										{
-											cPair.m_dY = Attr_Get_Double(lpCurr_Attr,0.0);
+											uiX_Column = Attr_Get_Uint(lpCurr_Attr,0);
+										}
+										else if (strcmp(lpCurr_Attr->name,"ycol") == 0)
+										{
+											uiY_Column = Attr_Get_Uint(lpCurr_Attr,1);
 										}
 										lpCurr_Attr = lpCurr_Attr->next;
 									}
-									cData.push_back(cPair);
+								}
+								if (lpszFile_ID && cSource_Files.count(std::string(lpszFile_ID)) != 0)
+								{
+									XDATASET &cSF_Data(cSource_Files[lpszFile_ID].m_xdDataset);
+									printf("Parsing file %s for cols %i and %i.\n",cSource_Files[lpszFile_ID].Get_File(),uiX_Column,uiY_Column);
+									if (cSF_Data.GetNumColumns() > uiY_Column && cSF_Data.GetNumColumns() > uiX_Column)
+									{
+										for (unsigned int uiI = 0; uiI < cSF_Data.GetNumRows(); uiI++)
+										{
+											if (!cSF_Data.IsElementEmpty(uiX_Column,uiI) && !cSF_Data.IsElementEmpty(uiY_Column,uiI))
+											{
+												epsplot::eps_pair cPair;
+												cPair.m_dX = cSF_Data.GetElement(uiX_Column,uiI) + dX_Offset;
+												cPair.m_dY = cSF_Data.GetElement(uiY_Column,uiI) + dY_Offset;
+												cData.push_back(cPair);
+											}
+										}
+									}
+								}
+								else if (lpszFile_ID)
+								{
+									fprintf(stderr,"genplot: unable to find file ID %s.\n",lpszFile_ID);
+								}
+								else
+								{
+									fprintf(stderr,"genplot: file ID not specified for plot.\n");
+								}
+							}
+							else if (strcmp(lpData_Node->name,"PLOTDATA") == 0)
+							{
+								xmlNode * lpCurr_Tuple = lpData_Node->children;
+								while (lpCurr_Tuple)
+								{
+									if (lpCurr_Tuple && lpCurr_Tuple->type == XML_ELEMENT_NODE && strcmp(lpCurr_Tuple->name,"TUPLE") == 0)
+									{
+										epsplot::eps_pair	cPair;
+										xmlAttr * lpCurr_Attr = lpCurr_Tuple->properties;
+										while (lpCurr_Attr)
+										{
+											if (strcmp(lpCurr_Attr->name,"x") == 0)
+											{
+												cPair.m_dX = Attr_Get_Double(lpCurr_Attr,0.0);
+											}
+											else if (strcmp(lpCurr_Attr->name,"y") == 0)
+											{
+												cPair.m_dY = Attr_Get_Double(lpCurr_Attr,0.0);
+											}
+											lpCurr_Attr = lpCurr_Attr->next;
+										}
+										cData.push_back(cPair);
+									}
 									lpCurr_Tuple = lpCurr_Tuple->next;
 								}
 							}
+							else if (strcmp(lpData_Node->name,"ERRORBAR") == 0)
+							{
+								const char * lpszDirection = NULL, * lpszType = NULL, *lpszColor = NULL;
+								double dSize = 4.0;
+								double dWidth = 1.0;
+								if (lpData_Node->properties)
+								{
+									xmlAttr * lpCurr_Attr = lpData_Node->properties;
+									while (lpCurr_Attr)
+									{
+										if (strcmp(lpCurr_Attr->name,"direction") == 0)
+										{
+											lpszDirection = Attr_Get_String(lpCurr_Attr);
+										}
+										else if (strcmp(lpCurr_Attr->name,"type") == 0)
+										{
+											lpszType = Attr_Get_String(lpCurr_Attr);
+										}
+										else if (strcmp(lpCurr_Attr->name,"size") == 0)
+										{
+											dSize = Attr_Get_Double(lpCurr_Attr,4.0);
+										}
+										else if (strcmp(lpCurr_Attr->name,"width") == 0)
+										{
+											dWidth = Attr_Get_Double(lpCurr_Attr,1.0);
+										}
+										else if (strcmp(lpCurr_Attr->name,"color") == 0)
+										{
+											lpszColor = Attr_Get_String(lpCurr_Attr);
+										}
+										lpCurr_Attr = lpCurr_Attr->next;
+									}
+								}
+								unsigned int uiEB_Idx = 0;
+								if (lpszDirection && strcmp(lpszDirection,"xleft") == 0)
+									uiEB_Idx = 0;
+								else if (lpszDirection && strcmp(lpszDirection,"xright") == 0)
+									uiEB_Idx = 1;
+								else if (lpszDirection && strcmp(lpszDirection,"yup") == 0)
+									uiEB_Idx = 2;
+								else if (lpszDirection && strcmp(lpszDirection,"ydown") == 0)
+									uiEB_Idx = 3;
+								if (lpszColor && strcmp(lpszColor,"default") != 0)
+									cErrorbar_Line_Parameters[uiEB_Idx].m_eColor = cColor_Map[std::string(lpszColor)];
+								cErrorbar_Line_Parameters[uiEB_Idx].m_dWidth = dWidth;
+
+								cErrorbar_Parameters[uiEB_Idx].m_eDirection = (epsplot::ERRORBAR_DIRECTION)(uiEB_Idx + epsplot::ERRORBAR_X_LEFT);
+								cErrorbar_Parameters[uiEB_Idx].m_dTip_Width = dSize;
+								if (!lpszType || strcmp(lpszType,"line") == 0)
+									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = epsplot::ERRORBAR_TIP_LINE;
+								else if (strcmp(lpszType,"arrow") == 0)
+									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = epsplot::ERRORBAR_TIP_ARROW;
+//@@TODO inplement line-arrow type
+//								else if (strcmp(lpszType,"linearrow") == 0)
+//									cErrorbar_Parameters[uiEB_Idx].m_eTip_Type = ERRORBAR_TIP_ARROW;
+								xmlNode * lpEB_Data_Node = lpData_Node->children;
+								while (lpEB_Data_Node)
+								{
+									if (lpEB_Data_Node && lpEB_Data_Node->type == XML_ELEMENT_NODE)
+									{
+										const char * lpszFile_ID = NULL;
+										unsigned int uiCol_ID;
+										if (strcmp(lpEB_Data_Node->name,"ERRORBARFILE") == 0)
+										{
+											xmlAttr * lpCurr_Attr = lpEB_Data_Node->properties;
+											while (lpCurr_Attr)
+											{
+												if (strcmp(lpCurr_Attr->name,"fileid") == 0)
+												{
+													lpszFile_ID = Attr_Get_String(lpCurr_Attr);
+												}
+												else if (strcmp(lpCurr_Attr->name,"col") == 0)
+												{
+													uiCol_ID = Attr_Get_Uint(lpCurr_Attr,0);
+												}
+												lpCurr_Attr = lpCurr_Attr->next;
+											}
+											if (lpszFile_ID && cSource_Files.count(std::string(lpszFile_ID)) != 0)
+											{
+												XDATASET &cSF_Data(cSource_Files[lpszFile_ID].m_xdDataset);
+												printf("Parsing file %s for col %i.\n",cSource_Files[lpszFile_ID].Get_File(),uiCol_ID);
+												if (cSF_Data.GetNumColumns() > uiCol_ID)
+												{
+													for (unsigned int uiI = 0; uiI < cSF_Data.GetNumRows(); uiI++)
+													{
+														if (!cSF_Data.IsElementEmpty(uiCol_ID,uiI))
+														{
+															cErrorbar_Data[uiEB_Idx].push_back(cSF_Data.GetElement(uiCol_ID,uiI));
+														}
+													}
+												}
+											}
+											else if (lpszFile_ID)
+											{
+												fprintf(stderr,"genplot: unable to find file ID %s.\n",lpszFile_ID);
+											}
+											else
+											{
+												fprintf(stderr,"genplot: file ID not specified for plot.\n");
+											}
+										}
+										else if (strcmp(lpEB_Data_Node->name,"ERRORBARDATA") == 0)
+										{
+											xmlNode * lpPair_Node = lpEB_Data_Node->children;
+											while (lpPair_Node && lpPair_Node->type != XML_ELEMENT_NODE)
+												lpPair_Node = lpPair_Node->next;
+
+											if (lpPair_Node && lpPair_Node->type == XML_ELEMENT_NODE && strcmp(lpPair_Node->name,"VALUE") == 0)
+											{
+												xmlNode * lpCurr_Tuple = lpPair_Node;
+												while (lpCurr_Tuple)
+												{
+													if (lpCurr_Tuple->children && lpCurr_Tuple->children->type == XML_TEXT_NODE && lpCurr_Tuple->children->content)
+													{
+														const char * lpszCursor = (const char *)lpCurr_Tuple->children->content;
+														while (lpszCursor[0] == 10 || lpszCursor[0] == 13 || lpszCursor[0] == ' ' || lpszCursor[0] == '\t')
+															lpszCursor++;
+														cErrorbar_Data[uiEB_Idx].push_back(atof(lpszCursor));
+													}
+													lpCurr_Tuple = lpCurr_Tuple->next;
+												}
+											}
+										}
+									}
+									lpEB_Data_Node = lpEB_Data_Node->next;
+								}
+								
+
+							}
 						}
+						lpData_Node = lpData_Node->next;
 					}
 					if (cData.size() > 0)
 					{
@@ -936,7 +1072,17 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							printf(" ");
 							PrintSymbolType(cSymbol_Parameters.m_eType);
 							printf("\n");
-							cPlot.Set_Symbol_Data(cData,cSymbol_Parameters,uiX_Axis,uiY_Axis);
+							unsigned int uiPlot = cPlot.Set_Symbol_Data(cData,cSymbol_Parameters,uiX_Axis,uiY_Axis);
+							for (unsigned int uiI = 0; uiI < 4; uiI++)
+							{
+								if (cErrorbar_Line_Parameters[uiI].m_eColor == (epsplot::COLOR) -1)
+								{
+									cErrorbar_Line_Parameters[uiI].m_eColor = cSymbol_Parameters.m_eColor;
+								}
+								cErrorbar_Parameters[uiI].m_uiAssociated_Plot = uiPlot;
+								if (cErrorbar_Data[uiI].size() > 0)
+									cPlot.Set_Errorbar_Data(cErrorbar_Parameters[uiI], cErrorbar_Data[uiI], cErrorbar_Line_Parameters[uiI]);
+							}
 						}
 						if (!bNo_Line)
 						{
@@ -945,7 +1091,22 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							printf(" ");
 							PrintStyle(cLine_Parameters.m_eStipple);
 							printf("\n");
-							cPlot.Set_Plot_Data(cData,cLine_Parameters,uiX_Axis,uiY_Axis);
+							unsigned int uiPlot = cPlot.Set_Plot_Data(cData,cLine_Parameters,uiX_Axis,uiY_Axis);
+							if (bNo_Symbol)
+							{
+								for (unsigned int uiI = 0; uiI < 4; uiI++)
+								{
+									if (cErrorbar_Line_Parameters[uiI].m_eColor == (epsplot::COLOR) -1)
+									{
+										cErrorbar_Line_Parameters[uiI].m_eColor = cSymbol_Parameters.m_eColor;
+									}
+									cErrorbar_Parameters[uiI].m_uiAssociated_Plot = uiPlot;
+									if (cErrorbar_Data[uiI].size() > 0)
+									{
+										cPlot.Set_Errorbar_Data(cErrorbar_Parameters[uiI], cErrorbar_Data[uiI], cErrorbar_Line_Parameters[uiI]);
+									}
+								}
+							}
 						}
 					}
 				}

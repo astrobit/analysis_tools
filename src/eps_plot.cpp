@@ -697,6 +697,43 @@ unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::ve
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+// Errorbars
+//
+///////////////////////////////////////////////////////////////////////////////
+unsigned int	DATA::Set_Errorbar_Data(const ERRORBAR_PARAMETERS & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const LINE_PARAMETERS & i_cLine_Parameters)
+{
+	unsigned int uiRet = -1;
+	if (i_cErrorbar_Parameters.m_uiAssociated_Plot < m_vcPlot_Item_List.size() && i_vdValues.size() > 0)
+	{
+		PLOT_ITEM * lpPlot = m_vcPlot_Item_List[i_cErrorbar_Parameters.m_uiAssociated_Plot];
+		LINE_ITEM * lpLine = (LINE_ITEM *) lpPlot;
+		SYMBOL_ITEM * lpSymbol = (SYMBOL_ITEM *) lpPlot;
+
+		if (lpPlot && (lpPlot->m_eType == TYPE_LINE || lpPlot->m_eType == TYPE_SYMBOL))
+		{
+			ERRORBAR_ITEM * lpItem = new ERRORBAR_ITEM;
+			if (lpItem)
+			{
+				lpItem->m_uiPlot_Axes_To_Use[0] = lpPlot->m_uiPlot_Axes_To_Use[0];
+				lpItem->m_uiPlot_Axes_To_Use[1] = lpPlot->m_uiPlot_Axes_To_Use[1];
+				lpItem->m_cErrorbar_Info = i_cErrorbar_Parameters;
+				lpItem->m_uiNum_Points = i_vdValues.size();
+				lpItem->m_cPlot_Line_Info = i_cLine_Parameters;
+				lpItem->m_lppData = new double[lpItem->m_uiNum_Points];
+				for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+				{
+					lpItem->m_lppData[uiI] = i_vdValues[uiI];
+				}
+				uiRet = m_vcPlot_Item_List.size();
+				m_vcPlot_Item_List.push_back(lpItem);
+			}
+		}
+	}
+	return uiRet;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
 // Symbols
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -1445,6 +1482,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			SYMBOL_ITEM * lpcSymbol = NULL;
 			RECTANGLE_ITEM * lpcRectangle = NULL;
 			TEXT_ITEM * lpcText = NULL;
+			ERRORBAR_ITEM * lpcErrorbar = NULL;
 			AXIS_METADATA * lpX_Axis;
 			AXIS_METADATA * lpY_Axis;
 
@@ -1632,6 +1670,135 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				}
 
 				break;
+			case TYPE_ERRORBAR:
+				lpcErrorbar = (ERRORBAR_ITEM *) lpCurr;
+				if (lpcErrorbar->m_cPlot_Line_Info.m_eColor != eCurr_Color)
+				{
+					eCurr_Color = lpcErrorbar->m_cPlot_Line_Info.m_eColor;
+					cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+				}
+				if (lpcErrorbar->m_cPlot_Line_Info.m_dWidth != dCurr_Line_Width)
+				{
+					dCurr_Line_Width = lpcErrorbar->m_cPlot_Line_Info.m_dWidth;
+					cEPS.Set_Line_Width(dCurr_Line_Width);
+				}
+				if (lpcErrorbar->m_cPlot_Line_Info.m_eStipple != eCurr_Stipple)
+				{
+					eCurr_Stipple = lpcErrorbar->m_cPlot_Line_Info.m_eStipple;
+					unsigned int uiStipple_Size;
+					const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+					cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+				}
+				{
+					
+					char lpszText[32];
+					sprintf(lpszText,"Errorbar %i (%i)\n",uiI,lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot);
+					cEPS.Comment(lpszText);
+					eps_pair * lpPair_List = NULL;
+					unsigned int uiNum_Points = 0;
+					if (m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot]->m_eType ==  TYPE_SYMBOL)
+					{
+						lpcSymbol = (SYMBOL_ITEM *)m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot];
+						uiNum_Points = lpcSymbol->m_uiNum_Points;
+						lpPair_List = lpcSymbol->m_lppData;
+					}
+					else if (m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot]->m_eType ==  TYPE_LINE)
+					{
+						lpcLine = (LINE_ITEM *)m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot];
+						uiNum_Points = lpcLine->m_uiNum_Points;
+						lpPair_List = lpcLine->m_lppData;
+					}
+					if (lpPair_List && uiNum_Points > 0)
+					{
+						for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
+						{
+							eps_pair p1(lpX_Axis->Scale(lpPair_List[uiJ].m_dX),lpY_Axis->Scale(lpPair_List[uiJ].m_dY));
+							eps_pair p2,p3,p4;
+							switch (lpcErrorbar->m_cErrorbar_Info.m_eDirection)
+							{
+							case ERRORBAR_X_LEFT:
+								p2.m_dX = lpX_Axis->Scale(lpPair_List[uiJ].m_dX - lpcErrorbar->m_lppData[uiJ]);
+								p2.m_dY = p1.m_dY;
+
+								break;
+							case ERRORBAR_X_RIGHT:
+								p2.m_dX = lpX_Axis->Scale(lpPair_List[uiJ].m_dX + lpcErrorbar->m_lppData[uiJ]);
+								p2.m_dY = p1.m_dY;
+
+								break;
+							case ERRORBAR_Y_UPPER:
+								p2.m_dX = p1.m_dX;
+								p2.m_dY = lpY_Axis->Scale(lpPair_List[uiJ].m_dY + lpcErrorbar->m_lppData[uiJ]);
+
+								break;
+							case ERRORBAR_Y_LOWER:
+								p2.m_dX = p1.m_dX;
+								p2.m_dY = lpY_Axis->Scale(lpPair_List[uiJ].m_dY - lpcErrorbar->m_lppData[uiJ]);
+
+								break;
+							}
+
+
+							if (!isnan(p1.m_dX) && !isinf(p1.m_dX) && !isnan(p1.m_dY) && !isinf(p1.m_dY) &&
+								!isnan(p2.m_dX) && !isinf(p2.m_dX) && !isnan(p2.m_dY) && !isinf(p2.m_dY) &&
+								!isnan(p3.m_dX) && !isinf(p3.m_dX) && !isnan(p3.m_dY) && !isinf(p3.m_dY) &&
+								!isnan(p4.m_dX) && !isinf(p4.m_dX) && !isnan(p4.m_dY) && !isinf(p4.m_dY))
+							{
+								cEPS.Move_To(p1.m_dX,p1.m_dY);
+								cEPS.Line_To(p2.m_dX,p2.m_dY);
+								cEPS.Stroke();
+								// make the end-lines solid
+								if (eCurr_Stipple != epsplot::SOLID)
+								{
+									eCurr_Stipple = epsplot::SOLID;
+									unsigned int uiStipple_Size;
+									const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+									cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+								}
+								switch (lpcErrorbar->m_cErrorbar_Info.m_eDirection)
+								{
+								case ERRORBAR_X_LEFT:
+								case ERRORBAR_X_RIGHT:
+									p3.m_dX = p2.m_dX;
+									p3.m_dY = p2.m_dY - lpcErrorbar->m_cErrorbar_Info.m_dTip_Width;
+
+									p4.m_dX = p2.m_dX;
+									p4.m_dY = p2.m_dY + lpcErrorbar->m_cErrorbar_Info.m_dTip_Width;
+									break;
+								case ERRORBAR_Y_UPPER:
+								case ERRORBAR_Y_LOWER:
+									p3.m_dX = p2.m_dX - lpcErrorbar->m_cErrorbar_Info.m_dTip_Width;
+									p3.m_dY = p2.m_dY;
+
+									p4.m_dX = p2.m_dX + lpcErrorbar->m_cErrorbar_Info.m_dTip_Width;
+									p4.m_dY = p2.m_dY;
+									break;
+								}
+
+								if (lpcErrorbar->m_cErrorbar_Info.m_eTip_Type == epsplot::ERRORBAR_TIP_LINE ||
+									lpcErrorbar->m_cErrorbar_Info.m_eTip_Type == epsplot::ERRORBAR_TIP_LINE_AND_ARROW)
+								{
+									cEPS.Move_To(p3.m_dX,p3.m_dY);
+									cEPS.Line_To(p4.m_dX,p4.m_dY);
+									cEPS.Stroke();
+								}
+								if (lpcErrorbar->m_cErrorbar_Info.m_eTip_Type == epsplot::ERRORBAR_TIP_ARROW ||
+									lpcErrorbar->m_cErrorbar_Info.m_eTip_Type == epsplot::ERRORBAR_TIP_LINE_AND_ARROW)
+								{
+									cEPS.Move_To(p2.m_dX,p2.m_dY);
+									cEPS.Line_To(p4.m_dX,p4.m_dY);
+									cEPS.Stroke();
+
+									cEPS.Move_To(p2.m_dX,p2.m_dY);
+									cEPS.Line_To(p3.m_dX,p3.m_dY);
+									cEPS.Stroke();
+								}
+							}
+						}
+					}
+				}
+				break;				
+				
 			default:
 				break;
 			}

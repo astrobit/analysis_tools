@@ -17,6 +17,8 @@ namespace	epsplot
 	enum COLOR {BLACK, RED, GREEN, BLUE, CYAN, YELLOW, MAGENTA, GREY_25, GREY_50, GREY_75, GRAY_25, GRAY_50, GRAY_75, WHITE, CLR_CUSTOM_1, CLR_CUSTOM_2, CLR_CUSTOM_3, CLR_CUSTOM_4, CLR_CUSTOM_5, CLR_CUSTOM_6, CLR_CUSTOM_7, CLR_CUSTOM_8, CLR_CUSTOM_9, CLR_CUSTOM_10, CLR_CUSTOM_11, CLR_CUSTOM_12, CLR_CUSTOM_13, CLR_CUSTOM_14, CLR_CUSTOM_15, CLR_CUSTOM_16};
 	enum STIPPLE {SOLID, SHORT_DASH, LONG_DASH, LONG_SHORT_DASH, DOTTED, SHORT_DASH_DOTTED, LONG_DASH_DOTTED, LONG_SHORT_DASH_DOTTED, STPL_CUSTOM_1, STPL_CUSTOM_2, STPL_CUSTOM_3, STPL_CUSTOM_4, STPL_CUSTOM_5, STPL_CUSTOM_6, STPL_CUSTOM_7, STPL_CUSTOM_8, STPL_CUSTOM_9, STPL_CUSTOM_10, STPL_CUSTOM_11, STPL_CUSTOM_12, STPL_CUSTOM_13, STPL_CUSTOM_14, STPL_CUSTOM_15, STPL_CUSTOM_16};
 	enum SYMBOL_TYPE {SQUARE, CIRCLE, TRIANGLE_UP, TRIANGLE_DOWN, TRIANGLE_LEFT, TRIANGLE_RIGHT, DIAMOND, TIMES_SYMB, PLUS_SYMB, DASH_SYMB, ASTERISK_SYMB, STAR4, STAR5, STAR6, SYMB_CUSTOM_1, SYMB_CUSTOM_2, SYMB_CUSTOM_3, SYMB_CUSTOM_4, SYMB_CUSTOM_5, SYMB_CUSTOM_6, SYMB_CUSTOM_7, SYMB_CUSTOM_8, SYMB_CUSTOM_9, SYMB_CUSTOM_10, SYMB_CUSTOM_11, SYMB_CUSTOM_12, SYMB_CUSTOM_13, SYMB_CUSTOM_14, SYMB_CUSTOM_15, SYMB_CUSTOM_16};
+	enum ERRORBAR_DIRECTION {ERRORBAR_X_LEFT, ERRORBAR_X_RIGHT, ERRORBAR_Y_UPPER, ERRORBAR_Y_LOWER};
+	enum ERRORBAR_TIP_TYPE {ERRORBAR_TIP_LINE, ERRORBAR_TIP_ARROW, ERRORBAR_TIP_LINE_AND_ARROW};
 	enum	AXIS {X_AXIS,Y_AXIS,Z_AXIS};
 	class eps_pair
 	{
@@ -334,23 +336,40 @@ namespace	epsplot
 			m_eHorizontal_Justification = LEFT;
 			m_eVertical_Justification = TOP;
 		}
-	};		
+	};
 
-	enum ITEM_TYPE {TYPE_LINE,TYPE_SYMBOL,TYPE_RECTANGLE,TYPE_TEXT};
+	class ERRORBAR_PARAMETERS
+	{
+	public:
+		ERRORBAR_DIRECTION	m_eDirection;
+		double				m_dTip_Width;
+		ERRORBAR_TIP_TYPE	m_eTip_Type;
+		unsigned int 		m_uiAssociated_Plot;
+
+		ERRORBAR_PARAMETERS(void)
+		{
+			m_eTip_Type = ERRORBAR_TIP_LINE;
+			m_dTip_Width = 4.0;
+			m_eDirection = ERRORBAR_X_LEFT;
+			m_uiAssociated_Plot = -1;
+		}
+	};
+
+	enum ITEM_TYPE {TYPE_LINE,TYPE_SYMBOL,TYPE_RECTANGLE,TYPE_TEXT,TYPE_ERRORBAR};
 	class	PLOT_ITEM
 	{
 	public:
 		ITEM_TYPE m_eType;
 
-		PLOT_ITEM	*	m_lpPrev_Item;
-		PLOT_ITEM	*	m_lpNext_Item;
+//		PLOT_ITEM	*	m_lpPrev_Item;
+//		PLOT_ITEM	*	m_lpNext_Item;
 		unsigned int 	m_uiPlot_Axes_To_Use[2];
 
 		PLOT_ITEM(ITEM_TYPE i_eType)
 		{
 			m_eType = i_eType;
-			m_lpPrev_Item = NULL;
-			m_lpNext_Item = NULL;
+//			m_lpPrev_Item = NULL;
+//			m_lpNext_Item = NULL;
 			m_uiPlot_Axes_To_Use[0] = 0;
 			m_uiPlot_Axes_To_Use[1] = 0;
 		}
@@ -452,6 +471,27 @@ namespace	epsplot
 				strcpy(m_lpszText,i_lpszText);
 		}
 		const char * Get_Text(void) const {return m_lpszText;}
+	};
+	class ERRORBAR_ITEM : public PLOT_ITEM
+	{
+	public:
+		ERRORBAR_PARAMETERS	m_cErrorbar_Info;
+		double * m_lppData;
+		unsigned int m_uiNum_Points;
+		LINE_PARAMETERS	m_cPlot_Line_Info;
+
+		ERRORBAR_ITEM(void) : PLOT_ITEM(TYPE_ERRORBAR), m_cPlot_Line_Info(), m_cErrorbar_Info()
+		{
+			m_lppData = NULL;
+			m_uiNum_Points = 0;
+		}
+		~ERRORBAR_ITEM(void)
+		{
+			if (m_lppData)
+				delete [] m_lppData;
+			m_lppData = NULL;
+			m_uiNum_Points = 0;
+		}
 	};
 
 	class AXIS_METADATA
@@ -651,6 +691,8 @@ namespace	epsplot
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+
+		unsigned int	Set_Errorbar_Data(const ERRORBAR_PARAMETERS & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const LINE_PARAMETERS & i_cLine_Parameters);
 
 		unsigned int	Set_Symbol_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Set_Symbol_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
