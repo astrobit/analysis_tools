@@ -1,4 +1,9 @@
 #pragma once
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <cstdlib>
+
 class OPACITY_PROFILE_DATA
 {
 public:
