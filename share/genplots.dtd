@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|PLOT+|TEXT*)*>
+<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|PLOT+|TEXT*|CAPTIONPREFIX?|CAPTIONPOSTFIX?)*>
 <!ATTLIST GRAPH
 	outputfile CDATA #REQUIRED
 	title		CDATA #IMPLIED
@@ -7,7 +7,12 @@
 	size		(a4|letter|user) #IMPLIED
 	width		CDATA #IMPLIED
 	height		CDATA #IMPLIED
+	captionfile CDATA #IMPLIED
+	latexfigurefile CDATA #IMPLIED
 >
+<!ELEMENT CAPTIONPREFIX (#PCDATA)>
+<!ELEMENT CAPTIONPOSTFIX (#PCDATA)>
+
 <!ELEMENT COLOR EMPTY>
 <!ATTLIST COLOR
 	name	CDATA #REQUIRED
@@ -31,18 +36,22 @@
 	x		CDATA #REQUIRED
 	y		CDATA #REQUIRED
 >
-<!ELEMENT PLOT (PLOTDATA?|PLOTFILE?|ERRORBAR*)+>
+<!ELEMENT PLOT (PLOTDATA?|PLOTFILE?|ERRORBAR*|CAPTIONINFO?|LEGENDINFO?)+>
 <!ATTLIST PLOT
 	color	CDATA #IMPLIED
 	style	(none|default|solid|sdash|ldash|lsdash|dot|sdashdot|ldashdot|lsdashdot) #IMPLIED
 	width	CDATA #IMPLIED
 	symbol	(none|default|square|circle|triup|tridn|trilt|trirt|diamond|times|plus|dash|asterisk|star4|star5|star6) #IMPLIED
 	symbolsize CDATA #IMPLIED
+	symbolfilled (true|false) #IMPLIED
+	symboloutlinewidth CDATA #IMPLIED
 	yoffset	CDATA #IMPLIED 
 	xoffset CDATA #IMPLIED
 	xaxisid	CDATA #IMPLIED
 	yaxisid CDATA #IMPLIED
 >
+<!ELEMENT CAPTIONINFO (#PCDATA)>
+<!ELEMENT LEGENDINFO (#PCDATA)>
 <!ELEMENT PLOTDATA (TUPLE*)>
 <!ELEMENT TUPLE EMPTY>
 <!ATTLIST TUPLE

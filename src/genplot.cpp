@@ -5,6 +5,16 @@
 #include <libxml/tree.h>
 #include <unordered_map>
 
+struct EnumHash
+{
+    template <typename T>
+    std::size_t operator()(T t) const
+    {
+        return static_cast<std::size_t>(t);
+    }
+};
+
+
 class SOURCE_FILE
 {
 private:
@@ -54,6 +64,17 @@ public:
 		m_lpszFilename = NULL;
 	}
 };
+
+const char * Node_Get_PCDATA_Content(const xmlNode * i_lpNode)
+{
+	const char * lpszRet = NULL;
+	xmlNode* lpText = i_lpNode->children;
+	while (lpText && lpText->type != XML_TEXT_NODE)
+		lpText = lpText->next;
+	if (lpText && lpText->content)
+		lpszRet = (char *)lpText->content;
+	return lpszRet;
+}
 inline bool Test_Attr_Content(const xmlAttr * i_lpAttr)
 {
 	return (i_lpAttr && i_lpAttr->children && i_lpAttr->children->type == XML_TEXT_NODE);
@@ -111,147 +132,226 @@ char Attr_Get_Char(const xmlAttr * i_lpAttr, unsigned int i_uiDefault)
 		chRet = i_lpAttr->children->content[0];
 	return chRet;
 }
+
+std::unordered_map<epsplot::COLOR, std::string, EnumHash> g_cColor_Map;
+std::string GetColorText(epsplot::COLOR i_eColor)
+{
+	std::string sRet;
+	if (g_cColor_Map.size() == 0)
+	{
+		g_cColor_Map[epsplot::BLACK] = std::string("black");
+		g_cColor_Map[epsplot::RED] = std::string("red");
+		g_cColor_Map[epsplot::GREEN] = std::string("green");
+		g_cColor_Map[epsplot::BLUE] = std::string("blue");
+		g_cColor_Map[epsplot::CYAN] = std::string("cyan");
+		g_cColor_Map[epsplot::MAGENTA] = std::string("magenta");
+		g_cColor_Map[epsplot::YELLOW] = std::string("yellow");
+		g_cColor_Map[epsplot::WHITE] = std::string("white");
+		g_cColor_Map[epsplot::GRAY_25] = std::string("grey (25%)");
+		g_cColor_Map[epsplot::GREY_25] = std::string("grey (25%)");
+		g_cColor_Map[epsplot::GRAY_50] = std::string("grey (50%)");
+		g_cColor_Map[epsplot::GREY_50] = std::string("grey (50%)");
+		g_cColor_Map[epsplot::GRAY_75] = std::string("grey (75%)");
+		g_cColor_Map[epsplot::GREY_75] = std::string("grey (75%)");
+		for (epsplot::COLOR eColor = epsplot::CLR_CUSTOM_1; eColor < epsplot::CLR_CUSTOM_16; eColor = (epsplot::COLOR)(eColor + 1))
+		{
+			char lpszString[16];
+			sprintf(lpszString,"user %i",eColor - epsplot::CLR_CUSTOM_1 + 1);
+			g_cColor_Map[eColor] = std::string(lpszString);
+		}
+	}
+	
+	sRet = g_cColor_Map[i_eColor];
+	return sRet;
+}
 void PrintColor(epsplot::COLOR i_eColor)
 {
-	switch (i_eColor)
-	{
-	case epsplot::BLACK:
-		printf("black");
-		break;
-	case epsplot::RED:
-		printf("red");
-		break;
-	case epsplot::GREEN:
-		printf("green");
-		break;
-	case epsplot::BLUE:
-		printf("blue");
-		break;
-	case epsplot::CYAN:
-		printf("cyan");
-		break;
-	case epsplot::MAGENTA:
-		printf("magenta");
-		break;
-	case epsplot::YELLOW:
-		printf("yellow");
-		break;
-	case epsplot::WHITE:
-		printf("white");
-		break;
-	case epsplot::GRAY_25:
-	case epsplot::GREY_25:
-		printf("grey (25%%)");
-		break;
-	case epsplot::GRAY_50:
-	case epsplot::GREY_50:
-		printf("grey (50%%)");
-		break;
-	case epsplot::GRAY_75:
-	case epsplot::GREY_75:
-		printf("grey (75%%)");
-		break;
-	case epsplot::CLR_CUSTOM_1:
-	case epsplot::CLR_CUSTOM_2:
-	case epsplot::CLR_CUSTOM_3:
-	case epsplot::CLR_CUSTOM_4:
-	case epsplot::CLR_CUSTOM_5:
-	case epsplot::CLR_CUSTOM_6:
-	case epsplot::CLR_CUSTOM_7:
-	case epsplot::CLR_CUSTOM_8:
-	case epsplot::CLR_CUSTOM_9:
-	case epsplot::CLR_CUSTOM_10:
-	case epsplot::CLR_CUSTOM_11:
-	case epsplot::CLR_CUSTOM_12:
-	case epsplot::CLR_CUSTOM_13:
-	case epsplot::CLR_CUSTOM_14:
-	case epsplot::CLR_CUSTOM_15:
-	case epsplot::CLR_CUSTOM_16:
-		printf("user");
-		break;
-	}
+	printf("%s",GetColorText(i_eColor).c_str());
 }
-
+std::unordered_map<epsplot::STIPPLE, std::string, EnumHash> g_cStyle_Map;
+std::string GetStyleText(epsplot::STIPPLE i_eStyle)
+{
+	std::string sRet;
+	if (g_cStyle_Map.size() == 0)
+	{
+		g_cStyle_Map[epsplot::SOLID] = std::string("solid");
+		g_cStyle_Map[epsplot::SHORT_DASH] = std::string("short dash");
+		g_cStyle_Map[epsplot::LONG_DASH] = std::string("long dash");
+		g_cStyle_Map[epsplot::LONG_SHORT_DASH] = std::string("long dash - short dash");
+		g_cStyle_Map[epsplot::DOTTED] = std::string("dotted");
+		g_cStyle_Map[epsplot::SHORT_DASH_DOTTED] = std::string("short dash - dotted");
+		g_cStyle_Map[epsplot::LONG_DASH_DOTTED] = std::string("long dash - dotted");
+		g_cStyle_Map[epsplot::LONG_SHORT_DASH_DOTTED] = std::string("long dash - short dash - dotted");
+		for (epsplot::STIPPLE eStyle = epsplot::STPL_CUSTOM_1; eStyle < epsplot::STPL_CUSTOM_16; eStyle = (epsplot::STIPPLE)(eStyle + 1))
+		{
+			char lpszString[16];
+			sprintf(lpszString,"user %i",eStyle - epsplot::STPL_CUSTOM_1 + 1);
+			g_cStyle_Map[eStyle] = std::string(lpszString);
+		}
+	}
+	
+	sRet = g_cStyle_Map[i_eStyle];
+	return sRet;
+}
+std::unordered_map<epsplot::STIPPLE, std::string, EnumHash> g_cStyle_ASCII_Map;
+std::string GetStyleASCII(epsplot::STIPPLE i_eStyle)
+{
+	std::string sRet;
+	if (g_cStyle_ASCII_Map.size() == 0)
+	{
+		g_cStyle_ASCII_Map[epsplot::SOLID] = std::string("-----");
+		g_cStyle_ASCII_Map[epsplot::SHORT_DASH] = std::string(" - - ");
+		g_cStyle_ASCII_Map[epsplot::LONG_DASH] = std::string("-- --");
+		g_cStyle_ASCII_Map[epsplot::LONG_SHORT_DASH] = std::string("-- - --");
+		g_cStyle_ASCII_Map[epsplot::DOTTED] = std::string(". . .");
+		g_cStyle_ASCII_Map[epsplot::SHORT_DASH_DOTTED] = std::string("- . -");
+		g_cStyle_ASCII_Map[epsplot::LONG_DASH_DOTTED] = std::string("-- . --");
+		g_cStyle_ASCII_Map[epsplot::LONG_SHORT_DASH_DOTTED] = std::string("-- - . -- -");
+		for (epsplot::STIPPLE eStyle = epsplot::STPL_CUSTOM_1; eStyle < epsplot::STPL_CUSTOM_16; eStyle = (epsplot::STIPPLE)(eStyle + 1))
+		{
+			char lpszString[16];
+			sprintf(lpszString,"user %i",eStyle - epsplot::STPL_CUSTOM_1 + 1);
+			g_cStyle_ASCII_Map[eStyle] = std::string(lpszString);
+		}
+	}
+	
+	sRet = g_cStyle_ASCII_Map[i_eStyle];
+	return sRet;
+}
 void PrintStyle(epsplot::STIPPLE i_eStipple)
 {
-	switch (i_eStipple)
-	{
-	case epsplot::SOLID:
-		printf(", -----");
-		break;
-	case epsplot::SHORT_DASH:
-		printf(", - - ");
-		break;
-	case epsplot::LONG_DASH:
-		printf(", -- -- ");
-		break;
-	case epsplot::LONG_SHORT_DASH:
-		printf(", -- - -- ");
-		break;
-	case epsplot::DOTTED:
-		printf(", . . .");
-		break;
-	case epsplot::SHORT_DASH_DOTTED:
-		printf(", - . - ");
-		break;
-	case epsplot::LONG_DASH_DOTTED:
-		printf(", -- . --");
-		break;
-	}
+	printf(", %s",GetStyleASCII(i_eStipple).c_str());
 }
-
+std::unordered_map<epsplot::SYMBOL_TYPE, std::string, EnumHash> g_cSymbol_Map;
+std::string GetSymbolText(epsplot::SYMBOL_TYPE i_eStyle)
+{
+	std::string sRet;
+	if (g_cSymbol_Map.size() == 0)
+	{
+		g_cSymbol_Map[epsplot::SQUARE] = std::string("square");
+		g_cSymbol_Map[epsplot::CIRCLE] = std::string("circle");
+		g_cSymbol_Map[epsplot::TRIANGLE_UP] = std::string("triangle (up)");
+		g_cSymbol_Map[epsplot::TRIANGLE_DOWN] = std::string("triangle (down)");
+		g_cSymbol_Map[epsplot::TRIANGLE_LEFT] = std::string("triangle (left)");
+		g_cSymbol_Map[epsplot::TRIANGLE_RIGHT] = std::string("triangle (right)");
+		g_cSymbol_Map[epsplot::DIAMOND] = std::string("diamond");
+		g_cSymbol_Map[epsplot::TIMES_SYMB] = std::string("times");
+		g_cSymbol_Map[epsplot::PLUS_SYMB] = std::string("plus");
+		g_cSymbol_Map[epsplot::DASH_SYMB] = std::string("dash");
+		g_cSymbol_Map[epsplot::ASTERISK_SYMB] = std::string("asterisk");
+		g_cSymbol_Map[epsplot::STAR4] = std::string("4-point star");
+		g_cSymbol_Map[epsplot::STAR5] = std::string("5-point star");
+		g_cSymbol_Map[epsplot::STAR6] = std::string("6 point star");
+		for (epsplot::SYMBOL_TYPE eStyle = epsplot::SYMB_CUSTOM_1; eStyle < epsplot::SYMB_CUSTOM_16; eStyle = (epsplot::SYMBOL_TYPE)(eStyle + 1))
+		{
+			char lpszString[16];
+			sprintf(lpszString,"user %i",eStyle - epsplot::SYMB_CUSTOM_1 + 1);
+			g_cSymbol_Map[eStyle] = std::string(lpszString);
+		}
+	}
+	
+	sRet = g_cSymbol_Map[i_eStyle];
+	return sRet;
+}
 void PrintSymbolType(epsplot::SYMBOL_TYPE i_eType)
 {
-	switch (i_eType)
-	{
-	case epsplot::SQUARE:
-		printf(", square");
-		break;
-	case epsplot::CIRCLE:
-		printf(", circle");
-		break;
-	case epsplot::TRIANGLE_UP:
-		printf(", triangle(up)");
-		break;
-	case epsplot::TRIANGLE_DOWN:
-		printf(", triangle(down)");
-		break;
-	case epsplot::TRIANGLE_LEFT:
-		printf(", triangle(left)");
-		break;
-	case epsplot::TRIANGLE_RIGHT:
-		printf(", triangle(right)");
-		break;
-	case epsplot::DIAMOND:
-		printf(", diamond");
-		break;
-	case epsplot::TIMES_SYMB:
-		printf(", times");
-		break;
-	case epsplot::PLUS_SYMB:
-		printf(", plus");
-		break;
-	case epsplot::DASH_SYMB:
-		printf(", dash");
-		break;
-	case epsplot::ASTERISK_SYMB:
-		printf(", asterisk");
-		break;
-	case epsplot::STAR4:
-		printf(", 4-point star");
-		break;
-	case epsplot::STAR5:
-		printf(", 5-point star");
-		break;
-	case epsplot::STAR6:
-		printf(", 6-point star");
-		break;
-	}
+	printf(", %s",GetSymbolText(i_eType).c_str());
 }
 int strcmp(const xmlChar * i_lpszLHO, const char * i_lpszRHO)
 {
 	return strcmp((char *) i_lpszLHO,i_lpszRHO);
 }
+
+class CAPTION_INFO
+{
+public:
+	char *				m_lpszCaption_Text;
+	epsplot::LINE_PARAMETERS		m_cLine_Parameters;
+	epsplot::SYMBOL_PARAMETERS	m_cSymbol_Parameters;
+	CAPTION_INFO(void)
+	{
+		m_lpszCaption_Text = NULL;
+		m_cLine_Parameters.m_eColor = (epsplot::COLOR) -1;
+		m_cSymbol_Parameters.m_eColor = (epsplot::COLOR) -1;
+	}
+};
+
+void Output_Caption(FILE * o_fileOut, const std::vector<CAPTION_INFO> &i_vCaption_Info)
+{
+	bool bAll_Symbols_Same_Type = true;
+	bool bAll_Symbols_Same_Fill_Type = true;
+	bool bSymbol_Fill_Type = true;
+	epsplot::SYMBOL_TYPE eSymbol_Type = (epsplot::SYMBOL_TYPE)-1;
+	epsplot::STIPPLE eStipple = (epsplot::STIPPLE)-1;
+	epsplot::COLOR eLine_Color = (epsplot::COLOR)-1;
+	epsplot::COLOR eSymbol_Color = (epsplot::COLOR)-1;
+	bool bAll_Lines_Same_Style = true;
+	bool bAll_Lines_Same_Color = true;
+	bool bAll_Symbols_Same_Color = true;
+	for (std::vector<CAPTION_INFO>::const_iterator cIter = i_vCaption_Info.begin(); cIter != i_vCaption_Info.end(); cIter++)
+	{
+		if (eLine_Color == -1 && (*cIter).m_cLine_Parameters.m_eColor != -1)
+		{
+			eLine_Color = (*cIter).m_cLine_Parameters.m_eColor;
+			eStipple = (*cIter).m_cLine_Parameters.m_eStipple;
+		}
+		if (eSymbol_Color == -1 && (*cIter).m_cSymbol_Parameters.m_eColor != -1)
+		{
+			eSymbol_Color = (*cIter).m_cSymbol_Parameters.m_eColor;
+			eSymbol_Type = (*cIter).m_cSymbol_Parameters.m_eType;
+			bSymbol_Fill_Type = (*cIter).m_cSymbol_Parameters.m_bFilled;
+		}
+
+		bAll_Symbols_Same_Fill_Type &= ((*cIter).m_cSymbol_Parameters.m_eColor == -1 || (*cIter).m_cSymbol_Parameters.m_bFilled == bSymbol_Fill_Type);
+		bAll_Symbols_Same_Type &= ((*cIter).m_cSymbol_Parameters.m_eColor == -1 || (*cIter).m_cSymbol_Parameters.m_eType == eSymbol_Type);
+		bAll_Symbols_Same_Color &= ((*cIter).m_cSymbol_Parameters.m_eColor == -1 || (*cIter).m_cSymbol_Parameters.m_eColor == eSymbol_Color);
+
+		bAll_Lines_Same_Style &= ((*cIter).m_cLine_Parameters.m_eColor == -1 || (*cIter).m_cLine_Parameters.m_eStipple == eStipple);
+		bAll_Lines_Same_Color &= ((*cIter).m_cLine_Parameters.m_eColor == -1 || (*cIter).m_cLine_Parameters.m_eColor == eLine_Color);
+	}
+
+	unsigned int uiCount = 0;
+	for (std::vector<CAPTION_INFO>::const_iterator cIter = i_vCaption_Info.begin(); cIter != i_vCaption_Info.end(); cIter++)
+	{
+		if (uiCount != 0)
+			fprintf(o_fileOut,", ");
+		if ((*cIter).m_lpszCaption_Text != NULL)
+			fprintf(o_fileOut,"%s (",(*cIter).m_lpszCaption_Text);
+		else
+			fprintf(o_fileOut,"Plot %i (",uiCount);
+
+		if ((!bAll_Lines_Same_Color || !bAll_Lines_Same_Style) && ((*cIter).m_cLine_Parameters.m_eColor != -1))
+		{
+			if((*cIter).m_cSymbol_Parameters.m_eColor != -1)
+				fprintf(o_fileOut,"Line: ");
+			if (!bAll_Lines_Same_Color)
+				fprintf(o_fileOut,"%s",GetColorText((*cIter).m_cLine_Parameters.m_eColor).c_str());
+			if (!bAll_Lines_Same_Color && !bAll_Lines_Same_Style)
+				fprintf(o_fileOut,", ");
+			if (!bAll_Lines_Same_Style)
+				fprintf(o_fileOut,"%s",GetStyleText((*cIter).m_cLine_Parameters.m_eStipple).c_str());
+		}
+		if ((*cIter).m_cSymbol_Parameters.m_eColor != -1 && (!bAll_Symbols_Same_Fill_Type || !bAll_Symbols_Same_Color || !bAll_Symbols_Same_Type))
+		{
+			if((*cIter).m_cLine_Parameters.m_eColor != -1)
+				fprintf(o_fileOut,"; Symbol: ");
+
+			if (!bAll_Symbols_Same_Type)
+				fprintf(o_fileOut,"%s",GetSymbolText((*cIter).m_cSymbol_Parameters.m_eType).c_str());
+			if (!bAll_Symbols_Same_Type && (!bAll_Symbols_Same_Color || !bAll_Symbols_Same_Fill_Type))
+				fprintf(o_fileOut,", ");
+			if (!bAll_Symbols_Same_Color)
+				fprintf(o_fileOut,"%s",GetColorText((*cIter).m_cSymbol_Parameters.m_eColor).c_str());
+			if (!bAll_Symbols_Same_Color && !bAll_Symbols_Same_Fill_Type)
+				fprintf(o_fileOut,", ");
+			if (!bAll_Symbols_Same_Fill_Type)
+				fprintf(o_fileOut,", %s",(*cIter).m_cSymbol_Parameters.m_bFilled ? "filled" : "hollow");
+		}
+		fprintf(o_fileOut,")");
+		uiCount++;
+	}
+}
+
 
 void Parse_XML(xmlNode * i_lpRoot_Element)
 {
@@ -262,12 +362,18 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 	std::unordered_map<std::string, epsplot::COLOR>	cColor_Map;
 	std::unordered_map<std::string, epsplot::STIPPLE>	cStipple_Map;
 	std::unordered_map<std::string, epsplot::SYMBOL_TYPE>	cSymbol_Map;
+	std::vector <CAPTION_INFO> vCaption_Info;
 	const char * lpszGraph_Title = NULL;
 	const char * lpszOutput_Path = NULL;
 	const char * lpszLayout = NULL;
 	const char * lpszSize = NULL;
 	const char * lpszWidth = NULL;
 	const char * lpszHeight = NULL;
+	const char * lpszCaptionfile_Path = NULL;
+	const char * lpszLaTeX_Figure_File_Path = NULL;
+	const char * lpszCaption_Prefix = NULL;
+	const char * lpszCaption_Postfix = NULL;
+	const char * lpszFigure_Label = NULL;
 	epsplot::DATA cPlot;
 	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
 	epsplot::COLOR eDefault_Color = epsplot::BLACK;
@@ -359,6 +465,14 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				{
 					lpszOutput_Path = Attr_Get_String(lpCurr_Attr);
 				}
+				else if (strcmp(lpCurr_Attr->name,"captionfile") == 0)
+				{
+					lpszCaptionfile_Path = Attr_Get_String(lpCurr_Attr);
+				}
+				else if (strcmp(lpCurr_Attr->name,"latexfigurefile") == 0)
+				{
+					lpszLaTeX_Figure_File_Path = Attr_Get_String(lpCurr_Attr);
+				}
 				else if (strcmp(lpCurr_Attr->name,"title") == 0)
 				{
 					lpszGraph_Title = Attr_Get_String(lpCurr_Attr);
@@ -395,7 +509,11 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 			switch (lpCurr_Node->type)
 			{
 			case XML_ELEMENT_NODE:
-				if (strcmp(lpCurr_Node->name,"SOURCEFILE") == 0)
+				if (strcmp(lpCurr_Node->name,"CAPTIONPREFIX") == 0)
+					lpszCaption_Prefix = Node_Get_PCDATA_Content(lpCurr_Node);
+				else if (strcmp(lpCurr_Node->name,"CAPTIONPOSTFIX") == 0)
+					lpszCaption_Postfix = Node_Get_PCDATA_Content(lpCurr_Node);
+				else if (strcmp(lpCurr_Node->name,"SOURCEFILE") == 0)
 				{
 					if (lpCurr_Node->properties)
 					{
@@ -436,7 +554,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						}
 						if (cFile.Get_File() && lpszID != NULL)
 						{
-							cFile.m_xdDataset.ReadDataFile(cFile.Get_File(),bWhitespace_Separated,bHas_Strings,bWhitespace_Separated ? 0 : chSeparator, uiHeader_Lines);
+							if (strstr(cFile.Get_File(),"xdataset") != NULL)
+								cFile.m_xdDataset.ReadDataFileBin(cFile.Get_File());
+							else if (cFile.m_xdDataset.TestDataFileBin(cFile.Get_File()) != 0)
+								cFile.m_xdDataset.ReadDataFileBin(cFile.Get_File());
+							else
+								cFile.m_xdDataset.ReadDataFile(cFile.Get_File(),bWhitespace_Separated,bHas_Strings,bWhitespace_Separated ? 0 : chSeparator, uiHeader_Lines);
 							cSource_Files[std::string(lpszID)] = cFile;
 						}
 					}
@@ -698,12 +821,13 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 
 					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
 					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
-					if (lpCurr_Node->children && lpCurr_Node->children->type == XML_TEXT_NODE && lpCurr_Node->children->content)
+					const char * lpszText = Node_Get_PCDATA_Content(lpCurr_Node);
+					if (lpszText)
 					{
 						printf("Text : ");
 						PrintColor(cLine_Parameters.m_eColor);
 						printf("\n");
-						cPlot.Set_Text_Data( dX, dY, (const char *)lpCurr_Node->children->content, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
+						cPlot.Set_Text_Data( dX, dY, lpszText, cLine_Parameters, cText_Paramters, uiX_Axis, uiY_Axis);
 					}
 				}
 			}
@@ -717,6 +841,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				double dY_Offset = 0.0;
 				const char * lpszX_Axis_ID = NULL;
 				const char * lpszY_Axis_ID = NULL;
+				const char * lpszCaption_Text = NULL;
+				const char * lpszLegend_Text = NULL;
 				double dSymbol_Size = 12.0;
 				bool bFault = false;
 				if (lpCurr_Node->properties)
@@ -853,7 +979,15 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					{
 						if (lpData_Node && lpData_Node->type == XML_ELEMENT_NODE)
 						{
-							if (strcmp(lpData_Node->name,"PLOTFILE") == 0)
+							if (strcmp(lpData_Node->name,"CAPTIONINFO") == 0)
+							{
+								lpszCaption_Text = Node_Get_PCDATA_Content(lpData_Node);
+							}
+							else if (strcmp(lpData_Node->name,"LEGENDINFO") == 0)
+							{
+								lpszLegend_Text = Node_Get_PCDATA_Content(lpData_Node);
+							}
+							else if (strcmp(lpData_Node->name,"PLOTFILE") == 0)
 							{
 								const char * lpszFile_ID = NULL;
 								unsigned int uiX_Column=0;
@@ -1052,12 +1186,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 												xmlNode * lpCurr_Tuple = lpPair_Node;
 												while (lpCurr_Tuple)
 												{
-													if (lpCurr_Tuple->children && lpCurr_Tuple->children->type == XML_TEXT_NODE && lpCurr_Tuple->children->content)
+													const char * lpszValue = Node_Get_PCDATA_Content(lpCurr_Tuple);
+													if (lpszValue)
 													{
-														const char * lpszCursor = (const char *)lpCurr_Tuple->children->content;
-														while (lpszCursor[0] == 10 || lpszCursor[0] == 13 || lpszCursor[0] == ' ' || lpszCursor[0] == '\t')
-															lpszCursor++;
-														cErrorbar_Data[uiEB_Idx].push_back(atof(lpszCursor));
+														while (lpszValue[0] == 10 || lpszValue[0] == 13 || lpszValue[0] == ' ' || lpszValue[0] == '\t')
+															lpszValue++;
+														cErrorbar_Data[uiEB_Idx].push_back(atof(lpszValue));
 													}
 													lpCurr_Tuple = lpCurr_Tuple->next;
 												}
@@ -1074,6 +1208,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					}
 					if (cData.size() > 0)
 					{
+						CAPTION_INFO	cCaption_Data;
 						if (!bNo_Symbol)
 						{
 							printf("Symbol : ");
@@ -1088,11 +1223,11 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 								{
 									cErrorbar_Line_Parameters[uiI].m_eColor = cSymbol_Parameters.m_eColor;
 								}
-									printf("stip %i\n",cErrorbar_Line_Parameters[uiI].m_eStipple);
 								cErrorbar_Parameters[uiI].m_uiAssociated_Plot = uiPlot;
 								if (cErrorbar_Data[uiI].size() > 0)
 									cPlot.Set_Errorbar_Data(cErrorbar_Parameters[uiI], cErrorbar_Data[uiI], cErrorbar_Line_Parameters[uiI]);
 							}
+							cCaption_Data.m_cSymbol_Parameters = cSymbol_Parameters;
 						}
 						if (!bNo_Line)
 						{
@@ -1111,14 +1246,17 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 										cErrorbar_Line_Parameters[uiI].m_eColor = cSymbol_Parameters.m_eColor;
 									}
 									cErrorbar_Parameters[uiI].m_uiAssociated_Plot = uiPlot;
-									printf("stip %i\n",cErrorbar_Line_Parameters[uiI].m_eStipple);
 									if (cErrorbar_Data[uiI].size() > 0)
 									{
 										cPlot.Set_Errorbar_Data(cErrorbar_Parameters[uiI], cErrorbar_Data[uiI], cErrorbar_Line_Parameters[uiI]);
 									}
 								}
 							}
+							cCaption_Data.m_cLine_Parameters = cLine_Parameters;
 						}
+						cCaption_Data.m_lpszCaption_Text = (char *)lpszCaption_Text;
+						vCaption_Info.push_back(cCaption_Data);
+
 					}
 				}
 			}
@@ -1130,6 +1268,40 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 
 		cPlot.Plot(cPlot_Parameters);
 		printf("Plot output to %s\n",lpszOutput_Path);
+		if (lpszLaTeX_Figure_File_Path)
+		{
+			FILE * fileFigure = fopen(lpszLaTeX_Figure_File_Path,"wt");
+			if (fileFigure)
+			{
+				fprintf(fileFigure,"\\begin{figure}[H]\n\\centering\n\\includegraphics[width=\\textwidth,angle=270]{%s}\n\\caption{\\label{%s}",
+lpszOutput_Path,lpszOutput_Path);
+				if (lpszCaption_Prefix)
+					fprintf(fileFigure,lpszCaption_Prefix);
+				if (vCaption_Info.size() > 0)
+					Output_Caption(fileFigure,vCaption_Info);
+				if (lpszCaption_Postfix)
+					fprintf(fileFigure,lpszCaption_Postfix);
+				fprintf(fileFigure,"}\n\\end{figure*}\n");
+				fclose(fileFigure);
+				printf("LaTeX figure ouput to %s.\n",lpszLaTeX_Figure_File_Path);
+			}
+		}
+
+		if (lpszCaptionfile_Path && vCaption_Info.size() > 0)
+		{
+			FILE * fileCaption = fopen(lpszCaptionfile_Path,"wt");
+			if (fileCaption)
+			{
+				if (lpszCaption_Prefix)
+					fprintf(fileCaption,lpszCaption_Prefix);
+				Output_Caption(fileCaption,vCaption_Info);
+				if (lpszCaption_Postfix)
+					fprintf(fileCaption,lpszCaption_Postfix);
+				fprintf(fileCaption,".\n");
+				fclose(fileCaption);
+				printf("Caption information ouput to %s.\n",lpszCaptionfile_Path);
+			}
+		}
 
 	}
 	else
