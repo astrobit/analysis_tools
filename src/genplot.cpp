@@ -554,12 +554,34 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						}
 						if (cFile.Get_File() && lpszID != NULL)
 						{
-							if (strstr(cFile.Get_File(),"xdataset") != NULL)
-								cFile.m_xdDataset.ReadDataFileBin(cFile.Get_File());
-							else if (cFile.m_xdDataset.TestDataFileBin(cFile.Get_File()) != 0)
-								cFile.m_xdDataset.ReadDataFileBin(cFile.Get_File());
-							else
-								cFile.m_xdDataset.ReadDataFile(cFile.Get_File(),bWhitespace_Separated,bHas_Strings,bWhitespace_Separated ? 0 : chSeparator, uiHeader_Lines);
+							cFile.m_xdDataset.ReadDataFile(cFile.Get_File(),bWhitespace_Separated,bHas_Strings,bWhitespace_Separated ? 0 : chSeparator, uiHeader_Lines);
+							cSource_Files[std::string(lpszID)] = cFile;
+						}
+					}
+				}
+				else if (strcmp(lpCurr_Node->name,"XDATASET") == 0)
+				{
+					if (lpCurr_Node->properties)
+					{
+						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
+						SOURCE_FILE cFile;
+						bool bWhitespace_Separated = false;
+						const char *  lpszID = NULL;
+						while (lpCurr_Attr)
+						{
+							if (strcmp(lpCurr_Attr->name,"name") == 0)
+							{
+								cFile.Set_File(Attr_Get_String(lpCurr_Attr));
+							}
+							else if (strcmp(lpCurr_Attr->name,"fileid") == 0)
+							{
+								lpszID = Attr_Get_String(lpCurr_Attr);
+							}
+							lpCurr_Attr = lpCurr_Attr->next;
+						}
+						if (cFile.Get_File() && lpszID != NULL)
+						{
+							cFile.m_xdDataset.ReadDataFileBin(cFile.Get_File());
 							cSource_Files[std::string(lpszID)] = cFile;
 						}
 					}

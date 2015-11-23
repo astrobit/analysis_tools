@@ -89,6 +89,11 @@
 	wsseparated		(true|false)	#REQUIRED
 	hasstrings		(true|false)	#IMPLIED
 >
+<!ELEMENT XDATASET EMPTY>
+<!ATTLIST XDATASET
+	name	CDATA #REQUIRED
+	fileid	ID	#REQUIRED
+>
 <!ELEMENT AXIS EMPTY>
 <!ATTLIST AXIS
 	title	CDATA	#IMPLIED
