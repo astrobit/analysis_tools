@@ -1828,7 +1828,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			if (uiI & 1)
 				dY = ((dTop_Margin * 0.4 + i_cGrid.m_dBottom_Axis_Margin) * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_Y;
 			else			
-				dY = ((0.2 * i_cGrid.m_dBottom_Axis_Margin) * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0;
+				dY = ((0.10 * i_cGrid.m_dBottom_Axis_Margin) * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0;
 
 			cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),dX,dY, (*cAxis_Iter).m_cParameters.Get_Title());
 			uiI++;

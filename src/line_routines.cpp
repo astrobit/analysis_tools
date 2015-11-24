@@ -330,7 +330,10 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 	for (unsigned int uiI = 0; uiI < i_cOpacity_Map_A.GetNumElements() - 1; uiI++)
 	{
 //		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
-		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_A);
+		if (!i_cOpacity_Map_A.IsElementEmpty(1,uiI + 1))
+			cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_A);
+		else
+			cSetup.user_profile[0][uiI] = 0.0;
 	}
 	if (i_cOpacity_Map_B.GetNumElements() > 0)
 	{
@@ -342,7 +345,10 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 		for (unsigned int uiI = 0; uiI < i_cOpacity_Map_B.GetNumElements() - 1; uiI++)
 		{
 //			cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(iT_ref,uiI + 1);
-			cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_B);
+			if (!i_cOpacity_Map_B.IsElementEmpty(1,uiI + 1))
+				cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_B);
+			else
+				cSetup.user_profile[1][uiI] = 0.0;
 		}
 	}
 
@@ -425,7 +431,10 @@ void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i
 				for (unsigned int uiJ = 0; uiJ < i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() - 1; uiJ++)
 				{
 			//		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
-					cSetup.user_profile[uiI][uiJ] = i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetElement(1,uiJ + 1) * dT_Scalar;
+					if (!i_lpcIon_Data[uiI].m_lpcOpacity_Map->IsElementEmpty(1,uiJ + 1))
+						cSetup.user_profile[uiI][uiJ] = i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetElement(1,uiJ + 1) * dT_Scalar;
+					else
+						cSetup.user_profile[1][uiI] = 0.0;
 				}
 			}
 		}

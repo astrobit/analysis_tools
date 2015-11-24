@@ -894,7 +894,8 @@ void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiTime_Grid
 	char lpszFilename[128];
 	o_cOpacity_Map.Allocate(i_uiTime_Grid_Data_Points + 1,i_uiVel_Grid_Data_Points+1);
 	// clear out the data at 0,0 - this space won't be used for anything.
-	o_cOpacity_Map.SetElement(0,0,0.0);
+	o_cOpacity_Map.Zero();
+	//o_cOpacity_Map.SetElement(0,0,0.0);
 
 	for (unsigned int uiT = 0; uiT < i_uiTime_Grid_Data_Points; uiT++)
 	{
@@ -903,7 +904,8 @@ void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiTime_Grid
 		{
 			if (uiT == 0)
 				o_cOpacity_Map.SetElement(0,uiI + 1,i_lpdVelocity_Range_Grid[0] + i_dDelta_V_Grid * uiI);
-			o_cOpacity_Map.SetElement(uiT + 1,uiI + 1,i_lpdOpacity_Map_Data[uiT][uiI]);
+			if (i_lpdOpacity_Map_Data[uiT][uiI] != 0.0) // leave empty cell flag set if no opacity at a given velocity
+				o_cOpacity_Map.SetElement(uiT + 1,uiI + 1,i_lpdOpacity_Map_Data[uiT][uiI]);
 		}
 	}
 	if (i_lpszMap_Element_Group)
@@ -1100,7 +1102,8 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 
 	cOpactiy_Map.Allocate(TIME_GRID_DATA_POINTS + 1,VEL_GRID_DATA_POINTS+1);
 	// clear out the data at 0,0 - this space won't be used for anything.
-	cOpactiy_Map.SetElement(0,0,0.0);
+	cOpactiy_Map.Zero();
+//	cOpactiy_Map.SetElement(0,0,0.0);
 
 	FILE * fileOP_Map = fopen("opacity_map_ejecta_Si.csv","wt");
 	if (fileOP_Map)
@@ -1127,7 +1130,8 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 			{
 				cOpactiy_Map.SetElement(0,uiI + 1,dVelocity_Range_Grid[0] + dDelta_V_Grid * uiI);
 			}
-			cOpactiy_Map.SetElement(uiT + 1,uiI + 1,lpdOpacity_Map_Combined[uiT][uiI]);
+			if (lpdOpacity_Map_Combined[uiT][uiI] != 0.0)
+				cOpactiy_Map.SetElement(uiT + 1,uiI + 1,lpdOpacity_Map_Combined[uiT][uiI]);
 		}
 	}
 	double	dShell_Max = -100.0, dEjecta_Max = -100.0;
