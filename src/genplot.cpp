@@ -861,6 +861,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				double dWidth = 2.0;
 				double dX_Offset = 0.0;
 				double dY_Offset = 0.0;
+				double	dX_Multiplier = 1.0;
+				double	dY_Multiplier = 1.0;
 				const char * lpszX_Axis_ID = NULL;
 				const char * lpszY_Axis_ID = NULL;
 				const char * lpszCaption_Text = NULL;
@@ -899,6 +901,14 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						else if (strcmp(lpCurr_Attr->name,"yoffset") == 0)
 						{
 							dY_Offset = Attr_Get_Double(lpCurr_Attr,0.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"xmult") == 0)
+						{
+							dX_Multiplier = Attr_Get_Double(lpCurr_Attr,1.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"ymult") == 0)
+						{
+							dY_Multiplier = Attr_Get_Double(lpCurr_Attr,1.0);
 						}
 						else if (strcmp(lpCurr_Attr->name,"xaxisid") == 0)
 						{
@@ -1045,8 +1055,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 											if (!cSF_Data.IsElementEmpty(uiX_Column,uiI) && !cSF_Data.IsElementEmpty(uiY_Column,uiI))
 											{
 												epsplot::eps_pair cPair;
-												cPair.m_dX = cSF_Data.GetElement(uiX_Column,uiI) + dX_Offset;
-												cPair.m_dY = cSF_Data.GetElement(uiY_Column,uiI) + dY_Offset;
+												cPair.m_dX = (cSF_Data.GetElement(uiX_Column,uiI) + dX_Offset) * dX_Multiplier;
+												cPair.m_dY = (cSF_Data.GetElement(uiY_Column,uiI) + dY_Offset) * dY_Multiplier;
 												cData.push_back(cPair);
 											}
 										}
@@ -1074,11 +1084,11 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 										{
 											if (strcmp(lpCurr_Attr->name,"x") == 0)
 											{
-												cPair.m_dX = Attr_Get_Double(lpCurr_Attr,0.0);
+												cPair.m_dX = (Attr_Get_Double(lpCurr_Attr,0.0) + dX_Offset) * dX_Multiplier;
 											}
 											else if (strcmp(lpCurr_Attr->name,"y") == 0)
 											{
-												cPair.m_dY = Attr_Get_Double(lpCurr_Attr,0.0);
+												cPair.m_dY = (Attr_Get_Double(lpCurr_Attr,0.0) + dY_Offset) * dY_Multiplier;
 											}
 											lpCurr_Attr = lpCurr_Attr->next;
 										}
@@ -1092,6 +1102,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 								const char * lpszDirection = NULL, * lpszType = NULL, *lpszColor = NULL, *lpszStyle = NULL;
 								double dSize = 4.0;
 								double dWidth = 1.0;
+								double dMultiplier;
 								if (lpData_Node->properties)
 								{
 									xmlAttr * lpCurr_Attr = lpData_Node->properties;
@@ -1141,6 +1152,10 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 									printf("style %s\n",lpszStyle);
 									cErrorbar_Line_Parameters[uiEB_Idx].m_eStipple = cStipple_Map[std::string(lpszStyle)];
 								}
+								if (uiEB_Idx == 0 || uiEB_Idx == 1)
+									dMultiplier = dX_Multiplier;
+								else
+									dMultiplier = dY_Multiplier;
 
 
 								cErrorbar_Parameters[uiEB_Idx].m_eDirection = (epsplot::ERRORBAR_DIRECTION)(uiEB_Idx + epsplot::ERRORBAR_X_LEFT);
@@ -1183,7 +1198,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 													{
 														if (!cSF_Data.IsElementEmpty(uiCol_ID,uiI))
 														{
-															cErrorbar_Data[uiEB_Idx].push_back(cSF_Data.GetElement(uiCol_ID,uiI));
+															cErrorbar_Data[uiEB_Idx].push_back(cSF_Data.GetElement(uiCol_ID,uiI)*dMultiplier);
 														}
 													}
 												}
@@ -1213,7 +1228,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 													{
 														while (lpszValue[0] == 10 || lpszValue[0] == 13 || lpszValue[0] == ' ' || lpszValue[0] == '\t')
 															lpszValue++;
-														cErrorbar_Data[uiEB_Idx].push_back(atof(lpszValue));
+														cErrorbar_Data[uiEB_Idx].push_back(atof(lpszValue)*dMultiplier);
 													}
 													lpCurr_Tuple = lpCurr_Tuple->next;
 												}

@@ -47,6 +47,8 @@
 	symboloutlinewidth CDATA #IMPLIED
 	yoffset	CDATA #IMPLIED 
 	xoffset CDATA #IMPLIED
+	ymult	CDATA #IMPLIED
+	xmult	CDATA #IMPLIED
 	xaxisid	CDATA #IMPLIED
 	yaxisid CDATA #IMPLIED
 >
