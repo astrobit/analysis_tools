@@ -764,6 +764,7 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 	double	dAbd_Dens_Max = 0.0;
 	double	dAbd_Max;
 	double	dAbd_Dens;
+	double dInv_Delta_Vel = 1.0 / i_dDelta_Vel_Bin;
 	memset(o_lpdOpacity_Map,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
 
 //	uiI = 0;
@@ -817,20 +818,22 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 		{
 			double dBin_Lower = (uiBin - 0.5) * i_dDelta_Vel_Bin + i_lpdVelocity_Range[0];
 			double dBin_Upper = (uiBin + 0.5) * i_dDelta_Vel_Bin + i_lpdVelocity_Range[0];
+			double dBin_Portion = 0.0;
 			if (dBin_Lower <= dVlower && dVlower <= dBin_Upper && dBin_Lower <= dVupper && dVupper <= dBin_Upper)
 			{
-				dMult = fabs(dVupper - dVlower) / i_dDelta_Vel_Bin;
+				dBin_Portion = fabs(dVupper - dVlower);
 			}
 			else if (dBin_Lower <= dVlower && dVlower <= dBin_Upper)
 			{
-				dMult = 1.0 - (dVlower - dBin_Lower) / i_dDelta_Vel_Bin;
+				dBin_Portion = (dBin_Upper - dVlower);
 			}
 			else if (dBin_Lower <= dVupper && dVupper <= dBin_Upper)
 			{
-				dMult = (dVupper - dBin_Lower) / i_dDelta_Vel_Bin;
+				dBin_Portion = (dVupper - dBin_Lower);
 			}
 			else
-				dMult = 1.0;
+				dBin_Portion = i_dDelta_Vel_Bin;
+			dMult = dBin_Portion * dInv_Delta_Vel;
 
 			//printf("%i [%i - %i] (%f,%f):(%f,%f):%f\n",uiBin, uiBin_Lower, uiBin_Upper, dVlower,dVupper,dBin_Lower,dBin_Upper,dMult,dDens*dAbd*dMult);
 			o_lpdOpacity_Map[uiBin] += dMult * dAbd * dDens;
@@ -847,13 +850,18 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 
 	}
 	//printf("First while\n");
-	unsigned int uiBin_Ref = uiAbd_Max_Bin;//(i_dV_Ref - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
+//	unsigned int uiBin_Ref = uiAbd_Max_Bin;//(i_dV_Ref - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
 	//printf("bin ref  = %.2e %.2e %.2e %i (%i)\n",i_dV_Ref,i_lpdVelocity_Range[0],i_dDelta_Vel_Bin,uiBin_Ref,i_uiVel_Grid_Data_Points);
-	if (uiBin_Ref < i_uiVel_Grid_Data_Points)// < i_dV_Ref);
+//	if (uiBin_Ref < i_uiVel_Grid_Data_Points)// < i_dV_Ref);
 	{
 		//printf("Dest bin != 0\n");
-		double dRef_Mult = o_lpdOpacity_Map[uiBin_Ref];
-
+		double dRef_Mult = 0.0;// = o_lpdOpacity_Map[uiBin_Ref];
+		for (uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
+		{
+//			o_lpdOpacity_Map[uiI] /= lpdAdder[uiI];
+			if (o_lpdOpacity_Map[uiI] > dRef_Mult)
+				dRef_Mult = o_lpdOpacity_Map[uiI];
+		}
 		o_cOP_Data.Set_Velocity(i_eGroup,i_lpdVelocity_Range[0] + i_dDelta_Vel_Bin * uiAbd_Max_Bin);
 		o_cOP_Data.Set_Scalar(i_eGroup,dRef_Mult);
 		o_cOP_Data.Set_Abundance(i_eGroup,dAbd_Max);
@@ -869,7 +877,7 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 //					o_lpdOpacity_Map[uiT][uiI] = 0.0;
 		}
 	}
-	else // 
+/*	else // 
 	{
 		o_cOP_Data.Set_Velocity(i_eGroup,0.0);
 		o_cOP_Data.Set_Scalar(i_eGroup,0.0);
@@ -877,7 +885,7 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 		o_cOP_Data.Set_Density(i_eGroup,0.0);
 		o_cOP_Data.Set_Normalization_Time(i_eGroup,0.0);
 		memset(o_lpdOpacity_Map,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
-	}
+	}*/
 }
 
 void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiVel_Grid_Data_Points, 
