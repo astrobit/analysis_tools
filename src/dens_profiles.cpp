@@ -850,19 +850,24 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 
 	}
 	//printf("First while\n");
-//	unsigned int uiBin_Ref = uiAbd_Max_Bin;//(i_dV_Ref - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
+	unsigned int uiBin_Ref = uiAbd_Max_Bin;//(i_dV_Ref - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
 	//printf("bin ref  = %.2e %.2e %.2e %i (%i)\n",i_dV_Ref,i_lpdVelocity_Range[0],i_dDelta_Vel_Bin,uiBin_Ref,i_uiVel_Grid_Data_Points);
-//	if (uiBin_Ref < i_uiVel_Grid_Data_Points)// < i_dV_Ref);
+	if (uiBin_Ref < i_uiVel_Grid_Data_Points)// < i_dV_Ref);
 	{
 		//printf("Dest bin != 0\n");
-		double dRef_Mult = 0.0;// = o_lpdOpacity_Map[uiBin_Ref];
+		double dRef_Mult = o_lpdOpacity_Map[uiBin_Ref];
+/*		unsigned int uiBin_Peak = 0;
 		for (uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
 		{
 //			o_lpdOpacity_Map[uiI] /= lpdAdder[uiI];
 			if (o_lpdOpacity_Map[uiI] > dRef_Mult)
+			{
 				dRef_Mult = o_lpdOpacity_Map[uiI];
-		}
-		o_cOP_Data.Set_Velocity(i_eGroup,i_lpdVelocity_Range[0] + i_dDelta_Vel_Bin * uiAbd_Max_Bin);
+				uiBin_Peak = uiI;
+			}
+		}*/
+
+		o_cOP_Data.Set_Velocity(i_eGroup,i_lpdVelocity_Range[0] + i_dDelta_Vel_Bin * uiBin_Ref);
 		o_cOP_Data.Set_Scalar(i_eGroup,dRef_Mult);
 		o_cOP_Data.Set_Abundance(i_eGroup,dAbd_Max);
 		o_cOP_Data.Set_Density(i_eGroup,dAbd_Density);
@@ -877,7 +882,7 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 //					o_lpdOpacity_Map[uiT][uiI] = 0.0;
 		}
 	}
-/*	else // 
+	else // 
 	{
 		o_cOP_Data.Set_Velocity(i_eGroup,0.0);
 		o_cOP_Data.Set_Scalar(i_eGroup,0.0);
@@ -885,7 +890,7 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 		o_cOP_Data.Set_Density(i_eGroup,0.0);
 		o_cOP_Data.Set_Normalization_Time(i_eGroup,0.0);
 		memset(o_lpdOpacity_Map,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
-	}*/
+	}
 }
 
 void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiVel_Grid_Data_Points, 
