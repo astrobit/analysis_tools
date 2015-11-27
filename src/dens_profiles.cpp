@@ -903,7 +903,7 @@ void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiVel_Grid_
 	o_cOpacity_Map.Zero();
 	//o_cOpacity_Map.SetElement(0,0,0.0);
 
-	o_cOpacity_Map.SetElement(1,0,g_dTime_Ref);
+	o_cOpacity_Map.SetElement(1,0,g_dTime_Ref / 86400.0);
 	for (unsigned int uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
 	{
 		o_cOpacity_Map.SetElement(0,uiI + 1,i_lpdVelocity_Range_Grid[0] + i_dDelta_V_Grid * uiI);
