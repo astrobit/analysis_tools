@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest
 
 .PHONY: all
 
@@ -277,6 +277,10 @@ $(BINDIR)/gather_photometry: $(SRCDIR)/gather_photometry.cpp $(XLIBSCHANGE)
 gather_scalars: $(BINDIR)/gather_scalars
 $(BINDIR)/gather_scalars: $(SRCDIR)/gather_scalars.cpp
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_scalars.cpp -o $(BINDIR)/gather_scalars
+
+opmaptest: $(BINDIR)/opmaptest
+$(BINDIR)/opmaptest: $(SRCDIR)/opacity_map_test.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/opacity_map_test.cpp  -llinerout -lxio -lxstdlib -o $(BINDIR)/opmaptest
 
 clean:
 	-rm $(BINDIR)/*

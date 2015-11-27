@@ -15,6 +15,13 @@
 
 double	g_dTime_Ref = 0.0;
 
+inline void Swap(double & io_dA, double & io_dB)
+{
+	double	dTemp = io_dA;
+	io_dA = io_dB;
+	io_dB = dTemp;
+}
+
 template <typename T> T** new2d(unsigned int i_uiA, unsigned int i_uiB)
 {
 	T** tRet;
@@ -746,22 +753,22 @@ void Determine_Photosphere(const double & i_dPhotosphere_Reference_Velocity,
 		o_uiPS_Idx[1] = i_uiTime_Grid_Data_Points - 1;
 }
 
-void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const XDATASET i_cData, unsigned int i_uiTime_Grid_Data_Points, unsigned int i_uiVel_Grid_Data_Points,
-	const double * i_lpdDay, unsigned int i_uiVelocity_Idx, unsigned int i_uiV_Lower_Face_Idx, unsigned int i_uiV_Upper_Face_Idx, 
-	unsigned int * i_lpuiElement_Group_Idx, unsigned int i_uiNum_Element_Group, unsigned int i_uiDensity_Idx, const double i_lpdVelocity_Range[2], const double & i_dDelta_Vel_Bin,
-	unsigned int i_uiTime_Ref_Idx, const double * i_lpdV_ps, OPACITY_PROFILE_DATA & o_cOP_Data, OPACITY_PROFILE_DATA::GROUP i_eGroup)
+void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigned int i_uiVel_Grid_Data_Points,
+	unsigned int i_uiVelocity_Idx, unsigned int i_uiV_Lower_Face_Idx, unsigned int i_uiV_Upper_Face_Idx, 
+	unsigned int * i_lpuiElement_Group_Idx, unsigned int i_uiNum_Element_Group, unsigned int i_uiDensity_Idx, const double i_lpdVelocity_Range[2], const double & i_dDelta_Vel_Bin, const double & i_dReference_Time,
+	OPACITY_PROFILE_DATA & o_cOP_Data, OPACITY_PROFILE_DATA::GROUP i_eGroup)
 {
-	unsigned int uiI, uiT;
+	unsigned int uiI;
 	unsigned int uiAbd_Max_Bin = 0;
 	double	dAbd_Density;
 	double	dAbd_Dens_Max = 0.0;
 	double	dAbd_Max;
 	double	dAbd_Dens;
-	for (uiT = 0; uiT < i_uiTime_Grid_Data_Points; uiT++)
-		memset(o_lpdOpacity_Map[uiT],0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
+	memset(o_lpdOpacity_Map,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
 
-	uiI = 0;
-	while (uiI < i_cData.GetNumElements())
+//	uiI = 0;
+//	while (uiI < i_cData.GetNumElements())
+	for (uiI = 0; uiI < i_cData.GetNumElements(); uiI++)
 	{
 		double dVel = i_cData.GetElement(i_uiVelocity_Idx,uiI);
 //			double dV_upper = i_cData.GetElement(i_uiVelocity_Idx,uiI);
@@ -786,15 +793,12 @@ void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const 
 		double	dMult = 1.0;
 		if (dVlower < 0.0)
 			dVlower = 0.0;
+		
 		if (dVlower > dVupper)
-		{
-			double dTemp = dVupper;
-			dVupper = dVlower;
-			dVlower = dTemp;
-		}
+			Swap(dVlower,dVupper);
 //			printf("%.2e %.2e %.2e %.2e\n",dVlower,dVupper,i_lpdVelocity_Range[0],i_dDelta_Vel_Bin);
-		unsigned int uiBin_Lower = (dVlower - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
-		unsigned int uiBin_Upper = (dVupper - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
+		unsigned int uiBin_Lower = (dVlower - (i_lpdVelocity_Range[0] - i_dDelta_Vel_Bin * 0.5)) / i_dDelta_Vel_Bin;
+		unsigned int uiBin_Upper = (dVupper - (i_lpdVelocity_Range[0] - i_dDelta_Vel_Bin * 0.5)) / i_dDelta_Vel_Bin;
 		if (dVlower < i_lpdVelocity_Range[0] || dVupper < i_lpdVelocity_Range[0])
 		{
 			uiBin_Lower = 0; // this can happen because range values are at bin center
@@ -809,7 +813,7 @@ void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const 
 			uiBin_Upper = i_uiVel_Grid_Data_Points - 1;
 //			printf("%i %i\n",uiBin_Lower,uiBin_Upper);
 		double dDens = i_cData.GetElement(i_uiDensity_Idx,uiI);
-		for (unsigned int uiBin = uiBin_Lower; uiBin <= uiBin_Upper && uiBin < (i_uiVel_Grid_Data_Points - 1); uiBin++)
+		for (int uiBin = uiBin_Lower; uiBin <= uiBin_Upper && uiBin < (i_uiVel_Grid_Data_Points - 1); uiBin++)
 		{
 			double dBin_Lower = (uiBin - 0.5) * i_dDelta_Vel_Bin + i_lpdVelocity_Range[0];
 			double dBin_Upper = (uiBin + 0.5) * i_dDelta_Vel_Bin + i_lpdVelocity_Range[0];
@@ -828,11 +832,8 @@ void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const 
 			else
 				dMult = 1.0;
 
-			for (uiT = 0; uiT < i_uiTime_Grid_Data_Points; uiT++)
-			{
-				double dTime_s = i_lpdDay[uiT] * (24.0 * 3600.0);
-				o_lpdOpacity_Map[uiT][uiBin] += dMult * dAbd * dDens * pow(dTime_s,-2.0);
-			}
+			//printf("%i [%i - %i] (%f,%f):(%f,%f):%f\n",uiBin, uiBin_Lower, uiBin_Upper, dVlower,dVupper,dBin_Lower,dBin_Upper,dMult,dDens*dAbd*dMult);
+			o_lpdOpacity_Map[uiBin] += dMult * dAbd * dDens;
 		}
 		dAbd_Dens = dAbd * dDens;
 
@@ -844,7 +845,6 @@ void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const 
 			dAbd_Density = dDens;
 		}
 
-		uiI++;
 	}
 	//printf("First while\n");
 	unsigned int uiBin_Ref = uiAbd_Max_Bin;//(i_dV_Ref - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
@@ -852,24 +852,21 @@ void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const 
 	if (uiBin_Ref < i_uiVel_Grid_Data_Points)// < i_dV_Ref);
 	{
 		//printf("Dest bin != 0\n");
-		double dRef_Mult = o_lpdOpacity_Map[i_uiTime_Grid_Data_Points - 1][uiBin_Ref];
+		double dRef_Mult = o_lpdOpacity_Map[uiBin_Ref];
 
 		o_cOP_Data.Set_Velocity(i_eGroup,i_lpdVelocity_Range[0] + i_dDelta_Vel_Bin * uiAbd_Max_Bin);
 		o_cOP_Data.Set_Scalar(i_eGroup,dRef_Mult);
 		o_cOP_Data.Set_Abundance(i_eGroup,dAbd_Max);
 		o_cOP_Data.Set_Density(i_eGroup,dAbd_Density);
-		o_cOP_Data.Set_Normalization_Time(i_eGroup,i_lpdDay[i_uiTime_Grid_Data_Points - 1] * (24.0 * 3600.0));
+		o_cOP_Data.Set_Normalization_Time(i_eGroup,i_dReference_Time);
 		double dRef = 1.0 / dRef_Mult;
 		for (uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
 		{
-			for (uiT = 0; uiT < i_uiTime_Grid_Data_Points; uiT++)
-			{
 //				double dVel = (uiI * i_dDelta_Vel_Bin + i_lpdVelocity_Range[0]) * 1e-8;
 				// normalize to reference time
-				o_lpdOpacity_Map[uiT][uiI] *= dRef;
+				o_lpdOpacity_Map[uiI] *= dRef;
 //				if (dVel < i_lpdV_ps[uiT])
 //					o_lpdOpacity_Map[uiT][uiI] = 0.0;
-			}
 		}
 	}
 	else // 
@@ -879,34 +876,26 @@ void Fill_Opacity_Map(const double &i_dV_Ref, double ** o_lpdOpacity_Map, const 
 		o_cOP_Data.Set_Abundance(i_eGroup,0.0);
 		o_cOP_Data.Set_Density(i_eGroup,0.0);
 		o_cOP_Data.Set_Normalization_Time(i_eGroup,0.0);
-		for (uiI = 0; uiI < i_uiTime_Grid_Data_Points; uiI++)
-		{
-			memset(o_lpdOpacity_Map[uiI],0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
-		}
+		memset(o_lpdOpacity_Map,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
 	}
 }
 
-
-void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiTime_Grid_Data_Points, unsigned int i_uiVel_Grid_Data_Points, 
-	const double * i_lpdDay, const double * i_lpdVelocity_Range_Grid, const double & i_dDelta_V_Grid, 
-	const double ** i_lpdOpacity_Map_Data,	const char * i_lpszMap_Component, const char * i_lpszMap_Element_Group)
+void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiVel_Grid_Data_Points, 
+	const double * i_lpdVelocity_Range_Grid, const double & i_dDelta_V_Grid, 
+	const double * i_lpdOpacity_Map_Data,	const char * i_lpszMap_Component, const char * i_lpszMap_Element_Group)
 {
 	char lpszFilename[128];
-	o_cOpacity_Map.Allocate(i_uiTime_Grid_Data_Points + 1,i_uiVel_Grid_Data_Points+1);
+	o_cOpacity_Map.Allocate(2,i_uiVel_Grid_Data_Points+1);
 	// clear out the data at 0,0 - this space won't be used for anything.
 	o_cOpacity_Map.Zero();
 	//o_cOpacity_Map.SetElement(0,0,0.0);
 
-	for (unsigned int uiT = 0; uiT < i_uiTime_Grid_Data_Points; uiT++)
+	o_cOpacity_Map.SetElement(1,0,g_dTime_Ref);
+	for (unsigned int uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
 	{
-		o_cOpacity_Map.SetElement(uiT + 1,0,i_lpdDay[uiT]);
-		for (unsigned int uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
-		{
-			if (uiT == 0)
-				o_cOpacity_Map.SetElement(0,uiI + 1,i_lpdVelocity_Range_Grid[0] + i_dDelta_V_Grid * uiI);
-			if (i_lpdOpacity_Map_Data[uiT][uiI] != 0.0) // leave empty cell flag set if no opacity at a given velocity
-				o_cOpacity_Map.SetElement(uiT + 1,uiI + 1,i_lpdOpacity_Map_Data[uiT][uiI]);
-		}
+		o_cOpacity_Map.SetElement(0,uiI + 1,i_lpdVelocity_Range_Grid[0] + i_dDelta_V_Grid * uiI);
+		if (i_lpdOpacity_Map_Data[uiI] != 0.0) // leave empty cell flag set if no opacity at a given velocity
+			o_cOpacity_Map.SetElement(1,uiI + 1,i_lpdOpacity_Map_Data[uiI]);
 	}
 	if (i_lpszMap_Element_Group)
 		sprintf(lpszFilename,"opacity_map_%s.%s.xdataset",i_lpszMap_Component,i_lpszMap_Element_Group);
@@ -919,7 +908,7 @@ void Save_Opacity_Map_Data(XDATASET & o_cOpacity_Map, unsigned int i_uiTime_Grid
 void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_cShell, unsigned int i_uiNumber, const char * i_lpszTitle)
 {
 #define VEL_GRID_DATA_POINTS	2048
-#define TIME_GRID_DATA_POINTS	128
+//#define TIME_GRID_DATA_POINTS	128
 	FILE * fileOut;
 	char lpszFilename[128];
 	XDATASET cOpactiy_Map;
@@ -935,14 +924,14 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 	double fLgnd_Width,fLgnd_Height;
 
 	unsigned int uiI, uiT;
-	double	lpdDay[TIME_GRID_DATA_POINTS];
-	double	lpdV_ps[TIME_GRID_DATA_POINTS];
-	double	lpdV_hvf[TIME_GRID_DATA_POINTS];
-	double	lpdObs_Const_2[TIME_GRID_DATA_POINTS];
-	double	lpdObs_Const_3[TIME_GRID_DATA_POINTS];
-	double	** lpdOpacity_Map_Shell = NULL;
-	double	** lpdOpacity_Map_Ejecta = NULL;
-	double	** lpdOpacity_Map_Combined = NULL;
+//	double	lpdDay[TIME_GRID_DATA_POINTS];
+//	double	lpdV_ps[TIME_GRID_DATA_POINTS];
+//	double	lpdV_hvf[TIME_GRID_DATA_POINTS];
+//	double	lpdObs_Const_2[TIME_GRID_DATA_POINTS];
+//	double	lpdObs_Const_3[TIME_GRID_DATA_POINTS];
+	double	* lpdOpacity_Map_Shell = NULL;
+	double	* lpdOpacity_Map_Ejecta = NULL;
+	double	* lpdOpacity_Map_Combined = NULL;
 
 	unsigned int uiTime_Ref_Idx = 96;
 
@@ -1005,43 +994,43 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 		dVelocity_Range_Grid[0] = dDelta_V_Grid * 0.5;
 	}
 
-	double	dTime_Const = 32.0 / TIME_GRID_DATA_POINTS;
+//	double	dTime_Const = 32.0 / TIME_GRID_DATA_POINTS;
 	// Initialize variables
-	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
-	{
-		lpdDay[uiT] = uiT * dTime_Const + 1.0;
-		lpdV_ps[uiT] = -1.0;
-		lpdV_hvf[uiT] = -1.0;
-		lpdObs_Const_2[uiT] = 15.0 * pow(lpdDay[uiT] / 25.0,-0.2);
-		lpdObs_Const_3[uiT] = 20.0 * pow(lpdDay[uiT] / 25.0,-0.3);
-	}
+//	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
+//	{
+//		lpdDay[uiT] = uiT * dTime_Const + 1.0;
+//		lpdV_ps[uiT] = -1.0;
+//		lpdV_hvf[uiT] = -1.0;
+//		lpdObs_Const_2[uiT] = 15.0 * pow(lpdDay[uiT] / 25.0,-0.2);
+//		lpdObs_Const_3[uiT] = 20.0 * pow(lpdDay[uiT] / 25.0,-0.3);
+//	}
 
 	// Call routine to fill the lpdV_ps variable with the photosphere information
 //	printf("photosphere\n");
-	Determine_Photosphere(11.5e8, i_cEjecta, i_cShell, uiVelocity_Idx, uiDelta_Radius_Idx, uiDensity_Idx, TIME_GRID_DATA_POINTS, uiTime_Ref_Idx, lpdDay, lpdV_ps, uiPS_Idx);
+//	Determine_Photosphere(11.5e8, i_cEjecta, i_cShell, uiVelocity_Idx, uiDelta_Radius_Idx, uiDensity_Idx, TIME_GRID_DATA_POINTS, uiTime_Ref_Idx, lpdDay, lpdV_ps, uiPS_Idx);
 
 
 	// Output the photospere information to a file
-	sprintf(lpszFilename,"velocity_evolution_simulation_%04i.csv",i_uiNumber);
-	fileOut = fopen(lpszFilename,"wt");
-	fprintf(fileOut,"t,PS\n");
-	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
-	{
-		fprintf(fileOut,"%.2f, ", lpdDay[uiT]);
-		if (lpdV_ps[uiT] > 0.0)
-			fprintf(fileOut,"%.17e",lpdV_ps[uiT]);
-		fprintf(fileOut,"\n");
-	}
-	fclose(fileOut);
+//	sprintf(lpszFilename,"velocity_evolution_simulation_%04i.csv",i_uiNumber);
+//	fileOut = fopen(lpszFilename,"wt");
+//	fprintf(fileOut,"t,PS\n");
+//	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
+//	{
+//		fprintf(fileOut,"%.2f, ", lpdDay[uiT]);
+//		if (lpdV_ps[uiT] > 0.0)
+//			fprintf(fileOut,"%.17e",lpdV_ps[uiT]);
+//		fprintf(fileOut,"\n");
+//	}
+//	fclose(fileOut);
 
 //	printf("grid alloc\n");
 	//@@TODO implement imagemapping
 //	plAlloc2dGrid( &lpdOpacity_Map_Shell, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS );
-	lpdOpacity_Map_Shell = new2d<double>(TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS);
+	lpdOpacity_Map_Shell = new double[VEL_GRID_DATA_POINTS];
 //	plAlloc2dGrid( &lpdOpacity_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS );
-	lpdOpacity_Map_Ejecta = new2d<double>(TIME_GRID_DATA_POINTS,  VEL_GRID_DATA_POINTS);
+	lpdOpacity_Map_Ejecta = new double[VEL_GRID_DATA_POINTS];
 //	plAlloc2dGrid( &lpdOpacity_Map_Combined, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS );
-	lpdOpacity_Map_Combined = new2d<double>(TIME_GRID_DATA_POINTS,  VEL_GRID_DATA_POINTS);
+	lpdOpacity_Map_Combined = new double[VEL_GRID_DATA_POINTS];
 
 //	printf("fill ejecta map\n");
 //	double	dRef_Mult[6] = {0,0,0,0,0,0};
@@ -1052,55 +1041,58 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 	cOP_Data.Set_Abundance(OPACITY_PROFILE_DATA::SILICON,0.0);
 
 //	printf("Filling opacities - Mg\n");
-	Fill_Opacity_Map(11.5e8, lpdOpacity_Map_Ejecta, i_cEjecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS,
-				lpdDay, uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
+	Fill_Opacity_Map(lpdOpacity_Map_Ejecta, i_cEjecta, VEL_GRID_DATA_POINTS,
+				uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
 				uiMagnesium_Group_Idx, uiMagnesium_Group_Size, uiDensity_Idx,
-				dVelocity_Range_Grid, dDelta_V_Grid, uiTime_Ref_Idx,lpdV_ps,cOP_Data,OPACITY_PROFILE_DATA::MAGNESIUM);
-	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS, lpdDay, dVelocity_Range_Grid,
-				dDelta_V_Grid, (const double **) lpdOpacity_Map_Ejecta, "ejecta", "Mg");
+				dVelocity_Range_Grid, dDelta_V_Grid, g_dTime_Ref, cOP_Data, OPACITY_PROFILE_DATA::MAGNESIUM);
+	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, VEL_GRID_DATA_POINTS, dVelocity_Range_Grid,
+				dDelta_V_Grid, (const double *) lpdOpacity_Map_Ejecta, "ejecta", "Mg");
 //	printf("Filling opacities - Fe\n");
-	Fill_Opacity_Map(11.5e8, lpdOpacity_Map_Ejecta, i_cEjecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS,
-				lpdDay, uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
-				uiIron_Group_Idx, uiIron_Group_Size, uiDensity_Idx, dVelocity_Range_Grid,dDelta_V_Grid,
-				uiTime_Ref_Idx,lpdV_ps,cOP_Data,OPACITY_PROFILE_DATA::IRON);
-	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS, lpdDay, dVelocity_Range_Grid,
-				dDelta_V_Grid, (const double **) lpdOpacity_Map_Ejecta, "ejecta", "Fe");
+	Fill_Opacity_Map(lpdOpacity_Map_Ejecta, i_cEjecta, VEL_GRID_DATA_POINTS,
+				uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
+				uiIron_Group_Idx, uiIron_Group_Size, uiDensity_Idx,
+				dVelocity_Range_Grid, dDelta_V_Grid, g_dTime_Ref, cOP_Data, OPACITY_PROFILE_DATA::IRON);
+	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, VEL_GRID_DATA_POINTS, dVelocity_Range_Grid,
+				dDelta_V_Grid, (const double *) lpdOpacity_Map_Ejecta, "ejecta", "Fe");
 //	printf("Filling opacities - C\n");
-	Fill_Opacity_Map(11.5e8, lpdOpacity_Map_Ejecta, i_cEjecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS,
-				lpdDay, uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
-				&uiCarbon_Idx, 1, uiDensity_Idx, dVelocity_Range_Grid,dDelta_V_Grid,
-				uiTime_Ref_Idx,lpdV_ps,cOP_Data,OPACITY_PROFILE_DATA::CARBON);
-	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS, lpdDay, dVelocity_Range_Grid,
-				dDelta_V_Grid, (const double **) lpdOpacity_Map_Ejecta, "ejecta", "C");
+	Fill_Opacity_Map(lpdOpacity_Map_Ejecta, i_cEjecta, VEL_GRID_DATA_POINTS,
+				uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
+				&uiCarbon_Idx, 1, uiDensity_Idx,
+				dVelocity_Range_Grid, dDelta_V_Grid, g_dTime_Ref, cOP_Data, OPACITY_PROFILE_DATA::CARBON);
+
+	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, VEL_GRID_DATA_POINTS, dVelocity_Range_Grid,
+				dDelta_V_Grid, (const double *) lpdOpacity_Map_Ejecta, "ejecta", "C");
 //	printf("Filling opacities - O\n");
-	Fill_Opacity_Map(11.5e8, lpdOpacity_Map_Ejecta, i_cEjecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS,
-				lpdDay, uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
-				&uiOxygen_Idx, 1, uiDensity_Idx, dVelocity_Range_Grid,dDelta_V_Grid,
-				uiTime_Ref_Idx,lpdV_ps,cOP_Data,OPACITY_PROFILE_DATA::OXYGEN);
-	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS, lpdDay, dVelocity_Range_Grid,
-				dDelta_V_Grid, (const double **) lpdOpacity_Map_Ejecta, "ejecta", "O");
+	Fill_Opacity_Map(lpdOpacity_Map_Ejecta, i_cEjecta, VEL_GRID_DATA_POINTS,
+				uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
+				&uiOxygen_Idx, 1, uiDensity_Idx,
+				dVelocity_Range_Grid, dDelta_V_Grid, g_dTime_Ref, cOP_Data, OPACITY_PROFILE_DATA::OXYGEN);
+	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, VEL_GRID_DATA_POINTS, dVelocity_Range_Grid,
+				dDelta_V_Grid, (const double *) lpdOpacity_Map_Ejecta, "ejecta", "O");
 	
 //	printf("Filling opacities - Si\n");
-	Fill_Opacity_Map(11.5e8, lpdOpacity_Map_Ejecta, i_cEjecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS,
-				lpdDay, uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
+	Fill_Opacity_Map(lpdOpacity_Map_Ejecta, i_cEjecta, VEL_GRID_DATA_POINTS,
+				uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
 				uiSilicon_Group_Idx, uiSilicon_Group_Size, uiDensity_Idx,
-				dVelocity_Range_Grid, dDelta_V_Grid,	uiTime_Ref_Idx,lpdV_ps,cOP_Data,OPACITY_PROFILE_DATA::SILICON);
-	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS, lpdDay,
-				dVelocity_Range_Grid, dDelta_V_Grid, (const double **) lpdOpacity_Map_Ejecta, "ejecta", "Si");
+				dVelocity_Range_Grid, dDelta_V_Grid, g_dTime_Ref, cOP_Data, OPACITY_PROFILE_DATA::SILICON);
+
+	Save_Opacity_Map_Data(cOpactiy_Map_Ejecta, VEL_GRID_DATA_POINTS, dVelocity_Range_Grid,
+				dDelta_V_Grid, (const double *) lpdOpacity_Map_Ejecta, "ejecta", "Si");
 //	printf("fill shell map\n");
 	if (i_cShell.GetNumElements() > 0)
 	{
 //		printf("Filling opacities - Shell\n");
-		Fill_Opacity_Map(18.5e8,lpdOpacity_Map_Shell, i_cShell, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS,
-					lpdDay, uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
-					NULL, 0, uiDensity_Idx, dVelocity_Range_Grid,dDelta_V_Grid,
-					uiTime_Ref_Idx,lpdV_ps,cOP_Data,OPACITY_PROFILE_DATA::SHELL);
-		Save_Opacity_Map_Data(cOpactiy_Map_Shell, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS, lpdDay, 
-					dVelocity_Range_Grid, dDelta_V_Grid, (const double **) lpdOpacity_Map_Shell, "shell", NULL);
+		Fill_Opacity_Map(lpdOpacity_Map_Shell, i_cShell, VEL_GRID_DATA_POINTS,
+				uiVelocity_Idx, uiV_Lower_Face_Idx,uiV_Upper_Face_Idx, 
+				NULL, 0, uiDensity_Idx,
+				dVelocity_Range_Grid, dDelta_V_Grid, g_dTime_Ref, cOP_Data, OPACITY_PROFILE_DATA::SHELL);
+
+		Save_Opacity_Map_Data(cOpactiy_Map_Shell, VEL_GRID_DATA_POINTS, dVelocity_Range_Grid,
+					dDelta_V_Grid, (const double *) lpdOpacity_Map_Shell, "shell", NULL);
 	}
 
 
-	cOpactiy_Map.Allocate(TIME_GRID_DATA_POINTS + 1,VEL_GRID_DATA_POINTS+1);
+	cOpactiy_Map.Allocate(2,VEL_GRID_DATA_POINTS+1);
 	// clear out the data at 0,0 - this space won't be used for anything.
 	cOpactiy_Map.Zero();
 //	cOpactiy_Map.SetElement(0,0,0.0);
@@ -1108,56 +1100,50 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 	FILE * fileOP_Map = fopen("opacity_map_ejecta_Si.csv","wt");
 	if (fileOP_Map)
 	{
-		fprintf(fileOP_Map,"Velocity, Tau(t = 1d), Tau(t = 32.75d)\n");
+		fprintf(fileOP_Map,"Velocity, Tau(t = ref)\n");
 		for (unsigned int uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
 		{
-			fprintf(fileOP_Map,"%.17e, %.17e, %.17e\n",dDelta_V_Grid * uiI + dVelocity_Range_Grid[0],lpdOpacity_Map_Ejecta[0][uiI],lpdOpacity_Map_Ejecta[TIME_GRID_DATA_POINTS - 1][uiI]);
+			fprintf(fileOP_Map,"%.17e, %.17e\n",dDelta_V_Grid * uiI + dVelocity_Range_Grid[0], lpdOpacity_Map_Ejecta[uiI]);
 		}
 		fclose(fileOP_Map);
 	}
 
 	//printf("combined opacity map\n");
-	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
+	cOpactiy_Map.SetElement(1,0,g_dTime_Ref);
+	for (uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
 	{
-		cOpactiy_Map.SetElement(uiT + 1,0,lpdDay[uiT]);
-		for (uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
+		if (i_cShell.GetNumElements() > 0)
+			lpdOpacity_Map_Combined[uiI] = lpdOpacity_Map_Ejecta[uiI] + lpdOpacity_Map_Shell[uiI];
+		else
+			lpdOpacity_Map_Combined[uiI] = lpdOpacity_Map_Ejecta[uiI];
+		if (uiT == 0)
 		{
-			if (i_cShell.GetNumElements() > 0)
-				lpdOpacity_Map_Combined[uiT][uiI] = lpdOpacity_Map_Ejecta[uiT][uiI] + lpdOpacity_Map_Shell[uiT][uiI];
-			else
-				lpdOpacity_Map_Combined[uiT][uiI] = lpdOpacity_Map_Ejecta[uiT][uiI];
-			if (uiT == 0)
-			{
-				cOpactiy_Map.SetElement(0,uiI + 1,dVelocity_Range_Grid[0] + dDelta_V_Grid * uiI);
-			}
-			if (lpdOpacity_Map_Combined[uiT][uiI] != 0.0)
-				cOpactiy_Map.SetElement(uiT + 1,uiI + 1,lpdOpacity_Map_Combined[uiT][uiI]);
+			cOpactiy_Map.SetElement(0,uiI + 1,dVelocity_Range_Grid[0] + dDelta_V_Grid * uiI);
 		}
+		if (lpdOpacity_Map_Combined[uiI] != 0.0)
+			cOpactiy_Map.SetElement(1,uiI + 1,lpdOpacity_Map_Combined[uiI]);
 	}
-	double	dShell_Max = -100.0, dEjecta_Max = -100.0;
-	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
+/*	double	dShell_Max = -100.0, dEjecta_Max = -100.0;
+	for (uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
 	{
-		for (uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
+		if (i_cShell.GetNumElements() > 0)
 		{
-			if (i_cShell.GetNumElements() > 0)
-			{
-				if (lpdOpacity_Map_Shell[uiT][uiI] > 0)
-					lpdOpacity_Map_Shell[uiT][uiI] = log10(lpdOpacity_Map_Shell[uiT][uiI]);
-				if (lpdOpacity_Map_Shell[uiT][uiI] < 0.01)
-					lpdOpacity_Map_Shell[uiT][uiI] = -2.0;
+			if (lpdOpacity_Map_Shell[uiI] > 0)
+				lpdOpacity_Map_Shell[uiI] = log10(lpdOpacity_Map_Shell[uiT][uiI]);
+			if (lpdOpacity_Map_Shell[uiI] < 0.01)
+				lpdOpacity_Map_Shell[uiI] = -2.0;
 
-				if (lpdOpacity_Map_Shell[uiT][uiI] > dShell_Max)
-					dShell_Max = lpdOpacity_Map_Shell[uiT][uiI];
-			}
-			if (lpdOpacity_Map_Ejecta[uiT][uiI] > 0)
-				lpdOpacity_Map_Ejecta[uiT][uiI] = log10(lpdOpacity_Map_Ejecta[uiT][uiI]);
-			if (lpdOpacity_Map_Ejecta[uiT][uiI] < 0.01)
-				lpdOpacity_Map_Ejecta[uiT][uiI] = -2.0;
-
-			if (lpdOpacity_Map_Ejecta[uiT][uiI] > dEjecta_Max)
-				dEjecta_Max = lpdOpacity_Map_Ejecta[uiT][uiI];
+			if (lpdOpacity_Map_Shell[uiI] > dShell_Max)
+				dShell_Max = lpdOpacity_Map_Shell[uiI];
 		}
-	}
+		if (lpdOpacity_Map_Ejecta[uiI] > 0)
+			lpdOpacity_Map_Ejecta[uiI] = log10(lpdOpacity_Map_Ejecta[uiI]);
+		if (lpdOpacity_Map_Ejecta[uiI] < 0.01)
+			lpdOpacity_Map_Ejecta[uiI] = -2.0;
+
+		if (lpdOpacity_Map_Ejecta[uiI] > dEjecta_Max)
+			dEjecta_Max = lpdOpacity_Map_Ejecta[uiI];
+	}*/
 
 //	printf("Saving OP data\n");
 	cOP_Data.m_dReference_Time_s = g_dTime_Ref;
@@ -1165,22 +1151,19 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 	cOP_Data.Save("opacity_map_scalars.opdata");
 //	printf("Done\n");
 
-	char lpszTitle_Lcl[64];
+//	char lpszTitle_Lcl[64];
 
-	for (uiT = 0; uiT < TIME_GRID_DATA_POINTS; uiT++)
+/*	for (uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
 	{
-		for (uiI = 0; uiI < VEL_GRID_DATA_POINTS; uiI++)
-		{
-			// get rid of photosphere for plotting
-			double dVel = (uiI * dDelta_V_Grid + dVelocity_Range_Grid[0]) * 1e-8;
-			if (dVel < lpdV_ps[uiT])
-				lpdOpacity_Map_Combined[uiT][uiI] = 0.0;
-			// limit to 1 for plotting
-			if (lpdOpacity_Map_Combined[uiT][uiI] > 1.0)
-				lpdOpacity_Map_Combined[uiT][uiI] = 1.0;
+		// get rid of photosphere for plotting
+		double dVel = (uiI * dDelta_V_Grid + dVelocity_Range_Grid[0]) * 1e-8;
+		if (dVel < lpdV_ps[uiT])
+			lpdOpacity_Map_Combined[uiI] = 0.0;
+		// limit to 1 for plotting
+		if (lpdOpacity_Map_Combined[uiI] > 1.0)
+			lpdOpacity_Map_Combined[uiI] = 1.0;
 
-		}
-	}
+	}*/
 //	printf("Generating plots\n");
 /*
 	sprintf(lpszFilename,"velocity_evolution_simulation_%04i.eps",i_uiNumber);
@@ -1367,15 +1350,18 @@ void Velocity_Evolution_Simulation(const XDATASET &i_cEjecta, const XDATASET &i_
 //	printf("Freeing grid - shell\n");
 //	fflush(stdout);
 //	plFree2dGrid( lpdOpacity_Map_Shell, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS );
-	delete2d(lpdOpacity_Map_Shell,TIME_GRID_DATA_POINTS);
+	delete [] lpdOpacity_Map_Shell;
+//	delete2d(lpdOpacity_Map_Shell,TIME_GRID_DATA_POINTS);
 //	printf("Freeing grid - ejecta\n");
 //	fflush(stdout);
 //	plFree2dGrid( lpdOpacity_Map_Ejecta, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS );
-	delete2d(lpdOpacity_Map_Ejecta,TIME_GRID_DATA_POINTS);
+	delete [] lpdOpacity_Map_Ejecta;
+//	delete2d(lpdOpacity_Map_Ejecta,TIME_GRID_DATA_POINTS);
 //	printf("Freeing grid - combined\n");
 //	fflush(stdout);
 //	plFree2dGrid( lpdOpacity_Map_Combined, TIME_GRID_DATA_POINTS, VEL_GRID_DATA_POINTS );
-	delete2d(lpdOpacity_Map_Combined,TIME_GRID_DATA_POINTS);
+	delete [] lpdOpacity_Map_Combined;
+//	delete2d(lpdOpacity_Map_Combined,TIME_GRID_DATA_POINTS);
 //	printf("Freeing grid - range\n");
 //	fflush(stdout);
 //	plFree2dGrid( lpdRange, 1, 257);
