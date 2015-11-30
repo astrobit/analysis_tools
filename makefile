@@ -275,8 +275,8 @@ $(BINDIR)/gather_photometry: $(SRCDIR)/gather_photometry.cpp $(XLIBSCHANGE)
 
 
 gather_scalars: $(BINDIR)/gather_scalars
-$(BINDIR)/gather_scalars: $(SRCDIR)/gather_scalars.cpp
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_scalars.cpp -o $(BINDIR)/gather_scalars
+$(BINDIR)/gather_scalars: $(SRCDIR)/gather_scalars.cpp $(XLIBSCHANGE)
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_scalars.cpp -lxio -lxstdlib -o $(BINDIR)/gather_scalars
 
 opmaptest: $(BINDIR)/opmaptest
 $(BINDIR)/opmaptest: $(SRCDIR)/opacity_map_test.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
