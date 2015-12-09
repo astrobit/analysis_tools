@@ -460,6 +460,7 @@ void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum 
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
+	printf("First\n");
 	bool	bNo_Shell = false;
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	char lpszOutput_Name[256];
@@ -493,7 +494,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
     unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
 	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
 	bool	bUse_Saha = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-saha");
-	const char *	lpszRef_Spectrum[6];
+	const char *	lpszRef_Spectrum[9] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 	lpszRef_Spectrum[0] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-1");
 	lpszRef_Spectrum[1] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-2");
 	lpszRef_Spectrum[2] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-3");
@@ -504,6 +505,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	lpszRef_Spectrum[7] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-8");
 	lpszRef_Spectrum[8] = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-spectrum-9");
 
+	for (unsigned int uiI = 0; uiI < 9; uiI++)
+	{
+		if (lpszRef_Spectrum[uiI])
+		{
+			if (lpszRef_Spectrum[uiI][0] == 0)
+				lpszRef_Spectrum[uiI] = NULL;
+			else if (lpszRef_Spectrum[uiI][0] == ' ' || lpszRef_Spectrum[uiI][0] == '\t')
+			{
+				while (lpszRef_Spectrum[uiI][0] == ' ' || lpszRef_Spectrum[uiI][0] == '\t')
+					lpszRef_Spectrum[uiI]++;
+				if (lpszRef_Spectrum[uiI][0] == 0)
+					lpszRef_Spectrum[uiI] = NULL;
+			}
+		}
+	}
 //	printf("Ref 1 is %s\n",lpszRef_Spectrum[0]);
 
 	char lpszRef_Model_Extended[128] = {0};
@@ -889,7 +905,17 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	for (unsigned int uiI = 0; uiI < 9; uiI++)
 	{
 		if (lpszRef_Spectrum[uiI])
-			 cComparison_Spectra[uiI] = ES::Spectrum::create_from_ascii_file(lpszRef_Spectrum[uiI]);
+		{
+			printf("Reading %s\n",lpszRef_Spectrum[uiI]);
+			FILE * fileTest = fopen(lpszRef_Spectrum[uiI],"rt");
+			if (!fileTest)
+				fprintf(stderr,"Warning: file[%i] %s can't be opened\n",uiI,lpszRef_Spectrum[uiI]);
+			else
+			{
+				fclose(fileTest);
+				cComparison_Spectra[uiI] = ES::Spectrum::create_from_ascii_file(lpszRef_Spectrum[uiI]);
+			}
+		}
 	}
 	
 	for (unsigned int uiI = 0; uiI < uiIon_Count; uiI++)
