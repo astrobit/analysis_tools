@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm
 
 .PHONY: all
 
@@ -285,6 +285,10 @@ $(BINDIR)/opmaptest: $(SRCDIR)/opacity_map_test.cpp $(LIBDIR)/libplotutil.a $(XL
 gather_pstables: $(BINDIR)/gather_pstables
 $(BINDIR)/gather_pstables: $(SRCDIR)/gather_photospheres.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_photospheres.cpp -lxio -lxstdlib -o $(BINDIR)/gather_pstables
+
+1dfm: $(BINDIR)/1dfm
+$(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE)  $(LIBDIR)/liblinerout.a
+	$(CCOMP) $(CLFLAGS) $(SRCDIR)/1dFlashMovie.cpp $(PLOTUTILLIB) -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/1dfm
 
 clean:
 	-rm $(BINDIR)/*
