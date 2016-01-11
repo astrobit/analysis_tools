@@ -8,6 +8,8 @@
 #include <cfloat>
 #include <utility>
 #include <cstring>
+#include <map>
+#include <sstream>
 
 unsigned int  Find_Variable_Idx(const XFLASH_File & cFile, const char * i_lpszVar_Name)
 {
@@ -37,6 +39,24 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		const char *lpszVariable_X  = i_lpszArg_Values[1];
 		const char *lpszVariable_Y  = i_lpszArg_Values[2];
+		char lpszVar_X_Fixed[5];
+		char lpszVar_Y_Fixed[5];
+		strcpy(lpszVar_X_Fixed,lpszVariable_X);
+		char *  lpCursor = lpszVar_X_Fixed;
+		unsigned int uiI = 0;
+		while (lpCursor[uiI] != 0)
+			uiI++;
+		for (; uiI < 4; uiI++)
+			lpCursor[uiI] = ' ';
+		lpCursor[4] = 0;
+		lpCursor = lpszVar_Y_Fixed;
+		uiI = 0;
+		while (lpCursor[uiI] != 0)
+			uiI++;
+		for (; uiI < 4; uiI++)
+			lpCursor[uiI] = ' ';
+		lpCursor[4] = 0;
+
 		std::vector<std::string> szRet;
 		DIR * dirList = opendir (".");
 		if (dirList)
@@ -44,12 +64,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			dirent64 * direntInfo = readdir64(dirList);
 			while (direntInfo)
 			{
+				printf("%s\n",direntInfo->d_name);
 				if (strstr(direntInfo->d_name,"explos_hdf5_chk") != NULL)
 					szRet.push_back(direntInfo->d_name);
 				direntInfo = readdir64(dirList);
 			}
 		}
-		std::vector<std::pair<double,std::string> > szPlot_List;
+		std::map<double,std::string > szPlot_List;
 
 		double dX_min = DBL_MAX;
 		double dX_max = -DBL_MAX;
@@ -62,30 +83,38 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			XFLASH_Block * lpcBlock;
 			XFLASH_Block * lpcHydBlock;
 			XFLASH_Block * lpcHe3Block;
-			XFLASH_Block * lpcX_Block;
+			//XFLASH_Block * lpcX_Block;
 			XFLASH_Block * lpcY_Block;
 
+			printf("openning %s\n",(*cI).c_str());
 			cFlash_File.Open((*cI).c_str());
-			unsigned int uiX_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_X);
+		
+//			unsigned int uiX_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_X);
 			unsigned int uiY_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_Y);
+			//printf("%i %i\n",uiX_Idx,uiY_Idx);
 			unsigned int uiHe3_Idx = Find_Variable_Idx(cFlash_File,"he3");
 			unsigned int uiHyd_Idx = Find_Variable_Idx(cFlash_File,"hyd");
 			for (unsigned int uiJ = 0; uiJ < cFlash_File.m_uiNum_Blocks; uiJ++)
 			{
+				int iOffset = 2 * cFlash_File.m_uiNum_Dimensions * uiJ;
+				double ddx = (cFlash_File.m_lpdBlock_Bounding_Box[iOffset + 1] - cFlash_File.m_lpdBlock_Bounding_Box[iOffset + 0]);
+				ddx /= (double)cFlash_File.m_uiBlock_Dimensions[0];
+
 				if (cFlash_File.m_lpeBlock_Node_Type[uiJ] == FR_LEAF_NODE)
 				{
 					lpcHydBlock = cFlash_File.GetBlock(uiHyd_Idx,uiJ);
 					lpcHe3Block = cFlash_File.GetBlock(uiHe3_Idx,uiJ);
-					lpcX_Block = cFlash_File.GetBlock(uiX_Idx,uiJ);
+//					lpcX_Block = cFlash_File.GetBlock(uiX_Idx,uiJ);
 					lpcY_Block = cFlash_File.GetBlock(uiY_Idx,uiJ);
 					for (unsigned int uiL = 0; uiL < cFlash_File.m_uiBlock_Dimensions[0]; uiL++)
 					{
+						double dX = ddx * (uiL + 0.5) + cFlash_File.m_lpdBlock_Bounding_Box[iOffset + 0];
 						if (lpcHydBlock->m_lpdData[uiL] < 0.01) // in ejecta
 						{
-							if (lpcX_Block->m_lpdData[uiL] < dX_min)
-								dX_min = lpcX_Block->m_lpdData[uiL];
-							if (lpcX_Block->m_lpdData[uiL] > dX_max)
-								dX_max = lpcX_Block->m_lpdData[uiL];
+							if (dX < dX_min)
+								dX_min = dX;
+							if (dX > dX_max)
+								dX_max = dX;
 							if (lpcY_Block->m_lpdData[uiL] < dY_min)
 								dY_min = lpcY_Block->m_lpdData[uiL];
 							if (lpcY_Block->m_lpdData[uiL] > dY_max)
@@ -93,10 +122,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						}
 						else if (lpcHe3Block->m_lpdData[uiL] > 1e-4) // in shell
 						{
-							if (lpcX_Block->m_lpdData[uiL] < dX_min)
-								dX_min = lpcX_Block->m_lpdData[uiL];
-							if (lpcX_Block->m_lpdData[uiL] > dX_max)
-								dX_max = lpcX_Block->m_lpdData[uiL];
+							if (dX < dX_min)
+								dX_min = dX;
+							if (dX > dX_max)
+								dX_max = dX;
 							if (lpcY_Block->m_lpdData[uiL] < dY_min)
 								dY_min = lpcY_Block->m_lpdData[uiL];
 							if (lpcY_Block->m_lpdData[uiL] > dY_max)
@@ -105,11 +134,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					}
 					cFlash_File.ReleaseBlock(lpcHydBlock);
 					cFlash_File.ReleaseBlock(lpcHe3Block);
-					cFlash_File.ReleaseBlock(lpcX_Block);
+					//cFlash_File.ReleaseBlock(lpcX_Block);
 					cFlash_File.ReleaseBlock(lpcY_Block);
 				}
 			}
 		}
+		printf("%f %f %f %f\n",dX_min,dX_max,dY_min,dY_max);
 		// get the file data and produce a plot for each file
 		for (std::vector<std::string>::iterator cI = szRet.begin(); cI != szRet.end(); cI++)
 		{
@@ -117,13 +147,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			XFLASH_Block * lpcBlock;
 			XFLASH_Block * lpcHydBlock;
 			XFLASH_Block * lpcHe3Block;
-			XFLASH_Block * lpcX_Block;
+			//XFLASH_Block * lpcX_Block;
 			XFLASH_Block * lpcY_Block;
 
 			cFlash_File.Open((*cI).c_str());
 			printf("Opened file %s.",(*cI).c_str());
 			printf("Time for file is %.1f s\n",cFlash_File.m_dTime);
-			unsigned int uiX_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_X);
+//			unsigned int uiX_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_X);
 			unsigned int uiY_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_Y);
 			unsigned int uiHe3_Idx = Find_Variable_Idx(cFlash_File,"he3");
 			unsigned int uiHyd_Idx = Find_Variable_Idx(cFlash_File,"hyd");
@@ -131,26 +161,31 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			std::vector < epsplot::eps_pair> vShell_Data;
 			for (unsigned int uiJ = 0; uiJ < cFlash_File.m_uiNum_Blocks; uiJ++)
 			{
+				int iOffset = 2 * cFlash_File.m_uiNum_Dimensions * uiJ;
+				double ddx = (cFlash_File.m_lpdBlock_Bounding_Box[iOffset + 1] - cFlash_File.m_lpdBlock_Bounding_Box[iOffset + 0]);
+				ddx /= (double)cFlash_File.m_uiBlock_Dimensions[0];
+
 				if (cFlash_File.m_lpeBlock_Node_Type[uiJ] == FR_LEAF_NODE)
 				{
 					lpcHydBlock = cFlash_File.GetBlock(uiHyd_Idx,uiJ);
 					lpcHe3Block = cFlash_File.GetBlock(uiHe3_Idx,uiJ);
-					lpcX_Block = cFlash_File.GetBlock(uiX_Idx,uiJ);
+//					lpcX_Block = cFlash_File.GetBlock(uiX_Idx,uiJ);
 					lpcY_Block = cFlash_File.GetBlock(uiY_Idx,uiJ);
 					for (unsigned int uiL = 0; uiL < cFlash_File.m_uiBlock_Dimensions[0]; uiL++)
 					{
+						double dX = ddx * (uiL + 0.5) + cFlash_File.m_lpdBlock_Bounding_Box[iOffset + 0];
 						if (lpcHydBlock->m_lpdData[uiL] < 0.01) // in ejecta
 						{
-							vEjecta_Data.push_back(epsplot::eps_pair(lpcX_Block->m_lpdData[uiL],lpcY_Block->m_lpdData[uiL]));
+							vEjecta_Data.push_back(epsplot::eps_pair(dX,lpcY_Block->m_lpdData[uiL]));
 						}
 						else if (lpcHe3Block->m_lpdData[uiL] > 1e-4) // in shell
 						{
-							vShell_Data.push_back(epsplot::eps_pair(lpcX_Block->m_lpdData[uiL],lpcY_Block->m_lpdData[uiL]));
+							vShell_Data.push_back(epsplot::eps_pair(dX,lpcY_Block->m_lpdData[uiL]));
 						}
 					}
 					cFlash_File.ReleaseBlock(lpcHydBlock);
 					cFlash_File.ReleaseBlock(lpcHe3Block);
-					cFlash_File.ReleaseBlock(lpcX_Block);
+					//cFlash_File.ReleaseBlock(lpcX_Block);
 					cFlash_File.ReleaseBlock(lpcY_Block);
 				}
 			}
@@ -169,7 +204,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			cY_Axis.m_dLower_Limit = dY_min;
 			cY_Axis.m_dUpper_Limit = dY_max;
 
-			szPlot_List.push_back(std::pair<double,std::string>(cFlash_File.m_dTime,lpszPlotName));
+			szPlot_List.insert(std::pair<double,std::string>(cFlash_File.m_dTime,lpszPlotName));
 			// plot data
 			epsplot::LINE_PARAMETERS 	cLine_Parameters_Ej;
 			epsplot::LINE_PARAMETERS 	cLine_Parameters_Sh;
@@ -187,6 +222,39 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		}
 
+		for (std::map<double,std::string>::iterator cI = szPlot_List.begin(); cI != szPlot_List.end(); cI++)
+		{
+			std::ostringstream szAnimate_Command;
+			szAnimate_Command << "convert -background white -rotate 90 ";
+			szAnimate_Command << cI->second;
+			szAnimate_Command << " ";
+			szAnimate_Command << cI->second;
+			szAnimate_Command << ".png";
+			system(szAnimate_Command.str().c_str());
+		}
+
+		std::ostringstream szAnimate_Command;
+		szAnimate_Command << "convert -delay 8 ";
+		for (std::map<double,std::string>::iterator cI = szPlot_List.begin(); cI != szPlot_List.end(); cI++)
+		{
+			szAnimate_Command << cI->second;
+			szAnimate_Command << ".png ";
+		}
+		szAnimate_Command << " movie.mp4";
+		system(szAnimate_Command.str().c_str());
+
+		for (std::map<double,std::string>::iterator cI = szPlot_List.begin(); cI != szPlot_List.end(); cI++)
+		{
+			std::ostringstream szRemove_Command;
+			std::ostringstream szRemove2_Command;
+			szRemove_Command << "rm ";
+			szRemove2_Command << "rm ";
+			szRemove_Command << cI->second;
+			szRemove2_Command << cI->second;
+			szRemove2_Command << ".png";
+			system(szRemove_Command.str().c_str());
+			system(szRemove2_Command.str().c_str());
+		}
 	}
 
 	return 0;
