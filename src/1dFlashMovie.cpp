@@ -25,7 +25,7 @@ unsigned int  Find_Variable_Idx(const XFLASH_File & cFile, const char * i_lpszVa
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
-	if (i_iArg_Count < 4)
+	if (i_iArg_Count < 3)
 	{
 		fprintf(stderr,"Usage: 1dfm <variable1> <variable2>\n");
 		fprintf(stderr,
