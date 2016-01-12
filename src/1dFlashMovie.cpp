@@ -202,6 +202,16 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			cX_Axis.m_dUpper_Limit = dX_max;
 			cY_Axis.m_dLower_Limit = dY_min;
 			cY_Axis.m_dUpper_Limit = dY_max;
+			std::ostringstream szTime;
+			szTime << "t = ";
+			szTime.precision(1);
+			szTime.setf( std::ios::fixed, std:: ios::floatfield ); // floatfield set to fixed
+			szTime << cFlash_File.m_dTime;
+			szTime << " s";
+			epsplot::TEXT_PARAMETERS cText_Parameters;
+			cText_Parameters.m_iFont_Size = 16;
+//			printf("%s\n",szTime.str().c_str());
+
 
 			szPlot_List.insert(std::pair<double,std::string>(cFlash_File.m_dTime,lpszPlotName));
 			// plot data
@@ -217,6 +227,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			unsigned int uiPlot = cPlot.Set_Plot_Data(vEjecta_Data,cLine_Parameters_Ej,uiX_Axis,uiY_Axis);
 			cLine_Parameters_Sh.m_eColor = epsplot::RED;
 			uiPlot = cPlot.Set_Plot_Data(vShell_Data,cLine_Parameters_Sh,uiX_Axis,uiY_Axis);
+			cPlot.Set_Text_Data(0.9*dX_max , 0.1 * dY_max, szTime.str().c_str(), cLine_Parameters_Ej, cText_Parameters, uiX_Axis, uiY_Axis);
 			cPlot.Plot(cPlot_Parameters);
 
 		}
