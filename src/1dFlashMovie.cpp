@@ -151,8 +151,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			XFLASH_Block * lpcY_Block;
 
 			cFlash_File.Open((*cI).c_str());
-			printf("Opened file %s.",(*cI).c_str());
-			printf("Time for file is %.1f s\n",cFlash_File.m_dTime);
+			printf("Opened file %s. Time for file is %.1f s\n",(*cI).c_str(),cFlash_File.m_dTime);
 //			unsigned int uiX_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_X);
 			unsigned int uiY_Idx = Find_Variable_Idx(cFlash_File,lpszVariable_Y);
 			unsigned int uiHe3_Idx = Find_Variable_Idx(cFlash_File,"he3");
@@ -225,7 +224,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		for (std::map<double,std::string>::iterator cI = szPlot_List.begin(); cI != szPlot_List.end(); cI++)
 		{
 			std::ostringstream szAnimate_Command;
-			szAnimate_Command << "convert -background white -rotate 90 ";
+			szAnimate_Command << "convert -background white -rotate 90 -flatten ";
 			szAnimate_Command << cI->second;
 			szAnimate_Command << " ";
 			szAnimate_Command << cI->second;

@@ -287,7 +287,7 @@ $(BINDIR)/gather_pstables: $(SRCDIR)/gather_photospheres.cpp $(XLIBSCHANGE)
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_photospheres.cpp -lxio -lxstdlib -o $(BINDIR)/gather_pstables
 
 1dfm: $(BINDIR)/1dfm
-$(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE)  $(LIBDIR)/liblinerout.a
+$(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/1dFlashMovie.cpp $(PLOTUTILLIB) -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/1dfm
 
 clean:
