@@ -838,12 +838,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			// compute pEW values for features of interest.
 			for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 			{
-                XVECTOR	vX, vY, vA, vW,vA_Single, vA_Flat, vA_Single_Flat;
+                XVECTOR	vX, vY, vA, vW, vA_Flat, vSigma_Jeff, vSigma_Flat;
                 double	dSmin_Single = DBL_MAX;
-                XSQUARE_MATRIX mCovariance_Matrix;
-                XSQUARE_MATRIX mCovariance_Matrix_Single;
-                XSQUARE_MATRIX mCovariance_Matrix_Flat;
-                XSQUARE_MATRIX mCovariance_Matrix_Single_Flat;
                 double	dSmin;
                 double	dSmin_Flat;
                 double	dSmin_Single_Flat;
@@ -954,7 +950,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							cCombined_Unflat.Process_pEW(vY.Get(uiJ),cParam.m_dWavelength_Delta_Ang);
 						}
                         vA = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
-                                        cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF);
+                                        cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF, vSigma_Jeff);
 
 
 
@@ -970,7 +966,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
 						}
                         vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
-                                        cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF);
+                                        cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat);
 
                     }
 				}
@@ -983,11 +979,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				if (dSmin < DBL_MAX)
 				{
 					if (vA.Get_Size() > 0)
-						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA.Get(0),sqrt(mCovariance_Matrix.Get(0,0)),vA.Get(1),sqrt(mCovariance_Matrix.Get(1,1)),vA.Get(2),sqrt(mCovariance_Matrix.Get(2,2)));
+						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA.Get(0),vSigma_Jeff.Get(0),vA.Get(1),vSigma_Jeff.Get(1),vA.Get(2),vSigma_Jeff.Get(2));
 					else
 						fprintf(fileData,", -1., -1., -1., -1., -1., -1.");
 					if (vA.Get_Size() == 6)
-						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA.Get(3),sqrt(mCovariance_Matrix.Get(3,3)),vA.Get(4),sqrt(mCovariance_Matrix.Get(4,4)),vA.Get(5),sqrt(mCovariance_Matrix.Get(5,5)));
+						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA.Get(3),vSigma_Jeff.Get(3),vA.Get(4),vSigma_Jeff.Get(4),vA.Get(5),vSigma_Jeff.Get(5));
 					else
 						fprintf(fileData,", -1., -1., -1., -1., -1., -1.");
 				}
@@ -997,11 +993,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				if (dSmin_Flat < DBL_MAX)
 				{
 					if (vA_Flat.Get_Size() > 0)
-						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA_Flat.Get(0),sqrt(mCovariance_Matrix_Flat.Get(0,0)),vA_Flat.Get(1),sqrt(mCovariance_Matrix_Flat.Get(1,1)),vA_Flat.Get(2),sqrt(mCovariance_Matrix_Flat.Get(2,2)));
+						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA_Flat.Get(0),vSigma_Flat.Get(0),vA_Flat.Get(1),vSigma_Flat.Get(1),vA_Flat.Get(2),vSigma_Flat.Get(2));
 					else
 						fprintf(fileData,", -1., -1., -1., -1., -1., -1.");
 					if (vA_Flat.Get_Size() == 6)
-						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA_Flat.Get(3),sqrt(mCovariance_Matrix_Flat.Get(3,3)),vA_Flat.Get(4),sqrt(mCovariance_Matrix_Flat.Get(4,4)),vA_Flat.Get(5),sqrt(mCovariance_Matrix_Flat.Get(5,5)));
+						fprintf(fileData,",%.17e, %.17e, %.17e, %.17e, %.17e, %.17e",vA_Flat.Get(3),vSigma_Flat.Get(3),vA_Flat.Get(4),vSigma_Flat.Get(4),vA_Flat.Get(5),vSigma_Flat.Get(5));
 					else
 						fprintf(fileData,", -1., -1., -1., -1., -1., -1.");
 				}
