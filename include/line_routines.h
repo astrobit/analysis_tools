@@ -208,3 +208,50 @@ public:
 	void	Normalize_Groups(void);
 };
 
+ // parameters for fitting a gaussian to a spectral absorption feature
+
+class GAUSS_FIT_PARAMETERS
+{
+public:
+	double	m_dWl[3];
+	double	m_dStr[3];
+	double	m_dW_Ratio_1;
+	double	m_dW_Ratio_2;
+	
+	double	m_dH_Ratio_1;
+	double	m_dH_Ratio_2;
+	GAUSS_FIT_PARAMETERS(void)
+	{
+		m_dW_Ratio_1 = m_dW_Ratio_2 = m_dH_Ratio_1 = m_dH_Ratio_2 = 0.0;
+	}
+
+	GAUSS_FIT_PARAMETERS(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
+	{
+		m_dWl[0] = i_dWL_1;
+		m_dWl[1] = i_dWL_2;
+		m_dWl[2] = i_dWL_3;
+
+		m_dStr[0] = i_dStrength_1;
+		m_dStr[1] = i_dStrength_2;
+		m_dStr[2] = i_dStrength_3;
+
+		m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
+		m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
+		m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
+		m_dH_Ratio_2 = i_dStrength_3 / i_dStrength_2;
+	}
+};
+
+extern GAUSS_FIT_PARAMETERS	g_cgfpCaNIR;
+extern GAUSS_FIT_PARAMETERS	g_cgfpCaHK;
+extern GAUSS_FIT_PARAMETERS	g_cgfpOINIR;
+extern GAUSS_FIT_PARAMETERS	g_cgfpSi6355;
+extern GAUSS_FIT_PARAMETERS	g_cgfpSi5968;
+
+double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength);
+XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
+XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
+
+
+
+

@@ -15,7 +15,7 @@ LIBCOMP=ar
 LIBCOMPFLAG=-cvr
 PLOTUTILLIB=-lplotutil
 ESFLAGS= -fopenmp
-ESLIBS= -les -lm -lyaml-cpp -lcfitsio 
+ESLIBS= -lyaml-cpp -les -lm -lcfitsio 
 XLIBSPATH=~/xlibs
 XLIBSCHANGE=$(XLIBSPATH)/lib/libxio.a $(XLIBSPATH)/lib/libxstdlib.a $(XLIBSPATH)/lib/libxmath.a $(XLIBSPATH)/lib/libxastro.a $(XLIBSPATH)/lib/libxflash.a
 XMLINCLUDE= -I/usr/include/libxml2
@@ -27,10 +27,11 @@ $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utiliti
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libplotutil.a $(TMPDIR)/eps_plot.o $(TMPDIR)/Plot_Utilities.o 
 Plot_Utilities: $(LIBDIR)/libplotutil.a
 
-$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE)
+$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE) $(SRCDIR)/line_routines_gaussian_fit.cpp
 	$(CCOMP) $(CFLAGS) $(SRCDIR)/line_routines.cpp -o $(TMPDIR)/line_routines.o
+	$(CCOMP) $(CFLAGS) $(SRCDIR)/line_routines_gaussian_fit.cpp -o $(TMPDIR)/line_routines_gaussian_fit.o
 	-rm $(LIBDIR)/liblinerout.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o $(TMPDIR)/line_routines_gaussian_fit.o
 line_routines: $(LIBDIR)/liblinerout.a
 
 msdb: $(LIBDIR)/libmsdb.a

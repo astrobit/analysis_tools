@@ -1982,3 +1982,11 @@ void	ABUNDANCE_LIST::Normalize_Groups(void)
 	}
 }
 
+
+double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength)
+{
+	double	dz = i_dObserved_Wavelength / i_dRest_Wavelength;
+	double	dz_sqr = dz * dz;
+	return (2.99792458e5 * (dz_sqr - 1.0) / (dz_sqr + 1.0));
+}
+
