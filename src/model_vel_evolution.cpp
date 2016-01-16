@@ -951,24 +951,26 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						}
                         vA = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
                                         cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF, vSigma_Jeff);
-
-
-
-						if (bVerbose)
-							printf("Performing flat fit\n");
-						vX.Set_Size(uiP_Cygni_Min_Idx);
-						vY.Set_Size(uiP_Cygni_Min_Idx);
-						vW.Set_Size(uiP_Cygni_Min_Idx);
-						for (unsigned int uiJ = 0; uiJ < uiP_Cygni_Min_Idx; uiJ++)
-						{
-							vX.Set(uiJ,lpdSpectra_WL[uiI][uiJ]);
-							vW.Set(uiJ,0.01); // arbitrary weight
-							vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
-						}
-                        vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
-                                        cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat);
-
                     }
+                    else
+                    {
+                        printf("Failed to identify blue and red sides of feature: %i %i\n",uiContinuum_Blue_Idx,uiContinuum_Red_Idx);
+                    }
+
+
+                    if (bVerbose)
+                        printf("Performing flat fit\n");
+                    vX.Set_Size(uiP_Cygni_Min_Idx);
+                    vY.Set_Size(uiP_Cygni_Min_Idx);
+                    vW.Set_Size(uiP_Cygni_Min_Idx);
+                    for (unsigned int uiJ = 0; uiJ < uiP_Cygni_Min_Idx; uiJ++)
+                    {
+                        vX.Set(uiJ,lpdSpectra_WL[uiI][uiJ]);
+                        vW.Set(uiJ,0.01); // arbitrary weight
+                        vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
+                    }
+                    vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
+                                    cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat);
 				}
 				if (vA.Get_Size() > 0)
 					fprintf(fileData,"%s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e", 
