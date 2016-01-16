@@ -954,7 +954,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
                     }
                     else
                     {
-                        printf("Failed to identify blue and red sides of feature: %i %i\n",uiContinuum_Blue_Idx,uiContinuum_Red_Idx);
+                        printf("Failed to identify blue and red sides of feature: %i %i (%i)\n",uiContinuum_Blue_Idx,uiContinuum_Red_Idx,uiP_Cygni_Min_Idx);
                     }
 
 
