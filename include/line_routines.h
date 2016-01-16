@@ -251,7 +251,8 @@ extern GAUSS_FIT_PARAMETERS	g_cgfpSi5968;
 double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength);
 XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
 XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
-
+XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_dCentral_WL, const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
+                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF);
 
 
 

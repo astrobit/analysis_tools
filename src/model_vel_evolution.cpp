@@ -832,21 +832,22 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			FILE * fileData = fopen(lpszFilename,"wt");
 			if (!fileData)
 				fprintf(stderr,"Failed to open %s for write.\n",lpszFilename);
-			XVECTOR	vX, vY, vA, vW,vA_Single, vA_Flat, vA_Single_Flat;
-			double	dSmin_Single = DBL_MAX;
-			XSQUARE_MATRIX mCovariance_Matrix;
-			XSQUARE_MATRIX mCovariance_Matrix_Single;
-			XSQUARE_MATRIX mCovariance_Matrix_Flat;
-			XSQUARE_MATRIX mCovariance_Matrix_Single_Flat;
-			double	dSmin;
-			double	dSmin_Flat;
-			double	dSmin_Single_Flat;
 
 			fprintf(fileData,"Model, pEW (Combined - flat), Vmin (Combined - flat), pEW (EO - flat), Vmin (EO - flat), pEW (SO - flat), Vmin (SO - flat), pEW (Combined), Vmin (combined), Vmin (EO), Vmin (SO), Vmin-HVF (Jeff), Vmin-PVF (Jeff), pEW-HVF (Jeff), pEW-PVF (Jeff), a_0 (Jeff), sigma a_0 (Jeff), a_1 (Jeff), sigma_a_1 (Jeff), a_2 (Jeff), sigma_a_2 (Jeff), a_3 (Jeff), sigma a_3 (Jeff), a_4 (Jeff), sigma_a_4 (Jeff), a_5 (Jeff), sigma_a_5 (Jeff), a_0 (Flat), sigma a_0 (Flat), a_1 (Flat), sigma_a_1 (Flat), a_2 (Flat), sigma_a_2 (Flat), a_3 (Flat), sigma a_3 (Flat), a_4 (Flat), sigma_a_4 (Flat), a_5 (Flat), sigma_a_5 (Flat)\n");
 
 			// compute pEW values for features of interest.
 			for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
 			{
+                XVECTOR	vX, vY, vA, vW,vA_Single, vA_Flat, vA_Single_Flat;
+                double	dSmin_Single = DBL_MAX;
+                XSQUARE_MATRIX mCovariance_Matrix;
+                XSQUARE_MATRIX mCovariance_Matrix_Single;
+                XSQUARE_MATRIX mCovariance_Matrix_Flat;
+                XSQUARE_MATRIX mCovariance_Matrix_Single_Flat;
+                double	dSmin;
+                double	dSmin_Flat;
+                double	dSmin_Single_Flat;
+
 				FEATURE_PARAMETERS	cCombined_Flat;
 				FEATURE_PARAMETERS	cEO_Flat;
 				FEATURE_PARAMETERS	cSO_Flat;
@@ -912,6 +913,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				if (bVerbose)
 					printf("Identified blue feature edge at %.0f (%.2f kkm/s)\n",lpdSpectra_WL[uiI][uiContinuum_Blue_Idx],-1.0e-3*Compute_Velocity(lpdSpectra_WL[uiI][uiContinuum_Blue_Idx],lpgfpParamters->m_dWl[1]));
 				double	dV_Jeff_HVF = 0.0, dV_Jeff_PVF = 0.0, dpEW_Jeff_HVF = 0.0, dpEW_Jeff_PVF = 0.0;
+				double	dV_Flat_HVF = 0.0, dV_Flat_PVF = 0.0, dpEW_Flat_HVF = 0.0, dpEW_Flat_PVF = 0.0;
 				uiContinuum_Red_Idx = uiMin_Flux_Idx;
 				if (uiMin_Flux_Idx != (unsigned int)(-1))
 				{
@@ -951,99 +953,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 							cCombined_Unflat.Process_pEW(vY.Get(uiJ),cParam.m_dWavelength_Delta_Ang);
 						}
-						// try single gaussian fit
-						// some rough initial guesses for the parameters
-						vA.Set_Size(3);
-						vA.Set(0,-dMin_Flux_Flat/3.0);
-						vA.Set(1,200.0);
-						vA.Set(2,lpdSpectra_WL[uiI][uiMin_Flux_Idx]);
+                        vA = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
+                                        cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF);
 
-						// Perform LSQ fit
-						if (GeneralFit(vX, vY ,vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, lpgfpParamters,100))
-						{
-							vA_Single = vA;
-							dSmin_Single = dSmin;
-							mCovariance_Matrix_Single = mCovariance_Matrix;
-						}
-						double dMin_Flux_WL = 0.0;
-						double dMin_Flux_Err = DBL_MAX;
-						for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
-						{
-							double dFlux_Error = vY.Get(uiJ) - Multi_Gaussian(vX.Get(uiJ), vA_Single, lpgfpParamters).Get(0);
-							if (dFlux_Error < dMin_Flux_Err)
-							{
-								dMin_Flux_WL = vX.Get(uiJ);
-								dMin_Flux_Err = dFlux_Error;
-							}
-						}
-						// try double gaussian fit
-						vA.Set_Size(6);
-						vA.Set(0,-dMin_Flux_Flat/6.0);
-						vA.Set(1,200.0);
-						vA.Set(2,dMin_Flux_WL - 250.0);
-						vA.Set(3,-dMin_Flux_Flat/6.0);
-						vA.Set(4,200.0);
-						vA.Set(5,vA_Single.Get(2));
-						// Perform LSQ fit
-						if (bVerbose)
-							printf("Performing double unflat fit\n");
-						if (GeneralFit(vX, vY ,vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, lpgfpParamters,100))
-						{
-							// if the single guassian fit is better, use those results
-							if (dSmin > dSmin_Single)
-							{
-								vA = vA_Single;
-								dSmin = dSmin_Single;
-								mCovariance_Matrix = mCovariance_Matrix_Single;
-							}
-						}
-						else
-						{
-							// if the double guassian fit fails, use single gaussian results
-							vA = vA_Single;
-							dSmin = dSmin_Single;
-							mCovariance_Matrix = mCovariance_Matrix_Single;
-						}
 
-						if (vA.Get_Size() == 6)
-						{
-							dV_Jeff_HVF = Compute_Velocity(vA.Get(2),lpgfpParamters->m_dWl[1]);
-							dV_Jeff_PVF = Compute_Velocity(vA.Get(5),lpgfpParamters->m_dWl[1]);
-						}
-						else
-						{
-							dV_Jeff_PVF = Compute_Velocity(vA.Get(2),lpgfpParamters->m_dWl[1]);
-						}
-						for (unsigned int uiJ = uiContinuum_Blue_Idx; uiJ < uiContinuum_Red_Idx; uiJ++)
-						{
-							XVECTOR vF = Multi_Gaussian(vX.Get(uiJ), vA, lpgfpParamters);
-							if (vA.Get_Size() == 6)
-							{
-								XVECTOR vAlcl;
-								vAlcl.Set_Size(3);
-								vAlcl.Set(0,vA.Get(0));
-								vAlcl.Set(1,vA.Get(1));
-								vAlcl.Set(2,vA.Get(2));
-
-								Gaussian(vX.Get(uiJ), vAlcl, lpgfpParamters);
-								dpEW_Jeff_HVF -= vF.Get(0) * cParam.m_dWavelength_Delta_Ang; // - sign to keep pEW positive
-
-								vAlcl.Set(0,vA.Get(3));
-								vAlcl.Set(1,vA.Get(4));
-								vAlcl.Set(2,vA.Get(5));
-
-								Gaussian(vX.Get(uiJ), vAlcl, lpgfpParamters);
-								dpEW_Jeff_PVF -= vF.Get(0) * cParam.m_dWavelength_Delta_Ang;
-							}
-							else
-							{
-								Gaussian(vX.Get(uiJ), vA, lpgfpParamters);
-								dpEW_Jeff_PVF -= vF.Get(0) * cParam.m_dWavelength_Delta_Ang; // - sign to keep pEW positive
-							}
-						}
 
 						if (bVerbose)
-							printf("Performing single flat fit\n");
+							printf("Performing flat fit\n");
 						vX.Set_Size(uiP_Cygni_Min_Idx);
 						vY.Set_Size(uiP_Cygni_Min_Idx);
 						vW.Set_Size(uiP_Cygni_Min_Idx);
@@ -1053,66 +969,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							vW.Set(uiJ,0.01); // arbitrary weight
 							vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
 						}
-						// try single gaussian fit
-						// some rough initial guesses for the parameters
-						vA_Flat.Set_Size(3);
-						vA_Flat.Set(0,-dMin_Flux_Flat/3.0);
-						vA_Flat.Set(1,200.0);
-						vA_Flat.Set(2,lpdSpectra_WL[uiI][uiMin_Flux_Idx]);
+                        vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
+                                        cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF);
 
-						// Perform LSQ fit
-						if (GeneralFit(vX, vY ,vW, Multi_Gaussian, vA_Flat, mCovariance_Matrix_Flat, dSmin_Flat, lpgfpParamters,100))
-						{
-							vA_Single_Flat = vA_Flat;
-							dSmin_Single_Flat = dSmin_Flat;
-							mCovariance_Matrix_Single_Flat = mCovariance_Matrix_Flat;
-						}
-						// try double gaussian fit
-						dMin_Flux_WL = 0.0;
-						dMin_Flux_Err = DBL_MAX;
-						for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
-						{
-							double dFlux_Error = vY.Get(uiJ) - Multi_Gaussian(vX.Get(uiJ), vA_Single_Flat, lpgfpParamters).Get(0);
-							if (dFlux_Error < dMin_Flux_Err)
-							{
-								dMin_Flux_WL = vX.Get(uiJ);
-								dMin_Flux_Err = dFlux_Error;
-							}
-						}
-						vA_Flat.Set_Size(6);
-						vA_Flat.Set(0,-dMin_Flux_Flat/6.0);
-						vA_Flat.Set(1,200.0);
-						vA_Flat.Set(2,dMin_Flux_WL);
-						vA_Flat.Set(3,-dMin_Flux_Flat/6.0);
-						vA_Flat.Set(4,200.0);
-						vA_Flat.Set(5,vA_Single.Get(2));
-						// Perform LSQ fit
-						if (bVerbose)
-							printf("Performing double flat fit\n");
-						if (GeneralFit(vX, vY ,vW, Multi_Gaussian, vA_Flat, mCovariance_Matrix_Flat, dSmin_Flat, lpgfpParamters,100))
-						{
-							// if the single guassian fit is better, use those results
-							if (dSmin_Flat > dSmin_Single_Flat)
-							{
-								vA_Flat = vA_Single_Flat;
-								dSmin_Flat = dSmin_Single_Flat;
-								mCovariance_Matrix_Flat = mCovariance_Matrix_Single_Flat;
-							}
-						}
-						else
-						{
-							// if the double guassian fit fails, use single gaussian results
-							vA_Flat = vA_Single_Flat;
-							dSmin_Flat = dSmin_Single_Flat;
-							mCovariance_Matrix_Flat = mCovariance_Matrix_Single_Flat;
-						}
-
-					}
-					else
-					{
-						vA.Set_Size(0);
-						vA_Flat.Set_Size(0);
-					}
+                    }
 				}
 				if (vA.Get_Size() > 0)
 					fprintf(fileData,"%s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e", 
