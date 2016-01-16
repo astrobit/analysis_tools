@@ -3,6 +3,8 @@ bin/*
 lib/*
 obj/*
 
+# Log files
+*.log
 
 # Compiled Object files
 *.slo
@@ -36,4 +38,6 @@ obj/*
 # test outputs
 test*.eps
 share/*.eps
+opac_test.csv
+opac_test_src.csv
 
