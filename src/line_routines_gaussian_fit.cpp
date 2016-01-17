@@ -105,7 +105,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     vA.Set(2,i_dCentral_WL);//lpdSpectra_WL[uiI][uiMin_Flux_Idx]);
 
     // Perform LSQ fit
-    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,100))
+    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024))
     {
         vA_Single = vA;
         dSmin_Single = dSmin;
@@ -148,7 +148,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     //if (bVerbose)
     //    printf("Performing double unflat fit\n");
     mCovariance_Matrix.Zero();
-    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,100))
+    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024))
     {
         // if the single guassian fit is better, use those results
         if (dSmin > dSmin_Single)
