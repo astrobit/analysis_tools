@@ -89,7 +89,7 @@ XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvDa
 }
 
 XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_dCentral_WL, const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
-                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas)
+                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS)
 {
     XVECTOR vRet;
     XVECTOR vA,vA_Single;
@@ -209,5 +209,6 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     o_vSigmas.Set_Size(vA.Get_Size());
     for (unsigned int uiI = 0; uiI < vA.Get_Size(); uiI++)
         o_vSigmas.Set(uiI,sqrt(mCovariance_Matrix.Get(uiI,uiI)));
+    o_dS = dSmin;
     return vRet;
 }
