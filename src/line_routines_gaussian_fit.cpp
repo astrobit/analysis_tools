@@ -96,13 +96,67 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 	XSQUARE_MATRIX mCovariance_Matrix;
 	XSQUARE_MATRIX mCovariance_Matrix_Single;
     double dSmin_Single, dSmin;
-    
+
+	double	dYmin = DBL_MAX;
+	double	dXmin = 0;
+	unsigned int uiXmin;
+	double	dYmax = -DBL_MAX;
+	double	dXmax = 0;
+	unsigned int uiXmax;
+	double	dSum = 0.0;
+	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
+	{
+		dSum += i_vY.Get(uiI);
+		if (i_vY.Get(uiI) < dYmin)
+		{
+			dYmin = i_vY.Get(uiI);
+			dXmin = i_vX.Get(uiI);
+			uiXmin = uiI;
+		}
+		if (i_vY.Get(uiI) > dYmax)
+		{
+			dYmax = i_vY.Get(uiI);
+			dXmax = i_vX.Get(uiI);
+			uiXmax = uiI;
+		}
+	}
+	double dAmplitude = (dYmax - dYmin);
+	double dCenter = dXmax;
+	double	dHWHM;
+	unsigned int uiXcenter = uiXmax;
+	if (fabs(dYmax) < fabs(dYmin))
+	{
+		dAmplitude *= -1;
+		dCenter = dXmin;
+		uiXcenter = uiXmin;
+		unsigned int uiI = uiXcenter;
+		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) < 0.5*dAmplitude)
+			uiI++;
+		double dXright = i_vX.Get(uiI);
+		uiI = uiXcenter;
+		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) < 0.5*dAmplitude)
+			uiI--;
+		double dXleft = i_vX.Get(uiI);
+		dHWHM = 0.5*(dXright - dXleft);
+	}
+	else
+	{
+		unsigned int uiI = uiXcenter;
+		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
+			uiI++;
+		double dXright = i_vX.Get(uiI);
+		uiI = uiXcenter;
+		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
+			uiI--;
+		double dXleft = i_vX.Get(uiI);
+		dHWHM = 0.5*(dXright - dXleft);
+	}
     // try single gaussian fit
     // some rough initial guesses for the parameters
     vA.Set_Size(3);
-    vA.Set(0,-i_dMin_Flux_Flat/3.0);
-    vA.Set(1,200.0);
-    vA.Set(2,i_dCentral_WL);//lpdSpectra_WL[uiI][uiMin_Flux_Idx]);
+    vA.Set(0,dAmplitude);
+    vA.Set(1,dHWHM);
+    vA.Set(2,dCenter);
 
     // Perform LSQ fit
     if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024))
