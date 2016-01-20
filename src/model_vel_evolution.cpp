@@ -896,7 +896,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						uiMin_Flux_Idx = uiJ;
 					}
 
-					if (bIn_feature && lpdSpectra_Flux[uiI][uiJ] > 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
+					if (uiJ > uiMin_Flux_Idx && lpdSpectra_Flux[uiI][uiJ] > 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
 						uiP_Cygni_Min_Idx = uiJ;
 				}
 				if (uiMin_Flux_Idx == -1)
