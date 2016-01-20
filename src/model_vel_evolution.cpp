@@ -894,9 +894,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					{
 						dMin_Flux_Flat = lpdSpectra_Flux[uiI][uiJ];
 						uiMin_Flux_Idx = uiJ;
+						uiP_Cygni_Min_Idx = 0;
 					}
-
-					if ((uiJ > uiMin_Flux_Idx || uiMin_Flux_Idx > uiP_Cygni_Min_Idx) && lpdSpectra_Flux[uiI][uiJ] > 1.0000 && (uiP_Cygni_Min_Idx == 0 || uiMin_Flux_Idx > uiP_Cygni_Min_Idx)) // determine max index of absorption region
+					
+					if (uiJ > uiMin_Flux_Idx && lpdSpectra_Flux[uiI][uiJ] > 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
 						uiP_Cygni_Min_Idx = uiJ;
 				}
 				if (uiMin_Flux_Idx == -1)
