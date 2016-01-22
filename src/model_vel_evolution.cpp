@@ -679,17 +679,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpuiSpectra_Count_EO[uiI] = 0;
 			lpuiSpectra_Count_SO[uiI] = 0;
 			if (bVerbose)
-				printf("Extracting data and flattening model %s.\n",lpszModel_List[uiI]);
+				printf("Extracting data for model %s.\n",lpszModel_List[uiI]);
 			Get_Spectra_Data(lpcSpectrum[uiI][0], lpdContinuum_WL[uiI], lpdContinuum_Flux[uiI], lpuiContinuum_Count[uiI], dRange_Min, dRange_Max);
 			Get_Spectra_Data(lpcSpectrum[uiI][1], lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], dRange_Min, dRange_Max);
 			Get_Spectra_Data(lpcSpectrum[uiI][2], lpdSpectra_WL_EO[uiI], lpdSpectra_Flux_EO[uiI], lpuiSpectra_Count_EO[uiI], dRange_Min, dRange_Max);
 			Get_Spectra_Data(lpcSpectrum[uiI][3], lpdSpectra_WL_SO[uiI], lpdSpectra_Flux_SO[uiI], lpuiSpectra_Count_SO[uiI], dRange_Min, dRange_Max);
+			if (bVerbose)
+				printf("Flattening model %s.\n",lpszModel_List[uiI]);
 			for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 			{
 				lpdSpectra_Flux[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
 				lpdSpectra_Flux_EO[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
 				lpdSpectra_Flux_SO[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
 			}
+			if (bVerbose)
+				printf("Adding plot for model %s.\n",lpszModel_List[uiI]);
 			cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + (uiI % 7));
 			cLine_Parameters.m_eStipple = (epsplot::STIPPLE)(epsplot::SOLID + (uiI % 8));
 			cPlot.Set_Plot_Data(lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
@@ -900,6 +904,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					if (uiJ > uiMin_Flux_Idx && lpdSpectra_Flux[uiI][uiJ] > 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
 						uiP_Cygni_Min_Idx = uiJ;
 				}
+				if (uiP_Cygni_Min_Idx == 0)
+					uiP_Cygni_Min_Idx = lpuiSpectra_Count[uiI] - 1;
 				if (uiMin_Flux_Idx == -1)
 				{
 					fprintf(stderr,"Fault in min flux for model %s\n",lpszModel_List[uiI]);
@@ -924,6 +930,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							uiContinuum_Red_Idx = uiJ;
 						}
 					}
+					printf("%i %i %i %i\n",uiMin_Flux_Idx,uiP_Cygni_Min_Idx,uiContinuum_Blue_Idx,uiContinuum_Red_Idx);
 					if (bVerbose)
 						printf("Identified p Cygni peak at %.0f\n",lpdSpectra_WL[uiI][uiContinuum_Red_Idx]);
 					if (bVerbose)
@@ -956,6 +963,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
                     else
                     {
                         printf("Failed to identify blue and red sides of feature: %i %i (%i)\n",uiContinuum_Blue_Idx,uiContinuum_Red_Idx,uiP_Cygni_Min_Idx);
+						dSmin = DBL_MAX;
                     }
 
 
@@ -973,6 +981,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
                     vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
                                     cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat, dSmin_Flat);
 				}
+				else
+					dSmin_Flat = DBL_MAX;
+
 				if (vA.Get_Size() > 0)
 					fprintf(fileData,"%s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e", 
 	lpszModel_List[uiI], cCombined_Flat.m_d_pEW, -cCombined_Flat.m_dVmin, cEO_Flat.m_d_pEW, -cEO_Flat.m_dVmin,  cSO_Flat.m_d_pEW, -cSO_Flat.m_dVmin, cCombined_Unflat.m_d_pEW, -cCombined_Flat.m_dVmin, -cEO_Unflat.m_dVmin, -cSO_Unflat.m_dVmin, -dV_Jeff_HVF, -dV_Jeff_PVF, dpEW_Jeff_HVF, dpEW_Jeff_PVF);
