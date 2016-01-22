@@ -243,14 +243,14 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
             vAlcl.Set(1,vA.Get(1));
             vAlcl.Set(2,vA.Get(2));
 
-            Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParamters);
+            vF = Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParamters);
             o_dpEW_HVF -= vF.Get(0) * i_dWavelength_Delta_Ang; // - sign to keep pEW positive
 
             vAlcl.Set(0,vA.Get(3));
             vAlcl.Set(1,vA.Get(4));
             vAlcl.Set(2,vA.Get(5));
 
-            Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParamters);
+            vF = Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParamters);
             o_dpEW_PVF -= vF.Get(0) * i_dWavelength_Delta_Ang;
         }
         else

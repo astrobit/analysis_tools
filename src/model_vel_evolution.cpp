@@ -959,6 +959,24 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						}
                         vA = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
                                         cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF, vSigma_Jeff, dSmin);
+
+/*						switch (vA.Get_Size())
+						{
+						case 6:
+							dpEW_Jeff_HVF = -0.886227 * vA.Get(0) * vA.Get(1);
+							dpEW_Jeff_PVF = -0.886227 * vA.Get(3) * vA.Get(4);
+							break;
+						case 3:
+							dpEW_Jeff_PVF = -0.886227 * vA.Get(0) * vA.Get(1);
+							dpEW_Jeff_HVF = 0.0;
+							break;
+						default:
+							dpEW_Jeff_PVF = 0.0;
+							dpEW_Jeff_HVF = 0.0;
+							break;
+						}*/
+
+						
                     }
                     else
                     {
@@ -980,6 +998,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
                     }
                     vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
                                     cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat, dSmin_Flat);
+/*						switch (vA_Flat.Get_Size())
+						{
+						case 6:
+							dpEW_Flat_HVF = -0.886227 * vA_Flat.Get(0) * vA_Flat.Get(1);
+							dpEW_Flat_PVF = -0.886227 * vA_Flat.Get(3) * vA_Flat.Get(4);
+							break;
+						case 3:
+							dpEW_Flat_PVF = -0.886227 * vA_Flat.Get(0) * vA_Flat.Get(1);
+							dpEW_Flat_HVF = 0.0;
+							break;
+						default:
+							dpEW_Flat_PVF = 0.0;
+							dpEW_Flat_HVF = 0.0;
+							break;
+						}*/
 				}
 				else
 					dSmin_Flat = DBL_MAX;
