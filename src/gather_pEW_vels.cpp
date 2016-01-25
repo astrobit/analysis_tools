@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 #include <xlinalg.h>
-
+#include <line_routines.h>
 
 class	FIT_DATA
 {
@@ -28,135 +28,27 @@ public:
 	FIT_DATA	m_cFlat_Shell;
 	FIT_DATA	m_cJeff_SF;
 	FIT_DATA	m_cJeff_DF;
+	FIT_DATA	m_cJeff_Combined;
 	FIT_DATA	m_cFlat_SF;
 	FIT_DATA	m_cFlat_DF;
+	FIT_DATA	m_cFlat_Combined;
 
-	DATA_CONTAINER(void) : m_uiModel(0), m_cJeff_SF(), m_cJeff_DF(), m_cFlat_SF(), m_cFlat_DF(), m_cFlat_Raw(), m_cFlat_Ejecta(), m_cFlat_Shell() {}
+	DATA_CONTAINER(void) : m_uiModel(0), m_cJeff_SF(), m_cJeff_DF(), m_cFlat_SF(), m_cFlat_DF(), m_cFlat_Raw(), m_cFlat_Ejecta(), m_cFlat_Shell(), m_cJeff_Combined(),  m_cFlat_Combined() {}
 };
 
-class GAUSS_FIT_PARAMETERS
-{
-public:
-	double	m_dWl[3];
-	double	m_dStr[3];
-	double	m_dW_Ratio_1;
-	double	m_dW_Ratio_2;
-	
-	double	m_dH_Ratio_1;
-	double	m_dH_Ratio_2;
-	GAUSS_FIT_PARAMETERS(void)
-	{
-		m_dW_Ratio_1 = m_dW_Ratio_2 = m_dH_Ratio_1 = m_dH_Ratio_2 = 0.0;
-	}
-
-	GAUSS_FIT_PARAMETERS(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
-	{
-		m_dWl[0] = i_dWL_1;
-		m_dWl[1] = i_dWL_2;
-		m_dWl[2] = i_dWL_3;
-
-		m_dStr[0] = i_dStrength_1;
-		m_dStr[1] = i_dStrength_2;
-		m_dStr[2] = i_dStrength_3;
-
-		m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
-		m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
-		m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
-		m_dH_Ratio_2 = i_dStrength_2 / i_dStrength_2;
-	}
-};
-
-GAUSS_FIT_PARAMETERS	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
-
-
-XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
-{
-	XVECTOR vOut;
-
-	vOut.Set_Size(4); // function, and derivatives wrt each a parameter
-
-	GAUSS_FIT_PARAMETERS *lpvParam = (GAUSS_FIT_PARAMETERS *) i_lpvData;
-	double	dDelx_X, dDel_X_Sigma_1, dDel_X_Sigma_2, dDel_X_Sigma_3 = 0.0;
-	double	dExp_1, dExp_2, dExp_3 = 0.0;
-	double	dDel_X;
-	double	dInv_Sigma;
-
-	dInv_Sigma = 1.0 / i_vA.Get(1);
-	dDel_X = i_dX - i_vA.Get(2);
-	dDel_X_Sigma_2 = dDel_X * dInv_Sigma;
-
-
-	dDel_X = i_dX / lpvParam->m_dW_Ratio_1 - i_vA.Get(2);
-	dDel_X_Sigma_1 = dDel_X * dInv_Sigma;
-
-	dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * lpvParam->m_dH_Ratio_1;
-	dExp_2 = exp(-0.5 * dDel_X_Sigma_2 * dDel_X_Sigma_2);
-	dExp_3 = 0.0;
-
-	if (lpvParam->m_dW_Ratio_2 != 0.0)
-	{
-		dDel_X = i_dX / lpvParam->m_dW_Ratio_2 - i_vA.Get(2);
-		dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
-		dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
-	}
-	vOut.Set(0,i_vA.Get(0) * (dExp_1 + dExp_2 + dExp_3));
-	vOut.Set(1,dExp_1 + dExp_2 + dExp_3);
-	vOut.Set(2,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3));
-	vOut.Set(3,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3));
-	return vOut;
-}
-XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
-{
-	XVECTOR vOut;
-	XVECTOR vOut1;
-	XVECTOR vOut2;
-
-	XVECTOR vA_lcl;
-	if (i_vA.Get_Size() == 6)
-	{
-		vOut.Set_Size(7);
-		vA_lcl.Set_Size(3);
-		vA_lcl.Set(0,i_vA.Get(3));
-		vA_lcl.Set(1,i_vA.Get(4));
-		vA_lcl.Set(2,i_vA.Get(5));
-
-		vOut1 = Gaussian(i_dX,i_vA,i_lpvData);
-		vOut2 = Gaussian(i_dX,vA_lcl,i_lpvData);
-
-		vOut.Set(0,vOut1.Get(0) + vOut2.Get(0));
-		vOut.Set(1,vOut1.Get(1));
-		vOut.Set(2,vOut1.Get(2));
-		vOut.Set(3,vOut1.Get(3));
-		vOut.Set(4,vOut2.Get(1));
-		vOut.Set(5,vOut2.Get(2));
-		vOut.Set(6,vOut2.Get(3));
-	}
-	else if (i_vA.Get_Size() == 3)
-	{
-		vOut = Gaussian(i_dX,i_vA,i_lpvData);
-	}
-	return vOut;
-}
-
-double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength)
-{
-	double	dz = i_dObserved_Wavelength / i_dRest_Wavelength;
-	double	dz_sqr = dz * dz;
-	return (2.99792458e5 * (dz_sqr - 1.0) / (dz_sqr + 1.0));
-}
 
 double Compute_pEW(XVECTOR & i_vA, const double & i_dWL_Min, const double & i_dWL_Max)
 {
 	double dpEW = 0.0;
-	double	ddWL = (i_dWL_Max - i_dWL_Min) / 512.0;
-	for (double dWL = i_dWL_Min; dWL <= i_dWL_Max; dWL += (i_dWL_Max - i_dWL_Min) / 512.0)
+	double	ddWL = (i_dWL_Max - i_dWL_Min) / 1024.0;
+	for (double dWL = i_dWL_Min; dWL <= i_dWL_Max; dWL += ddWL)
 	{
 		dpEW += (-Gaussian(dWL,i_vA,&g_cgfpCaNIR).Get(0)) * ddWL;
 	}
 	return dpEW;
 }
 
-enum GROUP {RAW,EJECTA,SHELL,JEFF_FIT,FLAT_FIT,ALL};
+enum GROUP {RAW,EJECTA,SHELL,JEFF_FIT,FLAT_FIT,JEFF_COMBINED, FLAT_COMBINED, ALL};
 enum COMPONENT {PEW, VELOCITY};
 void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eComponent, const std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> > & i_cFull_Map)
 {
@@ -198,6 +90,8 @@ void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eCo
 						case 4: lpCtr = &cIterJ->second.m_cJeff_DF; break;
 						case 5: lpCtr = &cIterJ->second.m_cFlat_SF; break;
 						case 6: lpCtr = &cIterJ->second.m_cFlat_DF; break;
+						case 7: lpCtr = &cIterJ->second.m_cJeff_Combined; break;
+						case 8: lpCtr = &cIterJ->second.m_cFlat_Combined; break;
 						}
 						if (uiI == 0 && lpCtr->m_dVel < 500. ||
 							uiI == 0 && lpCtr->m_dVel > 40000.0 ||
@@ -229,6 +123,12 @@ void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eCo
 					break;
 				case FLAT_FIT:
 					lpCtr = &cIterJ->second.m_cFlat_SF;
+					break;
+				case JEFF_COMBINED:
+					lpCtr = &cIterJ->second.m_cJeff_Combined;
+					break;
+				case FLAT_COMBINED:
+					lpCtr = &cIterJ->second.m_cFlat_Combined;
 					break;
 				}
 				if (i_eComponent == VELOCITY && lpCtr->m_dVel < 500. ||
@@ -294,6 +194,7 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 							vA.Set(2,cDatafile.GetElement(19,uiJ));
 							cData.m_cJeff_SF.m_dVel = -Compute_Velocity(cDatafile.GetElement(19,uiJ),dWL_Ref);
 							cData.m_cJeff_SF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
+							cData.m_cJeff_Combined.m_dpEW = cData.m_cJeff_SF.m_dpEW;
 						}
 						if (cDatafile.GetElement(25,uiJ) != -1)
 						{
@@ -302,6 +203,7 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 							vA.Set(2,cDatafile.GetElement(25,uiJ));
 							cData.m_cJeff_DF.m_dVel = -Compute_Velocity(cDatafile.GetElement(25,uiJ),dWL_Ref);
 							cData.m_cJeff_DF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
+							cData.m_cJeff_Combined.m_dpEW += cData.m_cJeff_DF.m_dpEW;
 						}
 						if (cDatafile.GetElement(31,uiJ) != -1)
 						{
@@ -310,6 +212,7 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 							vA.Set(2,cDatafile.GetElement(31,uiJ));
 							cData.m_cFlat_SF.m_dVel = -Compute_Velocity(cDatafile.GetElement(31,uiJ),dWL_Ref);
 							cData.m_cFlat_SF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
+							cData.m_cFlat_Combined.m_dpEW = cData.m_cFlat_SF.m_dpEW;
 						}
 						if (cDatafile.GetElement(37,uiJ) != -1)
 						{
@@ -318,6 +221,7 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 							vA.Set(2,cDatafile.GetElement(37,uiJ));
 							cData.m_cFlat_DF.m_dVel = -Compute_Velocity(cDatafile.GetElement(37,uiJ),dWL_Ref);
 							cData.m_cFlat_DF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
+							cData.m_cFlat_Combined.m_dpEW += cData.m_cFlat_DF.m_dpEW;
 						}
 						(cFull_Map[uiDay])[uiModel] = cData;
 					}
@@ -355,7 +259,9 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 	Write_Datafile("vel_Shell_data.csv",SHELL,VELOCITY,cFull_Map);
 
 	Write_Datafile("pEW_Jeff_data.csv",JEFF_FIT,PEW,cFull_Map);
+	Write_Datafile("pEW_Jeff_Combined_data.csv",JEFF_COMBINED,PEW,cFull_Map);
 	Write_Datafile("pEW_Flat_data.csv",FLAT_FIT,PEW,cFull_Map);
+	Write_Datafile("pEW_Flat_Combined_data.csv",FLAT_COMBINED,PEW,cFull_Map);
 	Write_Datafile("pEW_Raw_data.csv",RAW,PEW,cFull_Map);
 	Write_Datafile("pEW_Ejecta_data.csv",EJECTA,PEW,cFull_Map);
 	Write_Datafile("pEW_Shell_data.csv",SHELL,PEW,cFull_Map);

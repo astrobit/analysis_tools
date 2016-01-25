@@ -259,8 +259,8 @@ $(BINDIR)/gausstest: $(SRCDIR)/gaussian_fit_test.cpp $(LIBDIR)/libplotutil.a $(X
 	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gaussian_fit_test.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/gausstest
 
 gather_pEW_vels: $(BINDIR)/gather_pEW_vels
-$(BINDIR)/gather_pEW_vels: $(SRCDIR)/gather_pEW_vels.cpp $(XLIBSCHANGE)
-	$(CCOMP) $(CLFLAGS) $(SRCDIR)/gather_pEW_vels.cpp -lxmath -lxio -lxstdlib -o $(BINDIR)/gather_pEW_vels
+$(BINDIR)/gather_pEW_vels: $(SRCDIR)/gather_pEW_vels.cpp $(XLIBSCHANGE)  $(LIBDIR)/liblinerout.a
+	$(CCOMP)  $(ESFLAGS) $(CLFLAGS) $(SRCDIR)/gather_pEW_vels.cpp  $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/gather_pEW_vels
 
 test_msdb: $(BINDIR)/test_msdb
 $(BINDIR)/test_msdb: $(SRCDIR)/msdb_test.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a
