@@ -3,6 +3,7 @@
 #include <xio.h>
 #include <cmath>
 #include <line_routines.h>
+//#include <cstdio>
 
 void FIT_VIZ_MAIN::Load_Model_Day_Lists(void)
 {
@@ -131,8 +132,10 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 					}
 				}
 			}
+			
 			if (uiFound_Row != -1)
 			{
+//				m_vGaussian_Fit_Data.Print(stdout);
 				unsigned int uiFlux_Col = uiFound_Row * 7 + 1;
 				if (m_eFit_Method == fm_flat)
 					uiFlux_Col += 2;
