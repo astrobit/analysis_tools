@@ -862,6 +862,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				unsigned int uiMin_Flux_Idx = -1;
 				double	dMin_Flux_Flat = DBL_MAX;
 				unsigned int uiP_Cygni_Min_Idx = 0;
+				double	dMax_Flux_Flat = 0.0;
+				unsigned int uiMax_Flux_Idx = -1;
 				printf("Processing model %s\n",lpszModel_List[uiI]);
 				// first generate pEW based on flattened spectra and excluding the p Cygni peak
 				for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
@@ -898,12 +900,24 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					{
 						dMin_Flux_Flat = lpdSpectra_Flux[uiI][uiJ];
 						uiMin_Flux_Idx = uiJ;
-						uiP_Cygni_Min_Idx = 0;
 					}
-					
-					if (uiJ > uiMin_Flux_Idx && lpdSpectra_Flux[uiI][uiJ] > 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
+				}
+				// find the global maximum over this range
+				for (unsigned int uiJ = lpuiSpectra_Count[uiI] - 1; uiJ > uiMin_Flux_Idx; uiJ--)
+				{
+					if (lpdSpectra_Flux[uiI][uiJ] > dMax_Flux_Flat)
+					{
+						dMax_Flux_Flat = lpdSpectra_Flux[uiI][uiJ];
+						uiMax_Flux_Idx = uiJ;
+					}
+				}
+				// find the edge of the absorbtion region blueward of the peak
+				for (unsigned int uiJ = uiMax_Flux_Idx; uiJ > uiMin_Flux_Idx && uiP_Cygni_Min_Idx == 0; uiJ--)
+				{
+					if (lpdSpectra_Flux[uiI][uiJ] < 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
 						uiP_Cygni_Min_Idx = uiJ;
 				}
+
 				if (uiP_Cygni_Min_Idx == 0)
 					uiP_Cygni_Min_Idx = lpuiSpectra_Count[uiI] - 1;
 				if (uiMin_Flux_Idx == -1)
