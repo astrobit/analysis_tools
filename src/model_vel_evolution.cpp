@@ -336,7 +336,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	case CANIR:
 		dNorm_WL = 7750.0;
 		dWL_Ref = (8498.02 * pow(10.0,-0.39) + 8542.09 * pow(10,-0.36) + 8662.14 * pow(10.0,-0.622)) / (pow(10.0,-0.39) + pow(10.0,-0.36) + pow(10.0,-0.622));
-		dRange_Min = 7000.0;
+		dRange_Min = 6000.0;
 		dRange_Max = 9500.0;
 		cParam.m_eFeature = msdb::CaNIR;
 		lpgfpParamters = &g_cgfpCaNIR;
