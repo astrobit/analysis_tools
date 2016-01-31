@@ -2,6 +2,8 @@
 bin/*
 lib/*
 obj/*
+FitViz/bin/*
+FitViz/obj/*
 
 # Log files
 *.log
