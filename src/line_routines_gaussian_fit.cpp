@@ -87,6 +87,38 @@ XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvDa
 	}
 	return vOut;
 }
+void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const double & i_dWavelength_Delta_Ang, const GAUSS_FIT_PARAMETERS * i_lpgfpParameters, double & o_dpEW_PVF, double & o_dpEW_HVF)
+{
+	o_dpEW_HVF = 0.0;
+	o_dpEW_PVF = 0.0;
+	for (unsigned int uiJ = 0; uiJ < i_vX.Get_Size(); uiJ++)
+	{
+		XVECTOR vF = Multi_Gaussian(i_vX.Get(uiJ), i_vA, (void *)i_lpgfpParameters);
+		if (i_vA.Get_Size() == 6)
+		{
+			XVECTOR vAlcl;
+			vAlcl.Set_Size(3);
+			vAlcl.Set(0,i_vA.Get(0));
+			vAlcl.Set(1,i_vA.Get(1));
+			vAlcl.Set(2,i_vA.Get(2));
+
+			vF = Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParameters);
+			o_dpEW_HVF -= vF.Get(0) * i_dWavelength_Delta_Ang; // - sign to keep pEW positive
+
+			vAlcl.Set(0,i_vA.Get(3));
+			vAlcl.Set(1,i_vA.Get(4));
+			vAlcl.Set(2,i_vA.Get(5));
+
+			vF = Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParameters);
+			o_dpEW_PVF -= vF.Get(0) * i_dWavelength_Delta_Ang;
+		}
+		else
+		{
+			Gaussian(i_vX.Get(uiJ), i_vA, (void *)i_lpgfpParameters);
+			o_dpEW_PVF -= vF.Get(0) * i_dWavelength_Delta_Ang; // - sign to keep pEW positive
+		}
+	}
+}
 
 XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_dCentral_WL, const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
                     const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS)
@@ -230,35 +262,8 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
         o_dV_PVF = Compute_Velocity(vA.Get(2),i_lpgfpParamters->m_dWl[1]);
         o_dV_HVF = 0.0;
     }
-    o_dpEW_HVF = 0.0;
-    o_dpEW_PVF = 0.0;
-    for (unsigned int uiJ = 0; uiJ < i_vX.Get_Size(); uiJ++)
-    {
-        XVECTOR vF = Multi_Gaussian(i_vX.Get(uiJ), vA, (void *)i_lpgfpParamters);
-        if (vA.Get_Size() == 6)
-        {
-            XVECTOR vAlcl;
-            vAlcl.Set_Size(3);
-            vAlcl.Set(0,vA.Get(0));
-            vAlcl.Set(1,vA.Get(1));
-            vAlcl.Set(2,vA.Get(2));
+	Compute_Gaussian_Fit_pEW(i_vX,vA,i_dWavelength_Delta_Ang,i_lpgfpParamters,o_dpEW_PVF,o_dpEW_HVF);
 
-            vF = Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParamters);
-            o_dpEW_HVF -= vF.Get(0) * i_dWavelength_Delta_Ang; // - sign to keep pEW positive
-
-            vAlcl.Set(0,vA.Get(3));
-            vAlcl.Set(1,vA.Get(4));
-            vAlcl.Set(2,vA.Get(5));
-
-            vF = Gaussian(i_vX.Get(uiJ), vAlcl, (void *)i_lpgfpParamters);
-            o_dpEW_PVF -= vF.Get(0) * i_dWavelength_Delta_Ang;
-        }
-        else
-        {
-            Gaussian(i_vX.Get(uiJ), vA, (void *)i_lpgfpParamters);
-            o_dpEW_PVF -= vF.Get(0) * i_dWavelength_Delta_Ang; // - sign to keep pEW positive
-        }
-    }
     vRet = vA;
     o_vSigmas.Set_Size(vA.Get_Size());
     for (unsigned int uiI = 0; uiI < vA.Get_Size(); uiI++)

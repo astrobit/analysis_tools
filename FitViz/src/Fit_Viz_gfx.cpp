@@ -240,6 +240,7 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	PAIR<double> pSB_Size = PAIR<double>(0.05,0.05);
 	PAIR<double> pLB_Size = PAIR<double>(0.15,0.05);
 	PAIR<double> pTB_Size = PAIR<double>(0.10,0.10);
+	PAIR<double> pIB_Size = PAIR<double>(0.10,0.05);
 
 	dAR = Get_Pane_Aspect_Ratio(m_idPane);
 	m_mMain_Pane_Buttons.clear();
@@ -252,8 +253,11 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	m_mMain_Pane_Buttons[METHOD_FLAT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.4,0.20),pLB_Size,METHOD_FLAT);
 	m_mMain_Pane_Buttons[METHOD_JEFF] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.4,0.10),pLB_Size,METHOD_JEFF);
 	m_mMain_Pane_Buttons[SELECT_DIRECTORY] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,SELECT_DIRECTORY);
-	m_mMain_Pane_Buttons[QUIT_REQUEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.8,0.20),pLB_Size,QUIT_REQUEST);
+	m_mMain_Pane_Buttons[QUIT_REQUEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.90,0.20),pLB_Size,QUIT_REQUEST);
 	m_mMain_Pane_Buttons[MODEL_DISPLAY_AREA] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.05,0.30),PAIR<double>(dAR * 0.9,0.70),MODEL_DISPLAY_AREA);
+	m_mMain_Pane_Buttons[PVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.20),pIB_Size,PVF_TEXT);
+	m_mMain_Pane_Buttons[HVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.15),pIB_Size,HVF_TEXT);
+	m_mMain_Pane_Buttons[pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.10),pIB_Size,pEW_TEXT);
 
 }
 void FIT_VIZ_MAIN::gfx_close(void) // graphics exiting; rendering context still active
@@ -438,6 +442,54 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 						}
 					glPopMatrix();
 					break;
+				case PVF_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "PVF ";
+							if (isnan(m_dFit_Velocity_PVF))
+								sText << "--";
+							else
+								sText << (m_dFit_Velocity_PVF * 1.0e-3);
+							sText << " kkm/s";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/dSize,1.0,1.0);
+							glPrintJustified(0.7,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case HVF_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "HVF ";
+							if (isnan(m_dFit_Velocity_HVF))
+								sText << "--";
+							else
+								sText << (m_dFit_Velocity_HVF * 1.0e-3);
+							sText << " kkm/s";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/dSize,1.0,1.0);
+							glPrintJustified(0.7,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case pEW_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "pEW ";
+							sText << m_dFit_pEW;
+							sText << " Ang.";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/dSize,1.0,1.0);
+							glPrintJustified(0.7,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
 				case MODEL_DISPLAY_AREA:
 					if (!m_vWavelength.empty() && !m_vFlux.empty())
 					{
@@ -457,7 +509,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glPrintJustified(0.05,0.0,-0.01,0.0,sWL2.str().c_str(),HJ_CENTER,VJ_TOP);
 						glPopMatrix();
 						double dWL_scale = 0.90 / (m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]);
-						double dFlux_Scale = 0.90 / (m_dMax_Flux * 1.25);
+						double dFlux_Scale = 0.90 / 2.0;//(m_dMax_Flux * 1.25);
 						glTranslated(0.05,0.1,0.0);
 						glBegin(GL_LINE_STRIP);
 						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)

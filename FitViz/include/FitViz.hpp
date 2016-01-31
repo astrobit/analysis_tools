@@ -17,7 +17,10 @@ enum button_id
 	QUIT_REQUEST,
 	MODEL_SEL_TEXT,
 	DAY_SEL_TEXT,
-	MODEL_DISPLAY_AREA
+	MODEL_DISPLAY_AREA,
+	PVF_TEXT,
+	HVF_TEXT,
+	pEW_TEXT
 };
 enum fit_method
 {
@@ -51,6 +54,9 @@ class FIT_VIZ_MAIN : public MAIN
 	PAIR<double> m_pJeff_Red;
 	PAIR<double> m_pGlobal_Min;
 	PAIR<double> m_pP_Cygni_Emission_Edge;
+	double		m_dFit_Velocity_PVF;
+	double		m_dFit_Velocity_HVF;
+	double		m_dFit_pEW;
 
 	std::vector<double>	m_vWavelength;
 	std::vector<double> m_vFlux;

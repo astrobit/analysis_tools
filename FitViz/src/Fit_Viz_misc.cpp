@@ -1,6 +1,8 @@
 #include <FitViz.hpp>
 #include <sstream>
 #include <xio.h>
+#include <cmath>
+#include <line_routines.h>
 
 void FIT_VIZ_MAIN::Load_Model_Day_Lists(void)
 {
@@ -146,6 +148,8 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				unsigned int uiMin_Flux_Idx = -1;
 				unsigned int uiP_Cygni_Min_Idx = 0;
 				double dP_Cygni_Peak_Flux = -1;
+				double dMax_Flux_Flat = -1;
+				unsigned int uiMax_Flux_Idx = -1;
 				for (unsigned int uiI = 0; uiI < m_dDay_Spectrum_Data.GetNumRows(); uiI++)
 				{
 					double dWL = m_dDay_Spectrum_Data.GetElement(0,uiI);
@@ -172,12 +176,27 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 					{
 						dMin_Flux_Flat = dFlux_Flat;
 						uiMin_Flux_Idx = uiI;
-						uiP_Cygni_Min_Idx = 0;
 					}
 					
-					if (uiI > uiMin_Flux_Idx && dFlux_Flat > 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
-						uiP_Cygni_Min_Idx = uiI;
 				}
+				// find the global maximum over this range
+				for (unsigned int uiJ = m_dDay_Spectrum_Data.GetNumRows() - 1; uiJ > uiMin_Flux_Idx; uiJ--)
+				{
+					double dFlux_Flat = m_dDay_Spectrum_Data.GetElement(uiFlux_Col_Flat,uiJ);
+					if (dFlux_Flat > dMax_Flux_Flat)
+					{
+						dMax_Flux_Flat = dFlux_Flat;
+						uiMax_Flux_Idx = uiJ;
+					}
+				}
+				// find the edge of the absorbtion region blueward of the peak
+				for (unsigned int uiJ = uiMax_Flux_Idx; uiJ > uiMin_Flux_Idx && uiP_Cygni_Min_Idx == 0; uiJ--)
+				{
+					double dFlux_Flat = m_dDay_Spectrum_Data.GetElement(uiFlux_Col_Flat,uiJ);
+					if (dFlux_Flat < 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
+						uiP_Cygni_Min_Idx = uiJ;
+				}
+
 				if (uiP_Cygni_Min_Idx == 0)
 					uiP_Cygni_Min_Idx = m_dDay_Spectrum_Data.GetNumRows() - 1;
 				if (uiMin_Flux_Idx == -1)
@@ -206,8 +225,27 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				m_pJeff_Red.m_tY = m_dDay_Spectrum_Data.GetElement(uiFlux_Col_Jeff,uiContinuum_Red_Idx);
 				m_dJeff_WL = m_pJeff_Blue.m_tX;
 				m_dJeff_Flux = m_pJeff_Blue.m_tY;
-				m_dJeff_Slope = (m_pJeff_Red.m_tY - m_pJeff_Blue.m_tY) / (m_pJeff_Red.m_tX - m_pJeff_Blue.m_tX);
 
+				m_dJeff_Slope = (m_pJeff_Red.m_tY - m_pJeff_Blue.m_tY) / (m_pJeff_Red.m_tX - m_pJeff_Blue.m_tX);
+				double 		dWL_Ref = (8498.02 * pow(10.0,-0.39) + 8542.09 * pow(10,-0.36) + 8662.14 * pow(10.0,-0.622)) / (pow(10.0,-0.39) + pow(10.0,-0.36) + pow(10.0,-0.622));
+				m_dFit_Velocity_PVF = -Compute_Velocity(m_vGaussian_Fit_Data.Get(2),dWL_Ref);
+				m_dFit_Velocity_HVF = nan("");
+				if (m_vGaussian_Fit_Data.Get_Size() == 6)
+				{
+					m_dFit_Velocity_HVF = -Compute_Velocity(m_vGaussian_Fit_Data.Get(5),dWL_Ref);
+					if (m_dFit_Velocity_HVF < m_dFit_Velocity_PVF)
+					{
+						double dTemp = m_dFit_Velocity_HVF;
+						m_dFit_Velocity_HVF = m_dFit_Velocity_PVF;
+						m_dFit_Velocity_PVF = dTemp;
+					}
+				}
+				XVECTOR	vX;
+				vX = m_vWavelength;
+				GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+				double dpEW_PVF, dpEW_HVF;
+				Compute_Gaussian_Fit_pEW(vX, m_vGaussian_Fit_Data, m_vWavelength[1] - m_vWavelength[0], lpgfpParamters, dpEW_PVF, dpEW_HVF);
+				m_dFit_pEW = dpEW_HVF + dpEW_PVF;
 			}
 		}
 	}
