@@ -310,7 +310,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 	szParameters_Path << szPath_To_Output;
 	szParameters_Path << "params.txt";
-	FILE  * fileParams = fopen(szParameters_Path.str().c_str(), "wt");
+	wordexp_t cResults;
+	if (wordexp(szParameters_Path.str().c_str(),&cResults,WRDE_NOCMD|WRDE_UNDEF) == 0)
+	{
+		szPath_To_Output = cResults.we_wordv[0];
+		wordfree(&cResults);
+	}
+	else
+		szPath_To_Output = szParameters_Path.str();
+	FILE  * fileParams = fopen(szPath_To_Output.c_str(), "wt");
 	if (fileParams)
 	{
 		fprintf(fileParams,"Ejecta_scalar = %.17e\n",dEjecta_Scalar);
@@ -739,7 +747,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	
 		if (bVerbose)
 			printf("Generating caption\n");
-		wordexp_t cResults;
 		if (wordexp(lpszOutput_Name,&cResults,WRDE_NOCMD|WRDE_UNDEF) == 0)
 		{
 			strcpy(lpszOutput_Name, cResults.we_wordv[0]);
