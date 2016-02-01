@@ -306,7 +306,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	else
 	{
 		std::string szOutput = lpszOutput_Name;
-		szPath_To_Output = szOutput.substr(0,uiDir_Pos);
+		szPath_To_Output = szOutput.substr(0,uiDir_Pos + 1);
 	}
 	szParameters_Path << szPath_To_Output;
 	szParameters_Path << "params.txt";
@@ -325,6 +325,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		
 		fclose(fileParams);
 	}
+	else
+		printf("Failed to open param file %s\n",szParameters_Path.str().c_str());
 
 
 	// Identify which line we are interested in.
