@@ -252,12 +252,15 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	m_mMain_Pane_Buttons[DAY_SEL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.21,0.10),pTB_Size,DAY_SEL_TEXT);
 	m_mMain_Pane_Buttons[METHOD_FLAT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.4,0.20),pLB_Size,METHOD_FLAT);
 	m_mMain_Pane_Buttons[METHOD_JEFF] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.4,0.10),pLB_Size,METHOD_JEFF);
-	m_mMain_Pane_Buttons[SELECT_DIRECTORY] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,SELECT_DIRECTORY);
+//	m_mMain_Pane_Buttons[SELECT_DIRECTORY] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,SELECT_DIRECTORY);
+	m_mMain_Pane_Buttons[DISPLAY_SHELL_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,DISPLAY_SHELL_COMPONENT);
+	m_mMain_Pane_Buttons[DISPLAY_EJECTA_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.10),pLB_Size,DISPLAY_EJECTA_COMPONENT);
 	m_mMain_Pane_Buttons[QUIT_REQUEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.90,0.20),pLB_Size,QUIT_REQUEST);
-	m_mMain_Pane_Buttons[MODEL_DISPLAY_AREA] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.05,0.30),PAIR<double>(dAR * 0.9,0.70),MODEL_DISPLAY_AREA);
+	m_mMain_Pane_Buttons[MODEL_DISPLAY_AREA] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.05,1.00),PAIR<double>(dAR * 0.9,0.70),MODEL_DISPLAY_AREA);
 	m_mMain_Pane_Buttons[PVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.20),pIB_Size,PVF_TEXT);
 	m_mMain_Pane_Buttons[HVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.15),pIB_Size,HVF_TEXT);
 	m_mMain_Pane_Buttons[pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.10),pIB_Size,pEW_TEXT);
+
 
 }
 void FIT_VIZ_MAIN::gfx_close(void) // graphics exiting; rendering context still active
@@ -390,6 +393,36 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 						glPrintJustified(0.4,0.0,0.0,0.0,"Select",HJ_CENTER,VJ_MIDDLE);
 					glPopMatrix();
 					break;
+				case DISPLAY_SHELL_COMPONENT:
+					if (m_bDisplay_Shell_Component)
+						glColor4d(0.0,0.75,0.0,1.0);
+					else
+						glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Rounded_Rectangle(true);
+					glColor4d(0.0,0.0,0.0,1.0);
+					glLineWidth(2.0);
+					Draw_Rounded_Rectangle(false);
+					glPushMatrix();
+						glTranslated(0.5,-0.5,0.0);
+						glScaled(1.0/dSize,1.0,1.0);
+						glPrintJustified(0.4,0.0,0.0,0.0,"Shell",HJ_CENTER,VJ_MIDDLE);
+					glPopMatrix();
+					break;
+				case DISPLAY_EJECTA_COMPONENT:
+					if (m_bDisplay_Ejecta_Component)
+						glColor4d(0.0,0.75,0.0,1.0);
+					else
+						glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Rounded_Rectangle(true);
+					glColor4d(0.0,0.0,0.0,1.0);
+					glLineWidth(2.0);
+					Draw_Rounded_Rectangle(false);
+					glPushMatrix();
+						glTranslated(0.5,-0.5,0.0);
+						glScaled(1.0/dSize,1.0,1.0);
+						glPrintJustified(0.4,0.0,0.0,0.0,"Ejecta",HJ_CENTER,VJ_MIDDLE);
+					glPopMatrix();
+					break;
 				case QUIT_REQUEST:
 					glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Rounded_Rectangle(true);
@@ -493,6 +526,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 				case MODEL_DISPLAY_AREA:
 					if (!m_vWavelength.empty() && !m_vFlux.empty())
 					{
+						glTranslated(0.0,-1.0,0.0);
 						glColor4d(0.0,0.0,0.0,1.0);
 						glPushMatrix();
 							glTranslated(0.05,0.1,0.0);
@@ -527,6 +561,30 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glVertex2d(0.9,dFlux_Scale);
 						glEnd();
 				
+						if (m_bDisplay_Shell_Component)
+						{
+							glColor4d(0.0,1.0,0.0,1.0);
+							glBegin(GL_LINE_STRIP);
+							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+							{
+								double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
+								double dY = m_vFlux_Shell[uiI] * dFlux_Scale;
+								glVertex2d(dX,dY);
+							}
+							glEnd();
+						}
+						if (m_bDisplay_Ejecta_Component)
+						{
+							glColor4d(0.0,1.0,1.0,1.0);
+							glBegin(GL_LINE_STRIP);
+							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+							{
+								double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
+								double dY = m_vFlux_Ejecta[uiI] * dFlux_Scale;
+								glVertex2d(dX,dY);
+							}
+							glEnd();
+						}
 						glColor4d(0.0,0.0,0.0,1.0);
 						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 						{

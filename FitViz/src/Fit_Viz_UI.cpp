@@ -162,6 +162,14 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			Load_Display_Info();
 			Request_Refresh();
 			break;
+		case DISPLAY_SHELL_COMPONENT:
+			m_bDisplay_Shell_Component = !m_bDisplay_Shell_Component;
+			Request_Refresh();
+			break;
+		case DISPLAY_EJECTA_COMPONENT:
+			m_bDisplay_Ejecta_Component = !m_bDisplay_Ejecta_Component;
+			Request_Refresh();
+			break;
 		case QUIT_REQUEST:
 			Request_Quit();
 			break;

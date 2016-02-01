@@ -18,6 +18,8 @@ void FIT_VIZ_MAIN::init(void) // initialization routine; rendering context not c
 	m_uiSelected_Model = 0;
 	m_uiSelected_Day = 0;
 	m_uiDay_Data_Loaded = -1;
+	m_bDisplay_Shell_Component = true;
+	m_bDisplay_Ejecta_Component = true;
 
 	m_vsError_Info.clear();
 	Load_Model_Day_Lists();

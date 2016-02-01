@@ -90,6 +90,8 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 		}
 		m_vWavelength.clear();
 		m_vFlux.clear();
+		m_vFlux_Shell.clear();
+		m_vFlux_Ejecta.clear();
 		m_dMax_Flux = -1;
 		// determine row number for fit info
 		if (m_dDay_Fit_Data.GetNumRows() > 0 && m_dDay_Spectrum_Data.GetNumRows() > 0)
@@ -137,10 +139,20 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 			{
 //				m_vGaussian_Fit_Data.Print(stdout);
 				unsigned int uiFlux_Col = uiFound_Row * 7 + 1;
+				unsigned int uiFlux_Ejecta_Col = uiFound_Row * 7 + 1;
+				unsigned int uiFlux_Shell_Col = uiFound_Row * 7 + 1;
 				if (m_eFit_Method == fm_flat)
+				{
 					uiFlux_Col += 2;
+					uiFlux_Ejecta_Col += 4;
+					uiFlux_Shell_Col += 6;
+				}
 				else
+				{
 					uiFlux_Col += 1;
+					uiFlux_Ejecta_Col += 3;
+					uiFlux_Shell_Col += 5;
+				}
 
 				unsigned uiFlux_Col_Flat = uiFound_Row * 7 + 3;
 				unsigned uiFlux_Col_Jeff = uiFound_Row * 7 + 2;
@@ -159,6 +171,8 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 					double dFlux = m_dDay_Spectrum_Data.GetElement(uiFlux_Col,uiI);
 					m_vWavelength.push_back(dWL);
 					m_vFlux.push_back(dFlux);
+					m_vFlux_Shell.push_back(m_dDay_Spectrum_Data.GetElement(uiFlux_Shell_Col,uiI));
+					m_vFlux_Ejecta.push_back(m_dDay_Spectrum_Data.GetElement(uiFlux_Ejecta_Col,uiI));
 					if (m_dMax_Flux < dFlux)
 						m_dMax_Flux = dFlux;
 				// determine parameters for Jeff's fit

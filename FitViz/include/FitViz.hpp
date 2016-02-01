@@ -20,7 +20,9 @@ enum button_id
 	MODEL_DISPLAY_AREA,
 	PVF_TEXT,
 	HVF_TEXT,
-	pEW_TEXT
+	pEW_TEXT,
+	DISPLAY_SHELL_COMPONENT,
+	DISPLAY_EJECTA_COMPONENT
 };
 enum fit_method
 {
@@ -57,9 +59,13 @@ class FIT_VIZ_MAIN : public MAIN
 	double		m_dFit_Velocity_PVF;
 	double		m_dFit_Velocity_HVF;
 	double		m_dFit_pEW;
+	bool		m_bDisplay_Shell_Component;
+	bool		m_bDisplay_Ejecta_Component;
 
 	std::vector<double>	m_vWavelength;
 	std::vector<double> m_vFlux;
+	std::vector<double> m_vFlux_Shell;
+	std::vector<double> m_vFlux_Ejecta;
 	double		m_dMax_Flux;
 
 	std::deque<button_id> m_qEvent_List;
