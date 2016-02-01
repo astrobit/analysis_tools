@@ -318,9 +318,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fprintf(fileParams,"Shell_power_law = %.17e\n",dShell_Power_Law);
 		fprintf(fileParams,"Ejecta_power_law = %.17e\n",dEjecta_Power_Law);
 		if (lpszRef_Model)
-			fprintf(fileParams,"Ref_model = %i\n",atoi(&(lpszRef_Model_Extended[3])));
+			fprintf(fileParams,"Ref_model = \"%s\"\n",lpszRef_Model_Extended);
 		else
-			fprintf(fileParams,"Ref_model = 0\n");
+			fprintf(fileParams,"Ref_model = \"-\"\n");
 		fprintf(fileParams,"PS_temp = %.17e\n",dPS_Temp);
 		
 		fclose(fileParams);
