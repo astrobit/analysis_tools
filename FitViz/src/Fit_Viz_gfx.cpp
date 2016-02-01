@@ -240,27 +240,36 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	PAIR<double> pSB_Size = PAIR<double>(0.05,0.05);
 	PAIR<double> pLB_Size = PAIR<double>(0.15,0.05);
 	PAIR<double> pTB_Size = PAIR<double>(0.10,0.10);
-	PAIR<double> pIB_Size = PAIR<double>(0.10,0.05);
+	PAIR<double> pIB_Size = PAIR<double>(0.10,0.04);
 
 	dAR = Get_Pane_Aspect_Ratio(m_idPane);
 	m_mMain_Pane_Buttons.clear();
-	m_mMain_Pane_Buttons[MODEL_SELECT_UP] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.1,0.20),pSB_Size,MODEL_SELECT_UP);
-	m_mMain_Pane_Buttons[MODEL_SELECT_DOWN] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.1,0.10),pSB_Size,MODEL_SELECT_DOWN);
-	m_mMain_Pane_Buttons[MODEL_SEL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.03,0.10),pTB_Size,MODEL_SEL_TEXT);
-	m_mMain_Pane_Buttons[DAY_SELECT_UP] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.3,0.20),pSB_Size,DAY_SELECT_UP);
-	m_mMain_Pane_Buttons[DAY_SELECT_DOWN] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.3,0.10),pSB_Size,DAY_SELECT_DOWN);
-	m_mMain_Pane_Buttons[DAY_SEL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.21,0.10),pTB_Size,DAY_SEL_TEXT);
-	m_mMain_Pane_Buttons[METHOD_FLAT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.4,0.20),pLB_Size,METHOD_FLAT);
-	m_mMain_Pane_Buttons[METHOD_JEFF] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.4,0.10),pLB_Size,METHOD_JEFF);
+	m_mMain_Pane_Buttons[MODEL_SELECT_UP] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.25,0.20),pSB_Size,MODEL_SELECT_UP);
+	m_mMain_Pane_Buttons[MODEL_SELECT_DOWN] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.25,0.10),pSB_Size,MODEL_SELECT_DOWN);
+	m_mMain_Pane_Buttons[MODEL_SEL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.18,0.10),pTB_Size,MODEL_SEL_TEXT);
+	m_mMain_Pane_Buttons[DAY_SELECT_UP] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.37,0.20),pSB_Size,DAY_SELECT_UP);
+	m_mMain_Pane_Buttons[DAY_SELECT_DOWN] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.37,0.10),pSB_Size,DAY_SELECT_DOWN);
+	m_mMain_Pane_Buttons[DAY_SEL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.30,0.10),pTB_Size,DAY_SEL_TEXT);
+	m_mMain_Pane_Buttons[METHOD_FLAT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42,0.20),pLB_Size,METHOD_FLAT);
+	m_mMain_Pane_Buttons[METHOD_JEFF] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42,0.14),pLB_Size,METHOD_JEFF);
 //	m_mMain_Pane_Buttons[SELECT_DIRECTORY] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,SELECT_DIRECTORY);
-	m_mMain_Pane_Buttons[DISPLAY_SHELL_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,DISPLAY_SHELL_COMPONENT);
-	m_mMain_Pane_Buttons[DISPLAY_EJECTA_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.10),pLB_Size,DISPLAY_EJECTA_COMPONENT);
+	m_mMain_Pane_Buttons[DISPLAY_SHELL_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50,0.20),pLB_Size,DISPLAY_SHELL_COMPONENT);
+	m_mMain_Pane_Buttons[DISPLAY_EJECTA_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50,0.14),pLB_Size,DISPLAY_EJECTA_COMPONENT);
 	m_mMain_Pane_Buttons[QUIT_REQUEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.90,0.20),pLB_Size,QUIT_REQUEST);
 	m_mMain_Pane_Buttons[MODEL_DISPLAY_AREA] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.05,1.00),PAIR<double>(dAR * 0.9,0.70),MODEL_DISPLAY_AREA);
-	m_mMain_Pane_Buttons[PVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.20),pIB_Size,PVF_TEXT);
-	m_mMain_Pane_Buttons[HVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.15),pIB_Size,HVF_TEXT);
-	m_mMain_Pane_Buttons[pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.10),pIB_Size,pEW_TEXT);
+	m_mMain_Pane_Buttons[PVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.25),pIB_Size,PVF_TEXT);
+	m_mMain_Pane_Buttons[HVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.20),pIB_Size,HVF_TEXT);
+	m_mMain_Pane_Buttons[pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.25),pIB_Size,pEW_TEXT);
+	m_mMain_Pane_Buttons[SHELL_pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.15),pIB_Size,SHELL_pEW_TEXT);
+	m_mMain_Pane_Buttons[EJECTA_pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.10),pIB_Size,EJECTA_pEW_TEXT);
+	m_mMain_Pane_Buttons[TOTAL_pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.05),pIB_Size,TOTAL_pEW_TEXT);
 
+	m_mMain_Pane_Buttons[PS_TEMP_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.26),pIB_Size,PS_TEMP_TEXT);
+	m_mMain_Pane_Buttons[EJECTA_SCALAR_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.22),pIB_Size,EJECTA_SCALAR_TEXT);
+	m_mMain_Pane_Buttons[SHELL_SCALAR_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.16),pIB_Size,SHELL_SCALAR_TEXT);
+	m_mMain_Pane_Buttons[EJECTA_PL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.11),pIB_Size,EJECTA_PL_TEXT);
+	m_mMain_Pane_Buttons[SHELL_PL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.06),pIB_Size,SHELL_PL_TEXT);
+	m_mMain_Pane_Buttons[REF_MODEL_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01	,0.01),pIB_Size,REF_MODEL_TEXT);
 
 }
 void FIT_VIZ_MAIN::gfx_close(void) // graphics exiting; rendering context still active
@@ -395,7 +404,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					break;
 				case DISPLAY_SHELL_COMPONENT:
 					if (m_bDisplay_Shell_Component)
-						glColor4d(0.0,0.75,0.0,1.0);
+						glColor4d(0.75,0.00,075,1.0);
 					else
 						glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Rounded_Rectangle(true);
@@ -410,7 +419,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					break;
 				case DISPLAY_EJECTA_COMPONENT:
 					if (m_bDisplay_Ejecta_Component)
-						glColor4d(0.0,0.75,0.0,1.0);
+						glColor4d(0.0,0.75,0.75,1.0);
 					else
 						glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Rounded_Rectangle(true);
@@ -450,8 +459,9 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							else
 								sModel_ID << m_vModel_List[m_uiSelected_Model];
 							glTranslated(0.5,0.0,0.0);
-							glScaled(1.0/dSize,1.0,1.0);
-							glPrintJustified(0.7,0.0,0.0,0.0,sModel_ID.str().c_str(),HJ_CENTER,VJ_BOTTOM);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sModel_ID.str().c_str(),HJ_CENTER,VJ_BOTTOM);
 						}
 					glPopMatrix();
 					break;
@@ -470,8 +480,9 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							else
 								sDay << m_vDay_List[m_uiSelected_Day];
 							glTranslated(0.5,0.0,0.0);
-							glScaled(1.0/dSize,1.0,1.0);
-							glPrintJustified(0.7,0.0,0.0,0.0,sDay.str().c_str(),HJ_CENTER,VJ_BOTTOM);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sDay.str().c_str(),HJ_CENTER,VJ_BOTTOM);
 						}
 					glPopMatrix();
 					break;
@@ -487,8 +498,9 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 								sText << (m_dFit_Velocity_PVF * 1.0e-3);
 							sText << " kkm/s";
 							glTranslated(0.0,0.0,0.0);
-							glScaled(1.0/dSize,1.0,1.0);
-							glPrintJustified(0.7,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
 						}
 					glPopMatrix();
 					break;
@@ -504,8 +516,9 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 								sText << (m_dFit_Velocity_HVF * 1.0e-3);
 							sText << " kkm/s";
 							glTranslated(0.0,0.0,0.0);
-							glScaled(1.0/dSize,1.0,1.0);
-							glPrintJustified(0.7,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
 						}
 					glPopMatrix();
 					break;
@@ -514,12 +527,155 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					glPushMatrix();
 						{
 							std::ostringstream sText;
-							sText << "pEW ";
+							sText << "Fit pEW ";
 							sText << m_dFit_pEW;
 							sText << " Ang.";
 							glTranslated(0.0,0.0,0.0);
-							glScaled(1.0/dSize,1.0,1.0);
-							glPrintJustified(0.7,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case EJECTA_pEW_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Ejecta pEW ";
+							if (m_dEjecta_Flat_pEW == -1)
+								sText << "--";
+							else
+								sText << m_dEjecta_Flat_pEW;
+							sText << " Ang.";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case SHELL_pEW_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Shell pEW ";
+							if (m_dShell_Flat_pEW == -1)
+								sText << "--";
+							else
+								sText << m_dShell_Flat_pEW;
+							sText << " Ang.";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case TOTAL_pEW_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Total pEW ";
+							if (m_dTotal_Flat_pEW == -1)
+								sText << "--";
+							else
+								sText << m_dTotal_Flat_pEW;
+							sText << " Ang.";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case PS_TEMP_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "PS Temp: ";
+							if (m_dPS_Temp == -1)
+								sText << "--";
+							else
+								sText << m_dPS_Temp;
+							sText << " K";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case EJECTA_SCALAR_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Ejecta Scalar: ";
+							sText << m_dEjecta_Scalar;
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case SHELL_SCALAR_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Shell Scalar: ";
+							sText << m_dShell_Scalar;
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case EJECTA_PL_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Ejecta Power Law: ";
+							sText << m_dEjecta_Power_Law;
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case SHELL_PL_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Shell Power Law: ";
+							sText << m_dShell_Power_Law;
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
+				case REF_MODEL_TEXT:
+					glColor4d(0.0,0.0,0.0,1.0);
+					glPushMatrix();
+						{
+							std::ostringstream sText;
+							sText << "Ref Model: ";
+							sText << m_szRef_Model;
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
 						}
 					glPopMatrix();
 					break;
@@ -561,9 +717,9 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glVertex2d(0.9,dFlux_Scale);
 						glEnd();
 				
-						if (m_bDisplay_Shell_Component)
+						if (m_bDisplay_Shell_Component && !m_bNo_Shell)
 						{
-							glColor4d(0.0,1.0,0.0,1.0);
+							glColor4d(1.0,0.0,1.0,1.0);
 							glBegin(GL_LINE_STRIP);
 							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 							{

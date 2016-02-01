@@ -11,10 +11,27 @@ void FIT_VIZ_MAIN::Load_Model_Day_Lists(void)
 	std::map<unsigned int, unsigned int> mDay_Map;
 	bool bFirst = true;
 	std::map<unsigned int, unsigned int> mModel_List;
+	m_dPS_Temp = -1;
+	m_dEjecta_Scalar = nan("");
+	m_dShell_Scalar = nan("");
+	m_dShell_Power_Law = 2;
+	m_dEjecta_Power_Law = 2;
+	m_szRef_Model.clear();
 	for (std::vector<std::string>::iterator cI = vsFile_List.begin(); cI != vsFile_List.end(); cI++)
 	{
 		size_t zPos;
-		if ((zPos = cI->find(".eps.data.csv")) != std::string::npos)
+		if ((*cI) == "params.txt")
+		{
+			XMAP	cMap;
+			cMap.Read_File("params.txt");
+			m_dPS_Temp = cMap.Get_Value_Double("PS_temp");
+			m_dEjecta_Scalar = cMap.Get_Value_Double("Ejecta_scalar");
+			m_dShell_Scalar = cMap.Get_Value_Double("Shell_scalar");
+			m_dShell_Power_Law = cMap.Get_Value_Double("Shell_power_law");
+			m_dEjecta_Power_Law = cMap.Get_Value_Double("Ejecta_power_law");
+			m_szRef_Model = cMap.Get_Value_String("Ref_model");
+		}
+		else if ((zPos = cI->find(".eps.data.csv")) != std::string::npos)
 		{
 			if (zPos >= 2) // make sure there isn't a fie called .eps.data.csv or something weird
 			{
@@ -93,6 +110,10 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 		m_vFlux_Shell.clear();
 		m_vFlux_Ejecta.clear();
 		m_dMax_Flux = -1;
+		m_dShell_Flat_pEW = -1;
+		m_dEjecta_Flat_pEW = -1;
+		m_dTotal_Flat_pEW = -1;
+		m_bNo_Shell = true;
 		// determine row number for fit info
 		if (m_dDay_Fit_Data.GetNumRows() > 0 && m_dDay_Spectrum_Data.GetNumRows() > 0)
 		{
@@ -165,14 +186,27 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				double dP_Cygni_Peak_Flux = -1;
 				double dMax_Flux_Flat = -1;
 				unsigned int uiMax_Flux_Idx = -1;
+				double dDelta_Lambda = m_dDay_Spectrum_Data.GetElement(0,1) - m_dDay_Spectrum_Data.GetElement(0,0); 
+				m_bNo_Shell = m_dDay_Spectrum_Data.GetElement(uiFlux_Shell_Col,0) == 0.0;
 				for (unsigned int uiI = 0; uiI < m_dDay_Spectrum_Data.GetNumRows(); uiI++)
 				{
 					double dWL = m_dDay_Spectrum_Data.GetElement(0,uiI);
 					double dFlux = m_dDay_Spectrum_Data.GetElement(uiFlux_Col,uiI);
+					double dFlux_Ejecta = m_dDay_Spectrum_Data.GetElement(uiFlux_Ejecta_Col,uiI);
+					double dFlux_Shell = m_dDay_Spectrum_Data.GetElement(uiFlux_Shell_Col,uiI);
 					m_vWavelength.push_back(dWL);
 					m_vFlux.push_back(dFlux);
-					m_vFlux_Shell.push_back(m_dDay_Spectrum_Data.GetElement(uiFlux_Shell_Col,uiI));
-					m_vFlux_Ejecta.push_back(m_dDay_Spectrum_Data.GetElement(uiFlux_Ejecta_Col,uiI));
+					m_vFlux_Shell.push_back(dFlux_Shell);
+					m_vFlux_Ejecta.push_back(dFlux_Ejecta);
+					if (m_eFit_Method == fm_flat)
+					{
+						if (dFlux < 1.0)
+							m_dTotal_Flat_pEW += dDelta_Lambda * (1.0 - dFlux);
+						if (dFlux_Shell < 1.0 && m_dDay_Spectrum_Data.GetElement(uiFlux_Shell_Col,0) != 0.0)
+							m_dShell_Flat_pEW += dDelta_Lambda * (1.0 - dFlux_Shell);
+						if (dFlux_Ejecta < 1.0)
+							m_dEjecta_Flat_pEW += dDelta_Lambda * (1.0 - dFlux_Ejecta);
+					}
 					if (m_dMax_Flux < dFlux)
 						m_dMax_Flux = dFlux;
 				// determine parameters for Jeff's fit

@@ -21,8 +21,17 @@ enum button_id
 	PVF_TEXT,
 	HVF_TEXT,
 	pEW_TEXT,
+	SHELL_pEW_TEXT,
+	EJECTA_pEW_TEXT,
+	TOTAL_pEW_TEXT,
 	DISPLAY_SHELL_COMPONENT,
-	DISPLAY_EJECTA_COMPONENT
+	DISPLAY_EJECTA_COMPONENT,
+	PS_TEMP_TEXT,
+	EJECTA_SCALAR_TEXT,
+	SHELL_SCALAR_TEXT,
+	EJECTA_PL_TEXT,
+	SHELL_PL_TEXT,
+	REF_MODEL_TEXT
 };
 enum fit_method
 {
@@ -67,6 +76,16 @@ class FIT_VIZ_MAIN : public MAIN
 	std::vector<double> m_vFlux_Shell;
 	std::vector<double> m_vFlux_Ejecta;
 	double		m_dMax_Flux;
+	double		m_dShell_Flat_pEW;
+	double		m_dEjecta_Flat_pEW;
+	double		m_dTotal_Flat_pEW;
+	double		m_dPS_Temp;
+	double		m_dEjecta_Scalar;
+	double		m_dShell_Scalar;
+	double		m_dShell_Power_Law;
+	double		m_dEjecta_Power_Law;
+	bool		m_bNo_Shell;
+	std::string	m_szRef_Model;
 
 	std::deque<button_id> m_qEvent_List;
 
