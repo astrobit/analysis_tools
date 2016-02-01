@@ -296,7 +296,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	std::ostringstream szParameters_Path;
 	for (unsigned int uiI = 0; uiI < zOPNameSize; uiI++)
 	{
-		if (lpszOutput_Name[uiI] = '/')
+		if (lpszOutput_Name[uiI] == '/')
 			uiDir_Pos = uiI;
 	}
 	if (uiDir_Pos == -1)
