@@ -19,6 +19,7 @@
 #include <model_spectra_db.h>
 #include <opacity_profile_data.h>
 #include <xastro.h>
+#include <sstream>
 
 // Data from Pereira 2014 for SN 2011fe
 class PEREIRA_DATA
@@ -251,7 +252,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	char lpszShell_Abundance[128];
 	char lpszEjecta_Abundance[128];
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-abundance",lpszShell_Abundance,sizeof(lpszShell_Abundance),"");
-	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-abundance",lpszEjecta_Abundance,sizeof(lpszShell_Abundance),"");
+	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-abundance",lpszEjecta_Abundance,sizeof(lpszEjecta_Abundance),"");
 	double	dEjecta_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-power-law",4.0);
 	double	dShell_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-power-law",4.0);
 
@@ -289,7 +290,41 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiIon = 0;
 	char lpszOutput_Name[256];
 	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--output-name",lpszOutput_Name,sizeof(lpszOutput_Name),"");
-
+	size_t zOPNameSize = strlen(lpszOutput_Name);
+	unsigned int uiDir_Pos = -1;
+	std::string szPath_To_Output;
+	std::ostringstream szParameters_Path;
+	for (unsigned int uiI = 0; uiI < zOPNameSize; uiI++)
+	{
+		if (lpszOutput_Name[uiI] = '/')
+			uiDir_Pos = uiI;
+	}
+	if (uiDir_Pos == -1)
+	{
+		szPath_To_Output = "./";
+	}
+	else
+	{
+		std::string szOutput = lpszOutput_Name;
+		szPath_To_Output = szOutput.substr(0,uiDir_Pos);
+	}
+	szParameters_Path << szPath_To_Output;
+	szParameters_Path << "params.txt";
+	FILE  * fileParams = fopen(szParameters_Path.str().c_str(), "wt");
+	if (fileParams)
+	{
+		fprintf(fileParams,"Ejecta_scalar = %.17e\n",dEjecta_Scalar);
+		fprintf(fileParams,"Shell_scalar = %.17e\n",dShell_Scalar);
+		fprintf(fileParams,"Shell_power_law = %.17e\n",dShell_Power_Law);
+		fprintf(fileParams,"Ejecta_power_law = %.17e\n",dEjecta_Power_Law);
+		if (lpszRef_Model)
+			fprintf(fileParams,"Ref_model = %i\n",atoi(&(lpszRef_Model_Extended[3])));
+		else
+			fprintf(fileParams,"Ref_model = 0\n");
+		fprintf(fileParams,"PS_temp = %.17e\n",dPS_Temp);
+		
+		fclose(fileParams);
+	}
 
 
 	// Identify which line we are interested in.
