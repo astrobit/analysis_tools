@@ -114,6 +114,12 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 		m_dEjecta_Flat_pEW = -1;
 		m_dTotal_Flat_pEW = -1;
 		m_bNo_Shell = true;
+		m_uiManual_Fit_Blue_Idx = -1;
+		m_uiManual_Fit_Red_Idx= -1;
+		m_uiManual_Fit_Central_Idx = -1;
+		m_vManual_Fit_Data.Set(0,0);
+		m_vManual_Fit_Data.Set(1,0);
+		m_vManual_Fit_Data.Set(2,0);
 		// determine row number for fit info
 		if (m_dDay_Fit_Data.GetNumRows() > 0 && m_dDay_Spectrum_Data.GetNumRows() > 0)
 		{
@@ -123,7 +129,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				if (m_dDay_Fit_Data.GetElement(0,uiI) == m_vModel_List[m_uiSelected_Model])
 				{
 					uiFound_Row = uiI;
-					if (m_eFit_Method == fm_flat)
+					if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual)
 					{
 						if (m_dDay_Fit_Data.GetElement(33,uiI) == -1)
 							m_vGaussian_Fit_Data.Set_Size(3);
@@ -162,7 +168,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				unsigned int uiFlux_Col = uiFound_Row * 7 + 1;
 				unsigned int uiFlux_Ejecta_Col = uiFound_Row * 7 + 1;
 				unsigned int uiFlux_Shell_Col = uiFound_Row * 7 + 1;
-				if (m_eFit_Method == fm_flat)
+				if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual)
 				{
 					uiFlux_Col += 2;
 					uiFlux_Ejecta_Col += 4;
@@ -198,7 +204,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 					m_vFlux.push_back(dFlux);
 					m_vFlux_Shell.push_back(dFlux_Shell);
 					m_vFlux_Ejecta.push_back(dFlux_Ejecta);
-					if (m_eFit_Method == fm_flat)
+					if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual)
 					{
 						if (dFlux < 1.0)
 							m_dTotal_Flat_pEW += dDelta_Lambda * (1.0 - dFlux);
