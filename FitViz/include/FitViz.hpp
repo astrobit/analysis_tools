@@ -1,7 +1,8 @@
 #include <core.hpp>
 #include <xio.h>
 #include <xlinalg.h>
-
+#include <line_routines.h>
+#include <thread>
 
 enum button_id
 {
@@ -50,8 +51,24 @@ enum fit_method
 	fm_manual
 };
 
+
+extern bool	g_bFit_Thread_Running;
+extern bool	g_bQuit_Thread;
+extern bool	g_bPerform_Fit;
+extern bool	g_bFit_Results_Ready;
+extern XVECTOR	g_vFit_Results;
+extern XVECTOR g_vX;
+extern XVECTOR	g_vY;
+extern XVECTOR g_vW;
+extern GAUSS_FIT_PARAMETERS * g_lpgfpParamters;
+extern double g_dSuggested_Center_WL;
+extern double g_dSuggested_Center_Flux;
+
+void Perform_Fit(void);
+
 class FIT_VIZ_MAIN : public MAIN
 {
+private:
 	pane_id	m_idPane;
 	pane_id m_idError_Pane;
 
@@ -64,6 +81,10 @@ class FIT_VIZ_MAIN : public MAIN
 	std::vector<std::string> m_vsError_Info;
 	fit_method	m_eFit_Method;
 	criticalsection	m_csEvent_Queue;
+
+	std::thread 	m_thrFit;
+
+	bool			m_bQuit_Request_Pending;
 
 	unsigned int m_uiDay_Data_Loaded;
 	XDATASET	m_dDay_Fit_Data;
@@ -108,6 +129,8 @@ class FIT_VIZ_MAIN : public MAIN
 	bool		m_bNo_Shell;
 	std::string	m_szRef_Model;
 
+	double		m_dTimer;
+	bool		m_bFlasher_1s_50p;
 	std::deque<button_id> m_qEvent_List;
 
 	unsigned int m_uiSelected_Model;
@@ -115,8 +138,10 @@ class FIT_VIZ_MAIN : public MAIN
 	
 	void Load_Model_Day_Lists(void);
 	void Load_Display_Info(void);
-
-
+	void Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode i_eMode, const double & i_dSize, const PAIR<double> & i_pdSize);
+public:
+	FIT_VIZ_MAIN(void) : m_thrFit(Perform_Fit)  {m_thrFit.detach();};
+private:
 	void on_key_down(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
 	void on_key_up(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
 	void on_mouse_button_double_click(MOUSEBUTTON i_eButton, const PAIR<unsigned int> &i_tMouse_Position);

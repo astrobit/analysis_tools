@@ -111,8 +111,10 @@ void FIT_VIZ_MAIN::on_mousemove(const PAIR<unsigned int> &i_tMouse_Position)
 		bool bProcessed = false;
 		if (idMouse_Pane == m_idPane)
 		{
-			double dWL_scale = 0.90 / (m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]);
+			double dSize = Get_Pane_Aspect_Ratio(m_idPane);
+			double dWL_scale = 0.90 * dSize / (m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]);
 			double dWL = (tMouse_Scaled.m_tX - 0.1) / dWL_scale + m_vWavelength[0];
+			
 			unsigned int uiI = 0;
 			while (uiI < m_vWavelength.size() && m_vWavelength[uiI] < dWL)
 				uiI++;
@@ -319,7 +321,8 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			Request_Refresh();
 			break;
 		case QUIT_REQUEST:
-			Request_Quit();
+			g_bQuit_Thread = true;
+			m_bQuit_Request_Pending = true;
 			break;
 		case MAN_FIT_RED:
 			m_eMan_Select_Mode = MS_RED;
@@ -348,27 +351,12 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 				}
 				XVECTOR vX,vY,vW,vSigma; 
 				double dpEW_PVF, dpEW_HVF, dV_PVF, dV_HVF,dSmin;
-				vX = vWL_Data;
-				vY = vFlux_Data;
-				vW = vError_Data;
-				double 		dWL_Ref = (8498.02 * pow(10.0,-0.39) + 8542.09 * pow(10,-0.36) + 8662.14 * pow(10.0,-0.622)) / (pow(10.0,-0.39) + pow(10.0,-0.36) + pow(10.0,-0.622));
-				GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
-                m_vManual_Fit_Data = Perform_Gaussian_Fit(dMod_Flux_Center, m_vWavelength[m_uiManual_Fit_Central_Idx], vX, vY, vW, lpgfpParamters,
-                                m_vWavelength[1] - m_vWavelength[0], dpEW_PVF, dpEW_HVF, dV_PVF, dV_HVF, vSigma,dSmin); 			
-				Compute_Gaussian_Fit_pEW(vX, m_vGaussian_Fit_Data, m_vWavelength[1] - m_vWavelength[0], lpgfpParamters, dpEW_PVF, dpEW_HVF);
-				m_dFit_Velocity_PVF = -Compute_Velocity(m_vManual_Fit_Data.Get(2),dWL_Ref);
-				m_dFit_Velocity_HVF = nan("");
-				if (m_vManual_Fit_Data.Get_Size() == 6)
-				{
-					m_dFit_Velocity_HVF = -Compute_Velocity(m_vManual_Fit_Data.Get(5),dWL_Ref);
-					if (m_dFit_Velocity_HVF < m_dFit_Velocity_PVF)
-					{
-						double dTemp = m_dFit_Velocity_HVF;
-						m_dFit_Velocity_HVF = m_dFit_Velocity_PVF;
-						m_dFit_Velocity_PVF = dTemp;
-					}
-				}
-				m_dFit_pEW = dpEW_PVF + dpEW_HVF;
+				g_vX = vWL_Data;
+				g_vY = vFlux_Data;
+				g_vW = vError_Data;
+				g_dSuggested_Center_WL = m_vWavelength[m_uiManual_Fit_Central_Idx];
+				g_dSuggested_Center_Flux = dMod_Flux_Center;
+				g_bPerform_Fit = true;
 				Request_Refresh();
 			}
 			break;
@@ -400,5 +388,39 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			m_eMan_Select_Mode = MS_OFF;
 	}
 	m_csEvent_Queue.Unset();
+	if (g_bFit_Results_Ready)
+	{
+		g_bFit_Results_Ready = false;
+		m_vManual_Fit_Data = g_vFit_Results;
+		double dpEW_PVF, dpEW_HVF;
+		double 		dWL_Ref = (8498.02 * pow(10.0,-0.39) + 8542.09 * pow(10,-0.36) + 8662.14 * pow(10.0,-0.622)) / (pow(10.0,-0.39) + pow(10.0,-0.36) + pow(10.0,-0.622));
+		Compute_Gaussian_Fit_pEW(g_vX, m_vManual_Fit_Data, m_vWavelength[1] - m_vWavelength[0], g_lpgfpParamters, dpEW_PVF, dpEW_HVF);
+		m_dFit_Velocity_PVF = -Compute_Velocity(m_vManual_Fit_Data.Get(2),dWL_Ref);
+		m_dFit_Velocity_HVF = nan("");
+		if (m_vManual_Fit_Data.Get_Size() == 6)
+		{
+			m_dFit_Velocity_HVF = -Compute_Velocity(m_vManual_Fit_Data.Get(5),dWL_Ref);
+			if (m_dFit_Velocity_HVF < m_dFit_Velocity_PVF)
+			{
+				double dTemp = m_dFit_Velocity_HVF;
+				m_dFit_Velocity_HVF = m_dFit_Velocity_PVF;
+				m_dFit_Velocity_PVF = dTemp;
+			}
+		}
+		m_dFit_pEW = dpEW_PVF + dpEW_HVF;
+		Request_Refresh();
+	}
+	if (m_bQuit_Request_Pending && !g_bFit_Thread_Running)
+	{
+		Request_Quit();
+	}
+	m_dTimer += i_dDelta_Time_s;
+	bool bFlasher = fmod(m_dTimer,1.0) < 0.5;
+	if (g_bPerform_Fit)
+	{
+		if (bFlasher != m_bFlasher_1s_50p)
+			Request_Refresh();
+	}
+	m_bFlasher_1s_50p = bFlasher;
 }
 

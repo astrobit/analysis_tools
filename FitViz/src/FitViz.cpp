@@ -24,6 +24,9 @@ void FIT_VIZ_MAIN::init(void) // initialization routine; rendering context not c
 	m_uiManual_Fit_Blue_Idx = -1;
 	m_uiManual_Fit_Red_Idx= -1;
 	m_uiManual_Fit_Central_Idx = -1;
+	m_dTimer = 0.0;
+	m_bFlasher_1s_50p = true;
+	m_bQuit_Request_Pending = false;
 
 	m_vManual_Fit_Data.Set_Size(3);	
 
