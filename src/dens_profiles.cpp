@@ -765,7 +765,9 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 	double	dAbd_Max;
 	double	dAbd_Dens;
 	double dInv_Delta_Vel = 1.0 / i_dDelta_Vel_Bin;
+	double	* lpdSum_Mult = new double[i_uiVel_Grid_Data_Points];
 	memset(o_lpdOpacity_Map,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
+	memset(lpdSum_Mult,0,sizeof(double) * i_uiVel_Grid_Data_Points); // clear all data
 
 //	uiI = 0;
 //	while (uiI < i_cData.GetNumElements())
@@ -834,9 +836,15 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 			else
 				dBin_Portion = i_dDelta_Vel_Bin;
 			dMult = dBin_Portion * dInv_Delta_Vel;
+			if (dMult > 1.0)
+			{
+				printf("Mult > 1: %f %f %f %f %f\n",dMult,dVlower,dBin_Lower,dBin_Upper,dVupper);
+				dMult = 1.0;
+			}
 
 			//printf("%i [%i - %i] (%f,%f):(%f,%f):%f\n",uiBin, uiBin_Lower, uiBin_Upper, dVlower,dVupper,dBin_Lower,dBin_Upper,dMult,dDens*dAbd*dMult);
 			o_lpdOpacity_Map[uiBin] += dMult * dAbd * dDens;
+			lpdSum_Mult[uiBin] += dMult;
 		}
 		dAbd_Dens = dAbd * dDens;
 
@@ -848,6 +856,11 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 			dAbd_Density = dDens;
 		}
 
+	}
+	for (unsigned int uiI = 0; uiI < i_uiVel_Grid_Data_Points; uiI++)
+	{
+		if (lpdSum_Mult[uiI] > 0.0)
+			o_lpdOpacity_Map[uiI] /= lpdSum_Mult[uiI];
 	}
 	//printf("First while\n");
 	unsigned int uiBin_Ref = uiAbd_Max_Bin;//(i_dV_Ref - i_lpdVelocity_Range[0]) / i_dDelta_Vel_Bin;
