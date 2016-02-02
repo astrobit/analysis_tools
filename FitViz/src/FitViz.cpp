@@ -20,6 +20,12 @@ void FIT_VIZ_MAIN::init(void) // initialization routine; rendering context not c
 	m_uiDay_Data_Loaded = -1;
 	m_bDisplay_Shell_Component = true;
 	m_bDisplay_Ejecta_Component = true;
+	m_eMan_Select_Mode = MS_OFF;
+	m_uiManual_Fit_Blue_Idx = -1;
+	m_uiManual_Fit_Red_Idx= -1;
+	m_uiManual_Fit_Central_Idx = -1;
+
+	m_vManual_Fit_Data.Set_Size(3);	
 
 	m_vsError_Info.clear();
 	Load_Model_Day_Lists();

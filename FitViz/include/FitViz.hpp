@@ -31,12 +31,23 @@ enum button_id
 	SHELL_SCALAR_TEXT,
 	EJECTA_PL_TEXT,
 	SHELL_PL_TEXT,
-	REF_MODEL_TEXT
+	REF_MODEL_TEXT,
+	METHOD_MANUAL,
+	MAN_FIT_RED,
+	MAN_FIT_BLUE,
+	MAN_FIT_CENTER,
+	MAN_FIT_EXEC,
+	MAN_FIT_CLEAR,
+	MAN_FIT_RED_TEXT,
+	MAN_FIT_BLUE_TEXT,
+	MAN_FIT_CENTER_TEXT
+
 };
 enum fit_method
 {
 	fm_flat,
-	fm_jeff
+	fm_jeff,
+	fm_manual
 };
 
 class FIT_VIZ_MAIN : public MAIN
@@ -70,6 +81,16 @@ class FIT_VIZ_MAIN : public MAIN
 	double		m_dFit_pEW;
 	bool		m_bDisplay_Shell_Component;
 	bool		m_bDisplay_Ejecta_Component;
+
+	enum man_select_mode	{MS_OFF,MS_BLUE,MS_RED,MS_CENTER};
+	man_select_mode	m_eMan_Select_Mode;
+	XVECTOR		m_vManual_Fit_Data;
+	unsigned int	m_uiManual_Fit_Blue_Idx;
+	unsigned int	m_uiManual_Fit_Red_Idx;
+	unsigned int	m_uiManual_Fit_Central_Idx;
+	double			m_dMF_WL;
+	double			m_dMF_Flux;
+	double			m_dMF_Slope;
 
 	std::vector<double>	m_vWavelength;
 	std::vector<double> m_vFlux;
