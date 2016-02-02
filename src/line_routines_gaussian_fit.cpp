@@ -136,7 +136,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 	double	dXmax = 0;
 	unsigned int uiXmax;
 	double	dSum = 0.0;
-	std::vector<unsigned int> vuiMinima;
+	//std::vector<unsigned int> vuiMinima;
 
 	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
 	{
@@ -189,6 +189,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = 0.5*(dXright - dXleft);
 	}
+	printf("%f %f %f\n",dAmplitude,dHWHM,dCenter);
     // try single gaussian fit
     // some rough initial guesses for the parameters
     vA.Set_Size(3);
