@@ -131,10 +131,10 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 
 	double	dYmin = DBL_MAX;
 	double	dXmin = 0;
-	unsigned int uiXmin;
+	unsigned int uiXmin = 0;
 	double	dYmax = -DBL_MAX;
 	double	dXmax = 0;
-	unsigned int uiXmax;
+	unsigned int uiXmax = 0;
 	double	dSum = 0.0;
 	//std::vector<unsigned int> vuiMinima;
 
@@ -160,6 +160,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 	unsigned int uiXcenter = uiXmax;
 	if (fabs(dYmax) < fabs(dYmin))
 	{
+		printf("fitting minimum %i\n",uiXcenter);
 		dAmplitude *= -1;
 		dCenter = dXmin;
 		uiXcenter = uiXmin;
@@ -168,24 +169,29 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 			uiI++;
 		if (uiI == i_vY.Get_Size())
 			uiI--;
+		printf("%i\n",uiI);
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
 		while (uiI < 0 && i_vY.Get(uiI) < 0.5*dAmplitude)
 			uiI--;
+		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = 0.5*(dXright - dXleft);
 	}
 	else
 	{
+		printf("fitting maximum %i\n",uiXcenter);
 		unsigned int uiI = uiXcenter;
 		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
 			uiI++;
 		if (uiI == i_vY.Get_Size())
 			uiI--;
+		printf("%i\n",uiI);
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
 		while (uiI > 0 && i_vY.Get(uiI) > 0.5*dAmplitude)
 			uiI--;
+		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = 0.5*(dXright - dXleft);
 	}
@@ -198,7 +204,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     vA.Set(2,dCenter);
 
     // Perform LSQ fit
-    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024))
+    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
         vA_Single = vA;
         dSmin_Single = dSmin;
@@ -241,7 +247,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     //if (bVerbose)
     //    printf("Performing double unflat fit\n");
     mCovariance_Matrix.Zero();
-    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024))
+    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
         // if the single guassian fit is better, use those results
         if (dSmin > dSmin_Single)
