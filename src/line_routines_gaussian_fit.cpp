@@ -136,6 +136,8 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 	double	dXmax = 0;
 	unsigned int uiXmax;
 	double	dSum = 0.0;
+	std::vector<unsigned int> vuiMinima;
+
 	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
 	{
 		dSum += i_vY.Get(uiI);
@@ -164,9 +166,11 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 		unsigned int uiI = uiXcenter;
 		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) < 0.5*dAmplitude)
 			uiI++;
+		if (uiI == i_vY.Get_Size())
+			uiI--;
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
-		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) < 0.5*dAmplitude)
+		while (uiI < 0 && i_vY.Get(uiI) < 0.5*dAmplitude)
 			uiI--;
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = 0.5*(dXright - dXleft);
@@ -176,9 +180,11 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
 		unsigned int uiI = uiXcenter;
 		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
 			uiI++;
+		if (uiI == i_vY.Get_Size())
+			uiI--;
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
-		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
+		while (uiI > 0 && i_vY.Get(uiI) > 0.5*dAmplitude)
 			uiI--;
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = 0.5*(dXright - dXleft);
