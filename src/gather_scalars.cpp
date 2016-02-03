@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <xio.h>
-
+#include <xflash.h>
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
@@ -22,6 +22,27 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		sprintf(lpszParameters_File,"run%i/flash.par",uiI);
 		cOP_Data.Load(lpszOp_Data_File);
 		cParameters.Read_File(lpszParameters_File);
+		double dTime = -1.0;
+		unsigned int uiLast_File = -1;
+		for (unsigned int uiJ = 0; uiJ <= 500; uiJ++)
+		{
+			char lpszFlashFilename[64];
+			sprintf(lpszFlashFilename,"run%i/explos_hdf5_chk_%04i",uiI,uiJ);
+			FILE * fileFlash = fopen(lpszFlashFilename,"rb");
+			if (fileFlash)
+			{
+				uiLast_File = uiJ;
+				fclose(fileFlash);
+			}
+		}
+		if (uiLast_File != -1)
+		{
+			XFLASH_File	cFlash_File;
+			char lpszFlashFilename[64];
+			sprintf(lpszFlashFilename,"run%i/explos_hdf5_chk_%04i",uiI,uiLast_File);
+			cFlash_File.Open(lpszFlashFilename);
+			dTime = cFlash_File.m_dTime;
+		}
 
 		fprintf(fileOut,"%i",uiI);
 		std::string szExpl_Model = cParameters.Get_Value_String("sim_Explosion_Model_1D_Datafile");
@@ -64,9 +85,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double dShell_Mass = cParameters.Get_Value_Double("sim_CSS_Mass") * 5.028789822e-34;
 
 		if (uiShell_Type == 0)
-			fprintf(fileOutTex,"%i & %s & ? & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,szGam_Expl_Model.c_str(),dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+			fprintf(fileOutTex,"%i & %.1f & %s & ? & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		else
-			fprintf(fileOutTex,"%i & %s & ? & %.3f & %2s & %.3f & %.3f & ",uiI,szGam_Expl_Model.c_str(),dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+			fprintf(fileOutTex,"%i & %.1f & %s & ? & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		fprintf(fileOut,"%i",uiI);
 		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
 		{
