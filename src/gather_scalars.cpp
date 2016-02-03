@@ -63,6 +63,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					else
 						eEos_Type = HELM;
 				}
+				else if ((lpCursor = strstr(lpszBuffer,"helm_table.bdat")) != NULL)
+					eEos_Type = HELM;
 			}
 			fclose(fileLog);
 		}
