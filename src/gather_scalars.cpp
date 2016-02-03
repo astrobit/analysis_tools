@@ -68,6 +68,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			fclose(fileLog);
 		}
+		if (uiI >= 17 && eEos_Type == UNKNOWN)
+			eEos_Type = GAMMA;
 
 		fprintf(fileOut,"%i",uiI);
 		std::string szExpl_Model = cParameters.Get_Value_String("sim_Explosion_Model_1D_Datafile");
