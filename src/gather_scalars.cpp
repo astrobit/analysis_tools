@@ -43,6 +43,29 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			cFlash_File.Open(lpszFlashFilename);
 			dTime = cFlash_File.m_dTime;
 		}
+		char lpszLogFilename[64];
+		sprintf(lpszLogFilename,"run%i/SNexplos.log",uiI);
+		FILE * fileLog = fopen(lpszLogFilename,"rt");
+		enum EOSTYPE {UNKNOWN,HELM,GAMMA};
+		EOSTYPE eEos_Type = UNKNOWN;
+		if (fileLog)
+		{
+			while (eEos_Type == UNKNOWN && !feof(fileLog))
+			{
+				char lpszBuffer[4096];
+				fgets(lpszBuffer,sizeof(lpszBuffer),fileLog);
+				char * lpCursor = NULL;
+				if ((lpCursor = strstr(lpszBuffer,"/home/ts3/bwmulligan/FLASH4.0.1/SNexsh1d")) != NULL)
+				{
+					lpCursor += 41;
+					if (lpCursor[0] == 'g')
+						eEos_Type = GAMMA;
+					else
+						eEos_Type = HELM;
+				}
+			}
+			fclose(fileLog);
+		}
 
 		fprintf(fileOut,"%i",uiI);
 		std::string szExpl_Model = cParameters.Get_Value_String("sim_Explosion_Model_1D_Datafile");
@@ -85,9 +108,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double dShell_Mass = cParameters.Get_Value_Double("sim_CSS_Mass") * 5.028789822e-34;
 
 		if (uiShell_Type == 0)
-			fprintf(fileOutTex,"%i & %.1f & %s & ? & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+			fprintf(fileOutTex,"%i & %.1f & %s & %s & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		else
-			fprintf(fileOutTex,"%i & %.1f & %s & ? & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+			fprintf(fileOutTex,"%i & %.1f & %s & %s & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		fprintf(fileOut,"%i",uiI);
 		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
 		{
