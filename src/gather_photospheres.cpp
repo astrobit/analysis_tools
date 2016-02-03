@@ -59,6 +59,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			else
 			{
+				fprintf(fileIonTable[uiI][uiJ],"& \\multicolumn{12}{c}{Day after explosion} \\\\\n");
+				fprintf(fileIonTable[uiI][uiJ],"\\hline\n");
 				fprintf(fileIonTable[uiI][uiJ],"Model");
 				for (unsigned int uiD = uiJ * 12 + 1; uiD < ((uiJ + 1) * 12 + 1); uiD++)
 					fprintf(fileIonTable[uiI][uiJ]," & %i",uiD);
@@ -115,8 +117,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 	for (unsigned int uiI =0; uiI < NUM_TABLES; uiI++)
 	{
+		fprintf(fileIonTable[uiI][0],"\\hline\n");
 		if (fileIonTable[uiI][0])
 			fclose(fileIonTable[uiI][0]);
+		fprintf(fileIonTable[uiI][1],"\\hline\n");
 		if (fileIonTable[uiI][1])
 			fclose(fileIonTable[uiI][1]);
 	}
