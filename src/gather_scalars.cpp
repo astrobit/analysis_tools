@@ -3,10 +3,42 @@
 #include <cstdlib>
 #include <xio.h>
 #include <xflash.h>
+#include <set>
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	OPACITY_PROFILE_DATA	cReference_OP_Data;
+
+	std::set<unsigned int> setModel_List;
+	
+	setModel_List.insert(10);
+	setModel_List.insert(17);
+	setModel_List.insert(18);
+	setModel_List.insert(41);
+	setModel_List.insert(45);
+	setModel_List.insert(49);
+	setModel_List.insert(53);
+	setModel_List.insert(54);
+	setModel_List.insert(55);
+	setModel_List.insert(56);
+	setModel_List.insert(57);
+	setModel_List.insert(61);
+	setModel_List.insert(62);
+	setModel_List.insert(63);
+	setModel_List.insert(64);
+	setModel_List.insert(65);
+	setModel_List.insert(66);
+	setModel_List.insert(67);
+	setModel_List.insert(68);
+	setModel_List.insert(69);
+	setModel_List.insert(70);
+	setModel_List.insert(71);
+	setModel_List.insert(72);
+	setModel_List.insert(73);
+	setModel_List.insert(74);
+	//setModel_List.insert(75); removed due to not being in free expansion
+	setModel_List.insert(80);
+	setModel_List.insert(81);
 
 	cReference_OP_Data.Load("run57/opacity_map_scalars.opdata");
 	FILE * fileOut = fopen("scalardata.csv","wt");
@@ -111,24 +143,30 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		double dShell_Mass = cParameters.Get_Value_Double("sim_CSS_Mass") * 5.028789822e-34;
 
-		if (uiShell_Type == 0)
-			fprintf(fileOutTex,"%i & %.1f & %s & %s & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
-		else
-			fprintf(fileOutTex,"%i & %.1f & %s & %s & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+		if (setModel_List.count(uiI) != 0)
+		{
+			if (uiShell_Type == 0)
+				fprintf(fileOutTex,"%i & %.1f & %s & %s & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+			else
+				fprintf(fileOutTex,"%i & %.1f & %s & %s & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+		}
 		fprintf(fileOut,"%i",uiI);
 		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
 		{
 			OPACITY_PROFILE_DATA::GROUP eGroup = (OPACITY_PROFILE_DATA::GROUP)(OPACITY_PROFILE_DATA::CARBON + uiElem);
 			double dLog_Rel = log10(cOP_Data.Get_Scalar(eGroup) / cReference_OP_Data.Get_Scalar(eGroup));
 			fprintf(fileOut,", %.3f, %.17e",dLog_Rel, cOP_Data.Get_Scalar(eGroup));
-			if (eGroup == OPACITY_PROFILE_DATA::SILICON)
-				fprintf(fileOutTex,"%.3f & ",dLog_Rel);
-			else if (eGroup == OPACITY_PROFILE_DATA::SHELL)
+			if (setModel_List.count(uiI) != 0)
 			{
-				if (uiShell_Type == 0)
-					fprintf(fileOutTex,"\\ldots\\\\\n");
-				else
-					fprintf(fileOutTex,"%.3f\\\\\n",dLog_Rel);
+				if (eGroup == OPACITY_PROFILE_DATA::SILICON)
+					fprintf(fileOutTex,"%.3f & ",dLog_Rel);
+				else if (eGroup == OPACITY_PROFILE_DATA::SHELL)
+				{
+					if (uiShell_Type == 0)
+						fprintf(fileOutTex,"\\ldots\\\\\n");
+					else
+						fprintf(fileOutTex,"%.3f\\\\\n",dLog_Rel);
+				}
 			}
 		}
 		fprintf(fileOut,"\n");
