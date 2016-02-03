@@ -2,6 +2,7 @@
 #include<cstdlib>
 #include <xio.h>
 #include <cmath>
+#include <set>
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
@@ -9,6 +10,37 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	FILE * fileIonTable[NUM_TABLES][2];
 	char	lpszFilename[128];
 	bool bFault = false;
+	std::set<unsigned int> setModel_List;
+	
+	setModel_List.insert(10);
+	setModel_List.insert(17);
+	setModel_List.insert(18);
+	setModel_List.insert(41);
+	setModel_List.insert(45);
+	setModel_List.insert(49);
+	setModel_List.insert(53);
+	setModel_List.insert(54);
+	setModel_List.insert(55);
+	setModel_List.insert(56);
+	setModel_List.insert(57);
+	setModel_List.insert(61);
+	setModel_List.insert(62);
+	setModel_List.insert(63);
+	setModel_List.insert(64);
+	setModel_List.insert(65);
+	setModel_List.insert(66);
+	setModel_List.insert(67);
+	setModel_List.insert(68);
+	setModel_List.insert(69);
+	setModel_List.insert(70);
+	setModel_List.insert(71);
+	setModel_List.insert(72);
+	setModel_List.insert(73);
+	setModel_List.insert(74);
+	//setModel_List.insert(75); removed due to not being in free expansion
+	setModel_List.insert(80);
+	setModel_List.insert(81);
+
 	for (unsigned int uiI =0; uiI < NUM_TABLES; uiI++)
 	{
 		fileIonTable[uiI][0] = NULL;
@@ -38,43 +70,46 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		for (unsigned int uiI = 1; uiI < 128; uiI++)
 		{
-			sprintf(lpszFilename,"run%i/photosphere.csv",uiI);
-			FILE * fileTest = fopen(lpszFilename,"rt");
-			if (fileTest)
-			{
-				char chTest;
-				size_t uiData = 0;
-				uiData = fread(&chTest,1,1,fileTest);
-				fclose(fileTest);
-				if (uiData > 0)			
+			if (setModel_List.count(uiI) > 0)
 				{
-					XDATASET	xData;
-					printf("Processing %s\n",lpszFilename);
-					xData.ReadDataFile(lpszFilename,false,false,',',1);
-					if (xData.GetNumRows() > 0)
+				sprintf(lpszFilename,"run%i/photosphere.csv",uiI);
+				FILE * fileTest = fopen(lpszFilename,"rt");
+				if (fileTest)
+				{
+					char chTest;
+					size_t uiData = 0;
+					uiData = fread(&chTest,1,1,fileTest);
+					fclose(fileTest);
+					if (uiData > 0)			
 					{
-						for (unsigned int uiJ = 0; uiJ < NUM_TABLES; uiJ++)
+						XDATASET	xData;
+						printf("Processing %s\n",lpszFilename);
+						xData.ReadDataFile(lpszFilename,false,false,',',1);
+						if (xData.GetNumRows() > 0)
 						{
-							for (unsigned int uiK = 0; uiK < 2; uiK++)
+							for (unsigned int uiJ = 0; uiJ < NUM_TABLES; uiJ++)
 							{
-								fprintf(fileIonTable[uiJ][uiK],"%i",uiI);
-								for (unsigned int uiD = uiK * 12 + 1; uiD < ((uiK + 1) * 12 + 1); uiD++)
+								for (unsigned int uiK = 0; uiK < 2; uiK++)
 								{
-									unsigned int uiCol = uiJ + 2;
-									unsigned int uiRow = (uiD - 1) * 4 + 3;
-									double dV = xData.GetElement(uiCol,uiRow) * 1e-8;
-									if (!isnan(dV) && !isinf(dV) && !xData.IsElementEmpty(uiCol,uiRow))
-										fprintf(fileIonTable[uiJ][uiK]," & %.1f",dV);
-									else
-										fprintf(fileIonTable[uiJ][uiK]," & \\ldots");
+									fprintf(fileIonTable[uiJ][uiK],"%i",uiI);
+									for (unsigned int uiD = uiK * 12 + 1; uiD < ((uiK + 1) * 12 + 1); uiD++)
+									{
+										unsigned int uiCol = uiJ + 2;
+										unsigned int uiRow = (uiD - 1) * 4 + 3;
+										double dV = xData.GetElement(uiCol,uiRow) * 1e-8;
+										if (!isnan(dV) && !isinf(dV) && !xData.IsElementEmpty(uiCol,uiRow))
+											fprintf(fileIonTable[uiJ][uiK]," & %.1f",dV);
+										else
+											fprintf(fileIonTable[uiJ][uiK]," & \\ldots");
+									}
+									fprintf(fileIonTable[uiJ][uiK]," \\\\\n");
 								}
-								fprintf(fileIonTable[uiJ][uiK]," \\\\\n");
 							}
 						}
 					}
+					//else
+						//fprintf(stderr,"Error opening %s\n",lpszFilename);
 				}
-				//else
-					//fprintf(stderr,"Error opening %s\n",lpszFilename);
 			}
 		}
 	}
