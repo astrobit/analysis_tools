@@ -146,9 +146,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (setModel_List.count(uiI) != 0)
 		{
 			if (uiShell_Type == 0)
-				fprintf(fileOutTex,"%i & %.1f & %s & %s & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+				fprintf(fileOutTex,"%i & %.1f & %s & %s & \\ldots & \\ldots & \\ldots & \\ldots & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "$\\gamma$" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 			else
-				fprintf(fileOutTex,"%i & %.1f & %s & %s & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "\\gamma" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
+				fprintf(fileOutTex,"%i & %.1f & %s & %s & %.3f & %2s & %.3f & %.3f & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "$\\gamma$" : "?"), dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		}
 		fprintf(fileOut,"%i",uiI);
 		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
