@@ -146,6 +146,54 @@ void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eCo
 	}
 	fclose(fileFile);
 }
+
+void Process_Gaussians(const XDATASET & i_cDatafile, unsigned int i_uiRow, unsigned int i_uiIndices[6], FIT_DATA & o_fdSF, FIT_DATA & o_fdDF, FIT_DATA & o_fdCombined, const double & i_dWL_Ref)
+{
+	XVECTOR	vA[2];
+	if (i_cDatafile.GetElement(i_uiIndices[0],i_uiRow) != -1)
+	{
+		vA[0] = XVECTOR(3);
+		vA[0].Set(0,i_cDatafile.GetElement(i_uiIndices[0],i_uiRow));
+		vA[0].Set(1,i_cDatafile.GetElement(i_uiIndices[1],i_uiRow));
+		vA[0].Set(2,i_cDatafile.GetElement(i_uiIndices[2],i_uiRow));
+	}
+	if (i_cDatafile.GetElement(i_uiIndices[3],i_uiRow) != -1)
+	{
+		vA[1] = XVECTOR(3);
+		vA[1].Set(0,i_cDatafile.GetElement(i_uiIndices[3],i_uiRow));
+		vA[1].Set(1,i_cDatafile.GetElement(i_uiIndices[4],i_uiRow));
+		vA[1].Set(2,i_cDatafile.GetElement(i_uiIndices[5],i_uiRow));
+	}
+	if (vA[0].Get_Size() == 3)
+	{
+		if (vA[0].Get_Size() == vA[1].Get_Size())
+		{
+			if (vA[0].Get(2) < vA[1].Get(2))
+			{
+				o_fdSF.m_dVel = -Compute_Velocity(vA[1].Get(2), i_dWL_Ref);
+				o_fdSF.m_dpEW = Compute_pEW(vA[1],7500.0,9000.0);
+				o_fdDF.m_dVel = -Compute_Velocity(vA[0].Get(2), i_dWL_Ref);
+				o_fdDF.m_dpEW = Compute_pEW(vA[0],7500.0,9000.0);
+			}
+			else
+			{
+				o_fdSF.m_dVel = -Compute_Velocity(vA[0].Get(2), i_dWL_Ref);
+				o_fdSF.m_dpEW = Compute_pEW(vA[0],7500.0,9000.0);
+				o_fdDF.m_dVel = -Compute_Velocity(vA[1].Get(2), i_dWL_Ref);
+				o_fdDF.m_dpEW = Compute_pEW(vA[1],7500.0,9000.0);
+			}
+			o_fdCombined.m_dpEW = o_fdSF.m_dpEW + o_fdDF.m_dpEW;
+		}
+		else
+		{
+			o_fdSF.m_dVel = -Compute_Velocity(vA[0].Get(2), i_dWL_Ref);
+			o_fdSF.m_dpEW = Compute_pEW(vA[0],7500.0,9000.0);
+			o_fdCombined.m_dpEW = o_fdSF.m_dpEW;
+		}
+	}
+	
+	
+}
 int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 {
 	std::map<unsigned int, DATA_CONTAINER>	cMap;
@@ -187,42 +235,10 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 						cData.m_cFlat_Ejecta.m_dVel = cDatafile.GetElement(4,uiJ);
 						cData.m_cFlat_Shell.m_dpEW = cDatafile.GetElement(5,uiJ);
 						cData.m_cFlat_Shell.m_dVel = cDatafile.GetElement(6,uiJ);
-						if (cDatafile.GetElement(19,uiJ) != -1)
-						{
-							vA.Set(0,cDatafile.GetElement(15,uiJ));
-							vA.Set(1,cDatafile.GetElement(17,uiJ));
-							vA.Set(2,cDatafile.GetElement(19,uiJ));
-							cData.m_cJeff_SF.m_dVel = -Compute_Velocity(cDatafile.GetElement(19,uiJ),dWL_Ref);
-							cData.m_cJeff_SF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
-							cData.m_cJeff_Combined.m_dpEW = cData.m_cJeff_SF.m_dpEW;
-						}
-						if (cDatafile.GetElement(25,uiJ) != -1)
-						{
-							vA.Set(0,cDatafile.GetElement(21,uiJ));
-							vA.Set(1,cDatafile.GetElement(23,uiJ));
-							vA.Set(2,cDatafile.GetElement(25,uiJ));
-							cData.m_cJeff_DF.m_dVel = -Compute_Velocity(cDatafile.GetElement(25,uiJ),dWL_Ref);
-							cData.m_cJeff_DF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
-							cData.m_cJeff_Combined.m_dpEW += cData.m_cJeff_DF.m_dpEW;
-						}
-						if (cDatafile.GetElement(31,uiJ) != -1)
-						{
-							vA.Set(0,cDatafile.GetElement(27,uiJ));
-							vA.Set(1,cDatafile.GetElement(29,uiJ));
-							vA.Set(2,cDatafile.GetElement(31,uiJ));
-							cData.m_cFlat_SF.m_dVel = -Compute_Velocity(cDatafile.GetElement(31,uiJ),dWL_Ref);
-							cData.m_cFlat_SF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
-							cData.m_cFlat_Combined.m_dpEW = cData.m_cFlat_SF.m_dpEW;
-						}
-						if (cDatafile.GetElement(37,uiJ) != -1)
-						{
-							vA.Set(0,cDatafile.GetElement(33,uiJ));
-							vA.Set(1,cDatafile.GetElement(35,uiJ));
-							vA.Set(2,cDatafile.GetElement(37,uiJ));
-							cData.m_cFlat_DF.m_dVel = -Compute_Velocity(cDatafile.GetElement(37,uiJ),dWL_Ref);
-							cData.m_cFlat_DF.m_dpEW = Compute_pEW(vA,7500.0,9000.0);
-							cData.m_cFlat_Combined.m_dpEW += cData.m_cFlat_DF.m_dpEW;
-						}
+						unsigned int uiJeff_Fit_Data_Indices[6]= {15,17,19,21,23,25};
+						unsigned int uiFlat_Fit_Data_Indices[6]= {27,29,31,33,35,37};
+						Process_Gaussians(cDatafile,uiJ,uiJeff_Fit_Data_Indices,cData.m_cJeff_SF,cData.m_cJeff_DF,cData.m_cJeff_Combined,dWL_Ref);
+						Process_Gaussians(cDatafile,uiJ,uiFlat_Fit_Data_Indices,cData.m_cFlat_SF,cData.m_cFlat_DF,cData.m_cFlat_Combined,dWL_Ref);
 						(cFull_Map[uiDay])[uiModel] = cData;
 					}
 				}
