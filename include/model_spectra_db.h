@@ -165,6 +165,8 @@ namespace msdb
 		DATABASE(bool i_bAllow_Database_Creation = false);
 		DATABASE(const DATABASE & i_cRHO);
 		~DATABASE(void);
+
+		bool	Database_Exists(void) const;
 		dbid	Get_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & o_cSpectrum) const;
 		dbid	Get_Spectrum(const PARAMETERS & i_cParameters, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & o_cSpectrum) const;
 		dbid	Add_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & i_cSpectrum) const;
@@ -175,6 +177,8 @@ namespace msdb
 		dbid			Get_Parameters(dbid i_dbidID, PARAMETERS & o_cParameters) const;
 		dbid			Update_Spectrum(dbid i_dbidRecord_ID, SPECTRUM_TYPE i_eSpectrum_Type, ES::Spectrum & i_cSpectrum) const;
 		void			Delete_Spectrum(dbid i_dbidRecord_ID, SPECTRUM_TYPE i_eSpectrum_Type) const;
-	};
 
+		std::vector<dbid> Get_Spectra_List(void); // retrieve list of all dbid in the database
+	};
+	SPECTRUM_TYPE Identify_Spectrum_Type(const PARAMETERS & i_cParameters);
 }

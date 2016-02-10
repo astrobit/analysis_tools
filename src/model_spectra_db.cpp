@@ -304,11 +304,95 @@ dbid DATABASE::Update_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type, ES
 	}
 	return dbidID;
 }
-void DATABASE::Delete_Spectrum(dbid i_dbidRecord_ID, SPECTRUM_TYPE i_eSpectrum_Type) const
+void DATABASE::Delete_Spectrum(dbid i_dbidID, SPECTRUM_TYPE i_eSpectrum_Type) const
 {
-//	if (dbidID != 0)
-//@@TODO
+	if (i_dbidID != 0)
+	{
+		PARAMETERS	cParams;
+		if (Get_Parameters(i_dbidID,cParams) == i_dbidID)
+		{
+			PARAMETERS cCorr_Param = Generate_Corrected_Parameters(cParams,i_eSpectrum_Type);
+			dbid dbidID = Get_DB_ID(cCorr_Param);
+			if (dbidID != 0)
+			{
+				char lpszTemp_Database[256];
+				char lpszCommand[256];
+				FILE * fileDatabase = fopen(m_lpszFile_Path,"rb");
+				sprintf(lpszTemp_Database,"%s.tmp",m_lpszFile_Path);
+				FILE * fileTmpDatabase = fopen(lpszTemp_Database,"wb");
+				if (fileDatabase && fileTmpDatabase)
+				{
+					DATABASE_HEADER cDatabase_Header;
+					DATABASE_RECORD	cRecord;
+
+					fread(&cDatabase_Header,sizeof(cDatabase_Header),1,fileDatabase);
+					fwrite(&cDatabase_Header,sizeof(cDatabase_Header),1,fileTmpDatabase);
+					for (unsigned int uiI = 0; uiI < cDatabase_Header.m_uiNum_Records; uiI++)
+					{
+						cRecord.Read_Record(fileDatabase);
+						if (cRecord.Get_ID() != dbidID)
+							cRecord.Write_Record(fileTmpDatabase);
+						else
+						{
+							char	chType;
+							switch (i_eSpectrum_Type)
+							{
+							case msdb::CONTINUUM:
+								chType = 'C';
+								break;
+							case msdb::COMBINED:
+								chType = 'B';
+								break;
+							case msdb::EJECTA_ONLY:
+								chType = 'E';
+								break;
+							case msdb::SHELL_ONLY:
+								chType = 'S';
+								break;
+							}
+							sprintf(lpszCommand,"rm %s/%i%llu%c.spec",m_lpszSpectra_Path,cCorr_Param.m_uiModel_ID,dbidID,chType);
+							//printf("Writing %i:%s\n",dbidID,lpszFilename);
+							system(lpszCommand);
+						}
+							
+					}
+					fclose(fileDatabase);
+					fclose(fileTmpDatabase);
+					sprintf(lpszCommand,"rm %s",m_lpszFile_Path);
+					system(lpszCommand);
+					sprintf(lpszCommand,"mv %s %s",lpszTemp_Database,m_lpszFile_Path);
+					system(lpszCommand);
+
+				}
+			}
+		}
+	}
 }
+
+std::vector<dbid> DATABASE::Get_Spectra_List(void) // retrieve list of all dbid in the database
+{
+	std::vector<dbid> vRet;
+	if (m_lpszFile_Path)
+	{
+
+		FILE * fileDatabase = fopen(m_lpszFile_Path,"rb");
+		if (fileDatabase)
+		{
+			DATABASE_HEADER cDatabase_Header;
+			DATABASE_RECORD	cRecord;
+
+			fread(&cDatabase_Header,sizeof(cDatabase_Header),1,fileDatabase);
+			for (unsigned int uiI = 0; uiI < cDatabase_Header.m_uiNum_Records; uiI++)
+			{
+				cRecord.Read_Record(fileDatabase);
+				vRet.push_back(cRecord.Get_ID());
+			}
+			fclose(fileDatabase);
+		}
+	}
+	return vRet;
+}
+
 
 dbid	DATABASE::Write_Spectrum(dbid i_dbID, unsigned int i_uiModel_ID, msdb::SPECTRUM_TYPE i_eSpectrum_Type, const ES::Spectrum & i_cSpectrum) const
 {
@@ -359,7 +443,6 @@ dbid	DATABASE::Write_Spectrum(dbid i_dbID, unsigned int i_uiModel_ID, msdb::SPEC
 	}
 	return dbidID;
 }
-
 DATABASE::DATABASE(bool i_bAllow_Database_Creation)
 {
 	m_dVersion = 1.0;
@@ -447,4 +530,24 @@ DATABASE::~DATABASE(void)
 		delete [] m_lpszSpectra_Path;
 	m_lpszSpectra_Path = NULL;
 }
+
+bool DATABASE::Database_Exists(void) const
+{
+	bool bRet = m_dFile_Version != 0.0;
+}
+
+SPECTRUM_TYPE msdb::Identify_Spectrum_Type(const PARAMETERS & i_cParameters)
+{
+	msdb::SPECTRUM_TYPE eType = msdb::COMBINED;
+	if (i_cParameters.m_uiModel_ID == 0)
+		eType = msdb::CONTINUUM;
+	else if (i_cParameters.m_dEjecta_Effective_Log_Scalar == -20.0 && i_cParameters.m_dShell_Effective_Log_Scalar == -20.0)
+		eType = msdb::CONTINUUM;
+	else if (i_cParameters.m_dEjecta_Effective_Log_Scalar == -20.0)
+		eType = msdb::SHELL_ONLY;
+	else if (i_cParameters.m_dShell_Effective_Log_Scalar == -20.0)
+		eType = msdb::EJECTA_ONLY;
+	return eType;
+}
+
 	

@@ -1,9 +1,11 @@
 # Temp, bin, and library directories
-bin/*
-lib/*
-obj/*
-FitViz/bin/*
-FitViz/obj/*
+bin
+lib
+obj
+FitViz/bin
+FitViz/obj
+MSDBmgr/bin
+MSDBmgr/obj
 
 # Log files
 *.log
