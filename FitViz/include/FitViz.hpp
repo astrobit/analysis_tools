@@ -41,7 +41,8 @@ enum button_id
 	MAN_FIT_CLEAR,
 	MAN_FIT_RED_TEXT,
 	MAN_FIT_BLUE_TEXT,
-	MAN_FIT_CENTER_TEXT
+	MAN_FIT_CENTER_TEXT,
+	EXPORT
 
 };
 enum fit_method
@@ -139,6 +140,9 @@ private:
 	void Load_Model_Day_Lists(void);
 	void Load_Display_Info(void);
 	void Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode i_eMode, const double & i_dSize, const PAIR<double> & i_pdSize);
+
+	void Export_Graphic(void);
+
 public:
 	FIT_VIZ_MAIN(void) : m_thrFit(Perform_Fit)  {m_thrFit.detach();};
 private:

@@ -3,6 +3,7 @@
 #include <xio.h>
 #include <cmath>
 #include <line_routines.h>
+#include <eps_plot.h>
 //#include <cstdio>
 
 void FIT_VIZ_MAIN::Load_Model_Day_Lists(void)
@@ -306,4 +307,92 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 			}
 		}
 	}
+}
+
+void FIT_VIZ_MAIN::Export_Graphic(void)
+{
+	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+	epsplot::DATA cPlot;
+	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
+	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	std::vector<epsplot::eps_pair>		vpdGaussian;
+	cPlot_Parameters.m_uiNum_Columns = 1;
+	cPlot_Parameters.m_uiNum_Rows = 1;
+	cPlot_Parameters.m_dWidth_Inches = 11.0;
+	cPlot_Parameters.m_dHeight_Inches = 8.5;
+
+	cX_Axis_Parameters.Set_Title("Wavelength [A]");
+	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+	cY_Axis_Parameters.Set_Title("Flux");
+	cY_Axis_Parameters.m_dLower_Limit = 0.0;
+	cY_Axis_Parameters.m_dUpper_Limit = 2.0;
+	cY_Axis_Parameters.m_bLabel_Major_Indices = false;
+
+	unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
+	unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
+	cLine_Parameters.m_eColor = epsplot::BLACK;
+	cLine_Parameters.m_eStipple = epsplot::SOLID;
+	cPlot.Set_Plot_Data(m_vWavelength, m_vFlux, cLine_Parameters, uiX_Axis, uiY_Axis);
+
+
+	GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+	for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+	{
+		double dX = (m_vWavelength[uiI] - m_vWavelength[0]);
+		double dY;
+		switch (m_eFit_Method)
+		{
+		case fm_flat:
+			dY = (1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0));
+			break;
+		case fm_jeff:
+			dY = Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0);
+			dY += (m_vWavelength[uiI] - m_dJeff_WL) * m_dJeff_Slope + m_dJeff_Flux;
+			break;
+		case fm_manual:
+			dY = Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);
+			dY += (m_vWavelength[uiI] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux;
+			break;
+		}
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[uiI],dY));
+	}
+	cLine_Parameters.m_eColor = epsplot::RED;
+	cLine_Parameters.m_eStipple = epsplot::DOTTED;
+	cPlot.Set_Plot_Data(vpdGaussian, cLine_Parameters, uiX_Axis, uiY_Axis);
+
+	
+	cLine_Parameters.m_eColor = epsplot::GREY_75;
+	cLine_Parameters.m_eStipple = epsplot::LONG_DASH;
+	vpdGaussian.clear();
+	switch (m_eFit_Method)
+	{
+	case fm_flat:
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[0],1.0));
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[m_vWavelength.size() - 1],1.0));
+		break;
+	case fm_jeff:
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[0],(m_vWavelength[0] - m_dJeff_WL) * m_dJeff_Slope + m_dJeff_Flux));
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[m_vWavelength.size() - 1],(m_vWavelength[m_vWavelength.size() - 1] - m_dJeff_WL) * m_dJeff_Slope + m_dJeff_Flux));
+		break;
+	case fm_manual:
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[0],(m_vWavelength[0] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux));
+		vpdGaussian.push_back(epsplot::eps_pair(m_vWavelength[m_vWavelength.size() - 1],(m_vWavelength[m_vWavelength.size() - 1] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux));
+		break;
+	}
+	
+	cPlot.Set_Plot_Data(vpdGaussian, cLine_Parameters, uiX_Axis, uiY_Axis);
+
+	std::ostringstream szFilename;
+	szFilename << "FitViz_export_" << m_vModel_List[m_uiSelected_Model] << "_" << m_vDay_List[m_uiSelected_Day];
+	if (m_eFit_Method == fm_flat)
+		szFilename << "_Flat.eps";
+	else if (m_eFit_Method == fm_jeff)
+		szFilename << "_Jeff.eps";
+	else // if (m_eFit_Method == fm_manual)
+		szFilename << "_Manual.eps";
+
+	cPlot.Set_Plot_Filename(szFilename.str().c_str());
+	cPlot.Plot(cPlot_Parameters);
+
 }

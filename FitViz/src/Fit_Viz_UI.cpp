@@ -383,6 +383,9 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 				Request_Refresh();
 			}
 			break;
+		case EXPORT: // for manual gaussian fitting select
+			Export_Graphic();
+			break;
 		}
 		if (eEvent != MAN_FIT_RED && eEvent != MAN_FIT_BLUE && eEvent != MAN_FIT_CENTER && m_eMan_Select_Mode != MS_OFF)
 			m_eMan_Select_Mode = MS_OFF;
