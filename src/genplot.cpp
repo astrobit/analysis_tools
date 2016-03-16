@@ -1310,7 +1310,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 			FILE * fileFigure = fopen(lpszLaTeX_Figure_File_Path,"wt");
 			if (fileFigure)
 			{
-				fprintf(fileFigure,"\\begin{figure}[H]\n\\centering\n\\includegraphics[width=\\textwidth,angle=270]{%s}\n\\caption{\\label{%s}",
+				fprintf(fileFigure,"\\begin{figure}[H]\n\\centering\n\\includegraphics[height=\\textwidth,angle=270]{%s}\n\\caption{\\label{%s}",
 lpszOutput_Path,lpszOutput_Path);
 				if (lpszCaption_Prefix)
 					fprintf(fileFigure,lpszCaption_Prefix);
