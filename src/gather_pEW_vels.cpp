@@ -201,22 +201,24 @@ void Process_Gaussians(const XDATASET & i_cDatafile, unsigned int i_uiRow, unsig
 	
 }
 
-void Write_Transition_Data(std::string szFilename,const std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> > & i_cFull_Map)
+void Write_Transition_Data(std::string i_szFilename,const std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> > & i_cFull_Map)
 {
-		std::map<unsigned int, unsigned int> cTransition_Data;
+	std::map<unsigned int, unsigned int> cTransition_Data;
 
-		fprintf(fileFile,"Day, Model, v min (min - combined flat), v min (min - ejecta flat), v min (min - shell flat), v min (Jeff - single), v min (Jeff - double), v min (Flat - single), v min (Flat- double), pEW (combined flat), pEW (ejecta flat), pEW (shell flat), pEW (Jeff - single), pEW (Jeff - double), pEW (Flat - single), pEW (Flat- double)\n");
 	for (std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> >::const_iterator cIterI = i_cFull_Map.begin(); cIterI != i_cFull_Map.end(); cIterI++)
 		for (std::map<unsigned int, DATA_CONTAINER>::const_iterator cIterJ = cIterI->second.begin(); cIterJ != cIterI->second.end(); cIterJ++)
 		{
-			if (cIterJ->second.m_cFlat_Ejecta > cIterJ->second.m_cFlat_Shell)
+			if (cIterJ->second.m_cFlat_Ejecta.m_dpEW > cIterJ->second.m_cFlat_Shell.m_dpEW)
 			{
 				if (cTransition_Data.count(cIterJ->first) == 0)
 					cTransition_Data[cIterJ->first] = cIterI->first;
 			}
 		}
-				fprintf(fileFile,"%i",cIterI->first); // day
-				fprintf(fileFile,", %i",cIterJ->first); // model
+	FILE * fileOut = fopen(i_szFilename.c_str(),"wt");
+	fprintf(fileOut,"Model, Day\n");
+	for (std::map<unsigned int, unsigned int >::const_iterator cIterI = cTransition_Data.begin(); cIterI != cTransition_Data.end(); cIterI++)
+		fprintf(fileOut,"%i, %i\n",cIterI->first,cIterI->second); // day
+	fclose(fileOut);
 }
 
 int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
