@@ -2,209 +2,6 @@
 #include <sstream>
 #include <line_routines.h>
 
-std::vector<PAIR<double> > g_vRounded_Rectangle_TL;
-std::vector<PAIR<double> > g_vRounded_Rectangle_TR;
-std::vector<PAIR<double> > g_vRounded_Rectangle_BR;
-std::vector<PAIR<double> > g_vRounded_Rectangle_BL;
-std::vector<PAIR<double> > g_vEllipse;
-GLuint i_uiFilled_RR_List = 0;
-GLuint i_uiOutline_RR_List = 0;
-
-void Draw_Rounded_Rectangle(bool i_bFilled)
-{
-	double	dEdge_Radius = 0.20;
-	double	dEdge_Center = 0.50 - dEdge_Radius;
-	if (g_vRounded_Rectangle_TL.empty())
-	{
-		PAIR<double> pOffset(-dEdge_Center,dEdge_Center);
-		GenerateArc(dEdge_Radius,dEdge_Radius,90.0,180.0,g_vRounded_Rectangle_TL);
-		for (std::vector<PAIR<double> >::iterator cI = g_vRounded_Rectangle_TL.begin(); cI != g_vRounded_Rectangle_TL.end(); cI++)
-		{
-			cI[0] += pOffset;
-		}
-	}
-	if (g_vRounded_Rectangle_TR.empty())
-	{
-		PAIR<double> pOffset(dEdge_Center,dEdge_Center);
-		GenerateArc(dEdge_Radius,dEdge_Radius,0.0,90.0,g_vRounded_Rectangle_TR);
-		for (std::vector<PAIR<double> >::iterator cI = g_vRounded_Rectangle_TR.begin(); cI != g_vRounded_Rectangle_TR.end(); cI++)
-		{
-			cI[0] += pOffset;
-		}
-	}
-	if (g_vRounded_Rectangle_BR.empty())
-	{
-		PAIR<double> pOffset(dEdge_Center,-dEdge_Center);
-		GenerateArc(dEdge_Radius,dEdge_Radius,270.0,0.0,g_vRounded_Rectangle_BR);
-		for (std::vector<PAIR<double> >::iterator cI = g_vRounded_Rectangle_BR.begin(); cI != g_vRounded_Rectangle_BR.end(); cI++)
-		{
-			cI[0] += pOffset;
-		}
-	}
-	if (g_vRounded_Rectangle_BL.empty())
-	{
-		PAIR<double> pOffset(-dEdge_Center,-dEdge_Center);
-		GenerateArc(dEdge_Radius,dEdge_Radius,180.0,270.0,g_vRounded_Rectangle_BL);
-		for (std::vector<PAIR<double> >::iterator cI = g_vRounded_Rectangle_BL.begin(); cI != g_vRounded_Rectangle_BL.end(); cI++)
-		{
-			cI[0] += pOffset;
-		}
-	}
-	if (i_uiFilled_RR_List == 0)
-	{
-		i_uiFilled_RR_List = glGenLists(1);
-		glNewList(i_uiFilled_RR_List,GL_COMPILE);
-		glBegin(GL_TRIANGLE_FAN);
-			glVertex2d(0.0,0.0);
-			glVertexList(g_vRounded_Rectangle_TL);
-			glVertexList(g_vRounded_Rectangle_TR);
-			glVertexList(g_vRounded_Rectangle_BR);
-			glVertexList(g_vRounded_Rectangle_BL);
-			g_vRounded_Rectangle_TL[0].glVertex();
-		glEnd();
-		glEndList();
-	}
-	if (i_uiOutline_RR_List == 0)
-	{
-		i_uiOutline_RR_List = glGenLists(1);
-		glNewList(i_uiOutline_RR_List,GL_COMPILE);
-		glBegin(GL_LINE_LOOP);
-			glVertexList(g_vRounded_Rectangle_TL);
-			glVertexList(g_vRounded_Rectangle_TR);
-			glVertexList(g_vRounded_Rectangle_BR);
-			glVertexList(g_vRounded_Rectangle_BL);
-		glEnd();
-		glEndList();
-	}
-
-	if (i_bFilled && i_uiFilled_RR_List != 0)
-	{
-		glPushMatrix();
-            glTranslated(0.5,-0.5,0.0);
-		glCallList(i_uiFilled_RR_List);
-        glPopMatrix();
-	}
-	else if (!i_bFilled && i_uiOutline_RR_List != 0)
-	{
-		glPushMatrix();
-            glTranslated(0.5,-0.5,0.0);
-		glCallList(i_uiOutline_RR_List);
-        glPopMatrix();
-	}
-	else
-	{
-		glPushMatrix();
-            glTranslated(1.0,-0.5,0.0);
-			if (!i_bFilled)
-				glLineWidth(2.0);
-			glBegin(i_bFilled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
-				if (i_bFilled)
-					glVertex2d(0.0,0.0);
-	//			glTranslated(-0.95, 0.95,0.0);
-				glVertexList(g_vRounded_Rectangle_TL);
-	//			glTranslated( 1.90, 0.00,0.0);
-				glVertexList(g_vRounded_Rectangle_TR);
-	//			glTranslated( 0.00, 1.90,0.0);
-				glVertexList(g_vRounded_Rectangle_BR);
-	//			glTranslated(-1.90, 0.00,0.0);
-				glVertexList(g_vRounded_Rectangle_BL);
-	//			glTranslated( 0.00,-1.90,0.0);
-				if (i_bFilled)
-					g_vRounded_Rectangle_TL[0].glVertex();
-			glEnd();
-		glPopMatrix();
-	}
-}
-void Draw_Rounded_Rectangle_Button(bool i_bPressed, bool i_bActive)
-{
-	glPushMatrix();
-		glColor4d(0.0,0.0,0.0,0.25);
-		if (i_bPressed)
-			glTranslated(0.02,-0.04,0.0);
-		else
-			glTranslated(0.10,-0.20,0.0);
-		Draw_Rounded_Rectangle(true);
-	glPopMatrix();
-
-	if (i_bActive)
-		glColor4d(0.0,1.0,0.0,1.0); // green
-	else
-		glColor4d(0.0,0.1,0.0,1.0); // green
-
-	Draw_Rounded_Rectangle(true);
-	glColor4d(0.0,0.0,0.0,1.0);
-	glLineWidth(2.0);
-	Draw_Rounded_Rectangle(false);
-}
-enum SB_DIRECTION {SBD_UP,SBD_DOWN,SBD_LEFT,SBD_RIGHT};
-
-void Draw_Scroll_Button(SB_DIRECTION i_eDirection, bool i_bActive)
-{
-	glColor4d(0.75,0.75,0.75,1.0);
-	glLineWidth(2.0);
-	glBegin(GL_LINE_LOOP);
-		glVertex2d(0.00,0.00);
-		glVertex2d(1.0,0.00);
-		glVertex2d(1.0,-1.0);
-		glVertex2d(0.00,-1.0);
-	glEnd();
-	if (i_bActive)
-		glBegin(GL_TRIANGLES);
-	else
-		glBegin(GL_LINE_STRIP);
-
-		switch (i_eDirection)
-		{
-		case SBD_UP:
-			glVertex2d(0.0,-1.0);
-			glVertex2d(0.5,0.00);
-			glVertex2d(1.0,-1.0);
-			break;
-		case SBD_DOWN:
-			glVertex2d(1.0,0.0);
-			glVertex2d(0.5,-1.00);
-			glVertex2d(0.0,0.0);
-			break;
-		case SBD_LEFT:
-			glVertex2d(1.0,-1.0);
-			glVertex2d(0.0,-0.5);
-			glVertex2d(1.0, 0.0);
-			break;
-		case SBD_RIGHT:
-			glVertex2d(0.0, 0.0);
-			glVertex2d(1.0,-0.5);
-			glVertex2d(0.0,-1.0);
-			break;
-		}
-	glEnd();
-}
-void Draw_Simple_Button(bool bStatus)
-{
-    glColor4d(0.0,0.25,0.0,1.0);
-    glBegin(GL_QUADS);
-        glVertex2d(0.0,0.0);
-        glVertex2d(1.0,0.0);
-        glVertex2d(1.0,-1.0);
-        glVertex2d(0.0,-1.0);
-    glEnd();
-    if (bStatus)
-    {
-        glColor4d(0.0,1.0,0.0,1.0);
-        glLineWidth(2.5);
-    }
-    else
-    {
-        glColor4d(0.0,0.0,0.0,1.0);
-        glLineWidth(1.0);
-    }
-    glBegin(GL_LINE_LOOP);
-        glVertex2d(0.0,0.0);
-        glVertex2d(1.0,0.0);
-        glVertex2d(1.0,-1.0);
-        glVertex2d(0.0,-1.0);
-    glEnd();
-
-}
 void FIT_VIZ_MAIN::gfx_init(void) // initialization routine; rendering context already created
 {
 	glClearColor(1.0,1.0,1.0,0.0);
@@ -259,7 +56,8 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 //	m_mMain_Pane_Buttons[SELECT_DIRECTORY] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,SELECT_DIRECTORY);
 	m_mMain_Pane_Buttons[DISPLAY_SHELL_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50,0.29),pLB_Size,DISPLAY_SHELL_COMPONENT);
 	m_mMain_Pane_Buttons[DISPLAY_EJECTA_COMPONENT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50,0.23),pLB_Size,DISPLAY_EJECTA_COMPONENT);
-	m_mMain_Pane_Buttons[QUIT_REQUEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.90,0.20),pLB_Size,QUIT_REQUEST);
+	m_mMain_Pane_Buttons[QUIT_REQUEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.90,0.10),pLB_Size,QUIT_REQUEST);
+	m_mMain_Pane_Buttons[EXPORT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.90,0.25),pLB_Size,EXPORT);
 	m_mMain_Pane_Buttons[MODEL_DISPLAY_AREA] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.05,1.00),PAIR<double>(dAR * 0.9,0.70),MODEL_DISPLAY_AREA);
 	m_mMain_Pane_Buttons[PVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.25),pIB_Size,PVF_TEXT);
 	m_mMain_Pane_Buttons[HVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.20),pIB_Size,HVF_TEXT);
@@ -603,6 +401,18 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 						glTranslated(0.5,-0.5,0.0);
 						glScaled(1.0/dSize,1.0,1.0);
 						glPrintJustified(0.4,0.0,0.0,0.0,"Quit",HJ_CENTER,VJ_MIDDLE);
+					glPopMatrix();
+					break;
+				case EXPORT:
+					glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Rounded_Rectangle(true);
+					glColor4d(0.0,0.0,0.0,1.0);
+					glLineWidth(2.0);
+					Draw_Rounded_Rectangle(false);
+					glPushMatrix();
+						glTranslated(0.5,-0.5,0.0);
+						glScaled(1.0/dSize,1.0,1.0);
+						glPrintJustified(0.4,0.0,0.0,0.0,"Export",HJ_CENTER,VJ_MIDDLE);
 					glPopMatrix();
 					break;
 				case MODEL_SEL_TEXT:
