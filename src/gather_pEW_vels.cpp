@@ -48,7 +48,7 @@ double Compute_pEW(XVECTOR & i_vA, const double & i_dWL_Min, const double & i_dW
 	return dpEW;
 }
 
-enum GROUP {RAW,EJECTA,SHELL,JEFF_FIT,FLAT_FIT,JEFF_COMBINED, FLAT_COMBINED, ALL};
+enum GROUP {RAW,EJECTA,SHELL,JEFF_FIT,JEFF_HVF_FIT,FLAT_FIT,FLAT_HVF_FIT,JEFF_COMBINED, FLAT_COMBINED, ALL};
 enum COMPONENT {PEW, VELOCITY};
 void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eComponent, const std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> > & i_cFull_Map)
 {
@@ -121,8 +121,14 @@ void Write_Datafile(const char * i_lpszFilename, GROUP i_eGroup, COMPONENT i_eCo
 				case JEFF_FIT:
 					lpCtr = &cIterJ->second.m_cJeff_SF;
 					break;
+				case JEFF_HVF_FIT:
+					lpCtr = &cIterJ->second.m_cJeff_DF;
+					break;
 				case FLAT_FIT:
 					lpCtr = &cIterJ->second.m_cFlat_SF;
+					break;
+				case FLAT_HVF_FIT:
+					lpCtr = &cIterJ->second.m_cFlat_DF;
 					break;
 				case JEFF_COMBINED:
 					lpCtr = &cIterJ->second.m_cJeff_Combined;
@@ -194,6 +200,25 @@ void Process_Gaussians(const XDATASET & i_cDatafile, unsigned int i_uiRow, unsig
 	
 	
 }
+
+void Write_Transition_Data(std::string szFilename,const std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> > & i_cFull_Map)
+{
+		std::map<unsigned int, unsigned int> cTransition_Data;
+
+		fprintf(fileFile,"Day, Model, v min (min - combined flat), v min (min - ejecta flat), v min (min - shell flat), v min (Jeff - single), v min (Jeff - double), v min (Flat - single), v min (Flat- double), pEW (combined flat), pEW (ejecta flat), pEW (shell flat), pEW (Jeff - single), pEW (Jeff - double), pEW (Flat - single), pEW (Flat- double)\n");
+	for (std::map<unsigned int, std::map<unsigned int, DATA_CONTAINER> >::const_iterator cIterI = i_cFull_Map.begin(); cIterI != i_cFull_Map.end(); cIterI++)
+		for (std::map<unsigned int, DATA_CONTAINER>::const_iterator cIterJ = cIterI->second.begin(); cIterJ != cIterI->second.end(); cIterJ++)
+		{
+			if (cIterJ->second.m_cFlat_Ejecta > cIterJ->second.m_cFlat_Shell)
+			{
+				if (cTransition_Data.count(cIterJ->first) == 0)
+					cTransition_Data[cIterJ->first] = cIterI->first;
+			}
+		}
+				fprintf(fileFile,"%i",cIterI->first); // day
+				fprintf(fileFile,", %i",cIterJ->first); // model
+}
+
 int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 {
 	std::map<unsigned int, DATA_CONTAINER>	cMap;
@@ -274,14 +299,20 @@ int main(int i_uiArg_Count, const char * i_lpszArg_Values[])
 	Write_Datafile("vel_Ejecta_data.csv",EJECTA,VELOCITY,cFull_Map);
 	Write_Datafile("vel_Shell_data.csv",SHELL,VELOCITY,cFull_Map);
 
+	Write_Datafile("vel_Jeff_HVF_data.csv",JEFF_HVF_FIT,VELOCITY,cFull_Map);
+	Write_Datafile("vel_Flat_HVF_data.csv",FLAT_HVF_FIT,VELOCITY,cFull_Map);
+
 	Write_Datafile("pEW_Jeff_data.csv",JEFF_FIT,PEW,cFull_Map);
+	Write_Datafile("pEW_Jeff_HVF_data.csv",JEFF_HVF_FIT,PEW,cFull_Map);
 	Write_Datafile("pEW_Jeff_Combined_data.csv",JEFF_COMBINED,PEW,cFull_Map);
 	Write_Datafile("pEW_Flat_data.csv",FLAT_FIT,PEW,cFull_Map);
+	Write_Datafile("pEW_Flat_HVF_data.csv",FLAT_HVF_FIT,PEW,cFull_Map);
 	Write_Datafile("pEW_Flat_Combined_data.csv",FLAT_COMBINED,PEW,cFull_Map);
 	Write_Datafile("pEW_Raw_data.csv",RAW,PEW,cFull_Map);
 	Write_Datafile("pEW_Ejecta_data.csv",EJECTA,PEW,cFull_Map);
 	Write_Datafile("pEW_Shell_data.csv",SHELL,PEW,cFull_Map);
 
+	Write_Transition_Data("pEW_Transitions.csv",cFull_Map);
 
 	return 0;
 }
