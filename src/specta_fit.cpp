@@ -492,8 +492,8 @@ bool Read_Vector_Output_Cache(const XVECTOR & i_vX, SPECTRA_FIT_DATA_BASE * lpcC
 	bool bRet = false;
 	char lpszVectorlist_Filename[256];
 	char lpszOutput_Filename[256];
-	sprintf(lpszVectorlist_Filename,".spectrafit.0.2.%s.%i.vectorlist",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
-	sprintf(lpszOutput_Filename,".spectrafit.0.2.%s.%i.outputdata",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
+	sprintf(lpszVectorlist_Filename,".sfdb/.spectrafit.0.2.%s.%i.vectorlist",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
+	sprintf(lpszOutput_Filename,".sfdb/.spectrafit.0.2.%s.%i.outputdata",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
 	if (strcmp(g_lpszVector_Data_Filename,lpszVectorlist_Filename) != 0)
 	{
 		strcpy(g_lpszVector_Data_Filename,lpszVectorlist_Filename);
@@ -554,8 +554,8 @@ void Save_Vector_Output_Cache(const XVECTOR & i_vX, SPECTRA_FIT_DATA_BASE * lpcC
 {
 	char lpszVectorlist_Filename[256];
 	char lpszOutput_Filename[256];
-	sprintf(lpszVectorlist_Filename,".spectrafit.0.2.%s.%i.vectorlist",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
-	sprintf(lpszOutput_Filename,".spectrafit.0.2.%s.%i.outputdata",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
+	sprintf(lpszVectorlist_Filename,".sfdb/.spectrafit.0.2.%s.%i.vectorlist",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
+	sprintf(lpszOutput_Filename,".sfdb/.spectrafit.0.2.%s.%i.outputdata",lpcCall_Data->lpszModel_Name,lpcCall_Data->uiIon);
 	unsigned int uiAdd_Column = g_cFit_Data_Vectors.GetNumColumns();
 	if (uiAdd_Column == 0)
 	{	
@@ -590,7 +590,7 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		if (i_vX.Get_Size() == 5)
 		{
 			vX.Set_Size(7);
-			vX.Set(5,i_vX.Get(4)); // HVF scalar
+			vX.Set(5,i_vX.Get(3)); // HVF scalar
 			vX.Set(6,i_vX.Get(2)); // HVF temp (use PS temp)
 		}
 		else
@@ -600,7 +600,7 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		vX.Set(0,i_vX.Get(0)); // day
 		vX.Set(1,i_vX.Get(1)); // PS vel
 		vX.Set(2,i_vX.Get(2)); // PS temp
-		vX.Set(3,i_vX.Get(3)); // PS LGR scalar
+		vX.Set(3,i_vX.Get(4)); // PS LGR scalar
 		vX.Set(4,i_vX.Get(2)); // PS LGR temp (use PS temp)
 
 		Generate_Synow_Spectra(lpcCall_Data->lpcTarget[0],lpcCall_Data->lpcOpacity_Map_A[0],lpcCall_Data->lpcOpacity_Map_B[0],lpcCall_Data->uiIon,i_vX,cOutput);
@@ -619,7 +619,7 @@ double CompareFits(const char * i_lpszTarget_File, const char * i_lpszFileSource
 	char lpszCache_Filename[256];
 	ES::Spectrum cOutput  = ES::Spectrum::create_from_range_and_size( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), i_cTarget.size());
 
-	sprintf(lpszCache_Filename,".spectrafit.0.2.%s.%s.%i",i_lpszTarget_File,i_lpszFileSource,i_uiIon);
+	sprintf(lpszCache_Filename,".sfdb/.spectrafit.0.2.%s.%s.%i",i_lpszTarget_File,i_lpszFileSource,i_uiIon);
 	SPECTRA_FIT_DATA cCall_Data;
 	cCall_Data.lpszModel_Name = i_lpszFileSource;
 	cCall_Data.lpcOpacity_Map_A = &i_cOpacity_Map_A;
@@ -678,11 +678,11 @@ double CompareFits(const char * i_lpszTarget_File, const char * i_lpszFileSource
 	cBounds[1].Set(1,40.0); // PS velocity (kkm/s)
 	cBounds[1].Set(2,30.0); // PS temp (kK)
 	//cBounds[1].Set(3,12.01); // PS ion temp (kK)
-	cBounds[1].Set(3,3.0); // PS ion log opacity scaling
+	cBounds[1].Set(3,5.0); // PS ion log opacity scaling
 	if (i_cOpacity_Map_B.GetNumElements() != 0)
 	{
 //		cBounds[1].Set(5,12.01); // HVF ion temp (kK)
-		cBounds[1].Set(4,3.0); // HVF ion log opacity scaling
+		cBounds[1].Set(4,8.0); // HVF ion log opacity scaling
 	}
 
 	cThreshold.Set(0,1.0);
@@ -762,7 +762,7 @@ double CompareFitsExp(const char * i_lpszTarget_File, const char * i_lpszFileSou
 	char lpszCache_Filename[256];
 	ES::Spectrum cOutput(i_cTarget);
 
-	sprintf(lpszCache_Filename,".spectrafit.0.2.%s.%s.%i",i_lpszTarget_File,i_lpszFileSource,i_uiIon);
+	sprintf(lpszCache_Filename,".sfdb/.spectrafit.0.2.%s.%s.%i",i_lpszTarget_File,i_lpszFileSource,i_uiIon);
 	SPECTRA_FIT_DATA cCall_Data;
 	cCall_Data.uiIon = i_uiIon;
 	cCall_Data.lpcTarget = &i_cTarget;
@@ -868,7 +868,7 @@ bool Read_Best_Fit_Cache(const char * i_lpszTarget_File, ES::Spectrum & i_cTarge
 	XDATASET cOpacity_Map_Shell;
 	XDATASET cOpacity_Map_Ejecta;
 	char lpszFilename[256];
-	sprintf(lpszFilename,".spectrafit.0.2.%s.filelist.cache",i_lpszTarget_File);
+	sprintf(lpszFilename,".sfdb/.spectrafit.0.2.%s.filelist.cache",i_lpszTarget_File);
 	FILE * fileCache = NULL;
 	if (!bForce_Clean_Start)
 		fileCache = fopen(lpszFilename,"rt");
@@ -1010,7 +1010,7 @@ void Save_Best_Fit_Cache(const char * i_lpszTarget_File, const BEST_FIT_DATA & o
 {
 	bool bRet = false;
 	char lpszFilename[256];
-	sprintf(lpszFilename,".spectrafit.0.2.%s.filelist.cache",i_lpszTarget_File);
+	sprintf(lpszFilename,".sfdb/.spectrafit.0.2.%s.filelist.cache",i_lpszTarget_File);
 	FILE * fileCache = fopen(lpszFilename,"wt");
 	if (fileCache)
 	{
@@ -1040,6 +1040,7 @@ void Save_Best_Fit_Cache(const char * i_lpszTarget_File, const BEST_FIT_DATA & o
 }
 
 double Process_CL_Dbl(int &io_iArg_Count,const char * i_lpszArg_Values[], const char * i_lpszParameter, const double & i_dDefault_Value);
+
 int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 {
 //	char lpszLine_Buffer[1024];
