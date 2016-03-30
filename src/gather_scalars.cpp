@@ -179,7 +179,24 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (uiShell_Type == 0)
 				fprintf(fileOutTex,"\\ldots ");
 			else
-				fprintf(fileOutTex,"%.3e ", cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SILICON));
+			{
+				double dDens_Ratio = cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SILICON);
+				int iExp = 0;
+				while (dDens_Ratio < 1.0)
+				{
+					iExp++;
+					dDens_Ratio *= 10.0;
+				}
+				while (dDens_Ratio > 10.0)
+				{
+					iExp--;
+					dDens_Ratio *= 0.1;
+				}
+				if (iExp == 0)
+					fprintf(fileOutTex,"%.3e ",dDens_Ratio );
+				else
+					fprintf(fileOutTex,"$%.3e\\times 10^{%i}$ ",dDens_Ratio,iExp );
+			}
 
 			fprintf(fileOutTex,"\\\\\n");
 		}
