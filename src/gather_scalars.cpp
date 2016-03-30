@@ -23,14 +23,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	setModel_List.insert(56);
 	setModel_List.insert(57);
 	setModel_List.insert(61);
-	setModel_List.insert(62);
-	setModel_List.insert(63);
+//	setModel_List.insert(62); <- Helmholz mass set, removed as generally unnecessary
+//	setModel_List.insert(63); <- Helmholz mass set, removed as generally unnecessary
 	setModel_List.insert(64);
-	setModel_List.insert(65);
-	setModel_List.insert(66);
-	setModel_List.insert(67);
-	setModel_List.insert(68);
-	setModel_List.insert(69);
+//	setModel_List.insert(65); <- Helmholz mass set, removed as generally unnecessary
+//	setModel_List.insert(66); <- Helmholz mass set, removed as generally unnecessary
+//	setModel_List.insert(67); <- Helmholz mass set, removed as generally unnecessary
+//	setModel_List.insert(68); <- Helmholz mass set, removed as generally unnecessary
+//	setModel_List.insert(69); <- Helmholz mass set, removed as generally unnecessary
 	setModel_List.insert(70);
 	setModel_List.insert(71);
 	setModel_List.insert(72);
@@ -119,6 +119,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double	dMin_Radius = 5.35e8 * 1.436075951e-11;
 		double	dShell_Inner = dShell_Radius - 0.5 * dShell_Width;
 		double	dShell_Outer = dShell_Radius + 0.5 * dShell_Width;
+
 		switch (uiShell_Type)
 		{
 		case 0:
@@ -167,12 +168,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				else if (eGroup == OPACITY_PROFILE_DATA::SHELL)
 				{
 					if (uiShell_Type == 0)
-						fprintf(fileOutTex,"\\ldots\\\\\n");
+						fprintf(fileOutTex,"\\ldots & ");
 					else
-						fprintf(fileOutTex,"%.3f\\\\\n",dLog_Rel);
+						fprintf(fileOutTex,"%.3f & ",dLog_Rel);
 				}
 			}
 		}
+		if (uiShell_Type == 0)
+			fprintf(fileOutTex,"\\ldots ");
+		else
+			fprintf(fileOutTex,"%.3e ", cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SILICON));
+
+		fprintf(fileOutTex,"\\\\\n");
 		fprintf(fileOut,"\n");
 	}
 	fclose(fileOut);
