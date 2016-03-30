@@ -174,12 +174,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 			}
 		}
-		if (uiShell_Type == 0)
-			fprintf(fileOutTex,"\\ldots ");
-		else
-			fprintf(fileOutTex,"%.3e ", cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SILICON));
+		if (setModel_List.count(uiI) != 0)
+		{
+			if (uiShell_Type == 0)
+				fprintf(fileOutTex,"\\ldots ");
+			else
+				fprintf(fileOutTex,"%.3e ", cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SILICON));
 
-		fprintf(fileOutTex,"\\\\\n");
+			fprintf(fileOutTex,"\\\\\n");
+		}
 		fprintf(fileOut,"\n");
 	}
 	fclose(fileOut);
