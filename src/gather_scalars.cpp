@@ -184,12 +184,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				int iExp = 0;
 				while (dDens_Ratio < 1.0)
 				{
-					iExp++;
+					iExp--;
 					dDens_Ratio *= 10.0;
 				}
 				while (dDens_Ratio > 10.0)
 				{
-					iExp--;
+					iExp++;
 					dDens_Ratio *= 0.1;
 				}
 				if (iExp == 0)
