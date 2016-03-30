@@ -193,9 +193,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					dDens_Ratio *= 0.1;
 				}
 				if (iExp == 0)
-					fprintf(fileOutTex,"%.3e ",dDens_Ratio );
+					fprintf(fileOutTex,"%.3f ",dDens_Ratio );
 				else
-					fprintf(fileOutTex,"$%.3e\\times 10^{%i}$ ",dDens_Ratio,iExp );
+					fprintf(fileOutTex,"$%.3f\\times 10^{%i}$ ",dDens_Ratio,iExp );
 			}
 
 			fprintf(fileOutTex,"\\\\\n");
