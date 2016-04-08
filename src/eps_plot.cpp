@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <line_routines.h>
 #include <eps_plot.h>
+#include <sstream>
 
 using namespace epsplot;
 
@@ -169,6 +170,62 @@ EPSFILE::EPSFILE(const char * i_lpszFormat)
 	sprintf(m_lpszSetLineWidth,"%s slw\n",i_lpszFormat);	
 	sprintf(m_lpszRectClip,"%s %s %s %s rc\n",i_lpszFormat,i_lpszFormat,i_lpszFormat,i_lpszFormat);
 	strcpy(m_lpszSetRGBColor,"%.3f %.3f %.3f srgb\n");
+
+	// generate symbol mapping from symbols the user will use to those used by postscript
+	m_mSymbol_Map["Ang"] = "Aring";
+	m_mSymbol_Map["Aring"] = "Aring";
+	m_mSymbol_Map["Alpha"] = "Alpha";
+	m_mSymbol_Map["Beta"] = "Beta";
+	m_mSymbol_Map["Gamma"] = "Gamma";
+	m_mSymbol_Map["Delta"] = "Deltagreek";
+	m_mSymbol_Map["Epsilon"] = "Epsilon";
+	m_mSymbol_Map["Zeta"] = "Zeta";
+	m_mSymbol_Map["Eta"] = "Eta";
+	m_mSymbol_Map["Theta"] = "Theta";
+	m_mSymbol_Map["Iota"] = "Iota";
+	m_mSymbol_Map["Kappa"] = "Kappa";
+	m_mSymbol_Map["Lambda"] = "Lambda";
+	m_mSymbol_Map["Mu"] = "Mu";
+	m_mSymbol_Map["Nu"] = "Nu";
+	m_mSymbol_Map["Xi"] = "Xi";
+	m_mSymbol_Map["Omicron"] = "Omicron";
+	m_mSymbol_Map["Pi"] = "Pi";
+	m_mSymbol_Map["Rho"] = "Rho";
+	m_mSymbol_Map["Sigma"] = "Sigma";
+	m_mSymbol_Map["Tau"] = "Tau";
+	m_mSymbol_Map["Upsilon"] = "Upsilon";
+	m_mSymbol_Map["Phi"] = "Phi";
+	m_mSymbol_Map["Chi"] = "Chi";
+	m_mSymbol_Map["Psi"] = "Psi";
+	m_mSymbol_Map["Omega"] = "Omegagreek";
+	m_mSymbol_Map["alpha"] = "alpha";
+	m_mSymbol_Map["beta"] = "beta";
+	m_mSymbol_Map["gamma"] = "gamma";
+	m_mSymbol_Map["delta"] = "delta";
+	m_mSymbol_Map["epsilon"] = "epsilon";
+	m_mSymbol_Map["zeta"] = "zeta";
+	m_mSymbol_Map["eta"] = "eta";
+	m_mSymbol_Map["theta"] = "theta";
+	m_mSymbol_Map["iota"] = "iota";
+	m_mSymbol_Map["kappa"] = "kappa";
+	m_mSymbol_Map["lambda"] = "lambda";
+	m_mSymbol_Map["mu"] = "mugreek";
+	m_mSymbol_Map["nu"] = "nu";
+	m_mSymbol_Map["xi"] = "xi";
+	m_mSymbol_Map["omicron"] = "omicron";
+	m_mSymbol_Map["pi"] = "pi";
+	m_mSymbol_Map["rho"] = "rho";
+	m_mSymbol_Map["sigma"] = "sigma";
+	m_mSymbol_Map["tau"] = "tau";
+	m_mSymbol_Map["upsilon"] = "upsilon";
+	m_mSymbol_Map["phi"] = "phi";
+	m_mSymbol_Map["chi"] = "chi";
+	m_mSymbol_Map["psi"] = "psi";
+	m_mSymbol_Map["omega"] = "omega";
+	m_mSymbol_Map["vartheta"] = "thetasymbolgreek";
+	m_mSymbol_Map["varUpsilon"] = "Upsilonhooksymbol";
+	m_mSymbol_Map["varpi"] = "pisymbolgreek";
+
 }
 EPSFILE::~EPSFILE(void)
 {
@@ -232,43 +289,47 @@ void EPSFILE::Open_File(const char * i_lpszFilename, const char * i_lpszDocument
 }
 void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const COLOR_TRIPLET & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation, const double & i_dLine_Width) const
 {
+	std::string szFont;
 	fprintf(m_lpFileOut,m_lpszGsave);
 	fprintf(m_lpFileOut,m_lpszSetLineWidth,i_dLine_Width);
 	switch (i_eFont)
 	{
 	case TIMES:
 		if (i_bItalic && i_bBold)
-			fprintf(m_lpFileOut,"/Times-BoldItalic findfont\n");
+			szFont = "/Times-BoldItalic findfont\n";
 		else if (i_bBold)
-			fprintf(m_lpFileOut,"/Times-Bold findfont\n");
+			szFont = "/Times-Bold findfont\n";
 		else if (i_bItalic)
-			fprintf(m_lpFileOut,"/Times-Italic findfont\n");
+			szFont = "/Times-Italic findfont\n";
 		else
-			fprintf(m_lpFileOut,"/Times-Roman findfont\n");
+			szFont = "/Times-Roman findfont\n";
 		break;
 	case HELVETICA:
 		if (i_bItalic && i_bBold)
-			fprintf(m_lpFileOut,"/Helvetica-BoldItalic findfont\n");
+			szFont = "/Helvetica-BoldItalic findfont\n";
 		else if (i_bBold)
-			fprintf(m_lpFileOut,"/Helvetica-Bold findfont\n");
+			szFont = "/Helvetica-Bold findfont\n";
 		else if (i_bItalic)
-			fprintf(m_lpFileOut,"/Helvetica-Italic findfont\n");
+			szFont = "/Helvetica-Italic findfont\n";
 		else
-			fprintf(m_lpFileOut,"/Helvetica-Roman findfont\n");
+			szFont = "/Helvetica-Roman findfont\n";
 		break;
 	case COURIER:
 		if (i_bItalic && i_bBold)
-			fprintf(m_lpFileOut,"/Courier-BoldItalic findfont\n");
+			szFont = "/Courier-BoldItalic findfont\n";
 		else if (i_bBold)
-			fprintf(m_lpFileOut,"/Courier-Bold findfont\n");
+			szFont = "/Courier-Bold findfont\n";
 		else if (i_bItalic)
-			fprintf(m_lpFileOut,"/Courier-Italic findfont\n");
+			szFont = "/Courier-Italic findfont\n";
 		else
-			fprintf(m_lpFileOut,"/Courier-Roman findfont\n");
+			szFont = "/Courier-Roman findfont\n";
 		break;
 	case SYMBOL:
-		fprintf(m_lpFileOut,"/Symbol findfont\n");
+		szFont = "/Symbol findfont\n";
+		break;
 	}
+	fprintf(m_lpFileOut,szFont.c_str());
+
 	fprintf(m_lpFileOut,m_lpszScalefontSetFont,i_iFont_Size);
 	fprintf(m_lpFileOut,m_lpszMoveto, i_dX,i_dY);
 	if (i_dRotation != 0.0)
@@ -277,8 +338,104 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 		fprintf(m_lpFileOut," rotate\n");
 	}
 	fprintf(m_lpFileOut,m_lpszSetRGBColor, i_cColor.m_dRed, i_cColor.m_dGreen, i_cColor.m_dBlue);
-	fprintf(m_lpFileOut,m_lpszTxtCentered,i_lpszText);
-	fprintf(m_lpFileOut,"show\n");
+	fprintf(m_lpFileOut,"%% text %s\n",i_lpszText);
+	std::vector< text_entity > vText_Stream = Parse_String(i_lpszText);
+	if (i_eHoirzontal_Justification == CENTER || i_eHoirzontal_Justification == RIGHT ||
+		i_eVertical_Justification == TOP || i_eVertical_Justification == MIDDLE)
+	{
+		// first compute position to start drawing
+		fprintf(m_lpFileOut,"(");
+		for (std::vector< text_entity >::iterator cI = vText_Stream.begin(); cI != vText_Stream.end(); cI++)
+		{
+			switch (cI->m_eType)
+			{
+			case text_entity::text:
+				fprintf(m_lpFileOut,"%s",cI->m_szData.c_str());
+				break;
+			case text_entity::symbol:
+				fprintf(m_lpFileOut," "); // for the moment, use a space to represent the glyph.  This will not really gnerate the correct size, but it should be close enough
+				break;
+			}
+		}
+		// get complete bounding box, then perform operations on it
+		fprintf(m_lpFileOut, ") true charpath pathbbox 3 -1 roll sub ");
+		if (i_eVertical_Justification == TOP)
+			fprintf(m_lpFileOut, "neg ");
+		else if (i_eVertical_Justification == MIDDLE)
+			fprintf(m_lpFileOut,"-0.5 mul ");
+		else
+			fprintf(m_lpFileOut,"pop 0 ");
+
+		fprintf(m_lpFileOut,"3 1 roll sub ");
+
+		if (i_eHoirzontal_Justification == RIGHT)
+			fprintf(m_lpFileOut,"2.0 mul ");
+		else if (i_eHoirzontal_Justification == CENTER)
+			fprintf(m_lpFileOut,"1.5 mul ");
+		else
+			fprintf(m_lpFileOut," ");
+		fprintf(m_lpFileOut,"exch rmoveto\n");
+	}
+
+	for (std::vector< text_entity >::iterator cI = vText_Stream.begin(); cI != vText_Stream.end(); cI++)
+	{
+		switch (cI->m_eType)
+		{
+		case text_entity::text:
+			fprintf(m_lpFileOut,"(%s) show\n",cI->m_szData.c_str());
+			break;
+		case text_entity::symbol:
+			if (m_mSymbol_Map.count(cI->m_szData) == 1)
+			{
+				std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
+				fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+			}
+			break;
+		case text_entity::superscript:
+			fprintf(m_lpFileOut,m_lpszGsave);
+			fprintf(m_lpFileOut,szFont.c_str());
+			fprintf(m_lpFileOut,m_lpszScalefontSetFont,(int)(i_iFont_Size * 0.45));
+			fprintf(m_lpFileOut, "%.1f %.1f rmoveto\n",i_iFont_Size * 0.175,i_iFont_Size * 0.50);
+			cI++;
+			if (cI != vText_Stream.end() && cI->m_eType == text_entity::leftbrace)
+			{
+				cI++;
+				if (cI != vText_Stream.end() && cI->m_eType == text_entity::text)
+				{
+					fprintf(m_lpFileOut,"(%s) show\n",cI->m_szData.c_str());
+					cI++;
+				}
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				{
+					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
+					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					cI++;
+				}
+				if (cI != vText_Stream.end() && cI->m_eType != text_entity::rightbrace)
+					fprintf(stderr,"Warning: epsplot encountered invalid superscript sequence\n");
+			}
+			else
+			{ 
+				if (cI != vText_Stream.end() && cI->m_eType == text_entity::text)
+				{
+					const char * lpszText = cI->m_szData.c_str();
+					fprintf(m_lpFileOut,"(%c) show\n",lpszText[0]);
+					cI->m_szData = lpszText;
+					cI++;
+				}
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				{
+					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
+					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					cI++;
+				}
+				if (cI != vText_Stream.end() && cI->m_eType != text_entity::rightbrace)
+					fprintf(stderr,"Warning: epsplot encountered invalid superscript sequence\n");
+			}
+			fprintf(m_lpFileOut,m_lpszGrestore);
+			break;
+		}
+	}
 	fprintf(m_lpFileOut,m_lpszGrestore);
 }
 
@@ -436,7 +593,155 @@ void EPSFILE::Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, i
 	fprintf(m_lpFileOut,m_lpszGrestore);
 }
 
+std::vector< text_entity > EPSFILE::Parse_String(const std::string & i_szString) const
+{
+	std::vector <text_entity> veEntities;
+	std::ostringstream ossCurr_Entity;
 
+	unsigned int uiI = 0;
+	while (uiI < i_szString.size())
+	{
+		while (uiI < i_szString.size() && i_szString[uiI] != '^' && i_szString[uiI] != '_' && i_szString[uiI] != '\\' && i_szString[uiI] != '{' && i_szString[uiI] != '}')
+		{
+			ossCurr_Entity << i_szString[uiI];
+			uiI++;
+		}
+		if (i_szString[uiI] == '^')
+		{
+			if (ossCurr_Entity.tellp() > 0)
+			{
+				text_entity cEntity;
+
+				cEntity.m_eType = text_entity::text;
+				cEntity.m_szData = ossCurr_Entity.str();
+				veEntities.push_back(cEntity);
+				ossCurr_Entity.str("");
+				ossCurr_Entity.clear();
+			}
+			text_entity cEntity;
+
+			cEntity.m_eType = text_entity::superscript;
+			veEntities.push_back(cEntity);
+			uiI++;
+		}
+		else if (i_szString[uiI] == '_')
+		{
+			if (ossCurr_Entity.tellp() > 0)
+			{
+				text_entity cEntity;
+
+				cEntity.m_eType = text_entity::text;
+				cEntity.m_szData = ossCurr_Entity.str();
+				veEntities.push_back(cEntity);
+				ossCurr_Entity.str("");
+				ossCurr_Entity.clear();
+			}
+			text_entity cEntity;
+
+			cEntity.m_eType = text_entity::subscript;
+			veEntities.push_back(cEntity);
+			uiI++;
+		}
+		else if (i_szString[uiI] == '{')
+		{
+			if (ossCurr_Entity.tellp() > 0)
+			{
+				text_entity cEntity;
+
+				cEntity.m_eType = text_entity::text;
+				cEntity.m_szData = ossCurr_Entity.str();
+				veEntities.push_back(cEntity);
+				ossCurr_Entity.clear();
+				ossCurr_Entity.seekp(0);
+			}
+			text_entity cEntity;
+
+			cEntity.m_eType = text_entity::leftbrace;
+			veEntities.push_back(cEntity);
+			uiI++;
+		}
+		else if (i_szString[uiI] == '}')
+		{
+			if (ossCurr_Entity.tellp() > 0)
+			{
+				text_entity cEntity;
+
+				cEntity.m_eType = text_entity::text;
+				cEntity.m_szData = ossCurr_Entity.str();
+				veEntities.push_back(cEntity);
+				ossCurr_Entity.str("");
+				ossCurr_Entity.clear();
+			}
+			text_entity cEntity;
+
+			cEntity.m_eType = text_entity::rightbrace;
+			veEntities.push_back(cEntity);
+			uiI++;
+		}
+		else if (i_szString[uiI] == '\\')
+		{
+			uiI++;
+			if (i_szString[uiI] == '^')
+			{
+				ossCurr_Entity << '^';
+				uiI++;
+			}
+			else if (i_szString[uiI] == '_')
+			{
+				ossCurr_Entity << '_';
+				uiI++;
+			}
+			else if (i_szString[uiI] == '{')
+			{
+				ossCurr_Entity << '{';
+				uiI++;
+			}
+			else if (i_szString[uiI] == '}')
+			{
+				ossCurr_Entity << '}';
+				uiI++;
+			}
+			else if (i_szString[uiI] == '\\')
+			{
+				ossCurr_Entity << '\\';
+				uiI++;
+			}
+			else
+			{
+				if (ossCurr_Entity.tellp() > 0)
+				{
+					text_entity cEntity;
+
+					cEntity.m_eType = text_entity::text;
+					cEntity.m_szData = ossCurr_Entity.str();
+					veEntities.push_back(cEntity);
+					ossCurr_Entity.str("");
+					ossCurr_Entity.clear();
+				}
+				while (uiI < i_szString.size() && ((i_szString[uiI] >= 'A' && i_szString[uiI] <= 'Z') || (i_szString[uiI] >= 'a' && i_szString[uiI] <= 'z')))
+				{
+					ossCurr_Entity << i_szString[uiI];
+					uiI++;
+				}
+				text_entity cEntity;
+				cEntity.m_eType = text_entity::symbol;
+				cEntity.m_szData = ossCurr_Entity.str();
+				veEntities.push_back(cEntity);
+				ossCurr_Entity.str("");
+				ossCurr_Entity.clear();
+			}
+		}
+	}
+	if (ossCurr_Entity.tellp() > 0)
+	{
+		text_entity cEntity;
+
+		cEntity.m_eType = text_entity::text;
+		cEntity.m_szData = ossCurr_Entity.str();
+		veEntities.push_back(cEntity);
+	}
+	return veEntities;
+}
 
 //----------------------------------------------------------------------------
 //
@@ -1882,7 +2187,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			double	dStart = XRoundNearest(cX_Axis_Default.m_dStart,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
-			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length) : 5.0;
+			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : 5.0;
 			for (double dVal = dStart; dVal <= cX_Axis_Default.m_dEnd; dVal += dMinor_Ticks)
 			{
 				if (dVal >= cX_Axis_Default.m_dLower_Limit && dVal <= cX_Axis_Default.m_dUpper_Limit) // just to make sure
@@ -1914,36 +2219,29 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 					if (dSize > 0.0)
 					{
+						char lpszValue[16];
 						if (bScientific_Notation)
 						{
-							char lpszValue[16];
 							double dLog10 = log10(dVal);
 							double dPower = floor(dLog10);
 							double	dMantissa = dVal * pow(10.0,-dPower);
-							double dOffset;
-							if (dMantissa != 1.0)
+							if (dMantissa != 1.0 && dPower != 0.0)
 							{
-								sprintf(lpszValue,"%.1fx10",dMantissa);
-								dOffset = (strlen(lpszValue) - 1) * dSize * 0.35;
+								sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+							}
+							else if (dMantissa == 1.0 && dPower != 0.0)
+							{
+								sprintf(lpszValue,"10^{%.0f}",dPower);
 							}
 							else
-							{
-								dOffset = strlen(lpszValue) * dSize * 0.35;
-								sprintf(lpszValue,"10");
-							}
-				
-							cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
-							sprintf(lpszValue,"%.0f",dPower);
-							cEPS.Text(TIMES,false,false,dSize * 0.5,LEFT,BOTTOM,Get_Color(eColor),dX + dOffset,dY + dDeltaText + dSize * 0.5, lpszValue);
+								sprintf(lpszValue,"%.1f",dMantissa);
 						}
 						else
 						{
-							char lpszValue[16];
 							sprintf(lpszValue,lpszFormat,dVal);
-							cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
 						}
+						cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
 					}
-				
 				}
 			}
 		}
@@ -1986,7 +2284,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : 5.0;
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : 5.0;
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
 						dStart =  XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
@@ -2023,34 +2321,29 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 							if (dSize > 0.0)
 							{
+								char lpszValue[16];
 								if (bScientific_Notation)
 								{
-									char lpszValue[16];
 									double dLog10 = log10(dVal);
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
-									double dOffset;
-									if (dMantissa != 1.0)
+									if (dMantissa != 1.0 && dPower != 0.0)
 									{
-										sprintf(lpszValue,"%.1fx10",dMantissa);
-										dOffset = (strlen(lpszValue) - 1) * dSize * 0.35;
+										sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+									}
+									else if (dMantissa == 1.0 && dPower != 0.0)
+									{
+										sprintf(lpszValue,"10^{%.0f}",dPower);
 									}
 									else
-									{
-										dOffset = strlen(lpszValue) * dSize * 0.35;
-										sprintf(lpszValue,"10");
-									}
-						
-									cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
-									sprintf(lpszValue,"%.0f",dPower);
-									cEPS.Text(TIMES,false,false,dSize * 0.5,LEFT,BOTTOM,Get_Color(eColor),dX + dOffset,dY + dDeltaText + dSize * 0.5, lpszValue);
+										sprintf(lpszValue,"%.1f",dMantissa);
+			
 								}
 								else
 								{
-									char lpszValue[16];
 									sprintf(lpszValue,lpszFormat,dVal);
-									cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
 								}
+								cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
 							}
 				
 						}
@@ -2061,7 +2354,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				{
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
 					if (!isnan(dRange_Lower) && !isnan(dRange_Upper))
@@ -2107,15 +2400,19 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 										double dLog10 = log10(dVal);
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
-										if (dMantissa != 1.0)
-											sprintf(lpszValue,"%.1fx10",dMantissa);
+										if (dPower != 0.0 && dMantissa != 1.0)
+										{
+											sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+										}
+										else if (dPower == 0.0 || dMantissa != 1.0)
+										{
+											sprintf(lpszValue,"%.1f",dMantissa);
+										}
 										else
-											sprintf(lpszValue,"10");
-							
-										cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX,dY + dDeltaText, lpszValue, 90.0);
-										double dOffset = strlen(lpszValue) * dSize * 0.35;
-										sprintf(lpszValue,"%.0f",dPower);
-										cEPS.Text(TIMES,false,false,dSize * 0.5,LEFT,BOTTOM,Get_Color(eColor),dX + dOffset,dY + dDeltaText + dSize * 0.5, lpszValue, 90.0);
+										{
+											sprintf(lpszValue,"10^{%.0f}",dPower);
+										}
+										cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue, 90.0);
 									}
 								}
 							}
@@ -2162,7 +2459,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			double	dEnd = XRoundNearest(cY_Axis_Default.m_dEnd,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
-			double	dDeltaText = ((uiI % 2) == 0) ? -(cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length) : 5.0;
+			double	dDeltaText = ((uiI % 2) == 0) ? -(cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : 2.5;
 			if (cY_Axis_Default.m_cParameters.m_bInvert)
 			{
 				dStart =  XRoundNearest(cY_Axis_Default.m_dEnd,dMinor_Ticks);
@@ -2199,28 +2496,27 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 					if (dSize > 0.0)
 					{
+						char lpszValue[16];
 						if (bScientific_Notation)
 						{
-							char lpszValue[16];
 							double dLog10 = log10(dVal);
 							double dPower = floor(dLog10);
 							double	dMantissa = dVal * pow(10.0,-dPower);
-							if (dMantissa != 1.0)
-								sprintf(lpszValue,"%.1fx10",dMantissa);
+							if (dMantissa != 1.0 && dPower != 0.0)
+							{
+								sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+							}
+							else if (dMantissa == 1.0 && dPower != 0.0)
+							{
+								sprintf(lpszValue,"10^{%.0f}",dPower);
+							}
 							else
-								sprintf(lpszValue,"10");
-						
-							cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 90.0);
-							double dOffset = strlen(lpszValue) * dSize * 0.35;
-							sprintf(lpszValue,"%.0f",dPower);
-							cEPS.Text(TIMES,false,false,dSize * 0.5,LEFT,BOTTOM,Get_Color(eColor),dX + dDeltaText - dSize * 0.5, dY + dOffset, lpszValue, 90.0);
+								sprintf(lpszValue,"%.1f",dMantissa);
 						}
 						else
-						{
-							char lpszValue[16];
 							sprintf(lpszValue,lpszFormat,dVal);
-							cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 90.0);
-						}
+						
+						cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 0.0);
 					}
 				}
 			}
@@ -2264,7 +2560,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 //					printf("Y %f %f %f (%f %f)\n",dStart,dEnd,dMinor_Ticks,(*cAxis_Iter).m_dLower_Limit,(*cAxis_Iter).m_dUpper_Limit);
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
@@ -2304,28 +2600,27 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 							if (dSize > 0.0)
 							{
+								char lpszValue[16];
 								if (bScientific_Notation)
 								{
-									char lpszValue[16];
 									double dLog10 = log10(dVal);
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
-									if (dMantissa != 1.0)
-										sprintf(lpszValue,"%.1fx10",dMantissa);
+									if (dMantissa != 1.0 && dPower != 0.0)
+									{
+										sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+									}
+									else if (dMantissa == 1.0 && dPower != 0.0)
+									{
+										sprintf(lpszValue,"10^{%.0f}",dPower);
+									}
 									else
-										sprintf(lpszValue,"10");
-								
-									cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 90.0);
-									double dOffset = strlen(lpszValue) * dSize * 0.35;
-									sprintf(lpszValue,"%.0f",dPower);
-									cEPS.Text(TIMES,false,false,dSize * 0.5,LEFT,BOTTOM,Get_Color(eColor),dX + dDeltaText - dSize * 0.5, dY + dOffset, lpszValue, 90.0);
+										sprintf(lpszValue,"%.1f",dMantissa);
 								}
 								else
-								{
-									char lpszValue[16];
 									sprintf(lpszValue,lpszFormat,dVal);
-									cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 90.0);
-								}
+					
+								cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 0.0);
 							}
 						}
 					}
@@ -2335,7 +2630,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				{
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
 					if (!isnan(dRange_Lower) && !isnan(dRange_Upper))
@@ -2381,15 +2676,18 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 										double dLog10 = log10(dVal);
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
-										if (dMantissa != 1.0)
-											sprintf(lpszValue,"%.1fx10",dMantissa);
+										if (dMantissa != 1.0 && dPower != 0.0)
+										{
+											sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+										}
+										else if (dMantissa == 1.0 && dPower != 0.0)
+										{
+											sprintf(lpszValue,"10^{%.0f}",dPower);
+										}
 										else
-											sprintf(lpszValue,"10");
-										
-										cEPS.Text(TIMES,false,false,dSize,CENTER,BOTTOM,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 90.0);
-										double dOffset = strlen(lpszValue) * dSize * 0.35;
-										sprintf(lpszValue,"%.0f",dPower);
-										cEPS.Text(TIMES,false,false,dSize * 0.5,LEFT,BOTTOM,Get_Color(eColor),dX + dDeltaText - dSize * 0.5, dY + dOffset, lpszValue, 90.0);
+											sprintf(lpszValue,"%.1f",dMantissa);
+					
+										cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 0.0);
 									}
 								}
 							}

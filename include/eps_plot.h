@@ -6,7 +6,7 @@
 #include <string>
 #include <cmath>
 #include <cstdio>
-
+#include <map>
 
 namespace	epsplot
 {
@@ -219,6 +219,13 @@ namespace	epsplot
 		}
 	};
 
+	class text_entity
+	{
+	public:
+		enum entity_type {text,superscript,subscript,leftbrace,rightbrace,symbol};
+		entity_type	m_eType;
+		std::string	m_szData;
+	};
 
 	class EPSFILE
 	{
@@ -241,6 +248,10 @@ namespace	epsplot
 
 		char	* m_lpszFilename;
 		FILE	* m_lpFileOut;
+
+		std::map<std::string, std::string> m_mSymbol_Map;
+//		std::map<std::string, std::string> m_mSymbol_Equiv_Map;
+		std::vector< text_entity > Parse_String(const std::string & i_szString) const;
 
 	public:
 

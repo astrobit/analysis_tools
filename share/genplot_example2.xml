@@ -21,6 +21,7 @@
 <PLOT yaxisid="yaxis2" xaxisid="xaxis1" >
 <PLOTFILE fileid="xyz" xcol="0" ycol="1"/>
 </PLOT>
-<TEXT xaxisid="xaxis1" yaxisid="yaxis1" x="3" y="50" color="blue" width="2.0">example</TEXT>
+<!-- <TEXT xaxisid="xaxis1" yaxisid="yaxis1" x="3" y="50" color="blue" width="2.0">example \Ang example</TEXT> -->
+<TEXT xaxisid="xaxis1" yaxisid="yaxis1" x="3" y="500" color="blue" width="2.0">example \Ang example</TEXT>
 </GRAPH>
 
