@@ -34,8 +34,11 @@ void FIT_VIZ_MAIN::Load_Model_Day_Lists(void)
 		}
 		else if ((zPos = cI->find(".eps.data.csv")) != std::string::npos)
 		{
-			if (zPos >= 2) // make sure there isn't a fie called .eps.data.csv or something weird
+			if (zPos >= 2) // make sure there isn't a file called .eps.data.csv or something weird
 			{
+				size_t zPosNRM;
+				if ((zPosNRM = cI->find("_NRM.eps.data.csv")) != std::string::npos)
+					zPos = zPosNRM;
 				unsigned int uiDay = ((*cI)[zPos - 2] - '0') * 10 + ((*cI)[zPos - 1] - '0');
 				mDay_Map[uiDay] = 1;
 				if (bFirst)
@@ -50,7 +53,10 @@ void FIT_VIZ_MAIN::Load_Model_Day_Lists(void)
 						}
 						bFirst = false;
 						m_szFile_Prefix = (*cI);
-						m_szFile_Prefix.erase(zPos - 2,15); // get rid of the (d)xx.eps.data.csv part
+						if (zPosNRM != std::string::npos)
+							m_szFile_Prefix.erase(zPos - 2,19); // get rid of the (d)xx_NRM.eps.data.csv part
+						else
+							m_szFile_Prefix.erase(zPos - 2,15); // get rid of the (d)xx.eps.data.csv part
 					}
 				}
 			}
@@ -95,12 +101,16 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 			szFilename_xio.width(2);
 			szFilename_xio.fill('0');
 			szFilename_xio << m_vDay_List[m_uiSelected_Day];
+			if (m_szRef_Model == "-")
+				szFilename_xio << "_NRM";
 			szFilename_xio << ".eps.data.csv";
 
 			szFilename_spectra << m_szFile_Prefix;
 			szFilename_spectra.width(2);
 			szFilename_spectra.fill('0');
 			szFilename_spectra << m_vDay_List[m_uiSelected_Day];
+			if (m_szRef_Model == "-")
+				szFilename_spectra << "_NRM";
 			szFilename_spectra << ".eps.dat";
 			m_dDay_Fit_Data.ReadDataFile(szFilename_xio.str().c_str(),false,false,',',1);
 			m_dDay_Spectrum_Data.ReadDataFile(szFilename_spectra.str().c_str(),true,false,0,1);
