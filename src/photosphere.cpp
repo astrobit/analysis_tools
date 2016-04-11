@@ -458,7 +458,7 @@ int main(int iArgC,const char * lpszArgV[])
 		xRomanNumeralGenerator(lpszRoman,uiM + 2);
 		fprintf(fileOutEO,", Tau-ps %s",lpszRoman);
 	}
-    fprintf(fileOut,"\n");
+    fprintf(fileOutEO,"\n");
 
 	fprintf(fileOutTest,"Day, i, t/tref^3, v/vref, Dens(t) [g/cc], Vel [cm/s], dx");
 	for (uiM = 0; uiM < uiMax_Ion; uiM++)
