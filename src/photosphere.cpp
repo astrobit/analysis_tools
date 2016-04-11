@@ -185,10 +185,15 @@ int main(int iArgC,const char * lpszArgV[])
 
 	unsigned int uiMax_Ion = 28;
 	double	* lpdElectron_Density[28];
+	double	* lpdElectron_Density_EO[28];
     double		dPhotosphere_Velocity[28];
+    double		dPhotosphere_Velocity_EO[28];
     unsigned int uiPS_Velocity_Idx[28];
+    unsigned int uiPS_Velocity_Idx_EO[28];
 	double	dElectron_Optical_Depth[28];
+	double	dElectron_Optical_Depth_EO[28];
 	double * lpdElectron_Density_Temp;
+	double * lpdElectron_Density_Temp_EO;
 	double * lpdVolume_tref;
 
 	unsigned int uiNum_Points;
@@ -226,6 +231,7 @@ int main(int iArgC,const char * lpszArgV[])
 //	}
 	XFLASH_File	cFlash_File;
 	FILE * fileOut = fopen("photosphere.csv","wt");
+	FILE * fileOutEO = fopen("photosphere_eo.csv","wt");
 	FILE * fileOutTest = fopen("photosphere_test.csv","wt");
 
 	cFlash_File.Open(lpszFile_To_Read);
@@ -407,8 +413,10 @@ int main(int iArgC,const char * lpszArgV[])
 	lpdVolume_tref = new double[uiNum_Points];
 	for (uiI = 0; uiI < uiMax_Ion; uiI++)
 		lpdElectron_Density[uiI] = new double[uiNum_Points];
+	for (uiI = 0; uiI < uiMax_Ion; uiI++)
+		lpdElectron_Density_EO[uiI] = new double[uiNum_Points];
 	lpdElectron_Density_Temp = new double[uiNum_Points];
-
+	lpdElectron_Density_Temp_EO = new double[uiNum_Points];
 
 	double dVol_Const = 4.0 / 3.0 * g_cConstants.dPi;
 	uiShell_Lower_Idx = 0;
@@ -426,14 +434,29 @@ int main(int iArgC,const char * lpszArgV[])
 	for (uiM = 0; uiM < uiMax_Ion; uiM++)
 	{
 		char lpszRoman[8];
-		xRomanNumeralGenerator(lpszRoman,uiM + 1);
+		xRomanNumeralGenerator(lpszRoman,uiM + 2);
 		fprintf(fileOut,", Vel-ps %s",lpszRoman);
 	}
 	for (uiM = 0; uiM < uiMax_Ion; uiM++)
 	{
 		char lpszRoman[8];
-		xRomanNumeralGenerator(lpszRoman,uiM + 1);
+		xRomanNumeralGenerator(lpszRoman,uiM + 2);
 		fprintf(fileOut,", Tau-ps %s",lpszRoman);
+	}
+    fprintf(fileOut,"\n");
+
+	fprintf(fileOutEO, "Day, Vps (kappa=0.2)");
+	for (uiM = 0; uiM < uiMax_Ion; uiM++)
+	{
+		char lpszRoman[8];
+		xRomanNumeralGenerator(lpszRoman,uiM + 2);
+		fprintf(fileOutEO,", Vel-ps %s",lpszRoman);
+	}
+	for (uiM = 0; uiM < uiMax_Ion; uiM++)
+	{
+		char lpszRoman[8];
+		xRomanNumeralGenerator(lpszRoman,uiM + 2);
+		fprintf(fileOutEO,", Tau-ps %s",lpszRoman);
 	}
     fprintf(fileOut,"\n");
 
@@ -441,13 +464,13 @@ int main(int iArgC,const char * lpszArgV[])
 	for (uiM = 0; uiM < uiMax_Ion; uiM++)
 	{
 		char lpszRoman[8];
-		xRomanNumeralGenerator(lpszRoman,uiM + 1);
+		xRomanNumeralGenerator(lpszRoman,uiM + 2);
 		fprintf(fileOutTest,", ne [/cc] %s",lpszRoman);
 	}
 	for (uiM = 0; uiM < uiMax_Ion; uiM++)
 	{
 		char lpszRoman[8];
-		xRomanNumeralGenerator(lpszRoman,uiM + 1);
+		xRomanNumeralGenerator(lpszRoman,uiM + 2);
 		fprintf(fileOutTest,", tau_e %s",lpszRoman);
 	}
     fprintf(fileOutTest,"\n");
@@ -501,6 +524,8 @@ int main(int iArgC,const char * lpszArgV[])
 
 		for (uiM = 0; uiM < uiMax_Ion; uiM++)
 			memset(lpdElectron_Density[uiM],0,sizeof(double) * uiNum_Points);
+		for (uiM = 0; uiM < uiMax_Ion; uiM++)
+			memset(lpdElectron_Density_EO[uiM],0,sizeof(double) * uiNum_Points);
 		for (uiI = 0; uiI < uiNum_Points; uiI++)
 		{
 			double	dMass_Density = cData.GetElement(uiDens_Idx,uiI);
@@ -538,7 +563,7 @@ int main(int iArgC,const char * lpszArgV[])
 				{GetAbundance(uiI,uiNi56_Idx, cData),56.0,28.0}
 				};
 
-
+			bool bEjecta_Zone = GetAbundance(uiI,uiHyd_Idx, cData) < 1.0e-9;
 			unsigned int uiNum_Abd = sizeof(dAbd) / (3 * sizeof(double));
             double dAbd_Tot = 0.0;
 			for (unsigned int uiAbd = 0; uiAbd < uiNum_Abd; uiAbd++)
@@ -552,6 +577,8 @@ int main(int iArgC,const char * lpszArgV[])
 				{
 					if ((uiM + 1) <= dAbd[uiAbd][2])
 						lpdElectron_Density[uiM][uiI] += dNj;
+					if (bEjecta_Zone) // ejecta zone
+						lpdElectron_Density_EO[uiM][uiI] += dNj;
 				}
 			}
 			if (dAbd_Tot < 0.99)
@@ -569,7 +596,10 @@ int main(int iArgC,const char * lpszArgV[])
 //			double	dConst_Terms = 0.66524574e-24; // electron scattering optical depth
 
 			for (uiM = 0; uiM < uiMax_Ion - 1; uiM++)
+			{
 				lpdElectron_Density[uiM + 1][uiI] += lpdElectron_Density[uiM][uiI];
+				lpdElectron_Density_EO[uiM + 1][uiI] += lpdElectron_Density_EO[uiM][uiI];
+			}
 //			printf("Electron densities done\n");
 //			for (uiM = 0; uiM < 28; uiM++)
 //				dElectron_Optical_Depth_tref[uiM] += lpdElectron_Density[uiM][uiI] * dConst_Terms * dDeltaX;
@@ -579,16 +609,24 @@ int main(int iArgC,const char * lpszArgV[])
 		memset(dElectron_Optical_Depth,0,sizeof(dElectron_Optical_Depth));
 		memset(dPhotosphere_Velocity,0,sizeof(dPhotosphere_Velocity));
 		memset(uiPS_Velocity_Idx,0,sizeof(uiPS_Velocity_Idx));
+		memset(dElectron_Optical_Depth_EO,0,sizeof(dElectron_Optical_Depth_EO));
+		memset(dPhotosphere_Velocity_EO,0,sizeof(dPhotosphere_Velocity_EO));
+		memset(uiPS_Velocity_Idx_EO,0,sizeof(uiPS_Velocity_Idx_EO));
 		double	dConst_Terms = 0.66524574e-24;// * pow(dTime / dTimeRef,-3.0);// * pow(dTime,-3.0);
 		memcpy(lpdElectron_Density_Temp,lpdElectron_Density[uiMax_Ion - 1],sizeof(double) * uiNum_Points);
+		memcpy(lpdElectron_Density_Temp_EO,lpdElectron_Density_EO[uiMax_Ion - 1],sizeof(double) * uiNum_Points);
 		double dGeneric_Photosphere_Optical_Depth = 0.0;
 		double dGeneric_Photosphere_Velocity = 0.0;
+		double dGeneric_Photosphere_Optical_Depth_EO = 0.0;
+		double dGeneric_Photosphere_Velocity_EO = 0.0;
 		unsigned int uiGeneric_PS_Velocity_Idx = 0;
+		unsigned int uiGeneric_PS_Velocity_Idx_EO = 0;
 		for (uiI = uiNum_Points - 1; uiI < uiNum_Points; uiI--)
 		{
 			double	dMass_Density = cData.GetElement(uiDens_Idx,uiI);
 			if (dMass_Density < dExterior_Density) // make the true CSM very low density
 				dMass_Density *= (1.0e-24 / dExterior_Density);
+			bool bEjecta_Zone = GetAbundance(uiI,uiHyd_Idx, cData) < 1.0e-9;
 			// Get coordinates, box size and, velocity for zone and its neighbors
 			double dXi = cData.GetElement(uiCoord_Idx,uiI);
 	        double	dDeltaX = cData.GetElement(uiZone_Size_Idx,uiI);
@@ -654,20 +692,33 @@ int main(int iArgC,const char * lpszArgV[])
 			for (uiM = 0; uiM < uiMax_Ion; uiM++)
 			{
 			    dElectron_Optical_Depth[uiM] += lpdElectron_Density[uiM][uiI] * dConst_Terms * dDeltaX * dVolTerm;
+			    dElectron_Optical_Depth_EO[uiM] += lpdElectron_Density_EO[uiM][uiI] * dConst_Terms * dDeltaX * dVolTerm;
 			    if (dElectron_Optical_Depth[uiM] > 0.66 && dPhotosphere_Velocity[uiM] == 0.0)
 			    {
 			            dPhotosphere_Velocity[uiM] = cData.GetElement(uiVel_Idx,uiI);
 			            uiPS_Velocity_Idx[uiM] = uiI;
 			    }
+			    if (dElectron_Optical_Depth_EO[uiM] > 0.66 && dPhotosphere_Velocity_EO[uiM] == 0.0)
+			    {
+			            dPhotosphere_Velocity_EO[uiM] = cData.GetElement(uiVel_Idx,uiI);
+			            uiPS_Velocity_Idx_EO[uiM] = uiI;
+			    }
 			}
 			// assume opacity of 0.2 cm^2/g
 			dGeneric_Photosphere_Optical_Depth += 0.2 * dMass_Density * dDeltaX * dVolTerm;
+			if (bEjecta_Zone)
+				dGeneric_Photosphere_Optical_Depth_EO += 0.2 * dMass_Density * dDeltaX * dVolTerm;
 //				if (uiGeneric_PS_Velocity_Idx == 0)
 //			        printf("%.2f %i %.2e %.2e %.2e %.2e\n",dDay,uiI,dGeneric_Photosphere_Optical_Depth,dVolTerm,dDeltaX,cData.GetElement(uiDens_Idx,uiI));
 			if (dGeneric_Photosphere_Optical_Depth > 0.66 && uiGeneric_PS_Velocity_Idx == 0)
 			{
 		        dGeneric_Photosphere_Velocity = cData.GetElement(uiVel_Idx,uiI);
 		        uiGeneric_PS_Velocity_Idx = uiI;
+			}
+			if (dGeneric_Photosphere_Optical_Depth_EO > 0.66 && uiGeneric_PS_Velocity_Idx_EO == 0)
+			{
+		        dGeneric_Photosphere_Velocity_EO = cData.GetElement(uiVel_Idx,uiI);
+		        uiGeneric_PS_Velocity_Idx_EO = uiI;
 			}
 		}
 		//return 1;
@@ -679,17 +730,26 @@ int main(int iArgC,const char * lpszArgV[])
 			fprintf(fileOut,", %.3e",dElectron_Optical_Depth[uiM]);
 		fprintf(fileOut,"\n");
 
+		fprintf(fileOutEO, "%.2f",dDay);
+		fprintf(fileOutEO, ", %.3e",dGeneric_Photosphere_Velocity_EO);
+		for (uiM = 0; uiM < uiMax_Ion; uiM++)
+			fprintf(fileOutEO,", %.3e",dPhotosphere_Velocity_EO[uiM]);
+		for (uiM = 0; uiM < uiMax_Ion; uiM++)
+			fprintf(fileOutEO,", %.3e",dElectron_Optical_Depth_EO[uiM]);
+		fprintf(fileOutEO,"\n");
 	} // end of time loop
 
 	fclose(fileOut);
 
 //	delete [] cSynIonData;
 
-	delete [] lpdElectron_Density[0];
-	delete [] lpdElectron_Density[1];
-	delete [] lpdElectron_Density[2];
-	delete [] lpdElectron_Density[3];
-	delete [] lpdElectron_Density[4];
+	delete [] lpdVolume_tref;
+	for (uiI = 0; uiI < uiMax_Ion; uiI++)
+		delete [] lpdElectron_Density[uiI];
+	for (uiI = 0; uiI < uiMax_Ion; uiI++)
+		delete [] lpdElectron_Density_EO[uiI];
+	delete [] lpdElectron_Density_Temp;
+	delete [] lpdElectron_Density_Temp_EO;
 	return 0;
 }
 
