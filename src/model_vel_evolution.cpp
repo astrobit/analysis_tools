@@ -882,7 +882,38 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (!fileData)
 				fprintf(stderr,"Failed to open %s for write.\n",lpszFilename);
 
-			fprintf(fileData,"Model, pEW (Combined - flat), Vmin (Combined - flat), pEW (EO - flat), Vmin (EO - flat), pEW (SO - flat), Vmin (SO - flat), pEW (Combined), Vmin (combined), Vmin (EO), Vmin (SO), Vmin-HVF (Jeff), Vmin-PVF (Jeff), pEW-HVF (Jeff), pEW-PVF (Jeff), a_0 (Jeff), sigma a_0 (Jeff), a_1 (Jeff), sigma_a_1 (Jeff), a_2 (Jeff), sigma_a_2 (Jeff), a_3 (Jeff), sigma a_3 (Jeff), a_4 (Jeff), sigma_a_4 (Jeff), a_5 (Jeff), sigma_a_5 (Jeff), a_0 (Flat), sigma a_0 (Flat), a_1 (Flat), sigma_a_1 (Flat), a_2 (Flat), sigma_a_2 (Flat), a_3 (Flat), sigma a_3 (Flat), a_4 (Flat), sigma_a_4 (Flat), a_5 (Flat), sigma_a_5 (Flat)\n");
+			fprintf(fileData,"Model, pEW (Combined - flat), Vmin (Combined - flat), pEW (EO - flat), Vmin (EO - flat), pEW (SO - flat), Vmin (SO - flat), pEW (Combined), Vmin (combined), Vmin (EO), Vmin (SO), Vmin-HVF (Jeff), Vmin-PVF (Jeff), pEW-HVF (Jeff), pEW-PVF (Jeff)");
+
+			for (unsigned int uiL = 0; uiL < 6; uiL++)
+			{
+				fprintf(fileData,", a_%i (Jeff), sigma_a_%i (Jeff)",uiL,uiL);
+			}
+			for (unsigned int uiL = 0; uiL < 6; uiL++)
+			{
+				fprintf(fileData,", a_%i (Flat), sigma_a_%i (Flat)",uiL,uiL);
+			}
+
+			for (unsigned int uiL = 0; uiL < 3; uiL++)
+			{
+				fprintf(fileData,", a_%i (Single P Cygni), sigma_a_%i (Single P Cygni)",uiL,uiL);
+			}
+			fprintf(fileData,", S (Single P Cygni)");
+			for (unsigned int uiL = 0; uiL < 6; uiL++)
+			{
+				fprintf(fileData,", a_%i (Double P Cygni), sigma_a_%i (Double P Cygni)",uiL,uiL);
+			}
+			fprintf(fileData,", S (Double P Cygni)");
+			for (unsigned int uiL = 0; uiL < 3; uiL++)
+			{
+				fprintf(fileData,", a_%i (Single Flat), sigma_a_%i (Single Flat)",uiL,uiL);
+			}
+			fprintf(fileData,", S (Single Flat)");
+			for (unsigned int uiL = 0; uiL < 6; uiL++)
+			{
+				fprintf(fileData,", a_%i (Double Flat), sigma_a_%i (Double Flat)",uiL,uiL);
+			}
+			fprintf(fileData,", S (Double Flat)");
+			fprintf(fileData,"\n");
 
 			// compute pEW values for features of interest.
 			for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
@@ -899,6 +930,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				FEATURE_PARAMETERS	cCombined_Unflat;
 				FEATURE_PARAMETERS	cEO_Unflat;
 				FEATURE_PARAMETERS	cSO_Unflat;
+				GAUSS_FIT_RESULTS	cSingle_Flat_Fit;
+				GAUSS_FIT_RESULTS	cDouble_Flat_Fit;
+				GAUSS_FIT_RESULTS	cSingle_P_Cygni_Fit;
+				GAUSS_FIT_RESULTS	cDouble_P_Cygni_Fit;
 				unsigned int uiContinuum_Blue_Idx = 0;
 				unsigned int uiContinuum_Red_Idx = 0;
 				bool	bIn_feature = false;
@@ -1017,7 +1052,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							cCombined_Unflat.Process_pEW(vY.Get(uiJ),cParam.m_dWavelength_Delta_Ang);
 						}
                         vA = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
-                                        cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF, vSigma_Jeff, dSmin);
+                                        cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF, vSigma_Jeff, dSmin,&cSingle_P_Cygni_Fit,&cDouble_P_Cygni_Fit);
 
 /*						switch (vA.Get_Size())
 						{
@@ -1056,7 +1091,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
                         vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
                     }
                     vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
-                                    cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat, dSmin_Flat);
+                                    cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat, dSmin_Flat,&cSingle_Flat_Fit,&cDouble_Flat_Fit);
 /*						switch (vA_Flat.Get_Size())
 						{
 						case 6:
@@ -1109,6 +1144,23 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 				else
 					fprintf(fileData,", -1., -1., -1., -1., -1., -1., -1., -1., -1., -1., -1., -1.");
+
+				// write single and double gaussian fit info (P Cygni)
+				for (unsigned int uiL = 0; uiL < 3; uiL++)
+					fprintf(fileData,",%.17e, %.17e",cSingle_P_Cygni_Fit.m_vA.Get(uiL),sqrt(cSingle_P_Cygni_Fit.m_mCovariance.Get(uiL,uiL)));
+				fprintf(fileData,",%.17e ",cSingle_P_Cygni_Fit.m_dS);
+				for (unsigned int uiL = 0; uiL < 6; uiL++)
+					fprintf(fileData,",%.17e, %.17e",cDouble_P_Cygni_Fit.m_vA.Get(uiL),sqrt(cDouble_P_Cygni_Fit.m_mCovariance.Get(uiL,uiL)));
+				fprintf(fileData,",%.17e ",cDouble_P_Cygni_Fit.m_dS);
+
+				// write single and double gaussian fit info  (Flat)
+				for (unsigned int uiL = 0; uiL < 3; uiL++)
+					fprintf(fileData,",%.17e, %.17e",cSingle_Flat_Fit.m_vA.Get(uiL),sqrt(cSingle_Flat_Fit.m_mCovariance.Get(uiL,uiL)));
+				fprintf(fileData,",%.17e ",cSingle_Flat_Fit.m_dS);
+				for (unsigned int uiL = 0; uiL < 6; uiL++)
+					fprintf(fileData,",%.17e, %.17e",cDouble_Flat_Fit.m_vA.Get(uiL),sqrt(cDouble_Flat_Fit.m_mCovariance.Get(uiL,uiL)));
+				fprintf(fileData,",%.17e ",cDouble_Flat_Fit.m_dS);
+
 				fprintf(fileData,"\n");
 
 			

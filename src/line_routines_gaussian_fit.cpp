@@ -121,7 +121,7 @@ void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const d
 }
 
 XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_dCentral_WL, const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
-                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS)
+                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit, GAUSS_FIT_RESULTS * io_lpDouble_Fit)
 {
     XVECTOR vRet;
     XVECTOR vA,vA_Single;
@@ -209,6 +209,12 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
         vA_Single = vA;
         dSmin_Single = dSmin;
         mCovariance_Matrix_Single = mCovariance_Matrix;
+		if (io_lpSingle_Fit)
+		{
+			io_lpSingle_Fit->m_vA = vA;
+			io_lpSingle_Fit->m_dS = dSmin;
+			io_lpSingle_Fit->m_mCovariance = mCovariance_Matrix;
+		}
     }
     // find the minimum of the flux error
     double dMin_Flux_WL = 0.0;
@@ -249,6 +255,12 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     mCovariance_Matrix.Zero();
     if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
+		if (io_lpDouble_Fit)
+		{
+			io_lpDouble_Fit->m_vA = vA;
+			io_lpDouble_Fit->m_dS = dSmin;
+			io_lpDouble_Fit->m_mCovariance = mCovariance_Matrix;
+		}
         // if the single guassian fit is better, use those results
         if (dSmin > dSmin_Single)
         {
