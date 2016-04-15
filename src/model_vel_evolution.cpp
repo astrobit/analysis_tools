@@ -1146,11 +1146,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				
 				for (unsigned int uiL = 0; uiL < cSingle_P_Cygni_Fit.m_vA.Get_Size(); uiL++)
 					fprintf(fileData,",%.17e, %.17e",cSingle_P_Cygni_Fit.m_vA.Get(uiL),sqrt(cSingle_P_Cygni_Fit.m_mCovariance.Get(uiL,uiL)));
+//					fprintf(fileData,",%.17e, -1",cSingle_P_Cygni_Fit.m_vA.Get(uiL));
 				for (unsigned int uiL = cSingle_P_Cygni_Fit.m_vA.Get_Size(); uiL < 3; uiL++)
 					fprintf(fileData,", -1., -1.");
 				fprintf(fileData,",%.17e ",cSingle_P_Cygni_Fit.m_dS);
 				for (unsigned int uiL = 0; uiL < cDouble_P_Cygni_Fit.m_vA.Get_Size(); uiL++)
 					fprintf(fileData,",%.17e, %.17e",cDouble_P_Cygni_Fit.m_vA.Get(uiL),sqrt(cDouble_P_Cygni_Fit.m_mCovariance.Get(uiL,uiL)));
+//					fprintf(fileData,",%.17e, -1",cDouble_P_Cygni_Fit.m_vA.Get(uiL));
 				for (unsigned int uiL = cDouble_P_Cygni_Fit.m_vA.Get_Size(); uiL < 6; uiL++)
 					fprintf(fileData,", -1., -1.");
 				fprintf(fileData,",%.17e ",cDouble_P_Cygni_Fit.m_dS);
@@ -1158,11 +1160,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				// write single and double gaussian fit info  (Flat)
 				for (unsigned int uiL = 0; uiL < cSingle_Flat_Fit.m_vA.Get_Size(); uiL++)
 					fprintf(fileData,",%.17e, %.17e",cSingle_Flat_Fit.m_vA.Get(uiL),sqrt(cSingle_Flat_Fit.m_mCovariance.Get(uiL,uiL)));
+//					fprintf(fileData,",%.17e, -1",cSingle_Flat_Fit.m_vA.Get(uiL));
 				for (unsigned int uiL = cSingle_Flat_Fit.m_vA.Get_Size(); uiL < 3; uiL++)
 					fprintf(fileData,", -1., -1.");
 				fprintf(fileData,",%.17e ",cSingle_Flat_Fit.m_dS);
 				for (unsigned int uiL = 0; uiL < cDouble_Flat_Fit.m_vA.Get_Size(); uiL++)
 					fprintf(fileData,",%.17e, %.17e",cDouble_Flat_Fit.m_vA.Get(uiL),sqrt(cDouble_Flat_Fit.m_mCovariance.Get(uiL,uiL)));
+//					fprintf(fileData,",%.17e, -1",cDouble_Flat_Fit.m_vA.Get(uiL));
 				for (unsigned int uiL = cDouble_Flat_Fit.m_vA.Get_Size(); uiL < 6; uiL++)
 					fprintf(fileData,", -1., -1.");
 				fprintf(fileData,",%.17e ",cDouble_Flat_Fit.m_dS);
