@@ -247,6 +247,8 @@ public:
 	XVECTOR	m_vA;
 	double	m_dS;
 	XSQUARE_MATRIX	m_mCovariance;
+
+	GAUSS_FIT_RESULTS(void) : m_vA(), m_dS(-1.), m_mCovariance()	{;};
 };
 
 extern GAUSS_FIT_PARAMETERS	g_cgfpCaNIR;
