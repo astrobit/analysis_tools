@@ -420,7 +420,31 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 				{
 					const char * lpszText = cI->m_szData.c_str();
 					fprintf(m_lpFileOut,"(%c) show\n",lpszText[0]);
+					lpszText++;
 					cI->m_szData = lpszText;
+					cI++;
+				}
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				{
+					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
+					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					cI++;
+				}
+			}
+			fprintf(m_lpFileOut,m_lpszGrestore);
+			break;
+		case text_entity::subscript:
+			fprintf(m_lpFileOut,m_lpszGsave);
+			fprintf(m_lpFileOut,szFont.c_str());
+			fprintf(m_lpFileOut,m_lpszScalefontSetFont,(int)(i_iFont_Size * 0.45));
+			fprintf(m_lpFileOut, "%.1f %.1f rmoveto\n",i_iFont_Size * 0.065,i_iFont_Size * -0.25);
+			cI++;
+			if (cI != vText_Stream.end() && cI->m_eType == text_entity::leftbrace)
+			{
+				cI++;
+				if (cI != vText_Stream.end() && cI->m_eType == text_entity::text)
+				{
+					fprintf(m_lpFileOut,"(%s) show\n",cI->m_szData.c_str());
 					cI++;
 				}
 				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
@@ -431,6 +455,23 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 				}
 				if (cI != vText_Stream.end() && cI->m_eType != text_entity::rightbrace)
 					fprintf(stderr,"Warning: epsplot encountered invalid superscript sequence\n");
+			}
+			else
+			{ 
+				if (cI != vText_Stream.end() && cI->m_eType == text_entity::text)
+				{
+					const char * lpszText = cI->m_szData.c_str();
+					fprintf(m_lpFileOut,"(%c) show\n",lpszText[0]);
+					lpszText++;
+					cI->m_szData = lpszText;
+					cI++;
+				}
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				{
+					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
+					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					cI++;
+				}
 			}
 			fprintf(m_lpFileOut,m_lpszGrestore);
 			break;
