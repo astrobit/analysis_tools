@@ -1051,7 +1051,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 							cCombined_Unflat.Process_pEW(vY.Get(uiJ),cParam.m_dWavelength_Delta_Ang);
 						}
-                        vA = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
+                        vA = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
                                         cParam.m_dWavelength_Delta_Ang, dpEW_Jeff_PVF, dpEW_Jeff_HVF, dV_Jeff_PVF, dV_Jeff_HVF, vSigma_Jeff, dSmin,&cSingle_P_Cygni_Fit,&cDouble_P_Cygni_Fit);
 
 /*						switch (vA.Get_Size())
@@ -1090,8 +1090,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
                         vW.Set(uiJ,0.01); // arbitrary weight
                         vY.Set(uiJ,lpdSpectra_Flux[uiI][uiJ] - 1.0);
                     }
-                    vA_Flat = Perform_Gaussian_Fit(dMin_Flux_Flat, lpdSpectra_WL[uiI][uiMin_Flux_Idx], vX, vY, vW, lpgfpParamters,
-                                    cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF, vSigma_Flat, dSmin_Flat,&cSingle_Flat_Fit,&cDouble_Flat_Fit);
+                    vA_Flat = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
+                                    cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF,
+									vSigma_Flat, dSmin_Flat,&cSingle_Flat_Fit,&cDouble_Flat_Fit);
 /*						switch (vA_Flat.Get_Size())
 						{
 						case 6:

@@ -120,8 +120,9 @@ void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const d
 	}
 }
 
-XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_dCentral_WL, const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
-                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit, GAUSS_FIT_RESULTS * io_lpDouble_Fit)
+XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
+                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF,
+ 					XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit, GAUSS_FIT_RESULTS * io_lpDouble_Fit)
 {
     XVECTOR vRet;
     XVECTOR vA,vA_Single;
@@ -233,7 +234,7 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
         // try double gaussian fit
         vA.Set_Size(6);
         vA.Set(0,-dMin_Flux_Err);
-        vA.Set(1,vA_Single.Get(1));
+        vA.Set(1,vA_Single.Get(1) * 0.125);
         vA.Set(2,dMin_Flux_WL);
         vA.Set(3,vA_Single.Get(0));
         vA.Set(4,vA_Single.Get(1));
@@ -241,13 +242,26 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     }
     else
     {
+		vA.Set_Size(3);
+		vA.Set(0,dAmplitude);
+		vA.Set(1,dHWHM);
+		vA.Set(2,dCenter);
+        for (unsigned int uiJ = 0; uiJ < i_vX.Get_Size(); uiJ++)
+        {
+            double dFlux_Error = i_vY.Get(uiJ) - Multi_Gaussian(i_vX.Get(uiJ), vA, (void *)i_lpgfpParamters).Get(0);
+            if (dFlux_Error < dMin_Flux_Err)
+            {
+                dMin_Flux_WL = i_vX.Get(uiJ);
+                dMin_Flux_Err = dFlux_Error;
+            }
+        }
         vA.Set_Size(6);
-        vA.Set(0,-i_dMin_Flux_Flat / 6.0);
-        vA.Set(1,200.0);
-        vA.Set(2,i_dCentral_WL - 200.0);
-        vA.Set(3,vA.Get(0));
-        vA.Set(4,200.0);
-        vA.Set(5,i_dCentral_WL);
+        vA.Set(0,-dMin_Flux_Err);
+        vA.Set(1,0.125*dHWHM);
+        vA.Set(2,dMin_Flux_WL);
+		vA.Set(3,dAmplitude);
+		vA.Set(4,dHWHM);
+		vA.Set(5,dCenter);
     }
     // Perform LSQ fit
     //if (bVerbose)
@@ -296,3 +310,4 @@ XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_d
     o_dS = dSmin;
     return vRet;
 }
+

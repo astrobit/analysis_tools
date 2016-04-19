@@ -261,7 +261,7 @@ double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_
 void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const double & i_dWavelength_Delta_Ang, const GAUSS_FIT_PARAMETERS * i_lpgfpParameters, double & o_dpEW_PVF, double & o_dpEW_HVF);
 XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
 XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
-XVECTOR Perform_Gaussian_Fit(const double & i_dMin_Flux_Flat, const double & i_dCentral_WL, const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
+XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
                     const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit = NULL, GAUSS_FIT_RESULTS * io_lpDouble_Fit = NULL);
 
 
