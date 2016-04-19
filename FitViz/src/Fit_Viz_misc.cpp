@@ -128,6 +128,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 		m_uiManual_Fit_Blue_Idx = -1;
 		m_uiManual_Fit_Red_Idx= -1;
 		m_uiManual_Fit_Central_Idx = -1;
+		m_uiManual_Fit_Central_Second_Idx = -1;
 		m_vManual_Fit_Data.Set(0,0);
 		m_vManual_Fit_Data.Set(1,0);
 		m_vManual_Fit_Data.Set(2,0);
@@ -314,6 +315,29 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				double dpEW_PVF, dpEW_HVF;
 				Compute_Gaussian_Fit_pEW(vX, m_vGaussian_Fit_Data, m_vWavelength[1] - m_vWavelength[0], lpgfpParamters, dpEW_PVF, dpEW_HVF);
 				m_dFit_pEW = dpEW_HVF + dpEW_PVF;
+
+				m_vFlux_Fit.clear();
+				m_vFit_Residuals.clear();
+				if (m_eFit_Method != fm_manual)
+				{
+					for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+					{
+						double dY;
+						switch (m_eFit_Method)
+						{
+						case fm_flat:
+							dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0);
+							break;
+						case fm_jeff:
+							dY = Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0);
+							dY += (m_vWavelength[uiI] - m_dJeff_WL) * m_dJeff_Slope + m_dJeff_Flux;
+							break;
+						}
+						m_vFlux_Fit.push_back(dY);
+						m_vFit_Residuals.push_back(m_vFlux[uiI] - dY);
+					}
+				}
+
 			}
 		}
 	}

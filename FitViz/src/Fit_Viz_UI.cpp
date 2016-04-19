@@ -216,6 +216,38 @@ void FIT_VIZ_MAIN::on_mousemove(const PAIR<unsigned int> &i_tMouse_Position)
 					}	
 				}
 				break;
+			case MS_CENTER_SECOND:
+				if (m_uiManual_Fit_Blue_Idx == -1 && m_uiManual_Fit_Red_Idx == -1)
+					m_uiManual_Fit_Central_Second_Idx = uiI;
+				else if (m_uiManual_Fit_Blue_Idx != -1)
+				{
+					if (m_uiManual_Fit_Blue_Idx < uiI)
+					{
+						m_uiManual_Fit_Central_Second_Idx = uiI;
+					}
+					else
+					{
+						if (m_uiManual_Fit_Blue_Idx < (m_vWavelength.size() - 2))
+							m_uiManual_Fit_Central_Second_Idx = m_uiManual_Fit_Blue_Idx + 1;
+						else
+							m_uiManual_Fit_Central_Second_Idx = m_uiManual_Fit_Blue_Idx;
+					}	
+				}
+				else //if (m_uiManual_Fit_Red_Idx != -1)
+				{
+					if (m_uiManual_Fit_Red_Idx > uiI)
+					{
+						m_uiManual_Fit_Central_Second_Idx = uiI;
+					}
+					else
+					{
+						if (m_uiManual_Fit_Red_Idx > 0)
+							m_uiManual_Fit_Central_Second_Idx = m_uiManual_Fit_Red_Idx - 1;
+						else
+							m_uiManual_Fit_Central_Second_Idx = 0;
+					}	
+				}
+				break;
 			}
 			if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1)
 			{
@@ -333,6 +365,9 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 		case MAN_FIT_CENTER:
 			m_eMan_Select_Mode = MS_CENTER;
 			break;
+		case MAN_FIT_CENTER_SECOND:
+			m_eMan_Select_Mode = MS_CENTER_SECOND;
+			break;
 		case MAN_FIT_EXEC:
 			if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1 && m_uiManual_Fit_Central_Idx != -1)
 			{
@@ -341,6 +376,7 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 				std::vector<double> vError_Data;
 				double dFlux_Center_WL = (m_vWavelength[m_uiManual_Fit_Central_Idx] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux;
 				double	dMod_Flux_Center = m_vFlux[m_uiManual_Fit_Central_Idx] - dFlux_Center_WL;
+
 
 				for (unsigned int uiI = m_uiManual_Fit_Blue_Idx; uiI < m_uiManual_Fit_Red_Idx; uiI++)
 				{
@@ -356,6 +392,19 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 				g_vW = vError_Data;
 				g_dSuggested_Center_WL = m_vWavelength[m_uiManual_Fit_Central_Idx];
 				g_dSuggested_Center_Flux = dMod_Flux_Center;
+				if (m_uiManual_Fit_Central_Second_Idx != -1)
+				{
+					double dFlux_Center_Second_WL = (m_vWavelength[m_uiManual_Fit_Central_Second_Idx] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux;
+					double	dMod_Flux_Center_Second = m_vFlux[m_uiManual_Fit_Central_Second_Idx] - dFlux_Center_Second_WL;
+					g_dSuggested_Center_Second_WL = m_vWavelength[m_uiManual_Fit_Central_Second_Idx];
+					g_dSuggested_Center_Second_Flux = dMod_Flux_Center_Second;
+				}
+				else
+				{
+					g_dSuggested_Center_Second_WL = -1.0;
+					g_dSuggested_Center_Second_Flux = -1.0;
+				}
+
 				g_bPerform_Fit = true;
 				Request_Refresh();
 			}
@@ -364,13 +413,22 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			m_uiManual_Fit_Blue_Idx = -1;
 			m_uiManual_Fit_Red_Idx= -1;
 			m_uiManual_Fit_Central_Idx = -1;
+			m_uiManual_Fit_Central_Second_Idx = -1;
 			m_vManual_Fit_Data.Set(0,0);
 			m_vManual_Fit_Data.Set(1,0);
 			m_vManual_Fit_Data.Set(2,0);
+			if (m_vManual_Fit_Data.Get_Size() == 6)
+			{
+				m_vManual_Fit_Data.Set(3,0);
+				m_vManual_Fit_Data.Set(4,0);
+				m_vManual_Fit_Data.Set(5,0);
+			}
+			m_vFit_Residuals.clear();
+			m_vFlux_Fit.clear();
 			Request_Refresh();
 			break;
 		case MODEL_DISPLAY_AREA: // for manual gaussian fitting select
-			if (!m_eMan_Select_Mode != MS_OFF)
+			if (m_eMan_Select_Mode != MS_OFF)
 			{
 				m_eMan_Select_Mode = MS_OFF;
 				if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1)
@@ -387,7 +445,7 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			Export_Graphic();
 			break;
 		}
-		if (eEvent != MAN_FIT_RED && eEvent != MAN_FIT_BLUE && eEvent != MAN_FIT_CENTER && m_eMan_Select_Mode != MS_OFF)
+		if (eEvent != MAN_FIT_RED && eEvent != MAN_FIT_BLUE && eEvent != MAN_FIT_CENTER_SECOND && eEvent != MAN_FIT_CENTER && m_eMan_Select_Mode != MS_OFF)
 			m_eMan_Select_Mode = MS_OFF;
 	}
 	m_csEvent_Queue.Unset();
@@ -411,6 +469,16 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			}
 		}
 		m_dFit_pEW = dpEW_PVF + dpEW_HVF;
+
+		m_vFit_Residuals.clear();
+		m_vFlux_Fit.clear();
+		GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+		for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+		{
+			double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);
+			m_vFlux_Fit.push_back(dY);
+			m_vFit_Residuals.push_back(m_vFlux[uiI] - dY);
+		}
 		Request_Refresh();
 	}
 	if (m_bQuit_Request_Pending && !g_bFit_Thread_Running)

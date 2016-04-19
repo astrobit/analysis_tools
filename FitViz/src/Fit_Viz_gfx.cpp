@@ -39,6 +39,7 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	PAIR<double> pSmB_Size = PAIR<double>(0.05,0.05);
 	PAIR<double> pTB_Size = PAIR<double>(0.10,0.10);
 	PAIR<double> pIB_Size = PAIR<double>(0.10,0.04);
+	PAIR<double> pIB_Size_Sml = PAIR<double>(0.10,0.03);
 
 	dAR = Get_Pane_Aspect_Ratio(m_idPane);
 	m_mMain_Pane_Buttons.clear();
@@ -61,12 +62,15 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	m_mMain_Pane_Buttons[MODEL_DISPLAY_AREA] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.05,1.00),PAIR<double>(dAR * 0.9,0.70),MODEL_DISPLAY_AREA);
 	m_mMain_Pane_Buttons[PVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.25),pIB_Size,PVF_TEXT);
 	m_mMain_Pane_Buttons[HVF_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.20),pIB_Size,HVF_TEXT);
-	m_mMain_Pane_Buttons[MAN_FIT_RED_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.15),pIB_Size,MAN_FIT_RED_TEXT);
-	m_mMain_Pane_Buttons[MAN_FIT_BLUE_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.10),pIB_Size,MAN_FIT_BLUE_TEXT);
-	m_mMain_Pane_Buttons[MAN_FIT_CENTER_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.05),pIB_Size,MAN_FIT_CENTER_TEXT);
+	m_mMain_Pane_Buttons[MAN_FIT_RED_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.155),pIB_Size_Sml,MAN_FIT_RED_TEXT);
+	m_mMain_Pane_Buttons[MAN_FIT_BLUE_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.110),pIB_Size_Sml,MAN_FIT_BLUE_TEXT);
+	m_mMain_Pane_Buttons[MAN_FIT_CENTER_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.065),pIB_Size_Sml,MAN_FIT_CENTER_TEXT);
+	m_mMain_Pane_Buttons[MAN_FIT_CENTER_SECOND_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.6,0.02),pIB_Size_Sml,MAN_FIT_CENTER_SECOND_TEXT);
+
 
 
 	m_mMain_Pane_Buttons[pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.25),pIB_Size,pEW_TEXT);
+	m_mMain_Pane_Buttons[MAN_FIT_QUALITY_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.20),pIB_Size,MAN_FIT_QUALITY_TEXT);
 	m_mMain_Pane_Buttons[SHELL_pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.15),pIB_Size,SHELL_pEW_TEXT);
 	m_mMain_Pane_Buttons[EJECTA_pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.10),pIB_Size,EJECTA_pEW_TEXT);
 	m_mMain_Pane_Buttons[TOTAL_pEW_TEXT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.73,0.05),pIB_Size,TOTAL_pEW_TEXT);
@@ -81,6 +85,7 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	m_mMain_Pane_Buttons[MAN_FIT_RED] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42	,0.11),pSmB_Size,MAN_FIT_RED);
 	m_mMain_Pane_Buttons[MAN_FIT_BLUE] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.46	,0.11),pSmB_Size,MAN_FIT_BLUE);
 	m_mMain_Pane_Buttons[MAN_FIT_CENTER] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50	,0.11),pSmB_Size,MAN_FIT_CENTER);
+	m_mMain_Pane_Buttons[MAN_FIT_CENTER_SECOND] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.54	,0.11),pSmB_Size,MAN_FIT_CENTER_SECOND);
 	m_mMain_Pane_Buttons[MAN_FIT_EXEC] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42	,0.05),pLB_Size,MAN_FIT_EXEC);
 	m_mMain_Pane_Buttons[MAN_FIT_CLEAR] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50	,0.05),pLB_Size,MAN_FIT_CLEAR);
 }
@@ -105,6 +110,9 @@ void FIT_VIZ_MAIN::Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode
 			break;
 		case MS_CENTER:
 			glColor4d(1.0,1.0,0.0,1.0);
+			break;
+		case MS_CENTER_SECOND:
+			glColor4d(0.5,0.0,1.0,1.0);
 			break;
 		}
 		glPushMatrix();
@@ -203,7 +211,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 	else 
 	{
 		double dSize = Get_Pane_Aspect_Ratio(m_idPane);
-		glColor4d(0.5,0.5,0.5,1.0);
+		glColor4d(0.375,0.375,0.375,1.0);
 		glBegin(GL_QUADS);
 			glVertex2d(0.0,0.3);
 			glVertex2d(dSize,0.3);
@@ -332,6 +340,16 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 				case MAN_FIT_CENTER:
 					if (m_eFit_Method == fm_manual)
 						glColor4d(0.75,0.75,0.0,1.0);
+					else
+						glColor4d(0.06125,0.25,0.25,1.0);
+					Draw_Rounded_Rectangle(true);
+					glColor4d(0.0,0.0,0.0,1.0);
+					glLineWidth(2.0);
+					Draw_Rounded_Rectangle(false);
+					break;
+				case MAN_FIT_CENTER_SECOND:
+					if (m_eFit_Method == fm_manual)
+						glColor4d(0.375,0.0,0.75,1.0);
 					else
 						glColor4d(0.06125,0.25,0.25,1.0);
 					Draw_Rounded_Rectangle(true);
@@ -538,6 +556,21 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 						}
 					glPopMatrix();
 					break;
+				case MAN_FIT_CENTER_SECOND_TEXT:
+					glColor4d(0.5,0.0,1.0,1.0);
+					glPushMatrix();
+						if (m_uiManual_Fit_Central_Second_Idx != -1)
+						{
+							std::ostringstream sText;
+							sText << m_vWavelength[m_uiManual_Fit_Central_Second_Idx];
+							sText << " Ang";
+							glTranslated(0.0,0.0,0.0);
+							glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+							glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+						}
+					glPopMatrix();
+					break;
 				case pEW_TEXT:
 					glColor4d(0.0,0.0,0.0,1.0);
 					glPushMatrix();
@@ -552,6 +585,24 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
 						}
 					glPopMatrix();
+					break;
+				case MAN_FIT_QUALITY_TEXT:
+					if (m_eFit_Method == fm_manual && m_vFlux_Fit.size() > 0)
+					{
+						glColor4d(0.0,0.0,0.0,1.0);
+						glPushMatrix();
+							{
+								std::ostringstream sText;
+								sText << "Fit Qual ";
+								sText.setf( std::ios_base::scientific, std::ios_base::floatfield );
+								sText << g_dFit_Results_Smin;
+								glTranslated(0.0,0.0,0.0);
+								glScaled(1.0/pdSize.m_tX,1.0/pdSize.m_tY,1.0); // undo button scaling
+								glScaled(1.0/dSize,1.0,1.0); // adjust for aspect ratio
+								glPrintJustified(pdSize.m_tY * 0.9,0.0,0.0,0.0,sText.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+							}
+						glPopMatrix();
+					}
 					break;
 				case EJECTA_pEW_TEXT:
 					glColor4d(0.0,0.0,0.0,1.0);
@@ -741,6 +792,10 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glVertex2d(0.9,0.0);
 							glVertex2d(0.0,dFlux_Scale);
 							glVertex2d(0.9,dFlux_Scale);
+							glVertex2d(0.0,0.0);
+							glVertex2d(0.0,2.0*dFlux_Scale);
+							glVertex2d(0.9,0.0);
+							glVertex2d(0.9,2.0*dFlux_Scale);
 						glEnd();
 				
 						if (m_bDisplay_Shell_Component && !m_bNo_Shell)
@@ -775,32 +830,55 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glVertex2d(dX,dY);
 						}
 						glEnd();
-						if (m_eFit_Method == fm_flat || m_eFit_Method == fm_jeff || (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1))
+						if (m_vFlux_Fit.size() > 0)
 						{
 							glColor4d(0.0,0.0,1.0,1.0);
 							glBegin(GL_LINE_STRIP);
-							GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+//							GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
 							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 							{
 								double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
-								double dY;
-								if (m_eFit_Method == fm_flat)
-									dY = (1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0)) * dFlux_Scale;
-								else if (m_eFit_Method == fm_jeff)
-								{
-									dY = Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0);
-									dY += (m_vWavelength[uiI] - m_dJeff_WL) * m_dJeff_Slope + m_dJeff_Flux;
-									dY *= dFlux_Scale;
-								}
-								else if (m_eFit_Method == fm_manual)
-								{
-									dY = Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);
-									dY += (m_vWavelength[uiI] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux;
-									dY *= dFlux_Scale;
-								}
+								double dY = m_vFlux_Fit[uiI] * dFlux_Scale;
+//								if (m_eFit_Method == fm_flat)
+//									dY = (1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0)) * dFlux_Scale;
+//								else if (m_eFit_Method == fm_jeff)
+//								{
+//									dY = Multi_Gaussian(m_vWavelength[uiI],m_vGaussian_Fit_Data,lpgfpParamters).Get(0);
+//									dY += (m_vWavelength[uiI] - m_dJeff_WL) * m_dJeff_Slope + m_dJeff_Flux;
+//									dY *= dFlux_Scale;
+//								}
+//								else if (m_eFit_Method == fm_manual)
+//								{
+//									dY = Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);
+//									dY += (m_vWavelength[uiI] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux;
+//									dY *= dFlux_Scale;
+//								}
 								glVertex2d(dX,dY);
 							}
 							glEnd();
+							// draw residuals
+							glPushMatrix();
+							glTranslated(0.0,0.75,0.0);
+							glScaled(1.0,0.25,1.0);
+							glColor4d(0.0,0.0,0.0,1.0);
+							glBegin(GL_LINES);
+								glVertex2d(0.0,0.0);
+								glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,0.0);
+								glVertex2d(0.0,-dFlux_Scale);
+								glVertex2d(0.0,dFlux_Scale);
+								glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,-dFlux_Scale);
+								glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,dFlux_Scale);
+							glEnd();
+							glColor4d(0.0,0.75,0.75,1.0);
+							glBegin(GL_LINE_STRIP);
+							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+							{
+								double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
+								double dY = m_vFit_Residuals[uiI] * dFlux_Scale;
+								glVertex2d(dX,dY);
+							}
+							glEnd();
+							glPopMatrix();
 						}
 						glColor4d(1.0,1.0,0.0,1.0);
 						glPushMatrix();
@@ -860,6 +938,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							Display_Man_Select_Item(m_uiManual_Fit_Blue_Idx,MS_BLUE,dSize,pdSize);
 							Display_Man_Select_Item(m_uiManual_Fit_Red_Idx,MS_RED,dSize,pdSize);
 							Display_Man_Select_Item(m_uiManual_Fit_Central_Idx,MS_CENTER,dSize,pdSize);
+							Display_Man_Select_Item(m_uiManual_Fit_Central_Second_Idx,MS_CENTER_SECOND,dSize,pdSize);
 						}
 					}
 					break;

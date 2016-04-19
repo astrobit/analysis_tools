@@ -37,11 +37,14 @@ enum button_id
 	MAN_FIT_RED,
 	MAN_FIT_BLUE,
 	MAN_FIT_CENTER,
+	MAN_FIT_CENTER_SECOND,
 	MAN_FIT_EXEC,
 	MAN_FIT_CLEAR,
 	MAN_FIT_RED_TEXT,
 	MAN_FIT_BLUE_TEXT,
 	MAN_FIT_CENTER_TEXT,
+	MAN_FIT_CENTER_SECOND_TEXT,
+	MAN_FIT_QUALITY_TEXT,
 	EXPORT
 
 };
@@ -64,6 +67,10 @@ extern XVECTOR g_vW;
 extern GAUSS_FIT_PARAMETERS * g_lpgfpParamters;
 extern double g_dSuggested_Center_WL;
 extern double g_dSuggested_Center_Flux;
+extern double g_dSuggested_Center_Second_WL;
+extern double g_dSuggested_Center_Second_Flux;
+extern double g_dFit_Results_Smin;
+extern XSQUARE_MATRIX	g_mCovariance_Matrix;
 
 void Perform_Fit(void);
 
@@ -91,6 +98,7 @@ private:
 	XDATASET	m_dDay_Fit_Data;
 	XDATASET	m_dDay_Spectrum_Data;
 	XVECTOR		m_vGaussian_Fit_Data;
+	double		m_dGaussian_Fit_Quality;
 	double		m_dJeff_WL; // WL, flux
 	double		m_dJeff_Flux;
 	double		m_dJeff_Slope;
@@ -104,20 +112,25 @@ private:
 	bool		m_bDisplay_Shell_Component;
 	bool		m_bDisplay_Ejecta_Component;
 
-	enum man_select_mode	{MS_OFF,MS_BLUE,MS_RED,MS_CENTER};
+	enum man_select_mode	{MS_OFF,MS_BLUE,MS_RED,MS_CENTER,MS_CENTER_SECOND};
 	man_select_mode	m_eMan_Select_Mode;
-	XVECTOR		m_vManual_Fit_Data;
+	XVECTOR			m_vManual_Fit_Data;
 	unsigned int	m_uiManual_Fit_Blue_Idx;
 	unsigned int	m_uiManual_Fit_Red_Idx;
 	unsigned int	m_uiManual_Fit_Central_Idx;
+	unsigned int	m_uiManual_Fit_Central_Second_Idx;
 	double			m_dMF_WL;
 	double			m_dMF_Flux;
 	double			m_dMF_Slope;
+	double			m_dMF_Quality;
 
 	std::vector<double>	m_vWavelength;
 	std::vector<double> m_vFlux;
 	std::vector<double> m_vFlux_Shell;
 	std::vector<double> m_vFlux_Ejecta;
+	std::vector<double> m_vFlux_Fit;
+
+	std::vector<double>	m_vFit_Residuals;
 	double		m_dMax_Flux;
 	double		m_dShell_Flat_pEW;
 	double		m_dEjecta_Flat_pEW;
