@@ -158,6 +158,10 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	double dAmplitude = (dYmax - dYmin);
 	double dCenter = dXmax;
 	double	dHWHM;
+	double	dDbl_Center;
+	double	dDbl_Amplitude;
+	double	dDbl_HWHM;
+
 	unsigned int uiXcenter = uiXmax;
 	if (fabs(dYmax) < fabs(dYmin))
 	{
@@ -204,6 +208,24 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
     vA.Set(1,dHWHM);
     vA.Set(2,dCenter);
 
+	double dVariance_Min = DBL_MAX;
+	unsigned int uiVar_Min_Idx;
+	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
+	{
+		double dR = i_vY[uiI] - Multi_Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters).Get(0);
+		if (dR < dVariance_Min)
+		{
+			dVariance_Min = dR;
+			uiVar_Min_Idx = uiI;
+		}
+	}
+	dDbl_Center = i_vX[uiVar_Min_Idx];
+	dDbl_Amplitude = i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0);
+	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) < 0.5 * dAmplitude)
+		uiVar_Min_Idx--;
+	dDbl_HWHM = i_vX[uiVar_Min_Idx] - dDbl_Center;
+	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,dDbl_Amplitude,dDbl_HWHM,dDbl_Center);
+
     // Perform LSQ fit
     if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
@@ -217,52 +239,13 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 			io_lpSingle_Fit->m_mCovariance = mCovariance_Matrix;
 		}
     }
-    // find the minimum of the flux error
-    double dMin_Flux_WL = 0.0;
-    double dMin_Flux_Err = DBL_MAX;
-    if (vA_Single.Get_Size() == 3)
-    {
-        for (unsigned int uiJ = 0; uiJ < i_vX.Get_Size(); uiJ++)
-        {
-            double dFlux_Error = i_vY.Get(uiJ) - Multi_Gaussian(i_vX.Get(uiJ), vA_Single, (void *)i_lpgfpParamters).Get(0);
-            if (dFlux_Error < dMin_Flux_Err)
-            {
-                dMin_Flux_WL = i_vX.Get(uiJ);
-                dMin_Flux_Err = dFlux_Error;
-            }
-        }
-        // try double gaussian fit
-        vA.Set_Size(6);
-        vA.Set(0,-dMin_Flux_Err);
-        vA.Set(1,vA_Single.Get(1) * 0.125);
-        vA.Set(2,dMin_Flux_WL);
-        vA.Set(3,vA_Single.Get(0));
-        vA.Set(4,vA_Single.Get(1));
-        vA.Set(5,vA_Single.Get(2));
-    }
-    else
-    {
-		vA.Set_Size(3);
-		vA.Set(0,dAmplitude);
-		vA.Set(1,dHWHM);
-		vA.Set(2,dCenter);
-        for (unsigned int uiJ = 0; uiJ < i_vX.Get_Size(); uiJ++)
-        {
-            double dFlux_Error = i_vY.Get(uiJ) - Multi_Gaussian(i_vX.Get(uiJ), vA, (void *)i_lpgfpParamters).Get(0);
-            if (dFlux_Error < dMin_Flux_Err)
-            {
-                dMin_Flux_WL = i_vX.Get(uiJ);
-                dMin_Flux_Err = dFlux_Error;
-            }
-        }
-        vA.Set_Size(6);
-        vA.Set(0,-dMin_Flux_Err);
-        vA.Set(1,0.125*dHWHM);
-        vA.Set(2,dMin_Flux_WL);
-		vA.Set(3,dAmplitude);
-		vA.Set(4,dHWHM);
-		vA.Set(5,dCenter);
-    }
+	vA.Set_Size(6);
+	vA.Set(0,dAmplitude);
+	vA.Set(1,dHWHM);
+	vA.Set(2,dCenter);
+	vA.Set(3,dDbl_Amplitude);
+	vA.Set(4,dDbl_HWHM);
+	vA.Set(5,dDbl_Center);
     // Perform LSQ fit
     //if (bVerbose)
     //    printf("Performing double unflat fit\n");
