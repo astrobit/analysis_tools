@@ -277,6 +277,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	dDbl_HWHM = fabs(i_vX[uiVar_Min_Idx] - dDbl_Center);
 	dHWHM_Low = dDbl_HWHM * 0.50;
 	dHWHM_High = dDbl_HWHM;
+	uiCount = 0;
 	do
 	{
 		dDbl_HWHM = (0.5 * (dHWHM_High + dHWHM_Low));
