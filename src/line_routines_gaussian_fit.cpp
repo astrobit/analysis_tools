@@ -19,6 +19,10 @@ GAUSS_FIT_PARAMETERS	g_cgfpOINIR(774.08,870.0,776.31,810.0,7777.53,750.0);
 GAUSS_FIT_PARAMETERS	g_cgfpSi6355(6348.85,1000.0,6373.12,1000.0);
 GAUSS_FIT_PARAMETERS	g_cgfpSi5968(5959.21,500.0,5980.59,500.0);
 
+GAUSS_FIT_PARAMETERS	lg_cUser_Paramters;
+double					lg_dUser_Sigma = 0.0;
+double					lg_dNorm;
+ 
 XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 {
 	XVECTOR vOut;
@@ -32,6 +36,30 @@ XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 	double	dInv_Sigma;
 
 	dInv_Sigma = 1.0 / i_vA.Get(1);
+
+	if (lg_cUser_Paramters != lpvParam[0] || lg_dUser_Sigma != i_vA.Get(1))
+	{ // calculate the normalization coefficient; it's a bit wonky because of how the 'x' component of the Gaussian is calclated
+		lg_dUser_Sigma = i_vA.Get(1);
+		lg_cUser_Paramters = lpvParam[0];
+
+		dDel_X_Sigma_2 = 0.0;
+
+		dDel_X = i_vA.Get(2) * (1.0 / lpvParam->m_dW_Ratio_1 - 1.0);
+		dDel_X_Sigma_1 = dDel_X * dInv_Sigma;
+
+		dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * lpvParam->m_dH_Ratio_1;
+		dExp_2 = exp(-0.5 * dDel_X_Sigma_2 * dDel_X_Sigma_2);
+		dExp_3 = 0.0;
+
+		if (lpvParam->m_dW_Ratio_2 != 0.0)
+		{
+			dDel_X = i_vA.Get(2) * (1.0 / lpvParam->m_dW_Ratio_2 - 1.0);
+			dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
+			dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
+		}
+		lg_dNorm = 1.0 / (dExp_1 + dExp_2 + dExp_3);
+	}
+
 	dDel_X = i_dX - i_vA.Get(2);
 	dDel_X_Sigma_2 = dDel_X * dInv_Sigma;
 
@@ -49,10 +77,10 @@ XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 		dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
 		dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
 	}
-	vOut.Set(0,i_vA.Get(0) * (dExp_1 + dExp_2 + dExp_3));
-	vOut.Set(1,dExp_1 + dExp_2 + dExp_3);
-	vOut.Set(2,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3));
-	vOut.Set(3,i_vA.Get(0) * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3));
+	vOut.Set(0,i_vA.Get(0) * (dExp_1 + dExp_2 + dExp_3) * lg_dNorm);
+	vOut.Set(1,(dExp_1 + dExp_2 + dExp_3) * lg_dNorm);
+	vOut.Set(2,i_vA.Get(0) * lg_dNorm * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3));
+	vOut.Set(3,i_vA.Get(0) * lg_dNorm * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3));
 	return vOut;
 }
 XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
@@ -161,6 +189,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	double	dDbl_Center;
 	double	dDbl_Amplitude;
 	double	dDbl_HWHM;
+	unsigned int uiI;
 
 	unsigned int uiXcenter = uiXmax;
 	if (fabs(dYmax) < fabs(dYmin))
@@ -169,7 +198,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		dAmplitude *= -1;
 		dCenter = dXmin;
 		uiXcenter = uiXmin;
-		unsigned int uiI = uiXcenter;
+		uiI = uiXcenter;
 		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) < 0.5*dAmplitude)
 			uiI++;
 		if (uiI == i_vY.Get_Size())
@@ -186,7 +215,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	else
 	{
 		printf("fitting maximum %i\n",uiXcenter);
-		unsigned int uiI = uiXcenter;
+		uiI = uiXcenter;
 		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
 			uiI++;
 		if (uiI == i_vY.Get_Size())
@@ -200,19 +229,39 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = 0.5*(dXright - dXleft);
 	}
+	double dHWHM_Low = dHWHM * 0.50;
+	double dHWHM_High = dHWHM;
+	double dTest;
+	unsigned int uiCount = 0;
+    vA.Set_Size(3);
+	vA.Set(0,1.0);
+	vA.Set(2,dCenter);
+	do
+	{
+		dHWHM = (0.5 * (dHWHM_High + dHWHM_Low));
+		vA.Set(1,dHWHM); // HWHM
+		dTest = Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters)[0];
+		if (dTest > 0.5)
+		{
+			dHWHM_High = dHWHM;
+		}
+		else
+		{
+			dHWHM_Low = dHWHM;
+		}
+		uiCount++;
+	} while (fabs(dTest - 0.5) > 0.001 && (dHWHM_High / dHWHM_Low > 1.01) && uiCount < 64);
+	dHWHM = (0.5 * (dHWHM_High + dHWHM_Low));
+
 	printf("%f %f %f\n",dAmplitude,dHWHM,dCenter);
     // try single gaussian fit
     // some rough initial guesses for the parameters
-    vA.Set_Size(3);
-    vA.Set(0,dAmplitude);
-    vA.Set(1,dHWHM);
-    vA.Set(2,dCenter);
 
 	double dVariance_Min = DBL_MAX;
 	unsigned int uiVar_Min_Idx;
 	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
 	{
-		double dR = i_vY[uiI] - Multi_Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters).Get(0);
+		double dR = i_vY[uiI] - Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters).Get(0);
 		if (dR < dVariance_Min)
 		{
 			dVariance_Min = dR;
@@ -221,11 +270,33 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	}
 	dDbl_Center = i_vX[uiVar_Min_Idx];
 	dDbl_Amplitude = i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0);
-	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) < 0.5 * dAmplitude)
+	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) > (0.5 * dAmplitude))
 		uiVar_Min_Idx--;
+	vA.Set(0,1.0);
+	vA.Set(2,dDbl_Center);
 	dDbl_HWHM = i_vX[uiVar_Min_Idx] - dDbl_Center;
+	do
+	{
+		dDbl_HWHM = (0.5 * (dHWHM_High + dHWHM_Low));
+		vA.Set(1,dDbl_HWHM); // HWHM
+		dTest = Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters)[0];
+		if (dTest > 0.5)
+		{
+			dHWHM_High = dDbl_HWHM;
+		}
+		else
+		{
+			dHWHM_Low = dDbl_HWHM;
+		}
+		uiCount++;
+	} while (fabs(dTest - 0.5) > 0.001 && (dHWHM_High / dHWHM_Low > 1.01) && uiCount < 64);
+	dDbl_HWHM = (0.5 * (dHWHM_High + dHWHM_Low));
+
 	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,dDbl_Amplitude,dDbl_HWHM,dDbl_Center);
 
+    vA.Set(0,dAmplitude);
+    vA.Set(1,dHWHM);
+    vA.Set(2,dCenter);
     // Perform LSQ fit
     if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
@@ -240,12 +311,24 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
     }
 	vA.Set_Size(6);
-	vA.Set(0,dAmplitude);
-	vA.Set(1,dHWHM);
-	vA.Set(2,dCenter);
-	vA.Set(3,dDbl_Amplitude);
-	vA.Set(4,dDbl_HWHM);
-	vA.Set(5,dDbl_Center);
+	if (dCenter > dDbl_Center)
+	{
+		vA.Set(0,dAmplitude);
+		vA.Set(1,dHWHM);
+		vA.Set(2,dCenter);
+		vA.Set(3,dDbl_Amplitude);
+		vA.Set(4,dDbl_HWHM);
+		vA.Set(5,dDbl_Center);
+	}
+	else
+	{
+		vA.Set(0,dDbl_Amplitude);
+		vA.Set(1,dDbl_HWHM);
+		vA.Set(2,dDbl_Center);
+		vA.Set(3,dAmplitude);
+		vA.Set(4,dHWHM);
+		vA.Set(5,dCenter);
+	}
     // Perform LSQ fit
     //if (bVerbose)
     //    printf("Performing double unflat fit\n");

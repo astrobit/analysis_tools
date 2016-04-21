@@ -220,6 +220,19 @@ public:
 	
 	double	m_dH_Ratio_1;
 	double	m_dH_Ratio_2;
+
+	bool operator == (const GAUSS_FIT_PARAMETERS & i_RHO)
+	{
+		return (m_dWl[0] == i_RHO.m_dWl[0] && m_dWl[1] == i_RHO.m_dWl[1] && m_dWl[2] == i_RHO.m_dWl[2] &&
+				m_dStr[0] == i_RHO.m_dStr[0] && m_dStr[1] == i_RHO.m_dStr[1] && m_dStr[2] == i_RHO.m_dStr[2]);
+
+	}
+	bool operator != (const GAUSS_FIT_PARAMETERS & i_RHO)
+	{
+		return (m_dWl[0] != i_RHO.m_dWl[0] || m_dWl[1] != i_RHO.m_dWl[1] || m_dWl[2] != i_RHO.m_dWl[2] &&
+				m_dStr[0] != i_RHO.m_dStr[0] || m_dStr[1] != i_RHO.m_dStr[1] || m_dStr[2] != i_RHO.m_dStr[2]);
+
+	}
 	GAUSS_FIT_PARAMETERS(void)
 	{
 		m_dW_Ratio_1 = m_dW_Ratio_2 = m_dH_Ratio_1 = m_dH_Ratio_2 = 0.0;
@@ -227,18 +240,84 @@ public:
 
 	GAUSS_FIT_PARAMETERS(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
 	{
-		m_dWl[0] = i_dWL_1;
-		m_dWl[1] = i_dWL_2;
-		m_dWl[2] = i_dWL_3;
+		if (i_dStrength_3 > 0.0)
+		{
+			if (i_dStrength_1 < i_dStrength_2 && i_dStrength_3 < i_dStrength_2)
+			{
+				m_dWl[0] = i_dWL_1;
+				m_dWl[1] = i_dWL_2;
+				m_dWl[2] = i_dWL_3;
 
-		m_dStr[0] = i_dStrength_1;
-		m_dStr[1] = i_dStrength_2;
-		m_dStr[2] = i_dStrength_3;
+				m_dStr[0] = i_dStrength_1;
+				m_dStr[1] = i_dStrength_2;
+				m_dStr[2] = i_dStrength_3;
 
-		m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
-		m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
-		m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
-		m_dH_Ratio_2 = i_dStrength_3 / i_dStrength_2;
+				m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
+				m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
+				m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
+				m_dH_Ratio_2 = i_dStrength_3 / i_dStrength_2;
+			}
+			else if (i_dStrength_2 < i_dStrength_1 && i_dStrength_3 < i_dStrength_1)
+			{
+				m_dWl[0] = i_dWL_2;
+				m_dWl[1] = i_dWL_1;
+				m_dWl[2] = i_dWL_3;
+
+				m_dStr[0] = i_dStrength_2;
+				m_dStr[1] = i_dStrength_1;
+				m_dStr[2] = i_dStrength_3;
+
+				m_dW_Ratio_1 = i_dWL_2 / i_dWL_1;
+				m_dW_Ratio_2 = i_dWL_3 / i_dWL_1;
+				m_dH_Ratio_1 = i_dStrength_2 / i_dStrength_1;
+				m_dH_Ratio_2 = i_dStrength_3 / i_dStrength_2;
+			}
+			else
+			{
+				m_dWl[0] = i_dWL_1;
+				m_dWl[1] = i_dWL_3;
+				m_dWl[2] = i_dWL_2;
+
+				m_dStr[0] = i_dStrength_1;
+				m_dStr[1] = i_dStrength_3;
+				m_dStr[2] = i_dStrength_2;
+
+				m_dW_Ratio_1 = i_dWL_1 / i_dWL_3;
+				m_dW_Ratio_2 = i_dWL_2 / i_dWL_3;
+				m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_3;
+				m_dH_Ratio_2 = i_dStrength_2 / i_dStrength_3;
+			}
+		}
+		else if (i_dStrength_1 < i_dStrength_2)
+		{
+			m_dWl[0] = i_dWL_1;
+			m_dWl[1] = i_dWL_2;
+			m_dWl[2] = i_dWL_3;
+
+			m_dStr[0] = i_dStrength_1;
+			m_dStr[1] = i_dStrength_2;
+			m_dStr[2] = i_dStrength_3;
+
+			m_dW_Ratio_1 = i_dWL_1 / i_dWL_2;
+			m_dW_Ratio_2 = i_dWL_3 / i_dWL_2;
+			m_dH_Ratio_1 = i_dStrength_1 / i_dStrength_2;
+			m_dH_Ratio_2 = i_dStrength_3 / i_dStrength_2;
+		}
+		else
+		{
+			m_dWl[0] = i_dWL_2;
+			m_dWl[1] = i_dWL_1;
+			m_dWl[2] = i_dWL_3;
+
+			m_dStr[0] = i_dStrength_2;
+			m_dStr[1] = i_dStrength_1;
+			m_dStr[2] = i_dStrength_3;
+
+			m_dW_Ratio_1 = i_dWL_2 / i_dWL_1;
+			m_dW_Ratio_2 = i_dWL_3 / i_dWL_1;
+			m_dH_Ratio_1 = i_dStrength_2 / i_dStrength_1;
+			m_dH_Ratio_2 = i_dStrength_3 / i_dStrength_1;
+		}
 	}
 };
 class GAUSS_FIT_RESULTS
