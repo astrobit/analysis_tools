@@ -270,11 +270,13 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	}
 	dDbl_Center = i_vX[uiVar_Min_Idx];
 	dDbl_Amplitude = dVariance_Min;
-	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) > (0.5 * dAmplitude))
+	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) > (0.5 * dDbl_Amplitude))
 		uiVar_Min_Idx--;
 	vA.Set(0,1.0);
 	vA.Set(2,dDbl_Center);
 	dDbl_HWHM = fabs(i_vX[uiVar_Min_Idx] - dDbl_Center);
+	dHWHM_Low = dDbl_HWHM * 0.50;
+	dHWHM_High = dDbl_HWHM;
 	do
 	{
 		dDbl_HWHM = (0.5 * (dHWHM_High + dHWHM_Low));
