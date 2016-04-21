@@ -210,7 +210,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 			uiI--;
 		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
-		dHWHM = 0.5*(dXright - dXleft);
+		dHWHM = fabs(dXright - dXleft);
 	}
 	else
 	{
@@ -227,7 +227,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 			uiI--;
 		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
-		dHWHM = 0.5*(dXright - dXleft);
+		dHWHM = fabs(dXright - dXleft);
 	}
 	double dHWHM_Low = dHWHM * 0.50;
 	double dHWHM_High = dHWHM;
@@ -274,7 +274,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		uiVar_Min_Idx--;
 	vA.Set(0,1.0);
 	vA.Set(2,dDbl_Center);
-	dDbl_HWHM = i_vX[uiVar_Min_Idx] - dDbl_Center;
+	dDbl_HWHM = fabs(i_vX[uiVar_Min_Idx] - dDbl_Center);
 	do
 	{
 		dDbl_HWHM = (0.5 * (dHWHM_High + dHWHM_Low));
