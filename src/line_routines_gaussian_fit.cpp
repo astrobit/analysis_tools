@@ -259,6 +259,9 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 
 	double dVariance_Min = DBL_MAX;
 	unsigned int uiVar_Min_Idx;
+    vA.Set(0,dAmplitude);
+    vA.Set(1,dHWHM);
+    vA.Set(2,dCenter);
 	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
 	{
 		double dR = i_vY[uiI] - Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters).Get(0);
@@ -270,7 +273,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	}
 	dDbl_Center = i_vX[uiVar_Min_Idx];
 	dDbl_Amplitude = dVariance_Min;
-	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) > (0.5 * dDbl_Amplitude))
+	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) < (0.5 * dDbl_Amplitude))
 		uiVar_Min_Idx--;
 	vA.Set(0,1.0);
 	vA.Set(2,dDbl_Center);
@@ -338,6 +341,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
     mCovariance_Matrix.Zero();
     if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
+		printf("PGd-r: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
 		if (io_lpDouble_Fit)
 		{
 			io_lpDouble_Fit->m_vA = vA;
