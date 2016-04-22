@@ -40,6 +40,7 @@ enum button_id
 	MAN_FIT_CENTER_SECOND,
 	MAN_FIT_EXEC,
 	MAN_FIT_CLEAR,
+	AUTO_FIT_TEST,
 	MAN_FIT_RED_TEXT,
 	MAN_FIT_BLUE_TEXT,
 	MAN_FIT_CENTER_TEXT,
@@ -52,7 +53,8 @@ enum fit_method
 {
 	fm_flat,
 	fm_jeff,
-	fm_manual
+	fm_manual,
+	fm_auto
 };
 
 
@@ -111,6 +113,8 @@ private:
 	double		m_dFit_pEW;
 	bool		m_bDisplay_Shell_Component;
 	bool		m_bDisplay_Ejecta_Component;
+
+	unsigned int m_uiInfo_Idx;
 
 	enum man_select_mode	{MS_OFF,MS_BLUE,MS_RED,MS_CENTER,MS_CENTER_SECOND};
 	man_select_mode	m_eMan_Select_Mode;

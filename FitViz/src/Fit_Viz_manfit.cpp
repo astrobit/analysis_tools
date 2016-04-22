@@ -32,95 +32,152 @@ void Perform_Fit(void)
 	{
 		if (g_bPerform_Fit)
 		{
-			g_vFit_Results.Set_Size(0);
-			g_dFit_Results_Smin = 0.0;
-			g_mCovariance_Matrix.Set_Size(0);
-			if (g_dSuggested_Center_Second_WL == -1.0)
-			{
-				XSQUARE_MATRIX mCovariance_Matrix;
-				XVECTOR	vA;
-				double dSmin;
-				vA.Set_Size(3);
-				vA.Set(2,g_dSuggested_Center_WL);
-				// to find estimated HWHM, go up the red side until we reach half amplitude
-				unsigned int uiI = 0;
-				while (uiI < g_vX.Get_Size() && g_vX.Get(uiI) < g_dSuggested_Center_WL)
-					uiI++;
-				if (uiI < g_vX.Get_Size())
-					vA.Set(0,g_vY[uiI]); /// make sure that we have the right amplitude
-				while (uiI < g_vX.Get_Size() && g_vY[uiI] < (vA[0] * 0.5))
-					uiI++;
-				vA.Set(1,g_vX[uiI] - vA[2]); // HWHM
-				// Perform LSQ fit
-				printf("Start: %f %f %f\n",vA[0],vA[1],vA[2]);
-				if (GeneralFit(g_vX, g_vY ,g_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)g_lpgfpParamters,256))
-				{
-					g_vFit_Results = vA;
-					g_dFit_Results_Smin = dSmin;
-					g_mCovariance_Matrix = mCovariance_Matrix;
-				}
-				printf("End: %f %f %f\n",vA[0],vA[1],vA[2]);
-				printf("Quality: %e\n",dSmin);
 
-			}
-			else
+			double dSmin= 0.0;
+			unsigned int uiFit_Attempt = 0;
+			double	dCenter_WL_Perturb = -25.0;
+			double dCenter_WL_Start = g_dSuggested_Center_WL;
+			bool bForce_Quit = false;
+			do
 			{
+				g_vFit_Results.Set_Size(0);
+				g_dFit_Results_Smin = 0.0;
+				g_mCovariance_Matrix.Set_Size(0);
 				XSQUARE_MATRIX mCovariance_Matrix;
 				XVECTOR	vA;
-				double dSmin;
-				vA.Set_Size(6);
-				// first determine which one is the reddest center
-				if (g_dSuggested_Center_WL > g_dSuggested_Center_Second_WL)
+				vA.Set_Size(3);
+				if (uiFit_Attempt > 0)
+				{
+					g_dSuggested_Center_WL += dCenter_WL_Perturb;
+					if (g_dSuggested_Center_WL <= g_vX[0])
+					{
+						dCenter_WL_Perturb *= -1.0;
+						g_dSuggested_Center_WL = dCenter_WL_Start+ dCenter_WL_Perturb;
+					}
+					if (g_dSuggested_Center_WL >= g_vX[g_vX.Get_Size() - 1])
+						bForce_Quit = true;
+				}
+				if (!bForce_Quit)
 				{
 					vA.Set(2,g_dSuggested_Center_WL);
-					vA.Set(5,g_dSuggested_Center_Second_WL);
-				}
-				else
-				{
-					vA.Set(2,g_dSuggested_Center_Second_WL);
-					vA.Set(5,g_dSuggested_Center_WL);
-				}
-				unsigned int uiI = 0;
-				while (uiI < g_vX.Get_Size() && g_vX.Get(uiI) < vA[2])
-					uiI++;
-				if (uiI < g_vX.Get_Size())
-					vA.Set(0,g_vY[uiI]); /// make sure that we have the right amplitude
-				while (uiI < g_vX.Get_Size() && g_vY[uiI] < (vA[0] * 0.5))
-					uiI++;
-				vA.Set(1,g_vX[uiI] - vA[2]); // HWHM
+					// to find estimated HWHM, go up the red side until we reach half amplitude
+					unsigned int uiI = 0;
+					while (uiI < g_vX.Get_Size() && g_vX.Get(uiI) < g_dSuggested_Center_WL)
+						uiI++;
+					double dAmplitude;
+					if (uiI < g_vX.Get_Size())
+						dAmplitude = g_vY[uiI];
+					vA.Set(0,dAmplitude); /// make sure that we have the right amplitude
+					while (uiI < g_vX.Get_Size() && g_vY[uiI] < (vA[0] * 0.5))
+						uiI++;
+					double dHWHM_Est = g_vX[uiI] - vA[2];
+					double dHWHM_Low = dHWHM_Est * 0.50;
+					double dHWHM_High = dHWHM_Est;
+					double dTest;
+					unsigned int uiCount = 0;
+					do
+					{
+						dHWHM_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+						vA.Set(0,1.0);
+						vA.Set(1,dHWHM_Est); // HWHM
+						dTest = Gaussian(g_vX[uiI],vA,g_lpgfpParamters)[0];
+						if (dTest > 0.5)
+						{
+							dHWHM_High = dHWHM_Est;
+						}
+						else
+						{
+							dHWHM_Low = dHWHM_Est;
+						}
+						uiCount++;
+					} while (fabs(dTest - 0.5) > 0.001 && (dHWHM_High / dHWHM_Low > 1.01) && uiCount < 64);
+					dHWHM_Est = (0.5 * (dHWHM_High + dHWHM_Low));
 
-				uiI = 0;
-				while (uiI < g_vX.Get_Size() && g_vX.Get(uiI) < vA[5])
-					uiI++;
-				XVECTOR vATemp;
-				vATemp.Set_Size(3);
-				vATemp.Set(0,vA[0]);
-				vATemp.Set(1,vA[1]);
-				vATemp.Set(2,vA[2]);
-				if (uiI < g_vX.Get_Size())
-				{
-					double dY = Multi_Gaussian(g_vX[uiI],vATemp,(void*)g_lpgfpParamters).Get(0);
-					vA.Set(3,g_vY[uiI] - dY); /// make sure that we have the right amplitude
-				}
-				uiI--;
-				double dR = g_vY[uiI] - Multi_Gaussian(g_vX[uiI],vATemp,(void*)g_lpgfpParamters).Get(0);
-				while (uiI > 0 && dR < (vA[3] * 0.5))
-				{
-					dR = g_vY[uiI] - Multi_Gaussian(g_vX[uiI],vATemp,(void*)g_lpgfpParamters).Get(0);
-					uiI--;
-				}
-				vA.Set(4,g_vX[uiI] - vA[5]); // HWHM
+					vA.Set(0,dAmplitude); /// make sure that we have the right amplitude
+					vA.Set(1,dHWHM_Est); // HWHM
+					if (g_dSuggested_Center_Second_WL != -1)
+					{
+						std::vector<double> vResiduals;
+						double	dResid_Min = DBL_MAX;
+						double dX_Resi_Min;
+						for (unsigned int uiI = 0; uiI < g_vX.Get_Size(); uiI++)
+						{
+							double dY = Multi_Gaussian(g_vX[uiI],vA,g_lpgfpParamters).Get(0);
+							double dR = g_vY[uiI] - dY;
+							if (dResid_Min > dR)
+							{
+								dResid_Min = dR;
+								dX_Resi_Min = g_vX[uiI];
+							}
+							vResiduals.push_back(g_vY[uiI] - dY);
+						}
+						if (uiFit_Attempt > 0)
+						{
+							g_dSuggested_Center_Second_WL = dX_Resi_Min;
+						}
 
-				printf("Start: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
-				if (GeneralFit(g_vX, g_vY ,g_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)g_lpgfpParamters,256))
-				{
-					g_vFit_Results = vA;
-					g_dFit_Results_Smin = dSmin;
-					g_mCovariance_Matrix = mCovariance_Matrix;
+						vA.Set(2,g_dSuggested_Center_Second_WL);
+						// to find estimated HWHM, go up the red side until we reach half amplitude
+						uiI = 0;
+						while (uiI < g_vX.Get_Size() && g_vX[uiI] < vA[2])
+							uiI++;
+						double dAmplitude_2 = 0.0;
+						if (uiI < g_vX.Get_Size())
+						{
+							dAmplitude_2 = vResiduals[uiI];
+						}
+						while (uiI < g_vX.Get_Size() && vResiduals[uiI] < (dAmplitude_2 * 0.5))
+							uiI++;
+						double dHWHM_2_Est = g_vX[uiI] - vA[2];
+						dHWHM_Low = dHWHM_2_Est * 0.50;
+						dHWHM_High = dHWHM_2_Est;
+						double dTest;
+						unsigned int uiCount = 0;
+						do
+						{
+							dHWHM_2_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+							vA.Set(0,1.0);
+							vA.Set(1,dHWHM_2_Est); // HWHM
+							dTest = Gaussian(g_vX[uiI],vA,g_lpgfpParamters)[0];
+							if (dTest > 0.5)
+							{
+								dHWHM_High = dHWHM_2_Est;
+							}
+							else
+							{
+								dHWHM_Low = dHWHM_2_Est;
+							}
+							uiCount++;
+						} while (fabs(dTest - 0.5) > 0.001 && (dHWHM_High / dHWHM_Low > 1.01) && uiCount < 64);
+						dHWHM_2_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+
+						vA.Set_Size(6);
+						vA.Set(0,dAmplitude);
+						vA.Set(1,dHWHM_Est);
+						vA.Set(2,g_dSuggested_Center_WL);
+						vA.Set(3,dAmplitude_2);
+						vA.Set(4,dHWHM_2_Est);
+						vA.Set(5,g_dSuggested_Center_Second_WL);
+
+					}
+					printf("Start: %f %f %f",vA[0],vA[1],vA[2]);
+					if (vA.Get_Size() == 6)
+						printf(" - %f %f %f",vA[3],vA[4],vA[5]);
+					printf("\n");
+					if (GeneralFit(g_vX, g_vY ,g_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)g_lpgfpParamters,1024))
+					{
+						g_vFit_Results = vA;
+						g_dFit_Results_Smin = dSmin;
+						g_mCovariance_Matrix = mCovariance_Matrix;
+					}
+					printf("End: %f %f %f",vA[0],vA[1],vA[2]);
+					if (vA.Get_Size() == 6)
+						printf(" - %f %f %f",vA[3],vA[4],vA[5]);
+					printf("\n");
+					printf("Quality: %e\n",dSmin);
 				}
-				printf("End: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
-				printf("Quality: %e\n",dSmin);
-			}
+				uiFit_Attempt++;
+			} while (!bForce_Quit && dSmin == 0.0);
 			g_bPerform_Fit = false;
 			g_bFit_Results_Ready = true;
 		}

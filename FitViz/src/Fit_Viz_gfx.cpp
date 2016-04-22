@@ -52,6 +52,7 @@ void FIT_VIZ_MAIN::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // window
 	m_mMain_Pane_Buttons[METHOD_FLAT] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42,0.29),pLB_Size,METHOD_FLAT);
 	m_mMain_Pane_Buttons[METHOD_JEFF] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42,0.23),pLB_Size,METHOD_JEFF);
 	m_mMain_Pane_Buttons[METHOD_MANUAL] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.42,0.17),pLB_Size,METHOD_MANUAL);
+	m_mMain_Pane_Buttons[AUTO_FIT_TEST] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.50	,0.17),pLB_Size,AUTO_FIT_TEST);
 
 
 //	m_mMain_Pane_Buttons[SELECT_DIRECTORY] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5,0.20),pLB_Size,SELECT_DIRECTORY);
@@ -114,6 +115,9 @@ void FIT_VIZ_MAIN::Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode
 		case MS_CENTER_SECOND:
 			glColor4d(0.5,0.0,1.0,1.0);
 			break;
+		case MS_OFF:
+			glColor4d(0.75,0.75,0.75,1.0);
+			break;
 		}
 		glPushMatrix();
 			glTranslated((m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale,m_vFlux[i_uiIdx] * dFlux_Scale, 0.0);
@@ -124,6 +128,34 @@ void FIT_VIZ_MAIN::Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode
 				glVertexList(g_vEllipse);
 			glEnd();
 		glPopMatrix();
+		glPushMatrix();
+			glBegin(GL_LINES);
+				glVertex3d((m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale,m_vFlux[i_uiIdx] * dFlux_Scale, 0.0);
+				glVertex3d((m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale,0.0, 0.0);
+			glEnd();
+		glPopMatrix();
+
+		// residuals
+		if (m_vFit_Residuals.size() > 0)
+		{
+			glPushMatrix();
+				glTranslated(0.0,0.75,0.0);
+				glScaled(1.0,0.25,1.0);
+				glBegin(GL_LINES);
+					double dX = (m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale;
+					double dY = m_vFit_Residuals[i_uiIdx] * dFlux_Scale;
+					glVertex2d(dX,dY);
+					glVertex2d(dX,-dFlux_Scale);
+				glEnd();
+				glTranslated(dX + dWL_scale * 5.0,-dFlux_Scale, 0.0);
+				glScaled(1.0/i_pdSize.m_tX,1.0/i_pdSize.m_tY,1.0); // undo button scaling
+				glScaled(1.0/i_dSize,1.0,1.0); // adjust for aspect ratio
+				std::ostringstream sTextResid;
+				sTextResid << m_vFit_Residuals[i_uiIdx];
+				glPrintJustified(i_pdSize.m_tY * 0.05,0.0,0.0,0.0,sTextResid.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPopMatrix();
+		}
+
 		glPushMatrix();
 			glBegin(GL_LINES);
 				glVertex3d((m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale,m_vFlux[i_uiIdx] * dFlux_Scale, 0.0);
@@ -287,8 +319,23 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 						glPrintJustified(0.4,0.0,0.0,0.0,"Manual",HJ_CENTER,VJ_MIDDLE);
 					glPopMatrix();
 					break;
+				case AUTO_FIT_TEST:
+					if (m_eFit_Method == fm_auto)
+						glColor4d(0.0,0.75,0.0,1.0);
+					else
+						glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Rounded_Rectangle(true);
+					glColor4d(0.0,0.0,0.0,1.0);
+					glLineWidth(2.0);
+					Draw_Rounded_Rectangle(false);
+					glPushMatrix();
+						glTranslated(0.5,-0.5,0.0);
+						glScaled(1.0/dSize,1.0,1.0);
+						glPrintJustified(0.4,0.0,0.0,0.0,"Auto",HJ_CENTER,VJ_MIDDLE);
+					glPopMatrix();
+					break;
 				case MAN_FIT_EXEC:
-					if (m_eFit_Method == fm_manual)
+					if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 					{
 						if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1 && m_uiManual_Fit_Central_Idx != -1)
 							glColor4d(0.0,0.75,0.0,1.0);
@@ -308,7 +355,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					glPopMatrix();
 					break;
 				case MAN_FIT_CLEAR:
-					if (m_eFit_Method == fm_manual)
+					if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 					{
 						if (m_uiManual_Fit_Blue_Idx != -1 || m_uiManual_Fit_Red_Idx != -1 || m_uiManual_Fit_Central_Idx != -1)
 							glColor4d(0.0,0.75,0.0,1.0);
@@ -328,7 +375,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					glPopMatrix();
 					break;
 				case MAN_FIT_RED:
-					if (m_eFit_Method == fm_manual)
+					if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 						glColor4d(0.75,0.0,0.0,1.0);
 					else
 						glColor4d(0.06125,0.25,0.25,1.0);
@@ -338,7 +385,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					Draw_Rounded_Rectangle(false);
 					break;
 				case MAN_FIT_CENTER:
-					if (m_eFit_Method == fm_manual)
+					if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 						glColor4d(0.75,0.75,0.0,1.0);
 					else
 						glColor4d(0.06125,0.25,0.25,1.0);
@@ -939,7 +986,9 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							Display_Man_Select_Item(m_uiManual_Fit_Red_Idx,MS_RED,dSize,pdSize);
 							Display_Man_Select_Item(m_uiManual_Fit_Central_Idx,MS_CENTER,dSize,pdSize);
 							Display_Man_Select_Item(m_uiManual_Fit_Central_Second_Idx,MS_CENTER_SECOND,dSize,pdSize);
+
 						}
+						Display_Man_Select_Item(m_uiInfo_Idx,MS_OFF,dSize,pdSize);
 					}
 					break;
 				}

@@ -99,7 +99,7 @@ void FIT_VIZ_MAIN::on_mouse_button_up(MOUSEBUTTON i_eButton, const PAIR<unsigned
 }
 void FIT_VIZ_MAIN::on_mousemove(const PAIR<unsigned int> &i_tMouse_Position)
 {
-	if (m_eMan_Select_Mode != MS_OFF)
+//	if (m_eMan_Select_Mode != MS_OFF)
 	{
 		PAIR<unsigned int> tMouse = i_tMouse_Position;
 		pane_id idMouse_Pane = Find_Pane(tMouse);
@@ -109,6 +109,7 @@ void FIT_VIZ_MAIN::on_mousemove(const PAIR<unsigned int> &i_tMouse_Position)
 		double dPane_Scale = 1.0 / (double) qPane_Position.Get_Size().m_tY;
 		PAIR<double> tMouse_Scaled = tMouse * dPane_Scale;
 		bool bProcessed = false;
+		m_uiInfo_Idx = -1;
 		if (idMouse_Pane == m_idPane)
 		{
 			double dSize = Get_Pane_Aspect_Ratio(m_idPane);
@@ -248,6 +249,9 @@ void FIT_VIZ_MAIN::on_mousemove(const PAIR<unsigned int> &i_tMouse_Position)
 					}	
 				}
 				break;
+			default:
+				m_uiInfo_Idx = uiI;
+				break;
 			}
 			if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1)
 			{
@@ -329,11 +333,23 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			Request_Refresh();
 			break;
 		case METHOD_MANUAL:
-			if (m_eFit_Method != fm_manual)
+			if (m_eFit_Method != fm_manual && m_eFit_Method != fm_auto)
 			{
 				m_eFit_Method = fm_manual;
 				Load_Display_Info();
 			}
+			else
+				m_eFit_Method = fm_manual;
+			Request_Refresh();
+			break;
+		case AUTO_FIT_TEST:
+			if (m_eFit_Method != fm_manual && m_eFit_Method != fm_auto)
+			{
+				m_eFit_Method = fm_auto;
+				Load_Display_Info();
+			}
+			else
+				m_eFit_Method = fm_auto;
 			Request_Refresh();
 			break;
 		case METHOD_TOGGLE:
@@ -357,19 +373,26 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			m_bQuit_Request_Pending = true;
 			break;
 		case MAN_FIT_RED:
-			m_eMan_Select_Mode = MS_RED;
+			if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
+				m_eMan_Select_Mode = MS_RED;
 			break;
 		case MAN_FIT_BLUE:
-			m_eMan_Select_Mode = MS_BLUE;
+			if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
+				m_eMan_Select_Mode = MS_BLUE;
 			break;
 		case MAN_FIT_CENTER:
-			m_eMan_Select_Mode = MS_CENTER;
+			if (m_eFit_Method == fm_manual)
+				m_eMan_Select_Mode = MS_CENTER;
 			break;
 		case MAN_FIT_CENTER_SECOND:
-			m_eMan_Select_Mode = MS_CENTER_SECOND;
+			if (m_eFit_Method == fm_manual)
+				m_eMan_Select_Mode = MS_CENTER_SECOND;
 			break;
 		case MAN_FIT_EXEC:
-			if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1 && m_uiManual_Fit_Central_Idx != -1)
+			if (m_eFit_Method == fm_auto)
+			{
+			}
+			else if (m_eFit_Method == fm_manual && m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1 && m_uiManual_Fit_Central_Idx != -1)
 			{
 				std::vector<double> vWL_Data;
 				std::vector<double> vFlux_Data;
@@ -437,6 +460,129 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 					m_dMF_Flux = m_vFlux[m_uiManual_Fit_Blue_Idx];
 
 					m_dMF_Slope = (m_vFlux[m_uiManual_Fit_Red_Idx] - m_vFlux[m_uiManual_Fit_Blue_Idx]) / (m_vWavelength[m_uiManual_Fit_Red_Idx] - m_vWavelength[m_uiManual_Fit_Blue_Idx]);
+
+					if (m_uiManual_Fit_Central_Idx != -1)
+					{
+						std::vector<double> vWL_Data;
+						std::vector<double> vFlux_Data;
+
+						for (unsigned int uiI = m_uiManual_Fit_Blue_Idx; uiI < m_uiManual_Fit_Red_Idx; uiI++)
+						{
+							vWL_Data.push_back(m_vWavelength[uiI]);
+							double dFlux_WL = (m_vWavelength[uiI] - m_dMF_WL) * m_dMF_Slope + m_dMF_Flux;
+//							vFlux_Data.push_back(m_vFlux[uiI] - dFlux_WL);
+							vFlux_Data.push_back(m_vFlux[uiI] - 1.0);
+						}
+
+						XVECTOR	vA;
+						double dSmin;
+						double dCentral_WL = m_vWavelength[m_uiManual_Fit_Central_Idx];
+						vA.Set_Size(3);
+						vA.Set(2,dCentral_WL);
+						// to find estimated HWHM, go up the red side until we reach half amplitude
+						unsigned int uiI = 0;
+						while (uiI < vWL_Data.size() && vWL_Data[uiI] < vA[2])
+							uiI++;
+						double dAmplitude = 0.0;
+						if (uiI < vWL_Data.size())
+						{
+							dAmplitude = vFlux_Data[uiI];
+						}
+						while (uiI < vWL_Data.size() && vFlux_Data[uiI] < (dAmplitude * 0.5))
+							uiI++;
+						double dHWHM_Est = vWL_Data[uiI] - vA[2];
+						double dHWHM_Low = dHWHM_Est * 0.50;
+						double dHWHM_High = dHWHM_Est;
+						double dTest;
+						unsigned int uiCount = 0;
+						do
+						{
+							dHWHM_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+							vA.Set(0,1.0);
+							vA.Set(1,dHWHM_Est); // HWHM
+							dTest = Gaussian(vWL_Data[uiI],vA,&g_cgfpCaNIR)[0];
+							if (dTest > 0.5)
+							{
+								dHWHM_High = dHWHM_Est;
+							}
+							else
+							{
+								dHWHM_Low = dHWHM_Est;
+							}
+							uiCount++;
+						} while (fabs(dTest - 0.5) > 0.001 && (dHWHM_High / dHWHM_Low > 1.01) && uiCount < 64);
+						dHWHM_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+						vA.Set(0,dAmplitude); /// make sure that we have the right amplitude
+						vA.Set(1,dHWHM_Est); /// make sure that we have the right amplitude
+
+						if (m_uiManual_Fit_Central_Second_Idx != -1)
+						{
+							std::vector<double> vResiduals;
+							for (unsigned int uiI = m_uiManual_Fit_Blue_Idx; uiI < m_uiManual_Fit_Red_Idx; uiI++)
+							{
+								double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],vA,&g_cgfpCaNIR).Get(0);
+								vResiduals.push_back(m_vFlux[uiI] - dY);
+							}
+							double dCentral_Second_WL = m_vWavelength[m_uiManual_Fit_Central_Second_Idx];
+							vA.Set(2,dCentral_Second_WL);
+							// to find estimated HWHM, go up the red side until we reach half amplitude
+							uiI = 0;
+							while (uiI < vWL_Data.size() && vWL_Data[uiI] < vA[2])
+								uiI++;
+							double dAmplitude_2 = 0.0;
+							if (uiI < vWL_Data.size())
+							{
+								dAmplitude_2 = vResiduals[uiI];
+							}
+							while (uiI < vWL_Data.size() && vResiduals[uiI] < (dAmplitude_2 * 0.5))
+								uiI++;
+							double dHWHM_2_Est = vWL_Data[uiI] - vA[2];
+							dHWHM_Low = dHWHM_2_Est * 0.50;
+							dHWHM_High = dHWHM_2_Est;
+							double dTest;
+							unsigned int uiCount = 0;
+							do
+							{
+								dHWHM_2_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+								vA.Set(0,1.0);
+								vA.Set(1,dHWHM_2_Est); // HWHM
+								dTest = Gaussian(vWL_Data[uiI],vA,&g_cgfpCaNIR)[0];
+								if (dTest > 0.5)
+								{
+									dHWHM_High = dHWHM_2_Est;
+								}
+								else
+								{
+									dHWHM_Low = dHWHM_2_Est;
+								}
+								uiCount++;
+							} while (fabs(dTest - 0.5) > 0.001 && (dHWHM_High / dHWHM_Low > 1.01) && uiCount < 64);
+							dHWHM_2_Est = (0.5 * (dHWHM_High + dHWHM_Low));
+
+							vA.Set_Size(6);
+							vA.Set(0,dAmplitude);
+							vA.Set(1,dHWHM_Est);
+							vA.Set(2,dCentral_WL);
+							vA.Set(3,dAmplitude_2);
+							vA.Set(4,dHWHM_2_Est);
+							vA.Set(5,dCentral_Second_WL);
+
+						}
+
+						printf("User: %f %f %f",vA[0],vA[1],vA[2]);
+						if (m_uiManual_Fit_Central_Second_Idx != -1)
+							printf(" %f %f %f",vA[3],vA[4],vA[5]);
+						printf(" (%f %f)\n",1.0 + Multi_Gaussian(m_vWavelength[m_uiManual_Fit_Central_Idx],vA,&g_cgfpCaNIR)[0],m_vFlux[m_uiManual_Fit_Central_Idx]);
+						m_vFit_Residuals.clear();
+						m_vFlux_Fit.clear();
+						GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+						{
+							double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],vA,lpgfpParamters).Get(0);
+							m_vFlux_Fit.push_back(dY);
+							m_vFit_Residuals.push_back(m_vFlux[uiI] - dY);
+						}
+					}
 				}
 				Request_Refresh();
 			}
