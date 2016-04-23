@@ -148,15 +148,9 @@ void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const d
 	}
 }
 
-XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
-                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF,
- 					XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit, GAUSS_FIT_RESULTS * io_lpDouble_Fit)
+XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters)
 {
-    XVECTOR vRet;
-    XVECTOR vA,vA_Single;
-	XSQUARE_MATRIX mCovariance_Matrix;
-	XSQUARE_MATRIX mCovariance_Matrix_Single;
-    double dSmin_Single, dSmin;
+    XVECTOR vA;
 
 	double	dYmin = DBL_MAX;
 	double	dXmin = 0;
@@ -166,19 +160,39 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	unsigned int uiXmax = 0;
 	double	dSum = 0.0;
 	//std::vector<unsigned int> vuiMinima;
+	std::vector<double> vSmoothed_Data;
 
-	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
+	int iSmooth_Size = 15;
+	double dSmooth_Coeff = 1.0 / (2 * iSmooth_Size + 1);
+	for (unsigned int uiI = 0; uiI < iSmooth_Size; uiI++)
 	{
-		dSum += i_vY.Get(uiI);
-		if (i_vY.Get(uiI) < dYmin)
+		vSmoothed_Data.push_back(i_vY[0]);
+	}
+	for (unsigned int uiI = iSmooth_Size; uiI < (i_vY.Get_Size() - iSmooth_Size); uiI++)
+	{
+		double dVal = 0.0;
+		for (int iJ = -iSmooth_Size; iJ <= iSmooth_Size; iJ++)
+			dVal += i_vY[uiI + iJ] * dSmooth_Coeff;
+		vSmoothed_Data.push_back(dVal);
+	}
+	for (unsigned int uiI = 0; uiI < iSmooth_Size; uiI++)
+	{
+		vSmoothed_Data.push_back(i_vY[i_vY.Get_Size() - 1]);
+	}
+
+
+	for (unsigned int uiI = 0; uiI < vSmoothed_Data.size(); uiI++)
+	{
+		dSum += vSmoothed_Data[uiI];
+		if (vSmoothed_Data[uiI] < dYmin)
 		{
-			dYmin = i_vY.Get(uiI);
+			dYmin = vSmoothed_Data[uiI];
 			dXmin = i_vX.Get(uiI);
 			uiXmin = uiI;
 		}
-		if (i_vY.Get(uiI) > dYmax)
+		if (vSmoothed_Data[uiI] > dYmax)
 		{
-			dYmax = i_vY.Get(uiI);
+			dYmax = vSmoothed_Data[uiI];
 			dXmax = i_vX.Get(uiI);
 			uiXmax = uiI;
 		}
@@ -199,14 +213,14 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		dCenter = dXmin;
 		uiXcenter = uiXmin;
 		uiI = uiXcenter;
-		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) < 0.5*dAmplitude)
+		while (uiI < vSmoothed_Data.size() && vSmoothed_Data[uiI] < 0.5*dAmplitude)
 			uiI++;
-		if (uiI == i_vY.Get_Size())
+		if (uiI == vSmoothed_Data.size())
 			uiI--;
 		printf("%i\n",uiI);
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
-		while (uiI < 0 && i_vY.Get(uiI) < 0.5*dAmplitude)
+		while (uiI < 0 && vSmoothed_Data[uiI] < 0.5*dAmplitude)
 			uiI--;
 		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
@@ -216,14 +230,14 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	{
 		printf("fitting maximum %i\n",uiXcenter);
 		uiI = uiXcenter;
-		while (uiI < i_vY.Get_Size() && i_vY.Get(uiI) > 0.5*dAmplitude)
+		while (uiI < vSmoothed_Data.size() && vSmoothed_Data[uiI] > 0.5*dAmplitude)
 			uiI++;
-		if (uiI == i_vY.Get_Size())
+		if (uiI == vSmoothed_Data.size())
 			uiI--;
 		printf("%i\n",uiI);
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
-		while (uiI > 0 && i_vY.Get(uiI) > 0.5*dAmplitude)
+		while (uiI > 0 && vSmoothed_Data[uiI] > 0.5*dAmplitude)
 			uiI--;
 		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
@@ -262,9 +276,9 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
     vA.Set(0,dAmplitude);
     vA.Set(1,dHWHM);
     vA.Set(2,dCenter);
-	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
+	for (unsigned int uiI = 0; uiI < vSmoothed_Data.size(); uiI++)
 	{
-		double dR = i_vY[uiI] - Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters).Get(0);
+		double dR = vSmoothed_Data[uiI] - Gaussian(i_vX[uiI],vA,(void*)i_lpgfpParamters).Get(0);
 		if (dR < dVariance_Min)
 		{
 			dVariance_Min = dR;
@@ -273,7 +287,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	}
 	dDbl_Center = i_vX[uiVar_Min_Idx];
 	dDbl_Amplitude = dVariance_Min;
-	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) < (0.5 * dDbl_Amplitude))
+	while (uiVar_Min_Idx > 0 && (vSmoothed_Data[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],vA,(void*)i_lpgfpParamters).Get(0)) < (0.5 * dDbl_Amplitude))
 		uiVar_Min_Idx--;
 	vA.Set(0,1.0);
 	vA.Set(2,dDbl_Center);
@@ -300,22 +314,6 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 
 	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,dDbl_Amplitude,dDbl_HWHM,dDbl_Center);
 
-    vA.Set(0,dAmplitude);
-    vA.Set(1,dHWHM);
-    vA.Set(2,dCenter);
-    // Perform LSQ fit
-    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
-    {
-        vA_Single = vA;
-        dSmin_Single = dSmin;
-        mCovariance_Matrix_Single = mCovariance_Matrix;
-		if (io_lpSingle_Fit)
-		{
-			io_lpSingle_Fit->m_vA = vA;
-			io_lpSingle_Fit->m_dS = dSmin;
-			io_lpSingle_Fit->m_mCovariance = mCovariance_Matrix;
-		}
-    }
 	vA.Set_Size(6);
 	if (dCenter > dDbl_Center)
 	{
@@ -335,9 +333,38 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		vA.Set(4,dHWHM);
 		vA.Set(5,dCenter);
 	}
+	return vA;
+}
+XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
+                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF,
+ 					XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit, GAUSS_FIT_RESULTS * io_lpDouble_Fit)
+{
+    XVECTOR vRet;
+    XVECTOR vA,vA_Double,vA_Single;
+	XSQUARE_MATRIX mCovariance_Matrix;
+	XSQUARE_MATRIX mCovariance_Matrix_Single;
+    double dSmin_Single, dSmin;
+
+	vA_Double = Estimate_Gaussian_Fit(i_vX,i_vY,i_lpgfpParamters);
     // Perform LSQ fit
-    //if (bVerbose)
-    //    printf("Performing double unflat fit\n");
+	vA.Set_Size(3);
+    vA.Set(0,vA_Double[0]);
+    vA.Set(1,vA_Double[1]);
+    vA.Set(2,vA_Double[2]);
+    // Perform LSQ fit
+    if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
+    {
+        vA_Single = vA;
+        dSmin_Single = dSmin;
+        mCovariance_Matrix_Single = mCovariance_Matrix;
+		if (io_lpSingle_Fit)
+		{
+			io_lpSingle_Fit->m_vA = vA;
+			io_lpSingle_Fit->m_dS = dSmin;
+			io_lpSingle_Fit->m_mCovariance = mCovariance_Matrix;
+		}
+    }
+	vA = vA_Double;
     mCovariance_Matrix.Zero();
     if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,256))
     {
