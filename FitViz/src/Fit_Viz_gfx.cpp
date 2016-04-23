@@ -99,7 +99,7 @@ void FIT_VIZ_MAIN::Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode
 	if (i_uiIdx != -1)
 	{
 		double dWL_scale = 0.90 / (m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]);
-		double dFlux_Scale = 0.90 / 2.0;//(m_dMax_Flux * 1.25);
+		double dFlux_Scale = 0.90 * 0.5 * 0.5;//(m_dMax_Flux * 1.25);
 
 		switch (i_eMode)
 		{
@@ -139,7 +139,7 @@ void FIT_VIZ_MAIN::Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode
 		if (m_vFit_Residuals.size() > 0)
 		{
 			glPushMatrix();
-				glTranslated(0.0,0.75,0.0);
+				glTranslated(0.0,0.85,0.0);
 				glScaled(1.0,0.25,1.0);
 				glBegin(GL_LINES);
 					double dX = (m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale;
@@ -152,6 +152,46 @@ void FIT_VIZ_MAIN::Display_Man_Select_Item(unsigned int i_uiIdx, man_select_mode
 				glScaled(1.0/i_dSize,1.0,1.0); // adjust for aspect ratio
 				std::ostringstream sTextResid;
 				sTextResid << m_vFit_Residuals[i_uiIdx];
+				glPrintJustified(i_pdSize.m_tY * 0.05,0.0,0.0,0.0,sTextResid.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPopMatrix();
+		}
+		// first derivative
+		if (m_vFlux_Deriv.size() > 0)
+		{
+			glPushMatrix();
+				glTranslated(0.0,0.55,0.0);
+				glScaled(1.0,0.25,1.0);
+				glBegin(GL_LINES);
+					double dX = (m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale;
+					double dY = m_vFlux_Deriv[i_uiIdx] * dFlux_Scale / m_dFlux_Deriv_Max;
+					glVertex2d(dX,dY);
+					glVertex2d(dX,-dFlux_Scale);
+				glEnd();
+				glTranslated(dX + dWL_scale * 5.0,-dFlux_Scale, 0.0);
+				glScaled(1.0/i_pdSize.m_tX,1.0/i_pdSize.m_tY,1.0); // undo button scaling
+				glScaled(1.0/i_dSize,1.0,1.0); // adjust for aspect ratio
+				std::ostringstream sTextResid;
+				sTextResid << m_vFlux_Deriv[i_uiIdx];
+				glPrintJustified(i_pdSize.m_tY * 0.05,0.0,0.0,0.0,sTextResid.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPopMatrix();
+		}
+		// second derivative
+		if (m_vFlux_Deriv.size() > 0)
+		{
+			glPushMatrix();
+				glTranslated(0.0,0.70,0.0);
+				glScaled(1.0,0.25,1.0);
+				glBegin(GL_LINES);
+					double dX = (m_vWavelength[i_uiIdx] - m_vWavelength[0]) * dWL_scale;
+					double dY = m_vFlux_Second_Deriv[i_uiIdx] * m_dFlux_Second_Deriv_Max / m_dFlux_Deriv_Max;
+					glVertex2d(dX,dY);
+					glVertex2d(dX,-dFlux_Scale);
+				glEnd();
+				glTranslated(dX + dWL_scale * 5.0,-dFlux_Scale, 0.0);
+				glScaled(1.0/i_pdSize.m_tX,1.0/i_pdSize.m_tY,1.0); // undo button scaling
+				glScaled(1.0/i_dSize,1.0,1.0); // adjust for aspect ratio
+				std::ostringstream sTextResid;
+				sTextResid << m_vFlux_Second_Deriv[i_uiIdx];
 				glPrintJustified(i_pdSize.m_tY * 0.05,0.0,0.0,0.0,sTextResid.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 			glPopMatrix();
 		}
@@ -375,7 +415,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					glPopMatrix();
 					break;
 				case MAN_FIT_RED:
-					if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
+					if (m_eFit_Method == fm_manual)
 						glColor4d(0.75,0.0,0.0,1.0);
 					else
 						glColor4d(0.06125,0.25,0.25,1.0);
@@ -385,7 +425,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					Draw_Rounded_Rectangle(false);
 					break;
 				case MAN_FIT_CENTER:
-					if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
+					if (m_eFit_Method == fm_manual)
 						glColor4d(0.75,0.75,0.0,1.0);
 					else
 						glColor4d(0.06125,0.25,0.25,1.0);
@@ -634,7 +674,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 					glPopMatrix();
 					break;
 				case MAN_FIT_QUALITY_TEXT:
-					if (m_eFit_Method == fm_manual && m_vFlux_Fit.size() > 0)
+					if ((m_eFit_Method == fm_manual || m_eFit_Method == fm_auto) && m_vFlux_Fit.size() > 0)
 					{
 						glColor4d(0.0,0.0,0.0,1.0);
 						glPushMatrix();
@@ -823,7 +863,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glPrintJustified(0.05,0.0,-0.01,0.0,sWL2.str().c_str(),HJ_CENTER,VJ_TOP);
 						glPopMatrix();
 						double dWL_scale = 0.90 / (m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]);
-						double dFlux_Scale = 0.90 / 2.0;//(m_dMax_Flux * 1.25);
+						double dFlux_Scale = 0.90 * 0.5 * 0.5;//(m_dMax_Flux * 1.25);
 						glTranslated(0.05,0.1,0.0);
 						glBegin(GL_LINE_STRIP);
 						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
@@ -905,7 +945,31 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							glEnd();
 							// draw residuals
 							glPushMatrix();
-							glTranslated(0.0,0.75,0.0);
+								glTranslated(0.0,0.85,0.0);
+								glScaled(1.0,0.25,1.0);
+								glColor4d(0.0,0.0,0.0,1.0);
+								glBegin(GL_LINES);
+									glVertex2d(0.0,0.0);
+									glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,0.0);
+									glVertex2d(0.0,-dFlux_Scale);
+									glVertex2d(0.0,dFlux_Scale);
+									glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,-dFlux_Scale);
+									glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,dFlux_Scale);
+								glEnd();
+								glColor4d(0.0,0.75,0.75,1.0);
+								glBegin(GL_LINE_STRIP);
+								for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+								{
+									double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
+									double dY = m_vFit_Residuals[uiI] * dFlux_Scale;
+									glVertex2d(dX,dY);
+								}
+								glEnd();
+							glPopMatrix();
+						}
+						// draw derivattive
+						glPushMatrix();
+							glTranslated(0.0,0.55,0.0);
 							glScaled(1.0,0.25,1.0);
 							glColor4d(0.0,0.0,0.0,1.0);
 							glBegin(GL_LINES);
@@ -921,12 +985,34 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 							{
 								double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
-								double dY = m_vFit_Residuals[uiI] * dFlux_Scale;
+								double dY = m_vFlux_Deriv[uiI] * dFlux_Scale / m_dFlux_Deriv_Max;
 								glVertex2d(dX,dY);
 							}
 							glEnd();
-							glPopMatrix();
-						}
+						glPopMatrix();
+						// draw second derivattive
+						glPushMatrix();
+							glTranslated(0.0,0.70,0.0);
+							glScaled(1.0,0.25,1.0);
+							glColor4d(0.0,0.0,0.0,1.0);
+							glBegin(GL_LINES);
+								glVertex2d(0.0,0.0);
+								glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,0.0);
+								glVertex2d(0.0,-dFlux_Scale);
+								glVertex2d(0.0,dFlux_Scale);
+								glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,-dFlux_Scale);
+								glVertex2d((m_vWavelength[m_vWavelength.size() - 1] - m_vWavelength[0]) * dWL_scale,dFlux_Scale);
+							glEnd();
+							glColor4d(0.0,0.75,0.75,1.0);
+							glBegin(GL_LINE_STRIP);
+							for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+							{
+								double dX = (m_vWavelength[uiI] - m_vWavelength[0]) * dWL_scale;
+								double dY = m_vFlux_Second_Deriv[uiI] * dFlux_Scale / m_dFlux_Second_Deriv_Max;
+								glVertex2d(dX,dY);
+							}
+							glEnd();
+						glPopMatrix();
 						glColor4d(1.0,1.0,0.0,1.0);
 						glPushMatrix();
 							glTranslated((m_pGlobal_Min.m_tX - m_vWavelength[0]) * dWL_scale,m_pGlobal_Min.m_tY * dFlux_Scale, 0.0);
@@ -972,7 +1058,7 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 								glEnd();
 							glPopMatrix();
 						}
-						else if (m_eFit_Method == fm_manual)
+						else if (m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 						{
 							if (m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1)
 							{
@@ -989,6 +1075,60 @@ void FIT_VIZ_MAIN::gfx_display(pane_id i_idPane) // primary display routine
 
 						}
 						Display_Man_Select_Item(m_uiInfo_Idx,MS_OFF,dSize,pdSize);
+						std::ostringstream szA0;
+						std::ostringstream szA1;
+						std::ostringstream szA2;
+						bool bShow_Six = false;;
+						std::ostringstream szA3;
+						std::ostringstream szA4;
+						std::ostringstream szA5;
+						if (m_eFit_Method == fm_jeff || m_eFit_Method == fm_flat)
+						{
+							szA0 << m_vGaussian_Fit_Data[0];
+							szA1 << m_vGaussian_Fit_Data[1];
+							szA2 << m_vGaussian_Fit_Data[2];
+							if (m_vGaussian_Fit_Data.Get_Size() == 6)
+							{
+								bShow_Six = true;
+								szA3 << m_vGaussian_Fit_Data[3];
+								szA4 << m_vGaussian_Fit_Data[4];
+								szA5 << m_vGaussian_Fit_Data[5];
+							}
+						}
+						else
+						{
+							szA0 << m_vManual_Fit_Data[0];
+							szA1 << m_vManual_Fit_Data[1];
+							szA2 << m_vManual_Fit_Data[2];
+							if (m_vManual_Fit_Data.Get_Size() == 6)
+							{
+								bShow_Six = true;
+								szA3 << m_vManual_Fit_Data[3];
+								szA4 << m_vManual_Fit_Data[4];
+								szA5 << m_vManual_Fit_Data[5];
+							}
+						}
+						glPushMatrix();
+							glColor4d(0.0,0.0,0.0,1.0);
+
+							glTranslated(-0.1,0.3,0.0);
+							glScaled(1.0/dSize,1.0,1.0);
+							glPrintJustified(0.025,0.0,0.0,0.0,szA0.str().c_str(),HJ_LEFT,VJ_TOP);
+							glTranslated(0.0,-0.025,0.0);
+							glPrintJustified(0.025,0.0,0.0,0.0,szA1.str().c_str(),HJ_LEFT,VJ_TOP);
+							glTranslated(0.0,-0.025,0.0);
+							glPrintJustified(0.025,0.0,0.0,0.0,szA2.str().c_str(),HJ_LEFT,VJ_TOP);
+							if (bShow_Six)
+							{
+								glTranslated(0.0,-0.050,0.0);
+								glPrintJustified(0.025,0.0,0.0,0.0,szA3.str().c_str(),HJ_LEFT,VJ_TOP);
+								glTranslated(0.0,-0.025,0.0);
+								glPrintJustified(0.025,0.0,0.0,0.0,szA4.str().c_str(),HJ_LEFT,VJ_TOP);
+								glTranslated(0.0,-0.025,0.0);
+								glPrintJustified(0.025,0.0,0.0,0.0,szA5.str().c_str(),HJ_LEFT,VJ_TOP);
+							}
+						glPopMatrix();
+
 					}
 					break;
 				}

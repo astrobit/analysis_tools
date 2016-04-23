@@ -118,6 +118,8 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 		}
 		m_vWavelength.clear();
 		m_vFlux.clear();
+		m_vFlux_Flat.clear();
+		m_vFlux_Unflat.clear();
 		m_vFlux_Shell.clear();
 		m_vFlux_Ejecta.clear();
 		m_dMax_Flux = -1;
@@ -141,7 +143,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				if (m_dDay_Fit_Data.GetElement(0,uiI) == m_vModel_List[m_uiSelected_Model])
 				{
 					uiFound_Row = uiI;
-					if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual)
+					if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 					{
 						if (m_dDay_Fit_Data.GetElement(33,uiI) == -1)
 							m_vGaussian_Fit_Data.Set_Size(3);
@@ -180,7 +182,8 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				unsigned int uiFlux_Col = uiFound_Row * 7 + 1;
 				unsigned int uiFlux_Ejecta_Col = uiFound_Row * 7 + 1;
 				unsigned int uiFlux_Shell_Col = uiFound_Row * 7 + 1;
-				if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual)
+
+				if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 				{
 					uiFlux_Col += 2;
 					uiFlux_Ejecta_Col += 4;
@@ -214,9 +217,11 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 					double dFlux_Shell = m_dDay_Spectrum_Data.GetElement(uiFlux_Shell_Col,uiI);
 					m_vWavelength.push_back(dWL);
 					m_vFlux.push_back(dFlux);
+					m_vFlux_Flat.push_back(m_dDay_Spectrum_Data.GetElement(uiFlux_Col_Flat,uiI));
+					m_vFlux_Unflat.push_back(m_dDay_Spectrum_Data.GetElement(uiFlux_Col_Jeff,uiI));
 					m_vFlux_Shell.push_back(dFlux_Shell);
 					m_vFlux_Ejecta.push_back(dFlux_Ejecta);
-					if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual)
+					if (m_eFit_Method == fm_flat || m_eFit_Method == fm_manual || m_eFit_Method == fm_auto)
 					{
 						if (dFlux < 1.0)
 							m_dTotal_Flat_pEW += dDelta_Lambda * (1.0 - dFlux);
@@ -318,7 +323,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 
 				m_vFlux_Fit.clear();
 				m_vFit_Residuals.clear();
-				if (m_eFit_Method != fm_manual)
+				if (m_eFit_Method != fm_manual && m_eFit_Method != fm_auto)
 				{
 					for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 					{
@@ -337,7 +342,84 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 						m_vFit_Residuals.push_back(m_vFlux[uiI] - dY);
 					}
 				}
+				std::vector<double> vDeriv;
+				m_vFlux_Deriv.clear();
+				vDeriv.push_back(0.0);
+				vDeriv.push_back(0.0);
+				vDeriv.push_back(0.0);
+				vDeriv.push_back(0.0);
+				m_dFlux_Deriv_Max = 0.0;
+				double	dInv_dW = 1.0 / (m_vWavelength[1] - m_vWavelength[0]);
+				for (unsigned int uiI = 4; uiI < (m_vFlux.size() - 4); uiI++)
+				{
+					double	dA = m_vFlux[uiI + 4] * 0.0;// / -280.0;
+					double	dB = m_vFlux[uiI + 3] * 0.0;// / 105.0 * 4.0;
+					double	dC = m_vFlux[uiI + 2] * 0.0;// / -5.0;
+					double	dD = m_vFlux[uiI + 1] * 0.5; // / 5.0 * 4.0;
+//					double	dE = m_vFlux[uiI + 0] / -280.0;
+					double	dF = m_vFlux[uiI - 1] * -0.5; // / -5.0 * 4.0;
+					double	dG = m_vFlux[uiI - 2] * 0.0;// / 5.0;
+					double	dH = m_vFlux[uiI - 3] * 0.0;// / -105.0 * 4.0;
+					double	dI = m_vFlux[uiI - 4] * 0.0;// / 280.0;
+ 
+					double dDeriv = (dA + dB + dC + dD + dF + dG + dH + dI) * dInv_dW;
+					vDeriv.push_back(dDeriv);
+					if (fabs(dDeriv) > m_dFlux_Deriv_Max)
+						m_dFlux_Deriv_Max = fabs(dDeriv);
+				}
+				vDeriv.push_back(0.0);
+				vDeriv.push_back(0.0);
+				vDeriv.push_back(0.0);
+				vDeriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				for (unsigned int uiI = 7; uiI < (vDeriv.size() - 7); uiI++)
+				{
+					double dVal = 0.0;
+					for (int iJ = -7; iJ <= 7; iJ++)
+						dVal += vDeriv[uiI - iJ] / 15.0;
+					m_vFlux_Deriv.push_back(dVal);
+				}
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
+				m_vFlux_Deriv.push_back(0.0);
 
+				m_vFlux_Second_Deriv.clear();
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_dFlux_Second_Deriv_Max = 0.0;
+				for (unsigned int uiI = 4; uiI < (m_vFlux.size() - 4); uiI++)
+				{
+					double	dA = m_vFlux[uiI + 4] / -560.0;
+					double	dB = m_vFlux[uiI + 3] / 315.0 * 8.0;
+					double	dC = m_vFlux[uiI + 2] / -5.0;
+					double	dD = m_vFlux[uiI + 1] / 5.0 * 8.0;
+					double	dE = m_vFlux[uiI] / 72.0 * -205.0;
+					double	dF = m_vFlux[uiI - 1] / 5.0 * 8.0;
+					double	dG = m_vFlux[uiI - 2] / -5.0;
+					double	dH = m_vFlux[uiI - 3] / 315.0 * 8.0;
+					double	dI = m_vFlux[uiI - 4] / -560.0;
+ 
+					double dDeriv = (dA + dB + dC + dD + dE + dF + dG + dH + dI) * dInv_dW * dInv_dW;
+					m_vFlux_Second_Deriv.push_back(dDeriv);
+					if (fabs(dDeriv) > m_dFlux_Second_Deriv_Max)
+						m_dFlux_Second_Deriv_Max = fabs(dDeriv);
+				}
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_vFlux_Second_Deriv.push_back(0.0);
+				m_vFlux_Second_Deriv.push_back(0.0);
 			}
 		}
 	}

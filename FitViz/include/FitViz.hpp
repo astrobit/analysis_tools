@@ -129,10 +129,16 @@ private:
 	double			m_dMF_Quality;
 
 	std::vector<double>	m_vWavelength;
+	std::vector<double> m_vFlux_Unflat;
+	std::vector<double> m_vFlux_Flat;
 	std::vector<double> m_vFlux;
 	std::vector<double> m_vFlux_Shell;
 	std::vector<double> m_vFlux_Ejecta;
 	std::vector<double> m_vFlux_Fit;
+	std::vector<double> m_vFlux_Deriv;
+	double	m_dFlux_Deriv_Max;
+	std::vector<double> m_vFlux_Second_Deriv;
+	double	m_dFlux_Second_Deriv_Max;
 
 	std::vector<double>	m_vFit_Residuals;
 	double		m_dMax_Flux;

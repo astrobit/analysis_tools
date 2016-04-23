@@ -1,5 +1,6 @@
 #include <FitViz.hpp>
 #include <line_routines.h>
+#include <cfloat>
 
 void FIT_VIZ_MAIN::on_key_down(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State)
 {
@@ -343,10 +344,107 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 			Request_Refresh();
 			break;
 		case AUTO_FIT_TEST:
-			if (m_eFit_Method != fm_manual && m_eFit_Method != fm_auto)
+			if (m_eFit_Method != fm_manual)
 			{
 				m_eFit_Method = fm_auto;
 				Load_Display_Info();
+				bool bIn_feature = false;
+				unsigned int uiContinuum_Blue_Idx = -1;
+				unsigned int uiContinuum_Red_Idx = -1;
+				unsigned int uiMin_Flux_Idx = -1;
+				unsigned int uiMax_Flux_Idx = -1;
+				double dMin_Flux_Flat = DBL_MAX;
+				double dMax_Flux_Flat = -DBL_MAX;
+				unsigned int uiP_Cygni_Min_Idx = 0;
+				double dP_Cygni_Peak_Flux = -DBL_MAX;
+
+				for (unsigned int uiJ = 0; uiJ < m_vFlux_Flat.size(); uiJ++)
+				{
+					double dFlat_Flux = m_vFlux_Flat[uiJ];
+
+					bIn_feature |= (1.0 - dFlat_Flux) > 1.0e-2;
+					if (!bIn_feature)
+						uiContinuum_Blue_Idx = uiJ;
+					if (m_vFlux_Flat[uiJ] < 1.000 && m_vFlux_Flat[uiJ] < dMin_Flux_Flat)
+					{
+						dMin_Flux_Flat = m_vFlux_Flat[uiJ];
+						uiMin_Flux_Idx = uiJ;
+					}
+				}
+				// find the global maximum over this range
+				for (unsigned int uiJ = m_vFlux_Flat.size() - 1; uiJ > uiMin_Flux_Idx; uiJ--)
+				{
+					if (m_vFlux_Flat[uiJ] > dMax_Flux_Flat)
+					{
+						dMax_Flux_Flat = m_vFlux_Flat[uiJ];
+						uiMax_Flux_Idx = uiJ;
+					}
+				}
+				// find the edge of the absorbtion region blueward of the peak
+				for (unsigned int uiJ = uiMax_Flux_Idx; uiJ > uiMin_Flux_Idx && uiP_Cygni_Min_Idx == 0; uiJ--)
+				{
+					if (m_vFlux_Flat[uiJ] < 1.0000 && uiP_Cygni_Min_Idx == 0) // determine max index of absorption region
+						uiP_Cygni_Min_Idx = uiJ;
+				}
+
+				if (uiP_Cygni_Min_Idx == 0)
+					uiP_Cygni_Min_Idx = m_vFlux.size() - 1;
+				if (uiMin_Flux_Idx == -1)
+				{
+					fprintf(stderr,"Fault in min flux for model\n");
+					uiMin_Flux_Idx = 0;
+				}
+				if (uiMin_Flux_Idx != (unsigned int)(-1))
+				{
+					while (uiContinuum_Blue_Idx > 0 && m_vFlux_Flat[uiContinuum_Blue_Idx] < 0.99)
+						uiContinuum_Blue_Idx--;
+					for (unsigned int uiJ = uiMin_Flux_Idx; uiJ < m_vFlux_Flat.size(); uiJ++)
+					{
+						if (m_vFlux_Flat[uiJ] > 0.99 && m_vFlux_Unflat[uiJ] > dP_Cygni_Peak_Flux)
+						{
+							dP_Cygni_Peak_Flux = m_vFlux_Unflat[uiJ];
+							uiContinuum_Red_Idx = uiJ;
+						}
+					}
+					if (uiContinuum_Red_Idx >= uiContinuum_Blue_Idx)
+					{
+						unsigned int uiNum_Points = uiContinuum_Red_Idx - uiContinuum_Blue_Idx + 1;
+
+						m_uiManual_Fit_Blue_Idx = 0;
+						m_uiManual_Fit_Red_Idx = uiP_Cygni_Min_Idx;
+						XVECTOR vX,vY;
+
+		                vX.Set_Size(uiP_Cygni_Min_Idx);
+		                vY.Set_Size(uiP_Cygni_Min_Idx);
+		                for (unsigned int uiJ = 0; uiJ < uiP_Cygni_Min_Idx; uiJ++)
+		                {
+		                    vX.Set(uiJ,m_vWavelength[uiJ]);
+		                    vY.Set(uiJ,m_vFlux_Flat[uiJ] - 1.0);
+		                }
+						m_vManual_Fit_Data = Estimate_Gaussian_Fit(vX, vY, &g_cgfpCaNIR);
+		                for (unsigned int uiJ = 0; uiJ < uiP_Cygni_Min_Idx; uiJ++)
+		                {
+							if (m_vManual_Fit_Data[2] > m_vWavelength[uiJ])
+							{
+								m_uiManual_Fit_Central_Idx = uiJ;
+							}
+							if (m_vManual_Fit_Data[5] > m_vWavelength[uiJ])
+							{
+								m_uiManual_Fit_Central_Second_Idx = uiJ;
+							}
+		                }
+						m_vFit_Residuals.clear();
+						m_vFlux_Fit.clear();
+						GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
+						{
+							double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);
+							m_vFlux_Fit.push_back(dY);
+							m_vFit_Residuals.push_back(m_vFlux[uiI] - dY);
+						}
+	  				}
+				}
+
 			}
 			else
 				m_eFit_Method = fm_auto;
@@ -389,10 +487,7 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 				m_eMan_Select_Mode = MS_CENTER_SECOND;
 			break;
 		case MAN_FIT_EXEC:
-			if (m_eFit_Method == fm_auto)
-			{
-			}
-			else if (m_eFit_Method == fm_manual && m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1 && m_uiManual_Fit_Central_Idx != -1)
+			if ((m_eFit_Method == fm_manual || m_eFit_Method == fm_auto) && m_uiManual_Fit_Blue_Idx != -1 && m_uiManual_Fit_Red_Idx != -1 && m_uiManual_Fit_Central_Idx != -1)
 			{
 				std::vector<double> vWL_Data;
 				std::vector<double> vFlux_Data;
