@@ -27,24 +27,45 @@ XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 {
 	XVECTOR vOut;
 
-	vOut.Set_Size(4); // function, and derivatives wrt each a parameter
+	if (i_lpvData)
+	{
+		vOut.Set_Size(4); // function, and derivatives wrt each a parameter
+		GAUSS_FIT_PARAMETERS *lpvParam = (GAUSS_FIT_PARAMETERS *) i_lpvData;
+		double	dDelx_X, dDel_X_Sigma_1, dDel_X_Sigma_2, dDel_X_Sigma_3 = 0.0;
+		double	dExp_1, dExp_2, dExp_3 = 0.0;
+		double	dDel_X;
+		double	dInv_Sigma;
 
-	GAUSS_FIT_PARAMETERS *lpvParam = (GAUSS_FIT_PARAMETERS *) i_lpvData;
-	double	dDelx_X, dDel_X_Sigma_1, dDel_X_Sigma_2, dDel_X_Sigma_3 = 0.0;
-	double	dExp_1, dExp_2, dExp_3 = 0.0;
-	double	dDel_X;
-	double	dInv_Sigma;
+		dInv_Sigma = 1.0 / i_vA.Get(1);
 
-	dInv_Sigma = 1.0 / i_vA.Get(1);
+		if (lg_cUser_Paramters != lpvParam[0] || lg_dUser_Sigma != i_vA.Get(1))
+		{ // calculate the normalization coefficient; it's a bit wonky because of how the 'x' component of the Gaussian is calclated
+			lg_dUser_Sigma = i_vA.Get(1);
+			lg_cUser_Paramters = lpvParam[0];
 
-	if (lg_cUser_Paramters != lpvParam[0] || lg_dUser_Sigma != i_vA.Get(1))
-	{ // calculate the normalization coefficient; it's a bit wonky because of how the 'x' component of the Gaussian is calclated
-		lg_dUser_Sigma = i_vA.Get(1);
-		lg_cUser_Paramters = lpvParam[0];
+			dDel_X_Sigma_2 = 0.0;
 
-		dDel_X_Sigma_2 = 0.0;
+			dDel_X = i_vA.Get(2) * (1.0 / lpvParam->m_dW_Ratio_1 - 1.0);
+			dDel_X_Sigma_1 = dDel_X * dInv_Sigma;
 
-		dDel_X = i_vA.Get(2) * (1.0 / lpvParam->m_dW_Ratio_1 - 1.0);
+			dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * lpvParam->m_dH_Ratio_1;
+			dExp_2 = exp(-0.5 * dDel_X_Sigma_2 * dDel_X_Sigma_2);
+			dExp_3 = 0.0;
+
+			if (lpvParam->m_dW_Ratio_2 != 0.0)
+			{
+				dDel_X = i_vA.Get(2) * (1.0 / lpvParam->m_dW_Ratio_2 - 1.0);
+				dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
+				dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
+			}
+			lg_dNorm = 1.0 / (dExp_1 + dExp_2 + dExp_3);
+		}
+
+		dDel_X = i_dX - i_vA.Get(2);
+		dDel_X_Sigma_2 = dDel_X * dInv_Sigma;
+
+
+		dDel_X = i_dX / lpvParam->m_dW_Ratio_1 - i_vA.Get(2);
 		dDel_X_Sigma_1 = dDel_X * dInv_Sigma;
 
 		dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * lpvParam->m_dH_Ratio_1;
@@ -53,34 +74,15 @@ XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 
 		if (lpvParam->m_dW_Ratio_2 != 0.0)
 		{
-			dDel_X = i_vA.Get(2) * (1.0 / lpvParam->m_dW_Ratio_2 - 1.0);
+			dDel_X = i_dX / lpvParam->m_dW_Ratio_2 - i_vA.Get(2);
 			dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
 			dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
 		}
-		lg_dNorm = 1.0 / (dExp_1 + dExp_2 + dExp_3);
+		vOut.Set(0,i_vA.Get(0) * (dExp_1 + dExp_2 + dExp_3) * lg_dNorm);
+		vOut.Set(1,(dExp_1 + dExp_2 + dExp_3) * lg_dNorm);
+		vOut.Set(2,i_vA.Get(0) * lg_dNorm * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3));
+		vOut.Set(3,i_vA.Get(0) * lg_dNorm * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3));
 	}
-
-	dDel_X = i_dX - i_vA.Get(2);
-	dDel_X_Sigma_2 = dDel_X * dInv_Sigma;
-
-
-	dDel_X = i_dX / lpvParam->m_dW_Ratio_1 - i_vA.Get(2);
-	dDel_X_Sigma_1 = dDel_X * dInv_Sigma;
-
-	dExp_1 = exp(-0.5 * dDel_X_Sigma_1 * dDel_X_Sigma_1) * lpvParam->m_dH_Ratio_1;
-	dExp_2 = exp(-0.5 * dDel_X_Sigma_2 * dDel_X_Sigma_2);
-	dExp_3 = 0.0;
-
-	if (lpvParam->m_dW_Ratio_2 != 0.0)
-	{
-		dDel_X = i_dX / lpvParam->m_dW_Ratio_2 - i_vA.Get(2);
-		dDel_X_Sigma_3 = dDel_X * dInv_Sigma;
-		dExp_3 = exp(-0.5 * dDel_X_Sigma_3 * dDel_X_Sigma_3) * lpvParam->m_dH_Ratio_2;
-	}
-	vOut.Set(0,i_vA.Get(0) * (dExp_1 + dExp_2 + dExp_3) * lg_dNorm);
-	vOut.Set(1,(dExp_1 + dExp_2 + dExp_3) * lg_dNorm);
-	vOut.Set(2,i_vA.Get(0) * lg_dNorm * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3 * dDel_X_Sigma_3));
-	vOut.Set(3,i_vA.Get(0) * lg_dNorm * dInv_Sigma * (dExp_1 * dDel_X_Sigma_1 + dExp_2 * dDel_X_Sigma_2 + dExp_3 * dDel_X_Sigma_3));
 	return vOut;
 }
 XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
@@ -150,7 +152,7 @@ void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const d
 
 double Determine_HWHM(const double & i_dHWHM_Estimate, const double & i_dCenter, const double & i_dHWHM_X, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters)
 {
-	printf("DHWHM: %f %f %f\n",i_dHWHM_Estimate,i_dCenter,i_dHWHM_X);
+//	printf("DHWHM: %f %f %f\n",i_dHWHM_Estimate,i_dCenter,i_dHWHM_X);
 	double dHWHM_Low = i_dHWHM_Estimate * 0.50;
 	double dHWHM_High = i_dHWHM_Estimate;
 	double	dHWHM;
@@ -269,7 +271,7 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	unsigned int uiXcenter = uiXmax;
 	if (fabs(dYmax) < fabs(dYmin))
 	{
-		printf("fitting minimum %i\n",uiXcenter);
+///		printf("fitting minimum %i\n",uiXcenter);
 		dAmplitude *= -1;
 		dCenter = dXmin;
 		uiXcenter = uiXmin;
@@ -278,29 +280,29 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 			uiI++;
 		if (uiI == vSmoothed_Data.size())
 			uiI--;
-		printf("%i\n",uiI);
+//		printf("%i\n",uiI);
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
 		while (uiI < 0 && vSmoothed_Data[uiI] < 0.5*dAmplitude)
 			uiI--;
-		printf("%i\n",uiI);
+//		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = fabs(dXright - dXleft);
 	}
 	else
 	{
-		printf("fitting maximum %i\n",uiXcenter);
+//		printf("fitting maximum %i\n",uiXcenter);
 		uiI = uiXcenter;
 		while (uiI < vSmoothed_Data.size() && vSmoothed_Data[uiI] > 0.5*dAmplitude)
 			uiI++;
 		if (uiI == vSmoothed_Data.size())
 			uiI--;
-		printf("%i\n",uiI);
+//		printf("%i\n",uiI);
 		double dXright = i_vX.Get(uiI);
 		uiI = uiXcenter;
 		while (uiI > 0 && vSmoothed_Data[uiI] > 0.5*dAmplitude)
 			uiI--;
-		printf("%i\n",uiI);
+//		printf("%i\n",uiI);
 		double dXleft = i_vX.Get(uiI);
 		dHWHM = fabs(dXright - dXleft);
 	}
@@ -313,7 +315,7 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	vA.Set(1,dHWHM);
 	vA.Set(2,dCenter);
 	vA2 = Estimate_Second_Gaussian(vA,i_vX,vSmoothed_Data,i_lpgfpParamters);
-	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,vA2[0],vA2[1],vA2[2]);
+//	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,vA2[0],vA2[1],vA2[2]);
 
 	vA.Set_Size(6);
 	if (dCenter > vA2[2])
@@ -360,11 +362,11 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	unsigned int uiCount = 0;
 	while (dSmin == 0.0 && vA[2] >= i_vX[0] && vA[2] <= i_vX[i_vX.Get_Size() - 1])
 	{
-		printf("PGs: %f %f %f\n",vA[0],vA[1],vA[2]);
+//		printf("PGs: %f %f %f\n",vA[0],vA[1],vA[2]);
 		mCovariance_Matrix.Zero();
 		if (GeneralFit(i_vX, i_vY ,i_vW, Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,512,-30,NULL,&vAest))
 		{
-			printf("PGs-r: %f %f %f\n",vA[0],vA[1],vA[2]);
+//			printf("PGs-r: %f %f %f\n",vA[0],vA[1],vA[2]);
 		    vA_Single = vA;
 		    dSmin_Single = dSmin;
 		    mCovariance_Matrix_Single = mCovariance_Matrix;
@@ -377,7 +379,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
 		else
 		{
-			printf("PGs-e: %f %f %f\n",vAest[0],vAest[1],vAest[2]);
+//			printf("PGs-e: %f %f %f\n",vAest[0],vAest[1],vAest[2]);
 			if (dPerturb < 0)
 				dPerturb *= -2;
 			else
@@ -391,10 +393,10 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	while (dSmin == 0.0 && vA[2] >= i_vX[0] && vA[2] <= i_vX[i_vX.Get_Size() - 1])
 	{
 		mCovariance_Matrix.Zero();
-		printf("PGd-s: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
+//		printf("PGd-s: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
 		if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,512,-30,NULL,&vAest))
 		{
-			printf("PGd-r: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
+//			printf("PGd-r: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
 			if (io_lpDouble_Fit)
 			{
 				io_lpDouble_Fit->m_vA = vA;
@@ -411,7 +413,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
 		else
 		{
-			printf("PGd-e: %f %f %f - %f %f %f\n",vAest[0],vAest[1],vAest[2],vAest[3],vAest[4],vAest[5]);
+//			printf("PGd-e: %f %f %f - %f %f %f\n",vAest[0],vAest[1],vAest[2],vAest[3],vAest[4],vAest[5]);
 			if (dPerturb < 0)
 				dPerturb *= -2;
 			else
