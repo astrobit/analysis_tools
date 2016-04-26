@@ -146,7 +146,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		if (setModel_List.count(uiI) != 0)
 		{
-			fprintf(fileOutTex,"%i & %.1f & %s & %s & ",uiI,dTime, szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "$\\gamma$" : "?"));
+			fprintf(fileOutTex,"%i & %s & %s & ",uiI,szGam_Expl_Model.c_str(),eEos_Type == HELM ? "H" : (eEos_Type == GAMMA ? "$\\gamma$" : "?"));
 
 			if (uiShell_Type == 0)
 				 fprintf(fileOutTex,"\\ldots & \\ldots & \\ldots & \\ldots & ");
@@ -156,7 +156,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fprintf(fileOutTex,"%.3f & %2s & %.3f & %.3f & ",dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		}
 		fprintf(fileOut,"%i",uiI);
-		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
+/*		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
 		{
 			OPACITY_PROFILE_DATA::GROUP eGroup = (OPACITY_PROFILE_DATA::GROUP)(OPACITY_PROFILE_DATA::CARBON + uiElem);
 			double dLog_Rel = log10(cOP_Data.Get_Scalar(eGroup) / cReference_OP_Data.Get_Scalar(eGroup));
@@ -173,7 +173,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						fprintf(fileOutTex,"%.3f & ",dLog_Rel);
 				}
 			}
-		}
+		}*/
 		if (setModel_List.count(uiI) != 0)
 		{
 			if (uiShell_Type == 0)
