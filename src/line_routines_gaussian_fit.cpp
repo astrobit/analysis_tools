@@ -364,7 +364,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	{
 //		printf("PGs: %f %f %f\n",vA[0],vA[1],vA[2]);
 		mCovariance_Matrix.Zero();
-		if (GeneralFit(i_vX, i_vY ,i_vW, Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,512,-30,NULL,&vAest))
+		if (GeneralFit(i_vX, i_vY ,i_vW, Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024,-20,NULL,&vAest))
 		{
 //			printf("PGs-r: %f %f %f\n",vA[0],vA[1],vA[2]);
 		    vA_Single = vA;
@@ -410,6 +410,31 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		        dSmin = dSmin_Single;
 		        mCovariance_Matrix = mCovariance_Matrix_Single;
 		    }
+			else if (dSmin_Single != 0.0)
+			{
+				// look for a fit that is more likely an artifact than a true double Gaussian set
+				// identify the weaker component of the 2 component fit, assume amplitude is negative
+				if ((vA[0] < 0 && vA[3] > 0) ||
+					(vA[3] < 0 && vA[0] > 0)) // look for amplitudes with opposing signs
+				{
+					//emission component - use single Gaussian fit
+				    vA = vA_Single;
+				    dSmin = dSmin_Single;
+				    mCovariance_Matrix = mCovariance_Matrix_Single;
+				}
+				else if (vA[0] > (vA[3] * 0.05) && fabs(vA[1]) > 2.0 * fabs(vA[4]))  // first is weaker and more than 2x as wide as the second
+				{
+				    vA = vA_Single;
+				    dSmin = dSmin_Single;
+				    mCovariance_Matrix = mCovariance_Matrix_Single;
+				}
+				else if (vA[3] > (vA[0] * 0.05) && fabs(vA[4]) > 2.0 * fabs(vA[1]))  // second is weaker and more than 2x as wide as the first
+				{
+				    vA = vA_Single;
+				    dSmin = dSmin_Single;
+				    mCovariance_Matrix = mCovariance_Matrix_Single;
+				}
+			}
 		}
 		else
 		{
