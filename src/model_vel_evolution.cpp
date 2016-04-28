@@ -247,6 +247,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
     unsigned int uiPS_Velocity_Ion_State = xParse_Command_Line_UInt(i_iArg_Count,(const char **)i_lpszArg_Values,"--use-computed-ps-velocity",3);
 	const char *	lpszRef_Model = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ref-model");
 	bool	bNo_Ref_Model = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--no-ref-model");
+	bool	bEjecta_Only = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-only");
 	char lpszRef_Model_Extended[128] = {0};
 //	const char *	lpszIon_List = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ions");
 	char lpszShell_Abundance[128];
@@ -527,7 +528,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					if (bVerbose)
 						printf("Reading photosphere data\n");
 					XDATASET cData;
-					sprintf(lpszPhotosphere_File_Ejecta,"%s/photosphere.csv",lpszModel_Name);
+					if (bEjecta_Only)
+						sprintf(lpszPhotosphere_File_Ejecta,"%s/photosphere_eo.csv",lpszModel_Name);
+					else
+						sprintf(lpszPhotosphere_File_Ejecta,"%s/photosphere.csv",lpszModel_Name);
 					cData.ReadDataFile(lpszPhotosphere_File_Ejecta,false,false,',',1);
 					bool bFound = false;
 					for (unsigned int uiJ = 0; uiJ  < cData.GetNumElements() && !bFound; uiJ++)
@@ -583,7 +587,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				sprintf(lpszOpacity_File_Shell,"%s/opacity_map_shell.xdataset",lpszModel_Name);
 				cOpacity_Map_Ejecta.ReadDataFileBin(lpszOpacity_File_Ejecta);
 				cOpacity_Map_Shell.ReadDataFileBin(lpszOpacity_File_Shell);
-				bool bShell = cOpacity_Map_Shell.GetNumElements() != 0;
+				bool bShell = !bEjecta_Only && cOpacity_Map_Shell.GetNumElements() != 0;
 
 				cParam.m_dEjecta_Log_Scalar = dEjecta_Scalar;
 				cParam.m_dShell_Log_Scalar = dShell_Scalar;
@@ -597,7 +601,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cParam.m_dShell_Scalar_Time_Power_Law = -dShell_Power_Law;
 
 
-				cParameters.Set_Size(bShell ? 7 : 5);
+				cParameters.Set_Size(bShell? 7 : 5);
 				cParameters.Set(0,dDay);
 				cParameters.Set(1,cContinuum_Parameters.Get(0));
 				cParameters.Set(2,dPS_Temp);
