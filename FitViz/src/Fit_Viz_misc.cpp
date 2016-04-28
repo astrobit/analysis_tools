@@ -438,7 +438,7 @@ void FIT_VIZ_MAIN::Export_Graphic(void)
 	cPlot_Parameters.m_dWidth_Inches = 11.0;
 	cPlot_Parameters.m_dHeight_Inches = 8.5;
 
-	cX_Axis_Parameters.Set_Title("Wavelength [A]");
+	cX_Axis_Parameters.Set_Title("Wavelength [\\Aring]");
 	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
 	cY_Axis_Parameters.Set_Title("Flux");
 	cY_Axis_Parameters.m_dLower_Limit = 0.0;
