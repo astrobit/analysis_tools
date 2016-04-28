@@ -156,12 +156,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fprintf(fileOutTex,"%.3f & %2s & %.3f & %.3f & ",dShell_Mass,strType.c_str(),dShell_Inner,dShell_Outer);
 		}
 		fprintf(fileOut,"%i",uiI);
-/*		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
+		for (unsigned int uiElem = 0; uiElem <= (OPACITY_PROFILE_DATA::SHELL - OPACITY_PROFILE_DATA::CARBON); uiElem++)
 		{
 			OPACITY_PROFILE_DATA::GROUP eGroup = (OPACITY_PROFILE_DATA::GROUP)(OPACITY_PROFILE_DATA::CARBON + uiElem);
 			double dLog_Rel = log10(cOP_Data.Get_Scalar(eGroup) / cReference_OP_Data.Get_Scalar(eGroup));
 			fprintf(fileOut,", %.3f, %.17e",dLog_Rel, cOP_Data.Get_Scalar(eGroup));
-			if (setModel_List.count(uiI) != 0)
+/*			if (setModel_List.count(uiI) != 0)
 			{
 				if (eGroup == OPACITY_PROFILE_DATA::SILICON)
 					fprintf(fileOutTex,"%.3f & ",dLog_Rel);
@@ -172,8 +172,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					else
 						fprintf(fileOutTex,"%.3f & ",dLog_Rel);
 				}
-			}
-		}*/
+			}*/
+		}
 		if (setModel_List.count(uiI) != 0)
 		{
 			if (uiShell_Type == 0)
