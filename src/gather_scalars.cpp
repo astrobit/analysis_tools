@@ -180,7 +180,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fprintf(fileOutTex,"\\ldots ");
 			else
 			{
-				double dDens_Ratio = cOP_Data.Get_Scalar(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Scalar(OPACITY_PROFILE_DATA::SILICON);
+				double dDens_Ratio = cOP_Data.Get_Scalar(OPACITY_PROFILE_DATA::SILICON) / cOP_Data.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 				int iExp = 0;
 				while (dDens_Ratio < 1.0)
 				{
@@ -194,6 +194,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 				if (iExp == 0)
 					fprintf(fileOutTex,"%.3f ",dDens_Ratio );
+				else if (iExp == 1)
+					fprintf(fileOutTex,"%.2f ",dDens_Ratio*10.0 );
 				else
 					fprintf(fileOutTex,"$%.3f\\times 10^{%i}$ ",dDens_Ratio,iExp );
 			}
