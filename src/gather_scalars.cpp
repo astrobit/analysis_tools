@@ -180,7 +180,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fprintf(fileOutTex,"\\ldots ");
 			else
 			{
-				double dDens_Ratio = cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Density(OPACITY_PROFILE_DATA::SILICON);
+				double dDens_Ratio = cOP_Data.Get_Scalar(OPACITY_PROFILE_DATA::SHELL) / cOP_Data.Get_Scalar(OPACITY_PROFILE_DATA::SILICON);
 				int iExp = 0;
 				while (dDens_Ratio < 1.0)
 				{
