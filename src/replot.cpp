@@ -1,9 +1,9 @@
 
-#include <math.h>
+#include <cmath>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <xio.h>
 #include <xmath.h>
 #include <xlinalg.h>
@@ -11,7 +11,7 @@
 #include "ES_Synow.hh"
 #include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
-#include <float.h>
+#include <cfloat>
 #include <best_fit_data.h>
 #include <line_routines.h>
 #include <xfit.h>
@@ -57,7 +57,7 @@ void Plot(epsplot::PAGE_PARAMETERS	& i_cPlot_Parameters, epsplot::DATA &i_cPlot,
 		sprintf(lpszFilename,i_lpszFilename_Format,i_lpszOutput_File_Prefix);
 		i_cPlot.Set_Plot_Filename(lpszFilename);
 
-		if (!isnan(i_dIF_Min) && !isnan(i_dIF_Max) && i_dIF_Min > 0 && i_dIF_Max > 0)
+		if (!std::isnan(i_dIF_Min) && !std::isnan(i_dIF_Max) && i_dIF_Min > 0 && i_dIF_Max > 0)
 		{
 			epsplot::RECTANGLE cRect;
 			cRect.m_dX_min = i_dIF_Min;
@@ -290,15 +290,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	// make sure all necessary data is available to generate the spectrum
 	if (cFit_Info.iBest_Fit_File == 0)
 	{
-		bData_Valid = !isnan(cFit_Info.dBest_Fit_Day) && !isnan(cFit_Info.dBest_Fit_PS_Vel) && !isnan(cFit_Info.dBest_Fit_PS_Temp) && !isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Temp);
+		bData_Valid = !std::isnan(cFit_Info.dBest_Fit_Day) && !std::isnan(cFit_Info.dBest_Fit_PS_Vel) && !std::isnan(cFit_Info.dBest_Fit_PS_Temp) && !std::isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Temp);
 		if (cFit_Info.bBest_Fit_With_Shell)
-			bData_valid &= !isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp);
+			bData_valid &= !std::isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp);
 	}
 	else
 	{
-		bData_Valid = !isnan(cFit_Info.dBest_Fit_PS_Vel) && !isnan(cFit_Info.dBest_Fit_PS_Temp) && !isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Temp) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Vmin) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Vmax) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Aux);
+		bData_Valid = !std::isnan(cFit_Info.dBest_Fit_PS_Vel) && !std::isnan(cFit_Info.dBest_Fit_PS_Temp) && !std::isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Temp) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Vmin) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Vmax) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Aux);
 		if (cFit_Info.bBest_Fit_With_Shell)
-			bData_Valid &= !isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmin) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmax) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Aux);
+			bData_Valid &= !std::isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmin) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmax) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Aux);
 	}
 
 

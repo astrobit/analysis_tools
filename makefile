@@ -1,5 +1,5 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime spectrafit userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm
-
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf 
+#spectrafit excluded (obsolete)
 .PHONY: all
 
 INCLUDEDIR=./include
@@ -8,7 +8,7 @@ BINDIR=./bin
 TMPDIR=./obj
 LIBDIR=./lib
 CXXFLAGS+=-DMPICH_IGNORE_CXX_SEEK=1 -c -I$(INCLUDEDIR)
-CLFLAGS=-I$(INCLUDEDIR) -L$(LIBDIR)
+CLFLAGS=-I$(INCLUDEDIR) -L$(LIBDIR) --std=c++14
 LFLAGS=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) -L$(LIBDIR)
 LIBCOMP=ar
 LIBCOMPFLAG=-cvr
@@ -97,9 +97,9 @@ $(BINDIR)/flashtime: $(SRCDIR)/gettime.cpp $(XLIBSCHANGE)
 	$(CXX) $(CLFLAGS) $(SRCDIR)/gettime.cpp -lhdf5 -lxflash -o $(BINDIR)/flashtime
 flashtime: $(BINDIR)/flashtime
 
-$(BINDIR)/spectrafit: $(SRCDIR)/specta_fit.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
-	$(CXX) $(CLFLAGS) $(SRCDIR)/specta_fit.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/spectrafit
-spectrafit: $(BINDIR)/spectrafit
+#$(BINDIR)/spectrafit: $(SRCDIR)/specta_fit.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
+#	$(CXX) $(CLFLAGS) $(SRCDIR)/specta_fit.cpp  $(SRCDIR)/specta_fit_xfit.cpp $(ESFLAGS) $(PLOTUTILLIB) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/spectrafit
+#spectrafit: $(BINDIR)/spectrafit
 
 
 $(BINDIR)/userprof: $(SRCDIR)/user_profile.cpp $(LIBDIR)/libplotutil.a $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/best_fit_data.h
@@ -289,6 +289,10 @@ $(BINDIR)/gather_pstables: $(SRCDIR)/gather_photospheres.cpp $(XLIBSCHANGE)
 1dfm: $(BINDIR)/1dfm
 $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
 	$(CXX) $(CLFLAGS) $(SRCDIR)/1dFlashMovie.cpp $(PLOTUTILLIB) -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/1dfm
+
+sf: $(BINDIR)/sf
+$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp 
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit.1.0.cpp $(JSONCPP) -lxml2 -o $(BINDIR)/sf
 
 clean:
 	-rm $(BINDIR)/*

@@ -1,9 +1,9 @@
 
-#include <math.h>
+#include <cmath>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <xio.h>
 #include <xmath.h>
 #include <xlinalg.h>
@@ -12,7 +12,7 @@
 #include "ES_Synow.hh"
 #include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
-#include <float.h>
+#include <cfloat>
 #include <best_fit_data.h>
 #include <line_routines.h>
 #include <wordexp.h>
@@ -740,7 +740,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpcIon_Data[uiJJ].m_lpcOpacity_Map = &cFe_Opacity;
 		}
 		lpcIon_Data[uiJJ].m_dScalar += log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref);
-		if (isinf(lpcIon_Data[uiJJ].m_dScalar) || isnan(lpcIon_Data[uiJJ].m_dScalar))
+		if (std::isinf(lpcIon_Data[uiJJ].m_dScalar) || std::isnan(lpcIon_Data[uiJJ].m_dScalar))
 			lpcIon_Data[uiJJ].m_dScalar = -20.0;
 
 		lpcIon_Data[uiJJ + 1].m_uiIon = lpuiIon_List[uiI];
@@ -753,7 +753,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpcIon_Data[uiJJ + 1].m_dScalar = dShell_Scalar + dLine_Tau_Eff + dShell_Abd_Eff + log10(dShell_Scalar_Prof / dShell_Scalar_Ref);
 		else
 			lpcIon_Data[uiJJ + 1].m_dScalar = -40.0;
-		if (isinf(lpcIon_Data[uiJJ + 1].m_dScalar) || isnan(lpcIon_Data[uiJJ + 1].m_dScalar))
+		if (std::isinf(lpcIon_Data[uiJJ + 1].m_dScalar) || std::isnan(lpcIon_Data[uiJJ + 1].m_dScalar))
 			lpcIon_Data[uiJJ + 1].m_dScalar = -20.0;
 
 //		printf("%i %.1e %.1e %.1e %.1e %.1e %.1e\n",lpuiIon_List[uiI],lpcIon_Data[uiJJ + 1].m_dScalar, dShell_Scalar,dLine_Tau_Eff,dShell_Abd_Eff,log10(dShell_Scalar_Prof / dShell_Scalar_Ref));

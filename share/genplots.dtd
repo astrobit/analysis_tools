@@ -39,7 +39,7 @@
 <!ELEMENT PLOT (PLOTDATA?|PLOTFILE?|ERRORBAR*|CAPTIONINFO?|LEGENDINFO?)+>
 <!ATTLIST PLOT
 	color	CDATA #IMPLIED
-	style	(none|default|solid|sdash|ldash|lsdash|dot|sdashdot|ldashdot|lsdashdot) #IMPLIED
+	style	(none|default|solid|sdash|ldash|lsdash|dot|sdashdot|ldashdot|lsdashdot|longlongdash) #IMPLIED
 	width	CDATA #IMPLIED
 	symbol	(none|default|square|circle|triup|tridn|trilt|trirt|diamond|times|plus|dash|asterisk|star4|star5|star6) #IMPLIED
 	symbolsize CDATA #IMPLIED

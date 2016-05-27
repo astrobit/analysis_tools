@@ -144,7 +144,7 @@ public:
 			Get_Density(CARBON) = Read_Number(fileIn);
 			Get_Density(OXYGEN) = Read_Number(fileIn);
 			Get_Density(MAGNESIUM) = Read_Number(fileIn);
-			if (isnan(Get_Density(MAGNESIUM)))
+			if (std::isnan(Get_Density(MAGNESIUM)))
 			{
 				Get_Density(MAGNESIUM) = Get_Density(CARBON);
 				Get_Density(SILICON) = Get_Density(CARBON);

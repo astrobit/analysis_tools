@@ -1,9 +1,9 @@
 
-#include <math.h>
+#include <cmath>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <xio.h>
 #include <xmath.h>
 #include <xlinalg.h>
@@ -11,7 +11,7 @@
 #include "ES_Synow.hh"
 #include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
-#include <float.h>
+#include <cfloat>
 #include <best_fit_data.h>
 #include <line_routines.h>
 #include <xfit.h>
@@ -168,7 +168,7 @@ void Restrict_Bound(const XVECTOR & i_vCurrent, XVECTOR & io_vNext, unsigned int
 		}
 		else
 		{
-			if (vDelta.Get(uiI) != 0.0 && !isinf(i_vCurrent.Get(uiI)) && !isinf(vDelta.Get(uiI)) && !isnan(i_vCurrent.Get(uiI)) && !isnan(vDelta.Get(uiI)))
+			if (vDelta.Get(uiI) != 0.0 && !std::isinf(i_vCurrent.Get(uiI)) && !std::isinf(vDelta.Get(uiI)) && !std::isnan(i_vCurrent.Get(uiI)) && !std::isnan(vDelta.Get(uiI)))
 			{
 				double dScalar = (dLower_Bound - i_vCurrent.Get(uiI)) / vDelta.Get(uiI); // current delta vs maximum delta
 //				printf("Scalar(l)%i %.2e\n",uiI,dScalar);
@@ -202,9 +202,9 @@ double	Rand(void)
 XVECTOR Generate_Vector_From_Best_Fit(const BEST_FIT_DATA & i_cFit_Data, const XDATASET & i_cOpacity_Map, bool i_bUse_PS_Temp_For_Ion)
 {
 	XVECTOR vRet;
-	if (!isnan(i_cFit_Data.dBest_Fit_PS_Ion_Aux))
+	if (!std::isnan(i_cFit_Data.dBest_Fit_PS_Ion_Aux))
 	{ // esponential or power law profile
-		if (!isnan(i_cFit_Data.dBest_Fit_HVF_Ion_Aux))
+		if (!std::isnan(i_cFit_Data.dBest_Fit_HVF_Ion_Aux))
 		{ // include HVF
 			vRet.Set_Size(15);
 		}
@@ -214,7 +214,7 @@ XVECTOR Generate_Vector_From_Best_Fit(const BEST_FIT_DATA & i_cFit_Data, const X
 	}
 	else
 	{
-		if (!isnan(i_cFit_Data.dBest_Fit_HVF_Log_Tau))
+		if (!std::isnan(i_cFit_Data.dBest_Fit_HVF_Log_Tau))
 		{
 			vRet.Set_Size(7);
 			if (i_bUse_PS_Temp_For_Ion)
@@ -362,18 +362,18 @@ double	Get_Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, 
 	double	dRet;
 	if (i_bRegenerate_Normalization)
 		Get_Normalization_Fluxes(i_cTarget, i_cGenerated, FIT_BLUE_WL, FIT_RED_WL, g_dTarget_Normalization_Flux, g_dGenerated_Normalization_Flux);
-//	if (isnan(g_dTarget_Normalization_Flux) || isnan(g_dGenerated_Normalization_Flux))
+//	if (std::isnan(g_dTarget_Normalization_Flux) || std::isnan(g_dGenerated_Normalization_Flux))
 //		printf("Norm flux: %.2e\t%.2e\n",g_dTarget_Normalization_Flux, g_dGenerated_Normalization_Flux);
 //	for (unsigned int uiI = 0; uiI < i_cTarget.size(); uiI++)
 //	{
-//		if (i_cTarget.wl(uiI) == 0.0 || isnan(i_cTarget.flux(uiI)) || isnan(i_cGenerated.flux(uiI)))
+//		if (i_cTarget.wl(uiI) == 0.0 || std::isnan(i_cTarget.flux(uiI)) || std::isnan(i_cGenerated.flux(uiI)))
 //		{
 //			printf("%.2f\t%.2e\t%.2e\n",i_cTarget.wl(uiI),i_cTarget.flux(uiI),i_cGenerated.flux(uiI));
 //		}
 //	}
 
 	Get_Fit_Moments_2(i_cTarget, i_cGenerated, i_dMin_WL, i_dMax_WL, i_uiMoment, lpdRaw_Moments, lpdCentral_Moments, lpdStandardized_Moments, g_dTarget_Normalization_Flux, g_dGenerated_Normalization_Flux);
-	if (isnan(g_dTarget_Normalization_Flux) || isnan(g_dGenerated_Normalization_Flux))
+	if (std::isnan(g_dTarget_Normalization_Flux) || std::isnan(g_dGenerated_Normalization_Flux))
 		printf("Norm flux: %.2e\t%.2e\n",g_dTarget_Normalization_Flux, g_dGenerated_Normalization_Flux);
 	dRet = fabs(lpdRaw_Moments[i_uiMoment - 1]);
 	delete [] lpdRaw_Moments;
@@ -618,7 +618,7 @@ double Fit_Function(const XVECTOR &i_vX, void * i_lpvData)
 
 //	for (unsigned int uiI = 0; uiI < lpcData->lpTarget[0].size(); uiI++)
 //	{
-//		if (isnan(lpcData->lpTarget[0].flux(uiI)) || isnan(lpcData->lpOutput[0].flux(uiI)))
+//		if (std::isnan(lpcData->lpTarget[0].flux(uiI)) || std::isnan(lpcData->lpOutput[0].flux(uiI)))
 //		{
 //			printf("%.2f\t%.2e\t%.2e\n",lpcData->lpTarget[0].wl(uiI),lpcData->lpTarget[0].flux(uiI),lpcData->lpOutput[0].flux(uiI));
 //		}
@@ -679,7 +679,7 @@ double Fit_Function(const XVECTOR &i_vX, void * i_lpvData)
 
 //	for (unsigned int uiI = 0; uiI < lpcData->lpTarget[0].size(); uiI++)
 //	{
-//		if (isnan(lpcData->lpTarget[0].flux(uiI)) || isnan(lpcData->lpOutput[0].flux(uiI)))
+//		if (std::isnan(lpcData->lpTarget[0].flux(uiI)) || std::isnan(lpcData->lpOutput[0].flux(uiI)))
 //		{
 //			printf("%.2f\t%.2e\t%.2e\n",lpcData->lpTarget[0].wl(uiI),lpcData->lpTarget[0].flux(uiI),lpcData->lpOutput[0].flux(uiI));
 //		}
@@ -1639,15 +1639,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	// make sure all necessary data is available to generate the spectrum
 	if (cFit_Info.iBest_Fit_File == 0)
 	{
-		bData_Valid = !isnan(cFit_Info.dBest_Fit_Day) && !isnan(cFit_Info.dBest_Fit_PS_Vel) && !isnan(cFit_Info.dBest_Fit_PS_Temp) && !isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Temp);
+		bData_Valid = !std::isnan(cFit_Info.dBest_Fit_Day) && !std::isnan(cFit_Info.dBest_Fit_PS_Vel) && !std::isnan(cFit_Info.dBest_Fit_PS_Temp) && !std::isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Temp);
 		if (cFit_Info.bBest_Fit_With_Shell)
-			bData_valid &= !isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp);
+			bData_valid &= !std::isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp);
 	}
 	else
 	{
-		bData_Valid = !isnan(cFit_Info.dBest_Fit_PS_Vel) && !isnan(cFit_Info.dBest_Fit_PS_Temp) && !isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Temp) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Vmin) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Vmax) && !isnan(cFit_Info.dBest_Fit_PS_Ion_Aux);
+		bData_Valid = !std::isnan(cFit_Info.dBest_Fit_PS_Vel) && !std::isnan(cFit_Info.dBest_Fit_PS_Temp) && !std::isnan(cFit_Info.dBest_Fit_PS_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Temp) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Vmin) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Vmax) && !std::isnan(cFit_Info.dBest_Fit_PS_Ion_Aux);
 		if (cFit_Info.bBest_Fit_With_Shell)
-			bData_Valid &= !isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmin) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmax) && !isnan(cFit_Info.dBest_Fit_HVF_Ion_Aux);
+			bData_Valid &= !std::isnan(cFit_Info.dBest_Fit_HVF_Log_Tau) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Temp) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmin) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Vmax) && !std::isnan(cFit_Info.dBest_Fit_HVF_Ion_Aux);
 	}
 	bData_Valid &= (uiIon != -1);
 

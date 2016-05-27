@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #include <xflash.h>
 #include <opacity_profile_data.h>
-
+#include <climits>
 double	g_dTime_Ref = 0.0;
 
 inline void Swap(double & io_dA, double & io_dB)
@@ -367,7 +367,7 @@ void Velocity_Evolution_Theoretical(const FIT_RESULTS &i_cEjecta, const FIT_RESU
 	double lpfLegend_ine_Widths[4];
 	double fLgnd_Width,fLgnd_Height;
 	double lpfDay[25], lpfEjecta_Exp[25], lpfEjecta_Power_V[25], lpfEjecta_Power_R[25], lpfShell_Exp[25], lpfShell_Power_R[25], lpfShell_Power_V[25], lpfObs_Const_2[25], lpfObs_Const_3[25], lpfShell_Power_PS[25];
-	unsigned int uiEjecta_Exp_Idx[2] = {-1,-1}, uiEjecta_Power_R_Idx[2] = {-1,-1}, uiEjecta_Power_V_Idx[2] = {-1,-1}, uiShell_Exp_Idx[2] = {-1,-1}, uiShell_Power_R_Idx[2] = {-1,-1}, uiShell_Power_V_Idx[2] = {-1,-1}, uiShell_Power_PS_Idx[2] = {-1,-1};
+	unsigned int uiEjecta_Exp_Idx[2] = {UINT_MAX,UINT_MAX}, uiEjecta_Power_R_Idx[2] = {UINT_MAX,UINT_MAX}, uiEjecta_Power_V_Idx[2] = {UINT_MAX,UINT_MAX}, uiShell_Exp_Idx[2] = {UINT_MAX,UINT_MAX}, uiShell_Power_R_Idx[2] = {UINT_MAX,UINT_MAX}, uiShell_Power_V_Idx[2] = {UINT_MAX,UINT_MAX}, uiShell_Power_PS_Idx[2] = {UINT_MAX,UINT_MAX};
 
 
 	sprintf(lpszFilename,"velocity_evolution_theoretical_%04i.csv",i_uiNumber);

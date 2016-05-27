@@ -15,7 +15,7 @@ namespace	epsplot
 	enum PS_VERTICAL_JUSTIFICATION {TOP,MIDDLE,BOTTOM};
 	enum PS_STANDARD_COLORS { STD_BLACK,STD_WHITE,STD_RED,STD_GREEN,STD_BLUE,STD_CYAN,STD_MAGENTA,STD_YELLOW};
 	enum COLOR {BLACK, RED, GREEN, BLUE, CYAN, YELLOW, MAGENTA, GREY_25, GREY_50, GREY_75, GRAY_25, GRAY_50, GRAY_75, WHITE, CLR_CUSTOM_1, CLR_CUSTOM_2, CLR_CUSTOM_3, CLR_CUSTOM_4, CLR_CUSTOM_5, CLR_CUSTOM_6, CLR_CUSTOM_7, CLR_CUSTOM_8, CLR_CUSTOM_9, CLR_CUSTOM_10, CLR_CUSTOM_11, CLR_CUSTOM_12, CLR_CUSTOM_13, CLR_CUSTOM_14, CLR_CUSTOM_15, CLR_CUSTOM_16};
-	enum STIPPLE {SOLID, SHORT_DASH, LONG_DASH, LONG_SHORT_DASH, DOTTED, SHORT_DASH_DOTTED, LONG_DASH_DOTTED, LONG_SHORT_DASH_DOTTED, STPL_CUSTOM_1, STPL_CUSTOM_2, STPL_CUSTOM_3, STPL_CUSTOM_4, STPL_CUSTOM_5, STPL_CUSTOM_6, STPL_CUSTOM_7, STPL_CUSTOM_8, STPL_CUSTOM_9, STPL_CUSTOM_10, STPL_CUSTOM_11, STPL_CUSTOM_12, STPL_CUSTOM_13, STPL_CUSTOM_14, STPL_CUSTOM_15, STPL_CUSTOM_16};
+	enum STIPPLE {SOLID, SHORT_DASH, LONG_DASH, LONG_SHORT_DASH, DOTTED, SHORT_DASH_DOTTED, LONG_DASH_DOTTED, LONG_SHORT_DASH_DOTTED, LONG_LONG_DASH, STPL_CUSTOM_1, STPL_CUSTOM_2, STPL_CUSTOM_3, STPL_CUSTOM_4, STPL_CUSTOM_5, STPL_CUSTOM_6, STPL_CUSTOM_7, STPL_CUSTOM_8, STPL_CUSTOM_9, STPL_CUSTOM_10, STPL_CUSTOM_11, STPL_CUSTOM_12, STPL_CUSTOM_13, STPL_CUSTOM_14, STPL_CUSTOM_15, STPL_CUSTOM_16};
 	enum SYMBOL_TYPE {SQUARE, CIRCLE, TRIANGLE_UP, TRIANGLE_DOWN, TRIANGLE_LEFT, TRIANGLE_RIGHT, DIAMOND, TIMES_SYMB, PLUS_SYMB, DASH_SYMB, ASTERISK_SYMB, STAR4, STAR5, STAR6, SYMB_CUSTOM_1, SYMB_CUSTOM_2, SYMB_CUSTOM_3, SYMB_CUSTOM_4, SYMB_CUSTOM_5, SYMB_CUSTOM_6, SYMB_CUSTOM_7, SYMB_CUSTOM_8, SYMB_CUSTOM_9, SYMB_CUSTOM_10, SYMB_CUSTOM_11, SYMB_CUSTOM_12, SYMB_CUSTOM_13, SYMB_CUSTOM_14, SYMB_CUSTOM_15, SYMB_CUSTOM_16};
 	enum ERRORBAR_DIRECTION {ERRORBAR_X_LEFT, ERRORBAR_X_RIGHT, ERRORBAR_Y_UPPER, ERRORBAR_Y_LOWER};
 	enum ERRORBAR_TIP_TYPE {ERRORBAR_TIP_LINE, ERRORBAR_TIP_ARROW, ERRORBAR_TIP_LINE_AND_ARROW};
@@ -537,16 +537,16 @@ namespace	epsplot
 
 		void Adjust_Limits(const double & i_dValue)
 		{
-			if (isnan(m_cParameters.m_dLower_Limit) && (isnan(m_dLower_Limit) || m_dLower_Limit > i_dValue))
+			if (std::isnan(m_cParameters.m_dLower_Limit) && (std::isnan(m_dLower_Limit) || m_dLower_Limit > i_dValue))
 				m_dLower_Limit = i_dValue;
-			if (isnan(m_cParameters.m_dUpper_Limit) && (isnan(m_dUpper_Limit) || m_dUpper_Limit < i_dValue))
+			if (std::isnan(m_cParameters.m_dUpper_Limit) && (std::isnan(m_dUpper_Limit) || m_dUpper_Limit < i_dValue))
 				m_dUpper_Limit = i_dValue;
 		}
 		void Finalize_Limit(const double & i_dGraph_Space)
 		{
-			if (!isnan(m_cParameters.m_dLower_Limit))
+			if (!std::isnan(m_cParameters.m_dLower_Limit))
 				m_dLower_Limit = m_cParameters.m_dLower_Limit;
-			if (!isnan(m_cParameters.m_dUpper_Limit))
+			if (!std::isnan(m_cParameters.m_dUpper_Limit))
 				m_dUpper_Limit = m_cParameters.m_dUpper_Limit;
 			m_dRange = m_dUpper_Limit - m_dLower_Limit;
 			if (m_dRange > 0.0)

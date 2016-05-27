@@ -1,9 +1,9 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
-#include <time.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <cfloat>
+#include <ctime>
 #include <unistd.h>
 #include <line_routines.h>
 #include <eps_plot.h>
@@ -31,6 +31,8 @@ const double		g_dStipple_Std_Short_Dash_Dotted[] = {2,2,1,2};
 const double		g_dStipple_Std_Long_Dash_Dotted[] = {4,4,1,4};
 const double		g_dStipple_Std_Long_Short_Dash_Dotted[] = {4,4,2,4,1,4};
 const double		g_dStipple_Std_Long_Short_Dot_Short_Dash[] = {4,4,2,4,1,4,2,4};
+const double		g_dStipple_Std_Long_Long_Dash[] = {8,8};
+
 
 class SYMBOL_CONTAINER
 {
@@ -486,17 +488,17 @@ void EPSFILE::Rect_Clip(const double & i_dX, const double & i_dY, const double &
 }
 void EPSFILE::Move_To(const double & i_dX, const double & i_dY) const
 {
-	if (!isnan(i_dX) && !isnan(i_dY) && !isinf(i_dX) && !isinf(i_dY))
+	if (!std::isnan(i_dX) && !std::isnan(i_dY) && !std::isinf(i_dX) && !std::isinf(i_dY))
 		fprintf(m_lpFileOut,m_lpszMoveto, i_dX,i_dY);
 }
 void EPSFILE::Line_To(const double & i_dX, const double & i_dY) const
 {
-	if (!isnan(i_dX) && !isnan(i_dY) && !isinf(i_dX) && !isinf(i_dY))
+	if (!std::isnan(i_dX) && !std::isnan(i_dY) && !std::isinf(i_dX) && !std::isinf(i_dY))
 		fprintf(m_lpFileOut,m_lpszLineto, i_dX,i_dY);
 }
 void EPSFILE::Translate(const double & i_dX, const double & i_dY) const
 {
-	if (!isnan(i_dX) && !isnan(i_dY) && !isinf(i_dX) && !isinf(i_dY))
+	if (!std::isnan(i_dX) && !std::isnan(i_dY) && !std::isinf(i_dX) && !std::isinf(i_dY))
 		fprintf(m_lpFileOut,m_lpszTranslate, i_dX,i_dY);
 }
 void EPSFILE::State_Push(void) const
@@ -1467,6 +1469,10 @@ const double *	DATA::Get_Stipple(STIPPLE i_eStipple, unsigned int & o_uiStipple_
 		lpdRet = g_dStipple_Std_Long_Dash;
 		o_uiStipple_Length = sizeof(g_dStipple_Std_Long_Dash) / sizeof(double);
 		break;
+	case LONG_LONG_DASH:
+		lpdRet = g_dStipple_Std_Long_Long_Dash;
+		o_uiStipple_Length = sizeof(g_dStipple_Std_Long_Long_Dash) / sizeof(double);
+		break;
 	case LONG_SHORT_DASH:
 		lpdRet = g_dStipple_Std_Long_Short_Dash;
 		o_uiStipple_Length = sizeof(g_dStipple_Std_Long_Short_Dash) / sizeof(double);
@@ -1875,7 +1881,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 							double dX = lpX_Axis->Scale(lpcLine->m_lppData[uiJ].m_dX);
 							double dY = lpY_Axis->Scale(lpcLine->m_lppData[uiJ].m_dY);
 
-							if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+							if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 							{
 								if (bFirst)
 									cEPS.Move_To(dX,dY);
@@ -1907,19 +1913,19 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 					dX = lpX_Axis->Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
 					dY = lpY_Axis->Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Move_To(dX,dY);
 					dX = lpX_Axis->Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					dY = lpY_Axis->Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_max);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					dX = lpX_Axis->Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					dY = lpY_Axis->Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					cEPS.Fill();
 				}
@@ -1949,19 +1955,19 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 					double dX = m_cX_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[0]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
 					double dY = m_cY_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[1]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Move_To(dX,dY);
 					dX = m_cX_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[0]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					dY = m_cY_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[1]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_max);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					dX = m_cX_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[0]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					dY = m_cY_Axis_Parameters[lpcRectangle->m_uiPlot_Axes_To_Use[1]].Scale(lpcRectangle->m_cPlot_Rectangle_Info.m_dY_min);
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						cEPS.Line_To(dX,dY);
 					cEPS.Stroke();
 				}
@@ -1986,7 +1992,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double dX = lpX_Axis->Scale(lpcText->m_dX);
 					double dY = lpY_Axis->Scale(lpcText->m_dY);
 
-					if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+					if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 					{
 						cEPS.Text(lpcText->m_cText_Parameters.m_eFont, lpcText->m_cText_Parameters.m_bItalic, lpcText->m_cText_Parameters.m_bBold, lpcText->m_cText_Parameters.m_iFont_Size, lpcText->m_cText_Parameters.m_eHorizontal_Justification, lpcText->m_cText_Parameters.m_eVertical_Justification, Get_Color(eCurr_Color),dX, dY, lpcText->Get_Text(), lpcText->m_cText_Parameters.m_dRotation, lpcText->m_cLine_Parameters.m_dWidth);
 					}
@@ -2008,7 +2014,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						double dX = lpX_Axis->Scale(lpcSymbol->m_lppData[uiJ].m_dX);
 						double dY = lpY_Axis->Scale(lpcSymbol->m_lppData[uiJ].m_dY);
 
-						if (!isnan(dX) && !isinf(dX) && !isnan(dY) && !isinf(dY))
+						if (!std::isnan(dX) && !std::isinf(dX) && !std::isnan(dY) && !std::isinf(dY))
 						{
 							Draw_Symbol(cEPS,dX,dY,lpcSymbol->m_cPlot_Symbol_Info);
 						}
@@ -2078,10 +2084,10 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 							}
 
 
-							if (!isnan(p1.m_dX) && !isinf(p1.m_dX) && !isnan(p1.m_dY) && !isinf(p1.m_dY) &&
-								!isnan(p2.m_dX) && !isinf(p2.m_dX) && !isnan(p2.m_dY) && !isinf(p2.m_dY) &&
-								!isnan(p3.m_dX) && !isinf(p3.m_dX) && !isnan(p3.m_dY) && !isinf(p3.m_dY) &&
-								!isnan(p4.m_dX) && !isinf(p4.m_dX) && !isnan(p4.m_dY) && !isinf(p4.m_dY))
+							if (!std::isnan(p1.m_dX) && !std::isinf(p1.m_dX) && !std::isnan(p1.m_dY) && !std::isinf(p1.m_dY) &&
+								!std::isnan(p2.m_dX) && !std::isinf(p2.m_dX) && !std::isnan(p2.m_dY) && !std::isinf(p2.m_dY) &&
+								!std::isnan(p3.m_dX) && !std::isinf(p3.m_dX) && !std::isnan(p3.m_dY) && !std::isinf(p3.m_dY) &&
+								!std::isnan(p4.m_dX) && !std::isinf(p4.m_dX) && !std::isnan(p4.m_dY) && !std::isinf(p4.m_dY))
 							{
 								if (lpcErrorbar->m_cPlot_Line_Info.m_eStipple != eCurr_Stipple)
 								{
@@ -2398,7 +2404,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
-					if (!isnan(dRange_Lower) && !isnan(dRange_Upper))
+					if (!std::isnan(dRange_Lower) && !std::isnan(dRange_Upper))
 					{
 						double dLower = floor(dRange_Lower) - 1.0;
 						double dUpper = floor(dRange_Upper) + 1.0;
@@ -2674,7 +2680,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
-					if (!isnan(dRange_Lower) && !isnan(dRange_Upper))
+					if (!std::isnan(dRange_Lower) && !std::isnan(dRange_Upper))
 					{
 						double dLower = floor(dRange_Lower) - 1.0;
 						double dUpper = floor(dRange_Upper) + 1.0;

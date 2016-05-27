@@ -182,6 +182,7 @@ std::string GetStyleText(epsplot::STIPPLE i_eStyle)
 		g_cStyle_Map[epsplot::SHORT_DASH_DOTTED] = std::string("short dash - dotted");
 		g_cStyle_Map[epsplot::LONG_DASH_DOTTED] = std::string("long dash - dotted");
 		g_cStyle_Map[epsplot::LONG_SHORT_DASH_DOTTED] = std::string("long dash - short dash - dotted");
+		g_cStyle_Map[epsplot::LONG_LONG_DASH] = std::string("long long dash");
 		for (epsplot::STIPPLE eStyle = epsplot::STPL_CUSTOM_1; eStyle < epsplot::STPL_CUSTOM_16; eStyle = (epsplot::STIPPLE)(eStyle + 1))
 		{
 			char lpszString[16];
@@ -207,6 +208,7 @@ std::string GetStyleASCII(epsplot::STIPPLE i_eStyle)
 		g_cStyle_ASCII_Map[epsplot::SHORT_DASH_DOTTED] = std::string("- . -");
 		g_cStyle_ASCII_Map[epsplot::LONG_DASH_DOTTED] = std::string("-- . --");
 		g_cStyle_ASCII_Map[epsplot::LONG_SHORT_DASH_DOTTED] = std::string("-- - . -- -");
+		g_cStyle_ASCII_Map[epsplot::LONG_LONG_DASH] = std::string("----   ----");
 		for (epsplot::STIPPLE eStyle = epsplot::STPL_CUSTOM_1; eStyle < epsplot::STPL_CUSTOM_16; eStyle = (epsplot::STIPPLE)(eStyle + 1))
 		{
 			char lpszString[16];
@@ -436,6 +438,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 	cStipple_Map["sdashdot"] = epsplot::SHORT_DASH_DOTTED;
 	cStipple_Map["ldashdot"] = epsplot::LONG_DASH_DOTTED;
 	cStipple_Map["lsdashdot"] = epsplot::LONG_SHORT_DASH_DOTTED;
+	cStipple_Map["longlongdash"] = epsplot::LONG_LONG_DASH;
+	
 
 	cSymbol_Map["square"] = epsplot::SQUARE;
 	cSymbol_Map["circle"] = epsplot::CIRCLE;
