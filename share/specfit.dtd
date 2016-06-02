@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!ELEMENT SPECFIT (FIT+|MODELLIST*|DATAFILE*)*>
+
+<!ELEMENT DATAFILE EMPTY>
+<!ATTLIST DATAFILE
+	filepath	CDATA	#REQUIRED
+	id			ID		#REQUIRED
+>
+
+<!ELEMENT MODELLIST (MODEL)+>
+<!ATTLIST MODELLIST
+	id		ID #REQUIRED
+>
+<!ELEMENT MODEL EMPTY>
+<!ATTLIST MODEL
+	id				CDATA #REQUIRED
+>
+<!-- in FIT, the source is only optional if a non-json data file is specified -->
+<!-- in FIT, the instrument is only optional if MJD is unique, otherwise required-->
+<!-- in FIT, the ebv is the E(B-V) value for the SN to use for the dereddening routine.  The default value is 0 (spectrum will not be dereddened) -->
+<!-- in FIT, the usejsonebv flag indicates to use a weighted E(B-V) value from the json data file. The default value is false - the user specified value in ebv will be used -->
+<!ELEMENT FIT (MODEL*|SUGGESTPARAM?|MODLIST*)+>
+<!ATTLIST FIT
+	datafileid	IDREF #REQUIRED
+	source		CDATA #IMPLIED
+	mjd			CDATA #REQUIRED
+	instrument	CDATA #IMPLIED
+	feature		(CaNIR|CaHK|Si6355|O7777) #REQUIRED
+	ebv			CDATA #IMPLIED
+	usejsonebv	(true|false) #IMPLIED
+>
+<!ELEMENT MODLIST EMPTY>
+<!ATTLIST MODLIST
+	id	IDREF #REQUIRED
+>
+<!ELEMENT SUGGESTPARAM EMPTY>
+<!ATTLIST SUGGESTPARAM
+	ps_temp	CDATA	#IMPLIED
+	ps_vel	CDATA #IMPLIED
+	ejecta_temp	CDATA #IMPLIED
+	shell_temp	CDATA #IMPLIED
+	ejecta_log_S	CDATA	#IMPLIED
+	shell_log_S		CDATA #IMPLIED
+>
