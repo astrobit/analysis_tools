@@ -3,6 +3,8 @@
 #include <xio.h>
 #include <xlinalg.h>
 #include "ES_Synow.hh"
+#include <utility>
+#include <vector>
 
 double	Equivalent_Width(const XDATASET & i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
 double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
@@ -66,13 +68,20 @@ enum FIT_TYPE {FIT_CHI2,FIT_RAW,FIT_CENTRAL,FIT_STANDARDIZED};
 // Note central and standardized moment of 1 [c(1)] = 0, standardized moment of 2 [c(2)] = 1 (by definition)
 bool ValidateChi2(const ES::Spectrum &i_cTarget,const double &i_dMin_WL, const double &i_dMax_WL);
 double Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, FIT_TYPE i_eFit = FIT_CENTRAL,unsigned int i_uiFit_Moment=2);
+
 void Get_Raw_Moments(const double * i_dX, unsigned int i_uiNum_Points, unsigned int i_uiNum_Moments, double * o_dMoments); // moments must be large enough to fit results
+void Get_Raw_Moments(const double * i_dX, unsigned int i_uiNum_Points, unsigned int i_uiNum_Moments, std::vector<double> & o_vdMoments);
+void Get_Raw_Moments(const std::vector<double> &i_vdX, unsigned int i_uiNum_Moments, std::vector<double> & o_vdMoments);
 void Get_Central_Moments(unsigned int i_uiNum_Moments, const double * i_dMoments, double * o_dCentral_Moments);
+void Get_Central_Moments(const std::vector<double> & i_vdMoments, std::vector<double> & o_vdMoments);
 void Get_Standardized_Moments(unsigned int i_uiNum_Moments, const double * i_dMoments, double * o_dStandardized_Moments);
+void Get_Standardized_Moments(const std::vector<double> & i_vdMoments, std::vector<double> & o_vdMoments);
 // Get_Fit_Moments works on spectra that have the exact same size and wavelengths
+
 void Get_Fit_Moments(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiNum_Moments, double * &o_lpdRaw_Moments, double * &o_lpdCentral_Moments, double * &o_lpdStandardized_Moments);
 // Get_Fit_Moments works on spectra that have the different sizes, resolution, or wavelength data
 void Get_Fit_Moments_2(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiNum_Moments, double * &o_lpdRaw_Moments, double * &o_lpdCentral_Moments, double * &o_lpdStandardized_Moments, const double & i_dTarget_Normalization_Flux = 1.0, const double & i_dGenereted_Normalization_Flux = 1.0);
+void Get_Fit_Moments_2(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiNum_Moments, std::vector<double> & o_vRaw_Moments, std::vector<double> & o_vCentral_Moments, std::vector<double> & o_vStandardized_Moments, const double & i_dTarget_Normalization_Flux = 1.0, const double & i_dGenereted_Normalization_Flux = 1.0);
 
 double Interpolate_Flux(const ES::Spectrum &i_cData, const double & i_dTarget_Wavelength, unsigned int i_uiLower_Bound, unsigned int i_uiUpper_Bound);
 void Bracket_Wavelength(const ES::Spectrum &i_cData, const double & i_dTarget_Wavelength, unsigned int &o_uiLower_Bound, unsigned int &o_uiUpper_Bound, unsigned int i_uiSuggested_Starting_Idx = 0);
@@ -210,7 +219,7 @@ public:
 
  // parameters for fitting a gaussian to a spectral absorption feature
 
-class GAUSS_FIT_PARAMETERS
+class gauss_fit_parameters
 {
 public:
 	double	m_dWl[3];
@@ -221,24 +230,24 @@ public:
 	double	m_dH_Ratio_1;
 	double	m_dH_Ratio_2;
 
-	bool operator == (const GAUSS_FIT_PARAMETERS & i_RHO)
+	bool operator == (const gauss_fit_parameters & i_RHO)
 	{
 		return (m_dWl[0] == i_RHO.m_dWl[0] && m_dWl[1] == i_RHO.m_dWl[1] && m_dWl[2] == i_RHO.m_dWl[2] &&
 				m_dStr[0] == i_RHO.m_dStr[0] && m_dStr[1] == i_RHO.m_dStr[1] && m_dStr[2] == i_RHO.m_dStr[2]);
 
 	}
-	bool operator != (const GAUSS_FIT_PARAMETERS & i_RHO)
+	bool operator != (const gauss_fit_parameters & i_RHO)
 	{
 		return (m_dWl[0] != i_RHO.m_dWl[0] || m_dWl[1] != i_RHO.m_dWl[1] || m_dWl[2] != i_RHO.m_dWl[2] &&
 				m_dStr[0] != i_RHO.m_dStr[0] || m_dStr[1] != i_RHO.m_dStr[1] || m_dStr[2] != i_RHO.m_dStr[2]);
 
 	}
-	GAUSS_FIT_PARAMETERS(void)
+	gauss_fit_parameters(void)
 	{
 		m_dW_Ratio_1 = m_dW_Ratio_2 = m_dH_Ratio_1 = m_dH_Ratio_2 = 0.0;
 	}
 
-	GAUSS_FIT_PARAMETERS(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
+	gauss_fit_parameters(const double & i_dWL_1, const double & i_dStrength_1, const double & i_dWL_2, const double & i_dStrength_2, const double & i_dWL_3 = 0.0, const double & i_dStrength_3 = 0.0)
 	{
 		if (i_dStrength_3 > 0.0)
 		{
@@ -320,29 +329,31 @@ public:
 		}
 	}
 };
-class GAUSS_FIT_RESULTS
+class gauss_fit_results
 {
 public:
 	XVECTOR	m_vA;
 	double	m_dS;
 	XSQUARE_MATRIX	m_mCovariance;
 
-	GAUSS_FIT_RESULTS(void) : m_vA(), m_dS(-1.), m_mCovariance()	{;};
+	gauss_fit_results(void) : m_vA(), m_dS(-1.), m_mCovariance()	{;};
 };
 
-extern GAUSS_FIT_PARAMETERS	g_cgfpCaNIR;
-extern GAUSS_FIT_PARAMETERS	g_cgfpCaHK;
-extern GAUSS_FIT_PARAMETERS	g_cgfpOINIR;
-extern GAUSS_FIT_PARAMETERS	g_cgfpSi6355;
-extern GAUSS_FIT_PARAMETERS	g_cgfpSi5968;
+extern gauss_fit_parameters	g_cgfpCaNIR;
+extern gauss_fit_parameters	g_cgfpCaHK;
+extern gauss_fit_parameters	g_cgfpOINIR;
+extern gauss_fit_parameters	g_cgfpSi6355;
+extern gauss_fit_parameters	g_cgfpSi5968;
 
 double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength);
-void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const double & i_dWavelength_Delta_Ang, const GAUSS_FIT_PARAMETERS * i_lpgfpParameters, double & o_dpEW_PVF, double & o_dpEW_HVF);
+void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const double & i_dWavelength_Delta_Ang, const gauss_fit_parameters * i_lpgfpParameters, double & o_dpEW_PVF, double & o_dpEW_HVF);
 XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
 XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData);
-XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters);
-XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
-                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit = NULL, GAUSS_FIT_RESULTS * io_lpDouble_Fit = NULL);
+XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const gauss_fit_parameters * i_lpgfpParamters);
+XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const gauss_fit_parameters * i_lpgfpParamters,
+                    const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS, gauss_fit_results * io_lpSingle_Fit = NULL, gauss_fit_results * io_lpDouble_Fit = NULL);
 
-
+void CCM_dered(ES::Spectrum & i_cSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
+void CCM_dered(std::vector<std::pair<double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
+void CCM_dered(std::vector<std::tuple<double,double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
 

@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf 
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -7,7 +7,7 @@ SRCDIR=./src
 BINDIR=./bin
 TMPDIR=./obj
 LIBDIR=./lib
-CXXFLAGS+=-DMPICH_IGNORE_CXX_SEEK=1 -c -I$(INCLUDEDIR)
+CXXFLAGS+=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) --std=c++14 -c
 CLFLAGS=-I$(INCLUDEDIR) -L$(LIBDIR) --std=c++14
 LFLAGS=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) -L$(LIBDIR)
 LIBCOMP=ar
@@ -26,11 +26,12 @@ $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utiliti
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libplotutil.a $(TMPDIR)/eps_plot.o $(TMPDIR)/Plot_Utilities.o 
 Plot_Utilities: $(LIBDIR)/libplotutil.a
 
-$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE) $(SRCDIR)/line_routines_gaussian_fit.cpp
+$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE) $(SRCDIR)/line_routines_gaussian_fit.cpp $(SRCDIR)/line_routines_ccm_dered.cpp
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines.cpp -o $(TMPDIR)/line_routines.o
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_gaussian_fit.cpp -o $(TMPDIR)/line_routines_gaussian_fit.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_ccm_dered.cpp -o $(TMPDIR)/line_routines_ccm_dered.o
 	-rm $(LIBDIR)/liblinerout.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o $(TMPDIR)/line_routines_gaussian_fit.o
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o $(TMPDIR)/line_routines_gaussian_fit.o $(TMPDIR)/line_routines_ccm_dered.o
 line_routines: $(LIBDIR)/liblinerout.a
 
 msdb: $(LIBDIR)/libmsdb.a
@@ -38,6 +39,12 @@ $(LIBDIR)/libmsdb.a: $(SRCDIR)/model_spectra_db.cpp $(INCLUDEDIR)/model_spectra_
 	$(CXX) $(CXXFLAGS) $(ESFLAGS) $(SRCDIR)/model_spectra_db.cpp -o $(TMPDIR)/model_spectra_db.o
 	-rm $(LIBDIR)/libmsdb.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libmsdb.a $(TMPDIR)/model_spectra_db.o
+
+libspecfit: $(LIBDIR)/libspecfit.a
+$(LIBDIR)/libspecfit.a: $(SRCDIR)/spectra_fit_fit_results.cpp $(INCLUDEDIR)/specfit.h
+	$(CXX) $(CXXFLAGS) $(ESFLAGS) $(SRCDIR)/spectra_fit_fit_results.cpp -o $(TMPDIR)/spectra_fit_fit_results.o
+	-rm $(LIBDIR)/libspecfit.a
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libspecfit.a $(TMPDIR)/spectra_fit_fit_results.o
 
 $(OBJDIR)/line_anal.o: $(SRCDIR)/line_anal.cpp
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_anal.cpp  -o $(OBJDIR)/line_anal.o
@@ -290,9 +297,20 @@ $(BINDIR)/gather_pstables: $(SRCDIR)/gather_photospheres.cpp $(XLIBSCHANGE)
 $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
 	$(CXX) $(CLFLAGS) $(SRCDIR)/1dFlashMovie.cpp $(PLOTUTILLIB) -lxio -lxstdlib -lhdf5 -lxflash -o $(BINDIR)/1dfm
 
+ifdef JSONCPP
 sf: $(BINDIR)/sf
-$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp 
-	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit.1.0.cpp $(JSONCPP) -lxml2 -o $(BINDIR)/sf
+$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) libspecfit $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_genfits.cpp $(SRCDIR)/spectra_fit.1.0.cpp $(ESFLAGS) $(ESLIBS) $(JSONCPP) -llinerout -lspecfit -lxml2 -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
+
+genjsonfit: $(BINDIR)/genjsonfit
+$(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/gen_json_fit_list.cpp $(JSONCPP) -lxstdlib -o $(BINDIR)/genjsonfit
+else
+sf: $(BINDIR)/sf
+genjsonfit: $(BINDIR)/sf
+$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp $(XLIBSCHANGE) libspecfit $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp  $(LIBDIR)/libmsdb.a
+	@echo "Symbol JSONCPP not found. Make sure that jsoncpp is installed and the JSONCPP variable points to the path to jsoncpp.cpp"
+endif
 
 clean:
 	-rm $(BINDIR)/*

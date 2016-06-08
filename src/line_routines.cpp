@@ -1,8 +1,8 @@
 #include <math.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <xio.h>
 #include <xmath.h>
 #include <xlinalg.h>
@@ -11,6 +11,7 @@
 #include "ES_Generic_Error.hh"
 #include <float.h>
 #include <line_routines.h>
+#include <stack>
 
 void Find_Minimum(ES::Spectrum * i_lpcSpectra, unsigned int i_uiNum_Spectra, double * o_lpdMinima_WL, double * o_lpdMinima_Flux, const double & i_dMin_WL, const double & i_dMax_WL)
 {
@@ -146,19 +147,19 @@ double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_B
 
 
 unsigned int g_uiVelocity_Map_Alloc_Size = 0;
-double		* g_lpdVelocities = NULL;
-double		** g_lpdOpacity_Profile = NULL;
+double		* g_lpdVelocities = nullptr;
+double		** g_lpdOpacity_Profile = nullptr;
 unsigned int	g_uiOP_Multi_Num_Ions = 0;
-ES::Synow::Grid * g_lpcGrid = NULL;
-ES::Synow::Grid * g_lpcGrid_Exp = NULL;
-ES::Synow::Opacity * g_lpcOpacity = NULL;
-ES::Synow::Opacity * g_lpcOpacity_Exp = NULL;
-ES::Spectrum * g_lpcReference = NULL;
-ES::Synow::Source * g_lpcSource = NULL;
-ES::Synow::Source * g_lpcSource_Exp = NULL;
-ES::Synow::Spectrum * g_lpcSpectrum = NULL;
-ES::Synow::Spectrum * g_lpcSpectrum_Exp = NULL;
-ES::Spectrum * g_lpcOutput = NULL;
+ES::Synow::Grid * g_lpcGrid = nullptr;
+ES::Synow::Grid * g_lpcGrid_Exp = nullptr;
+ES::Synow::Opacity * g_lpcOpacity = nullptr;
+ES::Synow::Opacity * g_lpcOpacity_Exp = nullptr;
+ES::Spectrum * g_lpcReference = nullptr;
+ES::Synow::Source * g_lpcSource = nullptr;
+ES::Synow::Source * g_lpcSource_Exp = nullptr;
+ES::Synow::Spectrum * g_lpcSpectrum = nullptr;
+ES::Synow::Spectrum * g_lpcSpectrum_Exp = nullptr;
+ES::Spectrum * g_lpcOutput = nullptr;
 bool		g_bMin_Delta_Init = false;
 double		g_dMin_Delta = DBL_MAX;
 
@@ -173,7 +174,7 @@ void Allocate_Opacity_Profile(unsigned int i_uiNum_Ions, bool i_bForce = false)
 				if (g_lpdOpacity_Profile[uiI])
 					delete [] g_lpdOpacity_Profile[uiI];
 			delete [] g_lpdOpacity_Profile;
-			g_lpdOpacity_Profile = NULL;
+			g_lpdOpacity_Profile = nullptr;
 		}
 //		printf("OP allocate \n");
 		g_lpdOpacity_Profile = new double *[i_uiNum_Ions];
@@ -185,7 +186,7 @@ void Allocate_Opacity_Profile(unsigned int i_uiNum_Ions, bool i_bForce = false)
 		else
 		{
 			for (unsigned int uiI = 0; uiI < i_uiNum_Ions; uiI++)
-				g_lpdOpacity_Profile[uiI] = NULL;
+				g_lpdOpacity_Profile[uiI] = nullptr;
 		}
 		g_uiOP_Multi_Num_Ions = i_uiNum_Ions;
 //		printf("OP done \n");
@@ -286,6 +287,7 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 
 void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput, const double & i_dPower_Law_A, const double & i_dPower_Law_B)
 {
+	//printf("allocate\n");
 	Allocate_Synow_Classes(i_cTarget,0,&i_cOpacity_Map_A);
 //    o_cOutput = ES::Spectrum::create_from_range_and_size( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), i_cTarget.size());
 //    ES::Spectrum output = ES::Spectrum::create_from_spectrum( o_cOutput );
@@ -314,19 +316,29 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 //		iT_ref = i_cOpacity_Map_A.GetNumColumns() - 2;
 //	iT_ref++;
 
+	//printf("setup\n");
     cSetup.a0 = 1.0;
     cSetup.a1 = 0.0;
     cSetup.a2 = 0.0;
     cSetup.v_phot = i_cParameters.Get(1);
-//	printf("Vphot = %.2f\n",cSetup.v_phot);
+	//printf("Vphot = %.2f\n",cSetup.v_phot);
     cSetup.v_outer = dVmax;
+	//printf("phot\n");
     cSetup.t_phot = i_cParameters.Get(2);
+	//printf("ions\n");
 	cSetup.ions.push_back(i_uiIon);
+	//printf("active\n");
 	cSetup.active.push_back(true);
+	//printf("log_tau\n");
 	cSetup.log_tau.push_back(i_cParameters.Get(4));
+	//printf("temp\n");
 	cSetup.temp.push_back(i_cParameters.Get(3));
+	//printf("form\n");
 	cSetup.form.push_back(ES::Synow::Setup::form_user_profile);
+	//printf("userprof\n");
 	cSetup.user_profile = g_lpdOpacity_Profile;
+	//printf("%i %i\n",i_cOpacity_Map_A.GetNumElements(),i_cOpacity_Map_B.GetNumElements());
+	fflush(stdout);
 	for (unsigned int uiI = 0; uiI < i_cOpacity_Map_A.GetNumElements() - 1; uiI++)
 	{
 //		cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(iT_ref,uiI + 1);
@@ -352,7 +364,9 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 		}
 	}
 
+	//printf("reset\n");
 	g_lpcGrid->reset(cSetup);
+	//printf("generate\n");
     g_lpcGrid[0]( cSetup );
 //	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
 	o_cOutput = g_lpcOutput[0];
@@ -373,8 +387,8 @@ void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i
 		
 	io_cOutput.zero_out();
 //	printf("allocate OP %i\n",i_uiNum_Ions);
-	XDATASET * lpVelocity_Info_Map = NULL;
-	for (unsigned int uiI = 0; uiI < i_uiNum_Ions && lpVelocity_Info_Map == NULL; uiI++)
+	XDATASET * lpVelocity_Info_Map = nullptr;
+	for (unsigned int uiI = 0; uiI < i_uiNum_Ions && lpVelocity_Info_Map == nullptr; uiI++)
 		if (i_lpcIon_Data[uiI].m_lpcOpacity_Map && i_lpcIon_Data[uiI].m_lpcOpacity_Map->GetNumElements() > 0)
 			lpVelocity_Info_Map = i_lpcIon_Data[uiI].m_lpcOpacity_Map;
 	if (!lpVelocity_Info_Map)
@@ -460,10 +474,10 @@ void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_ui
 //	printf("%.3e\n",o_cOutput.flux(100));
 
     // Grid object.
-//	printf("Allocate\n");
-	Allocate_Synow_Classes(i_cTarget,2048,NULL);
+	//printf("Allocate %i\n",i_cTarget.size());
+	Allocate_Synow_Classes(i_cTarget,2048,nullptr);
 
-//	printf("Setup\n");
+	//printf("Setup\n");
 	double	dVmax = i_cParameters.Get(5);
 	if (i_cParameters.Get_Size() > 7 && i_cParameters.Get(10) > dVmax)
 		dVmax = i_cParameters.Get(10);
@@ -477,7 +491,7 @@ void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_ui
     cSetup.a1 = 0.0;
     cSetup.a2 = 0.0;
     cSetup.v_phot = i_cParameters.Get(0);
-//	printf("Vphot = %.2f\n",cSetup.v_phot);
+	//printf("Vphot = %.2f\n",cSetup.v_phot);
     cSetup.v_outer = dVmax;
     cSetup.t_phot = i_cParameters.Get(1);
 	cSetup.ions.push_back(i_uiIon);
@@ -501,7 +515,7 @@ void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_ui
 	}
 
 	g_lpcGrid_Exp->reset(cSetup);
-//	printf("Generate\n");
+	//printf("Generate\n");
     g_lpcGrid_Exp[0]( cSetup );
 //	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
 	o_cOutput = g_lpcOutput[0];
@@ -633,6 +647,38 @@ void Get_Raw_Moments(const double * i_dX, unsigned int i_uiNum_Points, unsigned 
 	for (unsigned int uiM = 0; uiM < i_uiNum_Moments; uiM++)
 		o_dMoments[uiM] /= i_uiNum_Points;
 }
+void Get_Raw_Moments(const double * i_dX, unsigned int i_uiNum_Points, unsigned int i_uiNum_Moments, std::vector<double> & o_vdMoments)
+{
+	o_vdMoments.clear();
+	o_vdMoments.resize(i_uiNum_Moments,0.0);
+	for (unsigned int uiI = 0; uiI < i_uiNum_Points; uiI++)
+	{
+		double dXprod = i_dX[uiI];
+		for (unsigned int uiM = 0; uiM < i_uiNum_Moments; uiM++)
+		{
+			o_vdMoments[uiM] += dXprod;
+			dXprod *=  i_dX[uiI];
+		}
+	}
+	for (unsigned int uiM = 0; uiM < i_uiNum_Moments; uiM++)
+		o_vdMoments[uiM] /= i_uiNum_Points;
+}
+void Get_Raw_Moments(const std::vector<double> &i_vdX, unsigned int i_uiNum_Moments, std::vector<double> & o_vdMoments)
+{
+	o_vdMoments.clear();
+	o_vdMoments.resize(i_uiNum_Moments,0.0);
+	for (std::vector<double>::const_iterator iterI = i_vdX.begin(); iterI != i_vdX.end(); iterI++)
+	{
+		double dXprod = *iterI;
+		for (unsigned int uiM = 0; uiM < i_uiNum_Moments; uiM++)
+		{
+			o_vdMoments[uiM] += dXprod;
+			dXprod *=  *iterI;
+		}
+	}
+	for (unsigned int uiM = 0; uiM < i_uiNum_Moments; uiM++)
+		o_vdMoments[uiM] /= i_vdX.size();
+}
 void Get_Central_Moments(unsigned int i_uiNum_Moments, const double * i_dMoments, double * o_dCentral_Moments)
 {
 	// it is correct there is no break statements in the switch below.  Higher order requests also return lower order requests
@@ -651,7 +697,38 @@ void Get_Central_Moments(unsigned int i_uiNum_Moments, const double * i_dMoments
 		o_dCentral_Moments[1] = i_dMoments[1] - i_dMoments[0] * i_dMoments[0];
 	case 1:
 		o_dCentral_Moments[0] = 0.0;
+	case 0:
+		break;
 	}
+}
+void Get_Central_Moments(const std::vector<double> & i_vdMoments, std::vector<double> & o_vdMoments)
+{
+	std::stack<double> stackMoments;
+	// it is correct there is no break statements in the switch below.  Higher order requests also return lower order requests
+	switch (i_vdMoments.size())
+	{
+	default:
+	case 6:
+		stackMoments.push(i_vdMoments[5] + ((((-5.0 * i_vdMoments[0] * i_vdMoments[0] + 15.0 * i_vdMoments[1]) * i_vdMoments[0] - 20.0 * i_vdMoments[2]) * i_vdMoments[0] + 15.0 * i_vdMoments[3]) * i_vdMoments[0] - 6.0 * i_vdMoments[4]) * i_vdMoments[0]);
+	case 5:
+		stackMoments.push(i_vdMoments[4] + (((4.0 * i_vdMoments[0] * i_vdMoments[0] - 10.0 * i_vdMoments[1]) * i_vdMoments[0] + 10.0 * i_vdMoments[2]) * i_vdMoments[0] - 5.0 * i_vdMoments[3]) * i_vdMoments[0]);
+	case 4:
+		stackMoments.push(i_vdMoments[3] + ((-3.0 * i_vdMoments[0] * i_vdMoments[0]  + 6.0 * i_vdMoments[1]) * i_vdMoments[0] - 4.0 * i_vdMoments[2]) * i_vdMoments[0]);
+	case 3:
+		stackMoments.push(i_vdMoments[2] + (2.0 * i_vdMoments[0] * i_vdMoments[0]  - 3.0 * i_vdMoments[1]) * i_vdMoments[0]);
+	case 2:
+		stackMoments.push(i_vdMoments[1] - i_vdMoments[0] * i_vdMoments[0]);
+	case 1:
+		stackMoments.push(0.0);
+	case 0:
+		break;
+	}
+	while (!stackMoments.empty())
+	{
+		o_vdMoments.push_back(stackMoments.top());
+		stackMoments.pop();
+	}
+
 }
 void Get_Standardized_Moments(unsigned int i_uiNum_Moments, const double * i_dMoments, double * o_dStandardized_Moments)
 {
@@ -674,9 +751,42 @@ void Get_Standardized_Moments(unsigned int i_uiNum_Moments, const double * i_dMo
 		o_dStandardized_Moments[1] = 1.0;
 	case 1:
 		o_dStandardized_Moments[0] = 0.0;
+	case 0:
+		break;
+	}
+	delete [] lpdCentral_Moments;
+}
+void Get_Standardized_Moments(const std::vector<double> & i_vdRaw_Moments, std::vector<double> & o_vdMoments)
+{
+	std::stack<double> stackMoments;
+	std::vector<double> vCentral_Moments;
+	Get_Central_Moments(i_vdRaw_Moments,vCentral_Moments);
+
+	// it is correct there is no break statements in the switch below.  Higher order requests also return lower order requests
+	switch (i_vdRaw_Moments.size())
+	{
+	default:
+	case 6:
+		stackMoments.push(vCentral_Moments[5] / pow(vCentral_Moments[1],3.0));
+	case 5:
+		stackMoments.push(vCentral_Moments[4] / pow(vCentral_Moments[1],2.5));
+	case 4:
+		stackMoments.push(vCentral_Moments[3] / pow(vCentral_Moments[1],2.0));
+	case 3:
+		stackMoments.push(vCentral_Moments[2] / pow(vCentral_Moments[1],1.5));
+	case 2:
+		stackMoments.push(1.0);
+	case 1:
+		stackMoments.push(0.0);
+	case 0:
+		break;
+	}
+	while (!stackMoments.empty())
+	{
+		o_vdMoments.push_back(stackMoments.top());
+		stackMoments.pop();
 	}
 }
-
 
 
 void Get_Fit_Moments(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiNum_Moments, double * &o_lpdRaw_Moments, double * &o_lpdCentral_Moments, double * &o_lpdStandardized_Moments)
@@ -835,7 +945,103 @@ void Get_Fit_Moments_2(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGen
 
 	delete [] lpdErrors;
 }
+void Get_Fit_Moments_2(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiNum_Moments, std::vector<double> & o_vRaw_Moments, std::vector<double> & o_vCentral_Moments, std::vector<double> & o_vStandardized_Moments, const double & i_dTarget_Normalization_Flux, const double & i_dGenereted_Normalization_Flux)
+{
+	unsigned int uiSource_Idx = 0;
+	unsigned int uiSource_Gen_Idx_Lower = 0;
+	unsigned int uiSource_Gen_Idx_Upper = 0;
+	unsigned int uiSource_Gen_Start = 0;
+	while (uiSource_Idx < i_cTarget.size() && i_cTarget.wl(uiSource_Idx) < i_dMin_WL)
+		uiSource_Idx++;
+	while (uiSource_Gen_Start < i_cGenerated.size() && i_cGenerated.wl(uiSource_Gen_Start) < i_dMin_WL)
+		uiSource_Gen_Start++;
+	if (uiSource_Gen_Start > 0)
+		uiSource_Gen_Start--;
+	// In the event that the generated data doesn't have the same range as the target data, we want to make sure that we only fit over the mutual range
+	if (i_cTarget.wl(uiSource_Idx) < i_cGenerated.wl(uiSource_Gen_Start))
+	{
+		while (uiSource_Idx < i_cTarget.size() && i_cTarget.wl(uiSource_Idx) < i_cGenerated.wl(uiSource_Gen_Start))
+			uiSource_Idx++;
+	}
 
+	double dSource_Normalization = 1.0 / i_dTarget_Normalization_Flux;
+	double dGenerated_Normalization = 1.0 / i_dGenereted_Normalization_Flux;
+
+	unsigned int uiCompare_Count = 0;
+	while (uiCompare_Count < i_cTarget.size() && i_cTarget.wl(uiCompare_Count + uiSource_Idx) <= i_dMax_WL && i_cGenerated.wl(i_cGenerated.size() - 1))
+		uiCompare_Count++;
+	std::vector<double> vErrors;
+
+	for (unsigned int uiI = 0; uiI < uiCompare_Count; uiI++)
+	{
+		Bracket_Wavelength(i_cGenerated, i_cTarget.wl(uiI + uiSource_Idx), uiSource_Gen_Idx_Lower,uiSource_Gen_Idx_Upper,uiSource_Gen_Start);
+//		if (uiSource_Gen_Idx_Lower == uiSource_Gen_Idx_Upper)
+//			printf("%i %i %i %.1f %i %i\n",uiI,uiSource_Idx,uiI + uiSource_Idx,i_cTarget.wl(uiI + uiSource_Idx),uiSource_Gen_Idx_Lower,uiSource_Gen_Idx_Upper);
+		double	dGenerated_Flux_Norm = Interpolate_Flux(i_cGenerated, i_cTarget.wl(uiI + uiSource_Idx), uiSource_Gen_Idx_Lower,uiSource_Gen_Idx_Upper) * dGenerated_Normalization;
+		double	dSource_Flux_Norm = i_cTarget.flux(uiI + uiSource_Idx) * dSource_Normalization;
+		double	dError = dSource_Flux_Norm - dGenerated_Flux_Norm;
+		if (!isnan(dGenerated_Flux_Norm))
+			vErrors.push_back(dError);
+		else
+			vErrors.push_back(0.0);
+		uiSource_Gen_Start = uiSource_Gen_Idx_Upper;
+	}
+
+	Get_Raw_Moments(vErrors,i_uiNum_Moments,o_vRaw_Moments);
+	Get_Central_Moments(o_vRaw_Moments,o_vCentral_Moments);
+	Get_Standardized_Moments(o_vRaw_Moments,o_vStandardized_Moments);
+
+}
+
+void Get_Fit_Moments(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiMax_Moments, std::vector<double> &o_vRaw_Moments, std::vector<double> &o_vCentral_Moments, std::vector<double> &o_vStandardized_Moments, const double & i_dTarget_Normalization_Flux, const double & i_dGenereted_Normalization_Flux)
+{
+	unsigned int uiSource_Idx = 0;
+	unsigned int uiSource_Gen_Idx_Lower = 0;
+	unsigned int uiSource_Gen_Idx_Upper = 0;
+	unsigned int uiSource_Gen_Start = 0;
+	while (uiSource_Idx < i_cTarget.size() && i_cTarget.wl(uiSource_Idx) < i_dMin_WL)
+		uiSource_Idx++;
+	while (uiSource_Gen_Start < i_cGenerated.size() && i_cGenerated.wl(uiSource_Gen_Start) < i_dMin_WL)
+		uiSource_Gen_Start++;
+	if (uiSource_Gen_Start > 0)
+		uiSource_Gen_Start--;
+	// In the event that the generated data doesn't have the same range as the target data, we want to make sure that we only fit over the mutual range
+	if (i_cTarget.wl(uiSource_Idx) < i_cGenerated.wl(uiSource_Gen_Start))
+	{
+		while (uiSource_Idx < i_cTarget.size() && i_cTarget.wl(uiSource_Idx) < i_cGenerated.wl(uiSource_Gen_Start))
+			uiSource_Idx++;
+	}
+
+	double dSource_Normalization = 1.0 / i_dTarget_Normalization_Flux;
+	double dGenerated_Normalization = 1.0 / i_dGenereted_Normalization_Flux;
+
+	unsigned int uiCompare_Count = 0;
+	while (uiCompare_Count < i_cTarget.size() && i_cTarget.wl(uiCompare_Count + uiSource_Idx) <= i_dMax_WL && i_cGenerated.wl(i_cGenerated.size() - 1))
+		uiCompare_Count++;
+	double * lpdErrors = new double[uiCompare_Count];
+	for (unsigned int uiI = 0; uiI < uiCompare_Count; uiI++)
+	{
+		Bracket_Wavelength(i_cGenerated, i_cTarget.wl(uiI + uiSource_Idx), uiSource_Gen_Idx_Lower,uiSource_Gen_Idx_Upper,uiSource_Gen_Start);
+//		if (uiSource_Gen_Idx_Lower == uiSource_Gen_Idx_Upper)
+//			printf("%i %i %i %.1f %i %i\n",uiI,uiSource_Idx,uiI + uiSource_Idx,i_cTarget.wl(uiI + uiSource_Idx),uiSource_Gen_Idx_Lower,uiSource_Gen_Idx_Upper);
+		double	dGenerated_Flux_Norm = Interpolate_Flux(i_cGenerated, i_cTarget.wl(uiI + uiSource_Idx), uiSource_Gen_Idx_Lower,uiSource_Gen_Idx_Upper) * dGenerated_Normalization;
+		double	dSource_Flux_Norm = i_cTarget.flux(uiI + uiSource_Idx) * dSource_Normalization;
+		double	dError = dSource_Flux_Norm - dGenerated_Flux_Norm;
+		if (!isnan(dGenerated_Flux_Norm))
+			lpdErrors[uiI] = dError;
+		uiSource_Gen_Start = uiSource_Gen_Idx_Upper;
+	}
+
+	o_vRaw_Moments.clear();
+	o_vCentral_Moments.clear();
+	o_vStandardized_Moments.clear();
+
+	Get_Raw_Moments(lpdErrors,uiCompare_Count,i_uiMax_Moments,o_vRaw_Moments);
+	Get_Central_Moments(o_vRaw_Moments,o_vCentral_Moments);
+	Get_Standardized_Moments(o_vRaw_Moments,o_vStandardized_Moments);
+
+	delete [] lpdErrors;
+}
 
 double Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, FIT_TYPE i_eFit,unsigned int i_uiFit_Moment)
 {
@@ -943,9 +1149,9 @@ unsigned int SPECTRAL_DATABASE::Read_Database(void)
 	FILE * fileIn;
 	unsigned int uiFault_Code = 0;
 	unsigned int uiStrLen_Model_Name = 0;
-	double			* lpdDouble_Buffer = NULL;
+	double			* lpdDouble_Buffer = nullptr;
 	unsigned int	uiDouble_Buffer_Length = 0;
-	char * 			lpszModel_Name_Buffer = NULL;
+	char * 			lpszModel_Name_Buffer = nullptr;
 	unsigned int	uiIon = 0;
 	unsigned int	uiModel_Name_Length = 0;
 	unsigned int	uiParameter_Vector_Length = 0;
@@ -1080,7 +1286,7 @@ unsigned int SPECTRAL_DATABASE::Read_Database(void)
 	{
 		
 		m_lpvParameter_Data[uiI].Set_Size(uiParameter_Vector_Length);
-		m_lplpcTuple_List_Heads[uiI] = m_lplpcTuple_List_Tails[uiI] = NULL;
+		m_lplpcTuple_List_Heads[uiI] = m_lplpcTuple_List_Tails[uiI] = nullptr;
 		size_t iRead_Size = fread(lpdDouble_Buffer,sizeof(double),uiParameter_Vector_Length,fileIn);
 		if (iRead_Size < uiParameter_Vector_Length)
 			uiFault_Code = 100000000 + uiI; // failed to read parameter data for vector i. Unexpected end of file or file access error
@@ -1121,7 +1327,7 @@ unsigned int SPECTRAL_DATABASE::Read_Database(void)
 				{
 					lpCurr->m_dWavelength = lpdDouble_Buffer[uiWL_Idx];
 					lpCurr->m_dIntensity = lpdDouble_Buffer[uiInt_Idx];
-					if (m_lplpcTuple_List_Heads[uiI] == NULL)
+					if (m_lplpcTuple_List_Heads[uiI] == nullptr)
 					{
 						m_lplpcTuple_List_Heads[uiI] = lpCurr;
 						m_lplpcTuple_List_Tails[uiI] = lpCurr;
@@ -1149,7 +1355,7 @@ unsigned int SPECTRAL_DATABASE::Read_Database(void)
 }
 unsigned int SPECTRAL_DATABASE::Save_Database(void)
 {
-	FILE * fileIn = NULL;
+	FILE * fileIn = nullptr;
 	unsigned int uiFault_Code = 0;
 	unsigned int uiModel_Name_Length;
 	unsigned int uiParameter_Vector_Length;
@@ -1244,7 +1450,7 @@ unsigned int SPECTRAL_DATABASE::Save_Database(void)
 		unsigned int uiNum_Tuples = 0;
 		SPECTRAL_DATABASE_TUPLE_NODE * lpCurr = m_lplpcTuple_List_Heads[uiI];
 		// count tuples
-		while (lpCurr != NULL)
+		while (lpCurr != nullptr)
 		{
 			uiNum_Tuples++;
 			lpCurr = lpCurr->m_lpNext;
@@ -1257,7 +1463,7 @@ unsigned int SPECTRAL_DATABASE::Save_Database(void)
 		}
 		// go through tuple list, writing each one to file
 		lpCurr = m_lplpcTuple_List_Heads[uiI];
-		while (lpCurr != NULL && uiFault_Code == 0)
+		while (lpCurr != nullptr && uiFault_Code == 0)
 		{
 			size_t iRead_Size = fwrite(&(lpCurr->m_dWavelength),sizeof(double),1,fileIn);
 			if (iRead_Size != 1)
@@ -1308,8 +1514,8 @@ unsigned int		SPECTRAL_DATABASE::Add_Parameter_Vector(const XVECTOR & i_vParamet
 				lplpcNew_Tails[uiI] = m_lplpcTuple_List_Tails[uiI];
 			}
 			lpNew_List[m_uiNum_Parameter_Vectors] = i_vParameters;
-			lplpcNew_Heads[m_uiNum_Parameter_Vectors] = NULL;
-			lplpcNew_Tails[m_uiNum_Parameter_Vectors] = NULL;
+			lplpcNew_Heads[m_uiNum_Parameter_Vectors] = nullptr;
+			lplpcNew_Tails[m_uiNum_Parameter_Vectors] = nullptr;
 			m_uiNum_Parameter_Vectors++;
 			if (m_lpvParameter_Data)
 				delete [] m_lpvParameter_Data;
@@ -1637,7 +1843,7 @@ void Normalize_At_Red_Maxima(double * io_lpdWavelengths, double * io_lpdFluxes, 
 double Get_Element_Number(const char * i_lpszNuclide)
 {
 	double dZ;
-	char lpszElem[4] = {toupper(i_lpszNuclide[0]),0,0,0};
+	char lpszElem[4] = {(char)toupper(i_lpszNuclide[0]),0,0,0};
 	if (i_lpszNuclide[1] != 0)
 		lpszElem[1] = toupper(i_lpszNuclide[1]);
 	if (i_lpszNuclide[2] != 0 && lpszElem[0] == 'U' && lpszElem[1] == 'U' && ((i_lpszNuclide[2] >= 'a' && i_lpszNuclide[2] <= 'z') || (i_lpszNuclide[2] >= 'A' && i_lpszNuclide[2] <= 'Z')))

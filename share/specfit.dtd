@@ -19,6 +19,10 @@
 <!-- in FIT, the instrument is only optional if MJD is unique, otherwise required-->
 <!-- in FIT, the ebv is the E(B-V) value for the SN to use for the dereddening routine.  The default value is 0 (spectrum will not be dereddened) -->
 <!-- in FIT, the usejsonebv flag indicates to use a weighted E(B-V) value from the json data file. The default value is false - the user specified value in ebv will be used -->
+<!-- in FIT, the mjdbmax indicates the date of bmax to be used for scaling the starting parameter estimates -->
+<!-- in FIT, the bmaxdelayexpl indicates the delay after explosion until Bmax, in days. The default value is 18 -->
+<!-- in FIT, timepowerlaw indicates exponent of the decay of S in time relative to 1d after explosion.  The default is -2 (S~S0 (t/1d)^(-2) -->
+<!-- in FIT, scalestartwithtime indicates whether the starting values will be scaled relative to the time after explosion. If MJDbmax is not specified, this will be ignored. The default value is false. -->
 <!ELEMENT FIT (MODEL*|SUGGESTPARAM?|MODLIST*)+>
 <!ATTLIST FIT
 	datafileid	IDREF #REQUIRED
@@ -28,6 +32,10 @@
 	feature		(CaNIR|CaHK|Si6355|O7777) #REQUIRED
 	ebv			CDATA #IMPLIED
 	usejsonebv	(true|false) #IMPLIED
+	mjdbmax		CDATA #IMPLIED
+	bmaxdelayexpl		CDATA #IMPLIED
+	timepowerlaw CDATA #IMPLIED
+	scalestartwithtime	(true|false) #IMPLIED
 >
 <!ELEMENT MODLIST EMPTY>
 <!ATTLIST MODLIST

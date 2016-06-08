@@ -349,7 +349,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	bool	bNo_Shell = false;
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	char lpszOutput_Name[256];
-	GAUSS_FIT_PARAMETERS * lpgfpParamters;
+	gauss_fit_parameters * lpgfpParamters;
 	ABUNDANCE_LIST	cShell_Abd;
 	ABUNDANCE_LIST	cEjecta_Abd;
 	char lpszShell_Abundance[128];

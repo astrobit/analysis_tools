@@ -99,11 +99,11 @@ unsigned int g_uiPereira_Count = sizeof(g_lpPereira_Luminosity)/sizeof(double);
 XSPLINE_DATA	g_splPereira_Data(g_lpPereira_Days,g_lpPereira_Luminosity,g_uiPereira_Count);
 
 
-//GAUSS_FIT_PARAMETERS	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
-//GAUSS_FIT_PARAMETERS	g_cgfpCaHK(3934.77,230.0,3969.59,220.0);
-//GAUSS_FIT_PARAMETERS	g_cgfpOINIR(774.08,870.0,776.31,810.0,7777.53,750.0);
-//GAUSS_FIT_PARAMETERS	g_cgfpSi6355(6348.85,1000.0,6373.12,1000.0);
-//GAUSS_FIT_PARAMETERS	g_cgfpSi5968(5959.21,500.0,5980.59,500.0);
+//gauss_fit_parameters	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
+//gauss_fit_parameters	g_cgfpCaHK(3934.77,230.0,3969.59,220.0);
+//gauss_fit_parameters	g_cgfpOINIR(774.08,870.0,776.31,810.0,7777.53,750.0);
+//gauss_fit_parameters	g_cgfpSi6355(6348.85,1000.0,6373.12,1000.0);
+//gauss_fit_parameters	g_cgfpSi5968(5959.21,500.0,5980.59,500.0);
 
 
 
@@ -236,7 +236,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	msdb::DATABASE cMSDB(true);
-	GAUSS_FIT_PARAMETERS * lpgfpParamters;
+	gauss_fit_parameters * lpgfpParamters;
 	bool bVerbose = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--verbose");
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
 	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
@@ -934,10 +934,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				FEATURE_PARAMETERS	cCombined_Unflat;
 				FEATURE_PARAMETERS	cEO_Unflat;
 				FEATURE_PARAMETERS	cSO_Unflat;
-				GAUSS_FIT_RESULTS	cSingle_Flat_Fit;
-				GAUSS_FIT_RESULTS	cDouble_Flat_Fit;
-				GAUSS_FIT_RESULTS	cSingle_P_Cygni_Fit;
-				GAUSS_FIT_RESULTS	cDouble_P_Cygni_Fit;
+				gauss_fit_results	cSingle_Flat_Fit;
+				gauss_fit_results	cDouble_Flat_Fit;
+				gauss_fit_results	cSingle_P_Cygni_Fit;
+				gauss_fit_results	cDouble_P_Cygni_Fit;
 				unsigned int uiContinuum_Blue_Idx = 0;
 				unsigned int uiContinuum_Red_Idx = 0;
 				bool	bIn_feature = false;

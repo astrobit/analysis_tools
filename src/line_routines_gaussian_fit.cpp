@@ -13,13 +13,13 @@
 #include <float.h>
 #include <line_routines.h>
 
-GAUSS_FIT_PARAMETERS	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
-GAUSS_FIT_PARAMETERS	g_cgfpCaHK(3934.77,230.0,3969.59,220.0);
-GAUSS_FIT_PARAMETERS	g_cgfpOINIR(774.08,870.0,776.31,810.0,7777.53,750.0);
-GAUSS_FIT_PARAMETERS	g_cgfpSi6355(6348.85,1000.0,6373.12,1000.0);
-GAUSS_FIT_PARAMETERS	g_cgfpSi5968(5959.21,500.0,5980.59,500.0);
+gauss_fit_parameters	g_cgfpCaNIR(8662.14,160.0,8542.09,170.0,8498.02,130.0);
+gauss_fit_parameters	g_cgfpCaHK(3934.77,230.0,3969.59,220.0);
+gauss_fit_parameters	g_cgfpOINIR(774.08,870.0,776.31,810.0,7777.53,750.0);
+gauss_fit_parameters	g_cgfpSi6355(6348.85,1000.0,6373.12,1000.0);
+gauss_fit_parameters	g_cgfpSi5968(5959.21,500.0,5980.59,500.0);
 
-GAUSS_FIT_PARAMETERS	lg_cUser_Paramters;
+gauss_fit_parameters	lg_cUser_Paramters;
 double					lg_dUser_Sigma = 0.0;
 double					lg_dNorm;
  
@@ -30,7 +30,7 @@ XVECTOR Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvData)
 	if (i_lpvData)
 	{
 		vOut.Set_Size(4); // function, and derivatives wrt each a parameter
-		GAUSS_FIT_PARAMETERS *lpvParam = (GAUSS_FIT_PARAMETERS *) i_lpvData;
+		gauss_fit_parameters *lpvParam = (gauss_fit_parameters *) i_lpvData;
 		double	dDelx_X, dDel_X_Sigma_1, dDel_X_Sigma_2, dDel_X_Sigma_3 = 0.0;
 		double	dExp_1, dExp_2, dExp_3 = 0.0;
 		double	dDel_X;
@@ -117,7 +117,7 @@ XVECTOR Multi_Gaussian(const double & i_dX, const XVECTOR & i_vA, void * i_lpvDa
 	}
 	return vOut;
 }
-void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const double & i_dWavelength_Delta_Ang, const GAUSS_FIT_PARAMETERS * i_lpgfpParameters, double & o_dpEW_PVF, double & o_dpEW_HVF)
+void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const double & i_dWavelength_Delta_Ang, const gauss_fit_parameters * i_lpgfpParameters, double & o_dpEW_PVF, double & o_dpEW_HVF)
 {
 	o_dpEW_HVF = 0.0;
 	o_dpEW_PVF = 0.0;
@@ -150,7 +150,7 @@ void Compute_Gaussian_Fit_pEW(const XVECTOR & i_vX, const XVECTOR &i_vA, const d
 	}
 }
 
-double Determine_HWHM(const double & i_dHWHM_Estimate, const double & i_dCenter, const double & i_dHWHM_X, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters)
+double Determine_HWHM(const double & i_dHWHM_Estimate, const double & i_dCenter, const double & i_dHWHM_X, const gauss_fit_parameters * i_lpgfpParamters)
 {
 //	printf("DHWHM: %f %f %f\n",i_dHWHM_Estimate,i_dCenter,i_dHWHM_X);
 	double dHWHM_Low = i_dHWHM_Estimate * 0.50;
@@ -181,7 +181,7 @@ double Determine_HWHM(const double & i_dHWHM_Estimate, const double & i_dCenter,
 	return dHWHM;
 }
 
-XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, const XVECTOR & i_vY, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters)
+XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, const XVECTOR & i_vY, const gauss_fit_parameters * i_lpgfpParamters)
 {
 	double	dDbl_Center;
 	double	dDbl_Amplitude;
@@ -212,7 +212,7 @@ XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, con
 
 	return vRet;
 }
-XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters)
+XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const gauss_fit_parameters * i_lpgfpParamters)
 {
     XVECTOR vA;
     XVECTOR vA2;
@@ -338,9 +338,9 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	}
 	return vA;
 }
-XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const GAUSS_FIT_PARAMETERS * i_lpgfpParamters,
+XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const XVECTOR & i_vW, const gauss_fit_parameters * i_lpgfpParamters,
                     const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF,
- 					XVECTOR & o_vSigmas, double & o_dS, GAUSS_FIT_RESULTS * io_lpSingle_Fit, GAUSS_FIT_RESULTS * io_lpDouble_Fit)
+ 					XVECTOR & o_vSigmas, double & o_dS, gauss_fit_results * io_lpSingle_Fit, gauss_fit_results * io_lpDouble_Fit)
 {
     XVECTOR vRet;
     XVECTOR vA,vA_Double,vA_Single;

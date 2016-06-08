@@ -104,7 +104,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	msdb::DATABASE cMSDB(true);
-	GAUSS_FIT_PARAMETERS * lpgfpParamters;
+	gauss_fit_parameters * lpgfpParamters;
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
 	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
 	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);

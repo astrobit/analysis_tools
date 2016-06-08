@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE SPECFIT SYSTEM "specfit.dtd">
+<SPECFIT>
+<DATAFILE filepath="/home/astrobit/Downloads/SN2011fe.json" id="filea" />
+<MODELLIST id="mass">
+	<MODEL id="61"/>
+	<MODEL id="57"/>
+	<MODEL id="41"/>
+	<MODEL id="49"/>
+	<MODEL id="45"/>
+	<MODEL id="53"/>
+</MODELLIST>
+<FIT source="21" mjd="55805.0" instrument="Gemini-N - GMOS" feature="CaNIR" datafileid="filea" >
+	<MODLIST id="mass"/>
+</FIT>	
+<FIT source="21" mjd="55805.0" instrument="LRS2" feature="CaNIR" datafileid="filea" >
+	<MODLIST id="mass"/>
+</FIT>	
+<FIT source="21" mjd="55813.0" instrument="LRS2" feature="CaNIR" datafileid="filea" >
+	<MODLIST id="mass"/>
+</FIT>	
+<FIT source="21" mjd="52718.0" feature="CaNIR" datafileid="filea" >
+	<MODLIST id="mass"/>
+	<MODEL id="65"/>
+</FIT>	
+</SPECFIT>
+
