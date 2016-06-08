@@ -18,6 +18,9 @@ ESLIBS= -les -lyaml-cpp -lm -lcfitsio
 XLIBSPATH=~/xlibs
 XLIBSCHANGE=$(XLIBSPATH)/lib/libxio.a $(XLIBSPATH)/lib/libxstdlib.a $(XLIBSPATH)/lib/libxmath.a $(XLIBSPATH)/lib/libxastro.a $(XLIBSPATH)/lib/libxflash.a
 XMLINCLUDE= -I/usr/include/libxml2
+ifdef TACC_HDF5_LIB
+	LFLAGS += -L$(TACC_HDF5_LIB)
+endif
 
 $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utilities.h $(XLIBSCHANGE) $(INCLUDEDIR)/eps_plot.h $(SRCDIR)/eps_plot.cpp
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/Plot_Utilities.cpp -o $(TMPDIR)/Plot_Utilities.o
