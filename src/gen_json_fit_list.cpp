@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <cfloat>
+#include <cmath>
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
@@ -15,6 +16,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		double dMJD_Start = 0;
 		double dMJD_End = DBL_MAX;
+		double dMJD_Bmax = nan("");
 		std::vector<std::string> vsSource_Files;
 		std::string szFeature = "CaNIR";
 
@@ -23,7 +25,54 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			std::string szCommand =  i_lpszArg_Values[uiI];
 			if (szCommand[0] == '-') // this is a option, not a filename
 			{
-				if (szCommand.find("--max-MJD") != std::string::npos || szCommand.find("--max-mjd") != std::string::npos)
+				if (szCommand.find("--mjd-bmax") != std::string::npos || szCommand.find("--MJD-Bmax") != std::string::npos)
+				{
+					if (szCommand.find("=") != std::string::npos)
+					{
+						size_t sPos =  szCommand.find("=");
+						if (szCommand.size() > sPos)
+						{ // the data is probably here
+							std::string szData = szCommand.substr(sPos + 1);
+							dMJD_Bmax = std::stod(szData);
+						}
+						else
+						{
+							uiI++;
+							if (uiI < i_iArg_Count)
+							{
+								std::string szData = i_lpszArg_Values[uiI];
+								dMJD_Bmax = std::stod(szData);
+							}
+						}
+					}
+					else
+					{
+						uiI++;
+						if (uiI < i_iArg_Count)
+						{
+							szCommand = i_lpszArg_Values[uiI];
+							if (szCommand.find("=") != std::string::npos)
+							{
+								size_t sPos =  szCommand.find("=");
+								if (szCommand.size() > sPos)
+								{ // the data is probably here
+									std::string szData = szCommand.substr(sPos + 1);
+									dMJD_Bmax = std::stod(szData);
+								}
+								else
+								{
+									uiI++;
+									if (uiI < i_iArg_Count)
+									{
+										std::string szData = i_lpszArg_Values[uiI];
+										dMJD_Bmax = std::stod(szData);
+									}
+								}
+							}
+						}
+					}
+				}
+				else if (szCommand.find("--max-MJD") != std::string::npos || szCommand.find("--max-mjd") != std::string::npos)
 				{
 					if (szCommand.find("=") != std::string::npos)
 					{
@@ -117,7 +166,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						}
 					}
 				}
-				else if (szCommand.find("--feature") != std::string::npos || szCommand.find("--min-mjd") != std::string::npos)
+				else if (szCommand.find("--feature") != std::string::npos)
 				{
 					if (szCommand.find("=") != std::string::npos)
 					{
@@ -233,6 +282,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										szMJD = vValue.asString();
 							
 									} // if (iterI->isMember("time"))
+
 									bool bInclude = true;
 									if (!szMJD.empty())
 									{
@@ -251,6 +301,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										fsOut_File << " feature=\"" << szFeature << "\" datafileid=\"file" << uiI << "\"";
 										if(bEBV_Avail)
 											fsOut_File << " usejsonebv=\"true\"";
+										if (!std::isnan(dMJD_Bmax))
+											fsOut_File << " mjdbmax=\"" << dMJD_Bmax << "\" scalestartwithtime=\"true\"";
 										fsOut_File << " >" << std::endl;
 										fsOut_File << "\t<MODLIST id=\"mass\"/>" << std::endl;
 										fsOut_File << "</FIT>	" << std::endl;
