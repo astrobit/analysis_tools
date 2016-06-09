@@ -5,7 +5,7 @@
 #include <line_routines.h>
 #include <sstream>
 #include <xfit.h>
-
+/*
 void SavePointsCache(const char * i_lpszFilename, const XVECTOR * lpvPoints, unsigned int uiNum_Points, unsigned int uiNum_Parameters, const double * lpdFit)
 {
 	if (i_lpszFilename && i_lpszFilename[0] != 0)
@@ -538,7 +538,7 @@ void xPerform_Fit_Bound_Simplex(const XVECTOR &i_vLower_Bound,const XVECTOR &i_v
 	fflush(stdout);
 }
 
-
+*/
 
 /*class spectra_fit_data_BASE
 {
@@ -648,9 +648,9 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		// look to see if this particular vector has been processed
 
 		lpcCall_Data->m_cParam.m_dPhotosphere_Velocity_kkms = i_vX[1];
-		lpcCall_Data->m_cParam.m_dEjecta_Log_Scalar = i_vX[3];
-		lpcCall_Data->m_cParam.m_dShell_Log_Scalar = i_vX[4];
-		lpcCall_Data->m_cParam.m_dPhotosphere_Temp_kK = i_vX[2];
+		lpcCall_Data->m_cParam.m_dEjecta_Log_Scalar = i_vX[2];
+		lpcCall_Data->m_cParam.m_dShell_Log_Scalar = i_vX[3];
+		lpcCall_Data->m_cParam.m_dPhotosphere_Temp_kK = i_vX[0];
 		lpcCall_Data->m_cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
 		lpcCall_Data->m_cParam.m_dShell_Effective_Temperature_kK = 10.0;
 
@@ -670,6 +670,7 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 				cParameters.Set(5,lpcCall_Data->m_cParam.m_dShell_Effective_Temperature_kK); // fix excitation temp
 				cParameters.Set(6,lpcCall_Data->m_cParam.m_dShell_Log_Scalar); // HVF scalar
 			}
+			//cParameters.Print();
 			Generate_Synow_Spectra(lpcCall_Data->m_lpcTarget[0],lpcCall_Data->m_lpcOpacity_Map_A[0],lpcCall_Data->m_lpcOpacity_Map_B[0],lpcCall_Data->m_cParam.m_uiIon,cParameters,cOutput,-2.0,-2.0);
 			msdb::dbid dbidID = cMSDB.Add_Spectrum(lpcCall_Data->m_cParam, msdb::COMBINED, cOutput);
 		}
@@ -684,7 +685,7 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 
 double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit)
 {
-	std::string szCache = ".fitcache";
+	//std::string szCache = ".fitcache";
 	ES::Spectrum cTarget;
 	if (!i_cFit.m_vData.empty())
 	{
@@ -773,7 +774,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	double dDelta_Bmax = 1.0;
 	if (!std::isnan(i_cFit.m_dMJD_Bmax))
 		dDelta_Bmax = i_cFit.m_dMJD_Bmax - i_cFit.m_dMJD - i_cFit.m_dDelay_From_Explosion_To_Bmax;
-	printf("dbmax %f\n",dDelta_Bmax);
+	//printf("dbmax %f\n",dDelta_Bmax);
 	if (dDelta_Bmax < 1.0)
 		dDelta_Bmax = 1.0;
 	vStarting_Point.Set_Size(uiParameters);
@@ -802,7 +803,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		if (i_cFit.m_bScale_Starting_Log_S && !std::isnan(i_cFit.m_dMJD_Bmax) )
 			vLog_S_Delta.Set(3,i_cFit.m_dTime_Scale_Power_Law * log10(dDelta_Bmax));
 	}
-	printf("logsdelta %f\n",vLog_S_Delta[2]);
+	//printf("logsdelta %f\n",vLog_S_Delta[2]);
 	vStarting_Point += vLog_S_Delta;
 	vEpsilon.Set_Size(uiParameters);
 	vEpsilon.Set(0,0.05);
@@ -889,9 +890,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	msdb::DATABASE cMSDB(false);
 
 	cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
-	cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[3];
-	cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[4];
-	cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[2];
+	cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
+	cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
+	cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
 	cCall_Data.m_cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
 	cCall_Data.m_cParam.m_dShell_Effective_Temperature_kK = 10.0;
 
@@ -946,14 +947,17 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		}
 	}
 
+	double dTarget_Flux, dGenerated_Flux;
+	Get_Normalization_Fluxes(cTarget, csResult, FIT_BLUE_WL, FIT_RED_WL, dTarget_Flux, dGenerated_Flux);
 
+	double	dNorm = dTarget_Flux  / dGenerated_Flux;
 	for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
 	{
 		o_cFit.m_vpdSpectrum_Target.push_back(std::pair<double,double>(cTarget.wl(uiI),cTarget.flux(uiI)));
-		o_cFit.m_vpdSpectrum_Synthetic_Ejecta_Only.push_back(std::pair<double,double>(cResult_EO.wl(uiI),cResult_EO.flux(uiI)));
-		o_cFit.m_vpdSpectrum_Synthetic_Shell_Only.push_back(std::pair<double,double>(cResult_SO.wl(uiI),cResult_SO.flux(uiI)));
-		o_cFit.m_vpdSpectrum_Synthetic_Continuum.push_back(std::pair<double,double>(cContinuum.wl(uiI),cContinuum.flux(uiI)));
-		o_cFit.m_vpdSpectrum_Synthetic.push_back(std::pair<double,double>(csResult.wl(uiI),csResult.flux(uiI)));
+		o_cFit.m_vpdSpectrum_Synthetic_Ejecta_Only.push_back(std::pair<double,double>(cResult_EO.wl(uiI),cResult_EO.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic_Shell_Only.push_back(std::pair<double,double>(cResult_SO.wl(uiI),cResult_SO.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic_Continuum.push_back(std::pair<double,double>(cContinuum.wl(uiI),cContinuum.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic.push_back(std::pair<double,double>(csResult.wl(uiI),csResult.flux(uiI) * dNorm));
 	}
 	double * lpdX = new double[cTarget.size()];
 	for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
