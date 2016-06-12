@@ -49,6 +49,7 @@ namespace specfit
 		
 	};
 
+	typedef std::vector <std::tuple<double, double, double> > spectraldata;
 	class fit
 	{
 	public:
@@ -66,7 +67,7 @@ namespace specfit
 		params						m_cSuggested_Param;
 		double						m_dE_BmV; // E (B-V) value to use for dereddening
 		bool						m_bUse_JSON_ebv; // use the ebv data from the JSON datafile
-		std::vector <std::tuple<double, double, double> > m_vData;
+		spectraldata m_vData;
 		fit(void) : m_cSuggested_Param()
 		{
 			m_dMJD = nan("");

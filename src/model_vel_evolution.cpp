@@ -139,31 +139,14 @@ public:
 };
 
 
-void Process_Model_List(const char * lpszModel_List_String, const char ** &o_lpszModel_List, unsigned int &o_uiModel_Count)
+void Process_Model_List(const char * lpszModel_List_String, std::vector<unsigned int> &o_vuiModel_List)
 {
+	o_vuiModel_List.clear();
 	char * lpszCursor = (char *)lpszModel_List_String;
+	char lpszTemp[16];
 	// count number of models to process
-	o_uiModel_Count = 0;
-	while (lpszCursor && lpszCursor[0] != 0)
-	{
-		// bypass whitespace
-		while (lpszCursor[0] != 0 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
-			lpszCursor++;
-		// count model
-		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
-		{
-			o_uiModel_Count++;
-			while (lpszCursor[0] != 0 && lpszCursor[0] != ',')
-				lpszCursor++;
-		}
-		if(lpszCursor[0] == ',')
-			lpszCursor++; // bypass comma
-	}
-	// allocate model name pointer list
-	o_lpszModel_List = new const char *[o_uiModel_Count];
-	// count number of models to process
-	o_uiModel_Count = 0;
 	lpszCursor = (char *)lpszModel_List_String; // reset cursor
+	unsigned int uiIdx = 0;
 	while (lpszCursor && lpszCursor[0] != 0)
 	{
 		// bypass whitespace
@@ -172,8 +155,7 @@ void Process_Model_List(const char * lpszModel_List_String, const char ** &o_lps
 		// add pointer to model name and count model
 		if (lpszCursor[0] != 0 && lpszCursor[0] != ',')
 		{
-			o_lpszModel_List[o_uiModel_Count] = lpszCursor;
-			o_uiModel_Count++;
+			o_vuiModel_List.push_back(std::atoi(lpszCursor));
 			while (lpszCursor[0] != 0 && lpszCursor[0] != ',')
 				lpszCursor++;
 		}
@@ -257,18 +239,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double	dEjecta_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-power-law",4.0);
 	double	dShell_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-power-law",4.0);
 
-
+	unsigned int uiRef_Model = 0;	
 	if (lpszRef_Model && lpszRef_Model[0] >= '0' && lpszRef_Model[0] <= '9') // just a number, convert into "runXX")
 	{
-		lpszRef_Model_Extended[0] = 'r';
-		lpszRef_Model_Extended[1] = 'u';
-		lpszRef_Model_Extended[2] = 'n';
-		strcpy(lpszRef_Model_Extended + 3,lpszRef_Model);
+		uiRef_Model = std::atoi(lpszRef_Model);
 
 	}
 	else if (lpszRef_Model)
 	{
-		strcpy(lpszRef_Model_Extended,lpszRef_Model);
+		const char * lpszCursor = lpszRef_Model;
+		while (lpszCursor[0] != 0 && (lpszCursor[0] < '0' || lpszCursor[0] >= '9'))
+			lpszCursor++;
+		uiRef_Model = std::atoi(lpszCursor);
 	}
 
 	if (bVerbose)
@@ -282,9 +264,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	if (bVerbose)
 		printf("Parsing model list\n");
 	const char *	lpszModel_List_String = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--models");
-	const char ** lpszModel_List;
-	unsigned int uiModel_Count;
-	Process_Model_List(lpszModel_List_String, lpszModel_List, uiModel_Count);
+	std::vector<unsigned int> vModel_List;
+	Process_Model_List(lpszModel_List_String, vModel_List);
 
 	enum	tFit_Region		{CANIR,CAHK,SI5968,SI6355,OINIR,OTHER};
 	tFit_Region	eFit_Region = OTHER;
@@ -326,8 +307,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fprintf(fileParams,"Shell_scalar = %.17e\n",dShell_Scalar);
 		fprintf(fileParams,"Shell_power_law = %.17e\n",dShell_Power_Law);
 		fprintf(fileParams,"Ejecta_power_law = %.17e\n",dEjecta_Power_Law);
-		if (lpszRef_Model)
-			fprintf(fileParams,"Ref_model = \"%s\"\n",lpszRef_Model_Extended);
+		if (uiRef_Model != 0)
+			fprintf(fileParams,"Ref_model = \"%i\"\n",uiRef_Model);
 		else
 			fprintf(fileParams,"Ref_model = \"-\"\n");
 		fprintf(fileParams,"PS_temp = %.17e\n",dPS_Temp);
@@ -441,8 +422,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		//printf("%f %f %f\n", cParam.m_dWavelength_Range_Lower_Ang,cParam.m_dWavelength_Range_Upper_Ang,cParam.m_dWavelength_Delta_Ang);
 
 
-		ES::Spectrum ** lpcSpectrum = new ES::Spectrum *[uiModel_Count];
-		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+		ES::Spectrum ** lpcSpectrum = new ES::Spectrum *[vModel_List.size()];
+		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 		{
 			lpcSpectrum[uiI] = new ES::Spectrum[4];
 			lpcSpectrum[uiI][0] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
@@ -450,7 +431,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			lpcSpectrum[uiI][2] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
 			lpcSpectrum[uiI][3] = ES::Spectrum::create_from_range_and_step(dRange_Min,dRange_Max, cParam.m_dWavelength_Delta_Ang);
 		}
-		double * lpdV_ps = new double[uiModel_Count];
+		double * lpdV_ps = new double[vModel_List.size()];
 		XVECTOR cParameters(7);
 		XVECTOR cContinuum_Parameters(7);
 
@@ -460,17 +441,23 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double	dShell_Scalar_Prof = -1.0;
 		OPACITY_PROFILE_DATA	cOpacity_Profile;
 
-		if (lpszRef_Model)
+		char * lpLA_Data = getenv("LINE_ANALYSIS_DATA_PATH");
+		if (lpLA_Data == nullptr)
+		{
+			fprintf(stderr,"LINE_ANALYSIS_DATA_PATH is not defined.\n");
+			return(1);
+		}
+		if (uiRef_Model != 0)
 		{
 			if (bVerbose)
 				printf("Reading ref model opacity profile\n");
 			char lpszOpacity_Profile[128];
-			sprintf(lpszOpacity_Profile,"%s/opacity_map_scalars.opdata",lpszRef_Model_Extended);
+			sprintf(lpszOpacity_Profile,"%s/models/%i/opacity_map_scalars.opdata",lpLA_Data,uiRef_Model);
 			cOpacity_Profile.Load(lpszOpacity_Profile);
 			dEjecta_Scalar_Ref = cOpacity_Profile.Get_Scalar(eScalar_Type);
 			dShell_Scalar_Ref = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
 		}
-		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 		{
 			char lpszOpacity_File_Ejecta[64], lpszOpacity_File_Shell[64];
 			char	lpszPhotosphere_File_Ejecta[64];
@@ -479,23 +466,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			XDATASET cOpacity_Map_Ejecta;
 
 
-			if (lpszModel_List != NULL && lpszModel_List[uiI] != NULL && lpszModel_List[uiI][0] != 0)
+//			if (lpszModel_List != nullptr && lpszModel_List[uiI] != nullptr && lpszModel_List[uiI][0] != 0)
 			{
-				if (lpszModel_List[uiI][0] >= '0' && lpszModel_List[uiI][0] <= '9') // just a number, convert into "runXX")
-				{
-					lpszModel_Name[0] = 'r';
-					lpszModel_Name[1] = 'u';
-					lpszModel_Name[2] = 'n';
-					strcpy(lpszModel_Name + 3,lpszModel_List[uiI]);
-					cParam.m_uiModel_ID = atoi(lpszModel_List[uiI]);
-
-				}
-				else
-				{
-					strcpy(lpszModel_Name,lpszModel_List[uiI]);
-					if (strncmp(lpszModel_Name,"run",3) == 0)
-						cParam.m_uiModel_ID = atoi(&lpszModel_List[uiI][3]);
-				}
+				cParam.m_uiModel_ID = vModel_List[uiI];
 				//printf("Param model id %i\n",cParam.m_uiModel_ID);
 				switch (eFit_Region)
 				{
@@ -503,22 +476,22 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				case CAHK:
 				case SI6355:
 				case SI5968:
-					sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.Si.xdataset",lpszModel_Name);
+					sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.Si.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					break;
 				case OINIR:
-					sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.O.xdataset",lpszModel_Name);
+					sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.O.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					break;
 				case OTHER:
 					if (uiIon / 100 >= 14 && uiIon / 100 <= 20)
-						sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.Si.xdataset",lpszModel_Name);
+						sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.Si.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					else if (uiIon / 100 == 6)
-						sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.C.xdataset",lpszModel_Name);
+						sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.C.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					else if (uiIon / 100 == 8)
-						sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.O.xdataset",lpszModel_Name);
+						sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.O.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					else if (uiIon / 100 >= 22)
-						sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.Fe.xdataset",lpszModel_Name);
+						sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.Fe.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					else if (uiIon / 100 >= 10 && uiIon / 100 <= 12)
-						sprintf(lpszOpacity_File_Ejecta,"%s/opacity_map_ejecta.Mg.xdataset",lpszModel_Name);
+						sprintf(lpszOpacity_File_Ejecta,"%s/models/%i/opacity_map_ejecta.Mg.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 					break;
 				}
 				if (dPS_Velocity > 0.0)
@@ -529,9 +502,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						printf("Reading photosphere data\n");
 					XDATASET cData;
 					if (bEjecta_Only)
-						sprintf(lpszPhotosphere_File_Ejecta,"%s/photosphere_eo.csv",lpszModel_Name);
+						sprintf(lpszPhotosphere_File_Ejecta,"%s/models/%i/photosphere_eo.csv",lpLA_Data,cParam.m_uiModel_ID);
 					else
-						sprintf(lpszPhotosphere_File_Ejecta,"%s/photosphere.csv",lpszModel_Name);
+						sprintf(lpszPhotosphere_File_Ejecta,"%s/models/%i/photosphere.csv",lpLA_Data,cParam.m_uiModel_ID);
 					cData.ReadDataFile(lpszPhotosphere_File_Ejecta,false,false,',',1);
 					bool bFound = false;
 					for (unsigned int uiJ = 0; uiJ  < cData.GetNumElements() && !bFound; uiJ++)
@@ -544,14 +517,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					}
 					if (!bFound)
 					{
-						fprintf(stderr,"Unable to find data in photosphere table for day %.2f for model %s\n",dDay,lpszModel_Name);
+						fprintf(stderr,"Unable to find data in photosphere table for day %.2f for model %i\n",dDay,cParam.m_uiModel_ID);
 						exit(1);
 					}
 				}
 				if (bVerbose)
 					printf("Reading model opacity scalars\n");
 				char lpszOpacity_Profile[128];
-				sprintf(lpszOpacity_Profile,"%s/opacity_map_scalars.opdata",lpszModel_Name);
+				sprintf(lpszOpacity_Profile,"%s/models/%i/opacity_map_scalars.opdata",lpLA_Data,cParam.m_uiModel_ID);
 				cOpacity_Profile.Load(lpszOpacity_Profile);
 				dEjecta_Scalar_Prof = cOpacity_Profile.Get_Scalar(eScalar_Type);
 				dShell_Scalar_Prof = cOpacity_Profile.Get_Scalar(OPACITY_PROFILE_DATA::SHELL);
@@ -584,7 +557,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 				if (bVerbose)
 					printf("Reading opacity map\n");
-				sprintf(lpszOpacity_File_Shell,"%s/opacity_map_shell.xdataset",lpszModel_Name);
+				sprintf(lpszOpacity_File_Shell,"%s/models/%i/opacity_map_shell.xdataset",lpLA_Data,cParam.m_uiModel_ID);
 				cOpacity_Map_Ejecta.ReadDataFileBin(lpszOpacity_File_Ejecta);
 				cOpacity_Map_Shell.ReadDataFileBin(lpszOpacity_File_Shell);
 				bool bShell = !bEjecta_Only && cOpacity_Map_Shell.GetNumElements() != 0;
@@ -618,7 +591,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				if (cMSDB.Get_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]) == 0)
 				{
 					Generate_Synow_Spectra(lpcSpectrum[uiI][1], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1],-dEjecta_Power_Law,-dShell_Power_Law);
-					printf("Adding to db for %s...",lpszModel_Name);
+					printf("Adding to db for %i...",cParam.m_uiModel_ID);
 					fflush(stdout);
 					msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::COMBINED, lpcSpectrum[uiI][1]);
 					printf(".");
@@ -650,12 +623,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 				else
 				{
-					printf("Read db for %s.\n",lpszModel_Name);
+					printf("Read db for %i.\n",cParam.m_uiModel_ID);
 					if (cMSDB.Get_Spectrum(cParam, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]) == 0)
 					{
 						cParameters.Set(6,-40.0);
 						Generate_Synow_Spectra(lpcSpectrum[uiI][2], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][1],-dEjecta_Power_Law,-dShell_Power_Law);
-						printf("Adding E-O to db for %s...",lpszModel_Name);
+						printf("Adding E-O to db for %i...",cParam.m_uiModel_ID);
 						fflush(stdout);
 						msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::EJECTA_ONLY, lpcSpectrum[uiI][2]);
 						cParameters.Set(6,cParam.m_dShell_Log_Scalar);
@@ -666,7 +639,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						{
 							cParameters.Set(4,-40.0);
 							Generate_Synow_Spectra(lpcSpectrum[uiI][3], cOpacity_Map_Ejecta, cOpacity_Map_Shell, uiIon, cParameters, lpcSpectrum[uiI][3],-dEjecta_Power_Law,-dShell_Power_Law);
-							printf("Adding S-O to db for %s...",lpszModel_Name);
+							printf("Adding S-O to db for %i...",cParam.m_uiModel_ID);
 							fflush(stdout);
 							msdb::dbid dbidID = cMSDB.Add_Spectrum(cParam, msdb::SHELL_ONLY, lpcSpectrum[uiI][3]);
 							cParameters.Set(4,cParam.m_dEjecta_Log_Scalar);
@@ -698,14 +671,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (bVerbose)
 			printf("Allocating data containers.\n");
 		char lpszFilename[512];
-		double ** lpdSpectra_WL = new double *[uiModel_Count];
-		double ** lpdSpectra_Flux = new double *[uiModel_Count];
-		double ** lpdSpectra_WL_EO = new double *[uiModel_Count];
-		double ** lpdSpectra_Flux_EO = new double *[uiModel_Count];
-		double ** lpdSpectra_WL_SO = new double *[uiModel_Count];
-		double ** lpdSpectra_Flux_SO = new double *[uiModel_Count];
-		double ** lpdContinuum_WL = new double *[uiModel_Count], ** lpdContinuum_Flux = new double *[uiModel_Count];
-		unsigned int * lpuiSpectra_Count = new unsigned int[uiModel_Count], * lpuiContinuum_Count = new unsigned int[uiModel_Count], * lpuiSpectra_Count_EO = new unsigned int[uiModel_Count], * lpuiSpectra_Count_SO = new unsigned int[uiModel_Count];
+		double ** lpdSpectra_WL = new double *[vModel_List.size()];
+		double ** lpdSpectra_Flux = new double *[vModel_List.size()];
+		double ** lpdSpectra_WL_EO = new double *[vModel_List.size()];
+		double ** lpdSpectra_Flux_EO = new double *[vModel_List.size()];
+		double ** lpdSpectra_WL_SO = new double *[vModel_List.size()];
+		double ** lpdSpectra_Flux_SO = new double *[vModel_List.size()];
+		double ** lpdContinuum_WL = new double *[vModel_List.size()], ** lpdContinuum_Flux = new double *[vModel_List.size()];
+		unsigned int * lpuiSpectra_Count = new unsigned int[vModel_List.size()], * lpuiContinuum_Count = new unsigned int[vModel_List.size()], * lpuiSpectra_Count_EO = new unsigned int[vModel_List.size()], * lpuiSpectra_Count_SO = new unsigned int[vModel_List.size()];
 		int iColor = (int)epsplot::BLACK;
 		int iStipple = (int)epsplot::SOLID;
 		epsplot::LINE_PARAMETERS cLine_Parameters;
@@ -713,29 +686,29 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		// Get spectral data in the desired range
 		cLine_Parameters.m_dWidth = 1.0;
 //		cPlot.Set_Plot_Data(lpdContinuum_WL, lpdContinuum_Flux, uiNum_Points_Continuum, cLine_Parameters, 0, 0);
-		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 		{
-			lpdContinuum_WL[uiI] = NULL;
-			lpdContinuum_Flux[uiI] = NULL;
+			lpdContinuum_WL[uiI] = nullptr;
+			lpdContinuum_Flux[uiI] = nullptr;
 			lpuiContinuum_Count[uiI] = 0;
-			lpdSpectra_WL[uiI] = NULL;
-			lpdSpectra_Flux[uiI] = NULL;
-			lpdSpectra_WL_EO[uiI] = NULL;
-			lpdSpectra_Flux_EO[uiI] = NULL;
-			lpdSpectra_WL_SO[uiI] = NULL;
-			lpdSpectra_Flux_SO[uiI] = NULL;
+			lpdSpectra_WL[uiI] = nullptr;
+			lpdSpectra_Flux[uiI] = nullptr;
+			lpdSpectra_WL_EO[uiI] = nullptr;
+			lpdSpectra_Flux_EO[uiI] = nullptr;
+			lpdSpectra_WL_SO[uiI] = nullptr;
+			lpdSpectra_Flux_SO[uiI] = nullptr;
 			lpuiSpectra_Count[uiI] = 0;
 			lpuiSpectra_Count[uiI] = 0;
 			lpuiSpectra_Count_EO[uiI] = 0;
 			lpuiSpectra_Count_SO[uiI] = 0;
 			if (bVerbose)
-				printf("Extracting data for model %s.\n",lpszModel_List[uiI]);
+				printf("Extracting data for model %i.\n",cParam.m_uiModel_ID);
 			Get_Spectra_Data(lpcSpectrum[uiI][0], lpdContinuum_WL[uiI], lpdContinuum_Flux[uiI], lpuiContinuum_Count[uiI], dRange_Min, dRange_Max);
 			Get_Spectra_Data(lpcSpectrum[uiI][1], lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], dRange_Min, dRange_Max);
 			Get_Spectra_Data(lpcSpectrum[uiI][2], lpdSpectra_WL_EO[uiI], lpdSpectra_Flux_EO[uiI], lpuiSpectra_Count_EO[uiI], dRange_Min, dRange_Max);
 			Get_Spectra_Data(lpcSpectrum[uiI][3], lpdSpectra_WL_SO[uiI], lpdSpectra_Flux_SO[uiI], lpuiSpectra_Count_SO[uiI], dRange_Min, dRange_Max);
 			if (bVerbose)
-				printf("Flattening model %s.\n",lpszModel_List[uiI]);
+				printf("Flattening model %i.\n",cParam.m_uiModel_ID);
 			for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 			{
 				lpdSpectra_Flux[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
@@ -743,7 +716,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				lpdSpectra_Flux_SO[uiI][uiJ] /= lpdContinuum_Flux[uiI][uiJ];
 			}
 			if (bVerbose)
-				printf("Adding plot for model %s.\n",lpszModel_List[uiI]);
+				printf("Adding plot for model %i.\n",cParam.m_uiModel_ID);
 			cLine_Parameters.m_eColor = (epsplot::COLOR)(epsplot::BLACK + (uiI % 7));
 			cLine_Parameters.m_eStipple = (epsplot::STIPPLE)(epsplot::SOLID + (uiI % 8));
 			cPlot.Set_Plot_Data(lpdSpectra_WL[uiI], lpdSpectra_Flux[uiI], lpuiSpectra_Count[uiI], cLine_Parameters, uiX_Axis, uiY_Axis);
@@ -761,11 +734,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		sprintf(lpszFilename,"%s.caption.tex",lpszOutput_Name);
 		FILE * fileCaption = fopen(lpszFilename,"wt");
 		fprintf(fileCaption,"\\caption{Comparison of models ");
-		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 		{
             if (uiI != 0)
 				fprintf(fileCaption,", ");
-			fprintf(fileCaption,"%s (",lpszModel_List[uiI]);
+			fprintf(fileCaption,"%i (",cParam.m_uiModel_ID);
 			epsplot::COLOR eColor = (epsplot::COLOR)(epsplot::BLACK + (uiI % 7));
 			epsplot::STIPPLE eStipple = (epsplot::STIPPLE)(epsplot::SOLID + (uiI % 8));
 			switch (eColor)
@@ -827,11 +800,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (dPS_Velocity <= 0.0)
 		{
 			fprintf(fileCaption,"% v_ps =");
-			for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+			for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 			{
 				if (uiI != 0)
 					fprintf(fileCaption,", ");
-				fprintf(fileCaption,"%.2e\\kkms (%s)",lpdV_ps[uiI],lpszModel_List[uiI]);
+				fprintf(fileCaption,"%.2e\\kkms (%i)",lpdV_ps[uiI],cParam.m_uiModel_ID);
 			}
 			fprintf(fileCaption,"\n");
 		}
@@ -848,21 +821,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (!fileOut)
 			fprintf(stderr,"Failed to open %s for write.\n",lpszFilename);
 		fprintf(fileOut,"wl");
-		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 		{
-			fprintf(fileOut," %s-cont",lpszModel_List[uiI]);
-			fprintf(fileOut," %s-comb",lpszModel_List[uiI]);
-			fprintf(fileOut," %s-comb-flat",lpszModel_List[uiI]);
-			fprintf(fileOut," %s-EO",lpszModel_List[uiI]);
-			fprintf(fileOut," %s-EO-flat",lpszModel_List[uiI]);
-			fprintf(fileOut," %s-SO",lpszModel_List[uiI]);
-			fprintf(fileOut," %s-SO-flat",lpszModel_List[uiI]);
+			fprintf(fileOut," %s-cont",vModel_List[uiI]);
+			fprintf(fileOut," %s-comb",vModel_List[uiI]);
+			fprintf(fileOut," %s-comb-flat",vModel_List[uiI]);
+			fprintf(fileOut," %s-EO",vModel_List[uiI]);
+			fprintf(fileOut," %s-EO-flat",vModel_List[uiI]);
+			fprintf(fileOut," %s-SO",vModel_List[uiI]);
+			fprintf(fileOut," %s-SO-flat",vModel_List[uiI]);
 		}
 		fprintf(fileOut,"\n");
 		for (unsigned int uiI = 0; uiI < lpuiContinuum_Count[0]; uiI++)
 		{
 			fprintf(fileOut, "%f",lpdContinuum_WL[0][uiI]);
-			for (unsigned int uiJ = 0; uiJ < uiModel_Count; uiJ++)
+			for (unsigned int uiJ = 0; uiJ < vModel_List.size(); uiJ++)
 			{
 				fprintf(fileOut, " %f",lpcSpectrum[uiJ][0].flux(uiI));
 				fprintf(fileOut, " %f",lpcSpectrum[uiJ][1].flux(uiI));
@@ -920,7 +893,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fprintf(fileData,"\n");
 
 			// compute pEW values for features of interest.
-			for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+			for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 			{
                 XVECTOR	vX, vY, vA, vW, vA_Flat, vSigma_Jeff, vSigma_Flat;
                 double	dSmin_Single = DBL_MAX;
@@ -948,7 +921,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				unsigned int uiP_Cygni_Min_Idx = 0;
 				double	dMax_Flux_Flat = 0.0;
 				unsigned int uiMax_Flux_Idx = -1;
-				printf("Processing model %s\n",lpszModel_List[uiI]);
+				printf("Processing model %s\n",vModel_List[uiI]);
 				// first generate pEW based on flattened spectra and excluding the p Cygni peak
 				for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 				{
@@ -1006,7 +979,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					uiP_Cygni_Min_Idx = lpuiSpectra_Count[uiI] - 1;
 				if (uiMin_Flux_Idx == -1)
 				{
-					fprintf(stderr,"Fault in min flux for model %s\n",lpszModel_List[uiI]);
+					fprintf(stderr,"Fault in min flux for model %i\n",vModel_List[uiI]);
 					uiMin_Flux_Idx = 0;
 				}
 				if (bVerbose)
@@ -1117,10 +1090,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					dSmin_Flat = DBL_MAX;
 
 				if (vA.Get_Size() > 0)
-					fprintf(fileData,"%s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e", 
-	lpszModel_List[uiI], cCombined_Flat.m_d_pEW, -cCombined_Flat.m_dVmin, cEO_Flat.m_d_pEW, -cEO_Flat.m_dVmin,  cSO_Flat.m_d_pEW, -cSO_Flat.m_dVmin, cCombined_Unflat.m_d_pEW, -cCombined_Flat.m_dVmin, -cEO_Unflat.m_dVmin, -cSO_Unflat.m_dVmin, -dV_Jeff_HVF, -dV_Jeff_PVF, dpEW_Jeff_HVF, dpEW_Jeff_PVF);
+					fprintf(fileData,"%i, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e", 
+	vModel_List[uiI], cCombined_Flat.m_d_pEW, -cCombined_Flat.m_dVmin, cEO_Flat.m_d_pEW, -cEO_Flat.m_dVmin,  cSO_Flat.m_d_pEW, -cSO_Flat.m_dVmin, cCombined_Unflat.m_d_pEW, -cCombined_Flat.m_dVmin, -cEO_Unflat.m_dVmin, -cSO_Unflat.m_dVmin, -dV_Jeff_HVF, -dV_Jeff_PVF, dpEW_Jeff_HVF, dpEW_Jeff_PVF);
 				else
-					fprintf(fileData,"%s, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0", lpszModel_List[uiI]);
+					fprintf(fileData,"%i, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0", vModel_List[uiI]);
 
 				if (dSmin < DBL_MAX)
 				{
@@ -1205,7 +1178,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			sprintf(lpszFilename,"%s.photometry.csv",lpszOutput_Name);
 			FILE * filePhotometry = fopen(lpszFilename,"wt");
 			fprintf(filePhotometry,"Day, Model, u ,b, v, uvw1, uvw2, uvm2, white\n");
-			for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+			for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 			{
 				double	dDelta_Wl = lpcSpectrum[uiI][1].wl(1) - lpcSpectrum[uiI][1].wl(0);
 //				double * lpdFlux_Corr_Spectrum = new double[lpuiSpectra_Count[uiI]];
@@ -1227,12 +1200,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					dSwift_uvm2 += dFlux * (g_XASTRO_Filter_Swift_uvm2 << lpcSpectrum[uiI][1].wl(uiJ)) * dDelta_Wl;
 					dSwift_white += dFlux * (g_XASTRO_Filter_Swift_white << lpcSpectrum[uiI][1].wl(uiJ)) * dDelta_Wl;
 				}
-				fprintf(filePhotometry,"%.2f, %s, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e\n",dDay,lpszModel_List[uiI],
+				fprintf(filePhotometry,"%.2f, %i, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e, %.17e\n",dDay,vModel_List[uiI],
 					dSwift_u,dSwift_b,dSwift_v,dSwift_uvw1,dSwift_uvw2,dSwift_uvm2,dSwift_white);
 			}
 			fclose(filePhotometry);		
 		}
-		for (unsigned int uiI = 0; uiI < uiModel_Count; uiI++)
+		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 		{
 			if (bVerbose)
 				printf("delete Spectra WL %i\n",uiI);

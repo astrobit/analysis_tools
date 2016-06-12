@@ -933,105 +933,6 @@ void Deredden(std::vector <specfit::fit> &io_vfitFits)
 		}
 	}
 }
-//------------------------------------------------------------------------------
-//
-//
-//
-//	Perform_Fits
-//
-//
-//
-//------------------------------------------------------------------------------
-typedef std::pair<specfit::fit_result, std::vector < specfit::fit_result > > all_fit_set;
-typedef std::vector < all_fit_set > fit_result_set;
-void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, fit_result_set & o_vResults)
-{
-	for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); iterFit != i_vfitFits.end(); iterFit++)
-	{
-		if (!iterFit->m_vData.empty())
-		{
-			specfit::fit_result	cBest_Fit_Result;
-			double		m_dBest_Fit = DBL_MAX;
-			std::cout << "Starting ";
-			switch (iterFit->m_eFeature)
-			{
-			case specfit::CaNIR:
-				std::cout << "Ca NIR";
-				break;
-			case specfit::CaHK:
-				std::cout << "Ca H&K";
-				break;
-			case specfit::Si6355:
-				std::cout << "Si 6355";
-				break;
-			case specfit::O7773:
-				std::cout << "O 7773";
-				break;
-			}
-			std::cout << " fit for MJD " << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
-			std::vector<specfit::fit_result> vFit_Results;
-
-			// process individual models
-			for (std::vector <unsigned int>::iterator 	iterMod = iterFit->m_vuiModels.begin(); iterMod != iterFit->m_vuiModels.end(); iterMod++)
-			{
-				if (i_mModel_Data.count(*iterMod) > 0 ) // make sure that this model exists
-				{
-					std::cout << "Model # " << *iterMod << std::endl;
-					specfit::fit_result	cFit_Result;
-					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result);
-					if (dFit >= 0.0 && dFit < m_dBest_Fit)
-					{
-						cBest_Fit_Result = cFit_Result;
-						m_dBest_Fit = dFit;
-					}
-					vFit_Results.push_back(cFit_Result);
-				}
-			}
-			// process model lists
-			for (std::vector <std::string>::iterator 	iterModList = iterFit->m_vsModel_Lists.begin(); iterModList != iterFit->m_vsModel_Lists.end(); iterModList++)
-			{
-				if (i_mModel_Lists.count(*iterModList) > 0 ) // make sure that this model list exists
-				{
-					std::vector <unsigned int> vModels = i_mModel_Lists.at(*iterModList);
-					for (std::vector <unsigned int>::const_iterator 	iterMod = vModels.cbegin(); iterMod != vModels.cend(); iterMod++)
-					{
-						if (i_mModel_Data.count(*iterMod) > 0 ) // make sure that this model exists
-						{
-							std::cout << "Model # " << *iterMod << std::endl;
-							specfit::fit_result	cFit_Result;
-							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result);
-							if (dFit >= 0.0 && dFit < m_dBest_Fit)
-							{
-								cBest_Fit_Result = cFit_Result;
-								m_dBest_Fit = dFit;
-							}
-							vFit_Results.push_back(cFit_Result);
-						}
-					}
-				}
-			}
-			o_vResults.push_back(all_fit_set(cBest_Fit_Result, vFit_Results));
-
-			std::cout << "Fit complete for ";
-			switch (iterFit->m_eFeature)
-			{
-			case specfit::CaNIR:
-				std::cout << "Ca NIR";
-				break;
-			case specfit::CaHK:
-				std::cout << "Ca H&K";
-				break;
-			case specfit::Si6355:
-				std::cout << "Si 6355";
-				break;
-			case specfit::O7773:
-				std::cout << "O 7773";
-				break;
-			}
-			std::cout << " on MJD " << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
-		} // if (!iterFit->m_vData.empty())
-	}// for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); ...
-}
 
 //------------------------------------------------------------------------------
 //
@@ -1120,6 +1021,126 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 		ofsSpectra.close();
 	}
 }
+
+//------------------------------------------------------------------------------
+//
+//
+//
+//	Perform_Fits
+//
+//
+//
+//------------------------------------------------------------------------------
+typedef std::vector < specfit::fit_result > best_fit_results;
+void Perform_Fits(std::ofstream & io_ofsIndividual_Fit_File, std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults)
+{
+	for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); iterFit != i_vfitFits.end(); iterFit++)
+	{
+		if (!iterFit->m_vData.empty())
+		{
+			specfit::fit_result	cBest_Fit_Result;
+			double		m_dBest_Fit = DBL_MAX;
+			std::cout << "Starting ";
+			switch (iterFit->m_eFeature)
+			{
+			case specfit::CaNIR:
+				std::cout << "Ca NIR";
+				break;
+			case specfit::CaHK:
+				std::cout << "Ca H&K";
+				break;
+			case specfit::Si6355:
+				std::cout << "Si 6355";
+				break;
+			case specfit::O7773:
+				std::cout << "O 7773";
+				break;
+			}
+			std::cout << " fit for MJD " << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
+			std::vector<specfit::fit_result> vFit_Results;
+
+			// process individual models
+			for (std::vector <unsigned int>::iterator 	iterMod = iterFit->m_vuiModels.begin(); iterMod != iterFit->m_vuiModels.end(); iterMod++)
+			{
+				if (i_mModel_Data.count(*iterMod) > 0 ) // make sure that this model exists
+				{
+					std::cout << "Model # " << *iterMod << std::endl;
+					specfit::fit_result	cFit_Result;
+					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result);
+					if (dFit >= 0.0 && dFit < m_dBest_Fit)
+					{
+						cBest_Fit_Result = cFit_Result;
+						m_dBest_Fit = dFit;
+					}
+					Write_Fit(io_ofsIndividual_Fit_File,cFit_Result);
+				}
+			}
+			// process model lists
+			for (std::vector <std::string>::iterator 	iterModList = iterFit->m_vsModel_Lists.begin(); iterModList != iterFit->m_vsModel_Lists.end(); iterModList++)
+			{
+				if (i_mModel_Lists.count(*iterModList) > 0 ) // make sure that this model list exists
+				{
+					std::vector <unsigned int> vModels = i_mModel_Lists.at(*iterModList);
+					for (std::vector <unsigned int>::const_iterator 	iterMod = vModels.cbegin(); iterMod != vModels.cend(); iterMod++)
+					{
+						if (i_mModel_Data.count(*iterMod) > 0 ) // make sure that this model exists
+						{
+							std::cout << "Model # " << *iterMod << std::endl;
+							specfit::fit_result	cFit_Result;
+							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result);
+							if (dFit >= 0.0 && dFit < m_dBest_Fit)
+							{
+								cBest_Fit_Result = cFit_Result;
+								m_dBest_Fit = dFit;
+							}
+							Write_Fit(io_ofsIndividual_Fit_File,cFit_Result);
+						}
+					}
+				}
+			}
+			o_vResults.push_back(cBest_Fit_Result);
+
+			std::cout << "Fit complete for ";
+			switch (iterFit->m_eFeature)
+			{
+			case specfit::CaNIR:
+				std::cout << "Ca NIR";
+				break;
+			case specfit::CaHK:
+				std::cout << "Ca H&K";
+				break;
+			case specfit::Si6355:
+				std::cout << "Si 6355";
+				break;
+			case specfit::O7773:
+				std::cout << "O 7773";
+				break;
+			}
+			std::cout << " on MJD " << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
+		} // if (!iterFit->m_vData.empty())
+	}// for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); ...
+}
+//------------------------------------------------------------------------------
+//
+//
+//
+//	Output_Result_Header
+//
+//
+//
+//------------------------------------------------------------------------------
+
+void Output_Result_Header(std::ofstream & io_ofsFile)
+{
+	io_ofsFile << "MJD, Feature, Sources, Instrument, Model #, PS Velocity (Ejecta), PS Temperature (Ejecta), Log S (Ejecta), Excitation Temp (Ejecta), PS Velocity (Ejecta), PS Temperature (Ejecta), Log S (Shell), Exctitation Temp (Shell)";
+	for (unsigned int uiI = 1; uiI <= 6; uiI++)
+		io_ofsFile <<  ", Raw Fit Moment " << uiI;
+	for (unsigned int uiI = 1; uiI <= 6; uiI++)
+		io_ofsFile <<  ", Central Fit Moment " << uiI;
+	for (unsigned int uiI = 1; uiI <= 6; uiI++)
+		io_ofsFile <<  ", Standardized Fit Moment " << uiI;
+	io_ofsFile <<  std::endl;
+}
 //------------------------------------------------------------------------------
 //
 //
@@ -1130,40 +1151,17 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 //
 //------------------------------------------------------------------------------
 
-void Output_Results(const fit_result_set & i_vResults)
+void Output_Results(const best_fit_results & i_vResults)
 {
 	std::ofstream ofsBest_Fits;
 	ofsBest_Fits.open("best_fit_data.csv");
-	std::ofstream ofsIndividual_Fits;
-	ofsIndividual_Fits.open("individual_fit_data.csv");
 	assert(ofsBest_Fits.is_open());
-	assert(ofsIndividual_Fits.is_open());
 
-	ofsBest_Fits << "MJD, Feature, Sources, Instrument, Model #, PS Velocity (Ejecta), PS Temperature (Ejecta), Log S (Ejecta), Excitation Temp (Ejecta), PS Velocity (Ejecta), PS Temperature (Ejecta), Log S (Shell), Exctitation Temp (Shell)";
-	for (unsigned int uiI = 1; uiI <= 6; uiI++)
-		ofsBest_Fits <<  ", Raw Fit Moment " << uiI;
-	for (unsigned int uiI = 1; uiI <= 6; uiI++)
-		ofsBest_Fits <<  ", Central Fit Moment " << uiI;
-	for (unsigned int uiI = 1; uiI <= 6; uiI++)
-		ofsBest_Fits <<  ", Standardized Fit Moment " << uiI;
-	ofsBest_Fits <<  std::endl;
+	Output_Result_Header(ofsBest_Fits);
 
-	ofsIndividual_Fits << "MJD, Feature, Sources, Instrument, Model #, PS Velocity (Ejecta), PS Temperature (Ejecta), Log S (Ejecta), Excitation Temp (Ejecta), PS Velocity (Ejecta), PS Temperature (Ejecta), Log S (Shell), Exctitation Temp (Shell)";
-	for (unsigned int uiI = 1; uiI <= 6; uiI++)
-		ofsIndividual_Fits <<  ", Raw Fit Moment " << uiI;
-	for (unsigned int uiI = 1; uiI <= 6; uiI++)
-		ofsIndividual_Fits <<  ", Central Fit Moment " << uiI;
-	for (unsigned int uiI = 1; uiI <= 6; uiI++)
-		ofsIndividual_Fits <<  ", Standardized Fit Moment " << uiI;
-	ofsIndividual_Fits <<  std::endl;
-
-	for (fit_result_set::const_iterator iterI = i_vResults.cbegin(); iterI != i_vResults.cend(); iterI++)
+	for (best_fit_results::const_iterator iterI = i_vResults.cbegin(); iterI != i_vResults.cend(); iterI++)
 	{
-		Write_Fit(ofsBest_Fits,iterI->first);
-		for (std::vector < specfit::fit_result >::const_iterator iterJ = iterI->second.cbegin(); iterJ != iterI->second.cend(); iterJ++)
-		{
-			Write_Fit(ofsIndividual_Fits,*iterJ);
-		}
+		Write_Fit(ofsBest_Fits,*iterI);
 	}
 
 }
@@ -1196,7 +1194,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			std::map< std::string, std::string > mDatafile_List;
 			std::map< std::string, Json::Value> mJson_Data;
 			std::map< std::string, std::vector<std::tuple<double,double,double> > > mNon_Json_Data;
-			fit_result_set vResults;
+			best_fit_results vResults;
 			std::vector < std::vector < std::pair< gauss_fit_results, gauss_fit_results > > > vGauss_Fits_Results;
 
 			Parse_XML( vCL_Arguments[0], vfitFits, mModel_Data, mModel_Lists, mDatafile_List);
@@ -1205,10 +1203,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			Load_Models( vfitFits, mModel_Lists, mModel_Data);
 			Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
 
+			
 			// Deredden spectra if requested
 			Deredden( vfitFits);
+			std::ofstream ofsIndividual_Fits;
+			ofsIndividual_Fits.open("individual_fit_data.csv");
+			assert(ofsIndividual_Fits.is_open());
+			Output_Result_Header(ofsIndividual_Fits);
 			// Done confirming and loading the data; begin the actual fitting
-			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults);
+			Perform_Fits( ofsIndividual_Fits, vfitFits, mModel_Lists, mModel_Data, vResults);
 			// process the results to get Gaussian fits
 //			Process_Results( vResults
  //                  vA_Flat = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,

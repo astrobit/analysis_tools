@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -315,6 +315,10 @@ genjsonfit: $(BINDIR)/sf
 $(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp $(XLIBSCHANGE) libspecfit $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp  $(LIBDIR)/libmsdb.a
 	@echo "Symbol JSONCPP not found. Make sure that jsoncpp is installed and the JSONCPP variable points to the path to jsoncpp.cpp"
 endif
+
+genmsdb: $(BINDIR)/genmsdb
+$(BINDIR)/genmsdb: $(SRCDIR)/gen_msdb.cpp 
+	$(CXX)  $(ESFLAGS) $(CLFLAGS) $(SRCDIR)/gen_msdb.cpp $(ESLIBS) -lmsdb -o $(BINDIR)/genmsdb
 
 clean:
 	-rm $(BINDIR)/*

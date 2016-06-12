@@ -685,22 +685,6 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 
 double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit)
 {
-	//std::string szCache = ".fitcache";
-	ES::Spectrum cTarget;
-	if (!i_cFit.m_vData.empty())
-	{
-		double dWL_low = std::get<0>(i_cFit.m_vData[0]);
-		double dWL_High = std::get<0>(i_cFit.m_vData[i_cFit.m_vData.size() - 1]);
-		size_t uiNum = i_cFit.m_vData.size();
-		cTarget = ES::Spectrum::create_from_range_and_size(dWL_low , dWL_High ,uiNum);
-		// fill target spectrum
-		for (unsigned int uiI = 0; uiI < i_cFit.m_vData.size(); uiI++)
-		{
-			cTarget.wl(uiI) = std::get<0>(i_cFit.m_vData[uiI]);
-			cTarget.flux(uiI) = std::get<1>(i_cFit.m_vData[uiI]);
-			cTarget.flux_error(uiI) = std::get<2>(i_cFit.m_vData[uiI]);
-		}
-	}
 
 
 	spectra_fit_data cCall_Data;
@@ -708,15 +692,14 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	bool bShell = i_cModel.m_dsShell.GetNumElements() != 0;
 
 	XDATASET dsDummy;
-	cCall_Data.m_lpcTarget = &cTarget;
 	cCall_Data.m_lpcOpacity_Map_A = &dsDummy;
 	cCall_Data.m_lpcOpacity_Map_B = &dsDummy;
 	if (bShell)
 	{
 		cCall_Data.m_lpcOpacity_Map_B = &i_cModel.m_dsShell;
+//		std::cout << "Shell map " << std::scientific << i_cModel.m_dsShell.GetElement(1,700) << std::endl;
 	}
 
-	unsigned int	m_uiModel_ID;
 	switch (i_cFit.m_eFeature)
 	{
 	case specfit::CaNIR:
@@ -750,12 +733,49 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 7500.0;
 		break;
 	}
+//		std::cout << "Ejecta map: " << std::scientific << cCall_Data.m_lpcOpacity_Map_A[0].GetElement(1,250) << std::endl;
+	//std::string szCache = ".fitcache";
+	ES::Spectrum cTarget;
+	cCall_Data.m_lpcTarget = &cTarget;
+	if (!i_cFit.m_vData.empty())
+	{
+		unsigned int uiCount =  0;
+		spectraldata vSpec_Subset;
+		double dWL_Min = DBL_MAX, dWL_Max =-DBL_MAX;
+		for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end(); iterI++)
+		{
+			double dWL = std::get<0>(*iterI);
+			if (dWL >= cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang &&
+				dWL <= cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang)
+			{
+				vSpec_Subset.push_back(*iterI);
+				if (dWL < dWL_Min)
+					dWL_Min = dWL;
+				if (dWL > dWL_Max)
+					dWL_Max = dWL;
+			}
+		}
+
+		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dWL_Min;
+		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = dWL_Max;
+		cTarget = ES::Spectrum::create_from_size(vSpec_Subset.size());
+		// fill target spectrum
+		unsigned int uiIdx = 0;
+		for (specfit::spectraldata::const_iterator iterI = vSpec_Subset.cbegin(); iterI != vSpec_Subset.end(); iterI++)
+		{
+			cTarget.wl(uiIdx) = std::get<0>(*iterI);
+			cTarget.flux(uiIdx) = std::get<1>(*iterI);
+			cTarget.flux_error(uiIdx) = std::get<2>(*iterI);
+			uiIdx++;
+		}
+	}
+
 	cCall_Data.m_cParam.m_dTime_After_Explosion = 1.0; // 1d after explosion, since this is degenerate with log S
 	
 	cCall_Data.m_cParam.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang) / cTarget.size();
 	cCall_Data.m_cParam.m_dEjecta_Scalar_Time_Power_Law = -2.0; // irrelevant for this application since all spectra will be generated at 1d after explosion
 	cCall_Data.m_cParam.m_dShell_Scalar_Time_Power_Law = -2.0; // irrelevant for this application since all spectra will be generated at 1d after explosion
-
+	cCall_Data.m_cParam.m_uiModel_ID = i_cModel.m_uiModel_ID;
 
 
 
@@ -883,16 +903,22 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	cContinuum_Parameters.Set(5,80.0); // PS ion vmax
 	cContinuum_Parameters.Set(6,1.0); // PS ion vscale
 
-	ES::Spectrum csResult  = ES::Spectrum::create_from_range_and_size( cTarget.wl(0), cTarget.wl(cTarget.size() - 1), cTarget.size());
-	ES::Spectrum cContinuum  = ES::Spectrum::create_from_range_and_size( cTarget.wl(0), cTarget.wl(cTarget.size() - 1), cTarget.size());
-	ES::Spectrum cResult_EO  = ES::Spectrum::create_from_range_and_size( cTarget.wl(0), cTarget.wl(cTarget.size() - 1), cTarget.size());
-	ES::Spectrum cResult_SO  = ES::Spectrum::create_from_range_and_size( cTarget.wl(0), cTarget.wl(cTarget.size() - 1), cTarget.size());
+	ES::Spectrum csResult(cTarget);
+	ES::Spectrum cContinuum(cTarget);
+	ES::Spectrum cResult_EO(cTarget);
+	ES::Spectrum cResult_SO(cTarget);
+	csResult.zero_flux();
+	cContinuum.zero_flux();
+	cResult_EO.zero_flux();
+	cResult_SO.zero_flux();
+
 	msdb::DATABASE cMSDB(false);
 
+	cCall_Data.m_cParam.m_dTime_After_Explosion = 1.0;
+	cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
 	cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
 	cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
 	cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
-	cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
 	cCall_Data.m_cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
 	cCall_Data.m_cParam.m_dShell_Effective_Temperature_kK = 10.0;
 
