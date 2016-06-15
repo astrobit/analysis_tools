@@ -5,6 +5,7 @@
 #include <line_routines.h>
 #include <sstream>
 #include <xfit.h>
+#include <fstream>
 /*
 void SavePointsCache(const char * i_lpszFilename, const XVECTOR * lpvPoints, unsigned int uiNum_Points, unsigned int uiNum_Parameters, const double * lpdFit)
 {
@@ -555,6 +556,7 @@ class spectra_fit_data
 {
 public:
 	msdb::USER_PARAMETERS	m_cParam;
+	msdb::USER_PARAMETERS	m_cContinuum_Band_Param;
 
 	const ES::Spectrum *	m_lpcTarget;
 	const XDATASET *				m_lpcOpacity_Map_A;
@@ -633,10 +635,45 @@ double	Get_Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, 
 	dRet = fabs(vFit_Raw[i_uiMoment - 1]);
 	return dRet; // use mean
 }
+void msdb_load_generate(msdb::USER_PARAMETERS	&i_cParam, msdb::SPECTRUM_TYPE i_eSpectrum_Type, const ES::Spectrum &i_cTarget, const XDATASET * i_cOp_Map_A, const XDATASET * i_cOp_Map_B, ES::Spectrum & o_cOutput)
+{
+	msdb::DATABASE	cMSDB;
+	if (i_cOp_Map_A != nullptr)
+	{
+		bool bShell = i_cOp_Map_B != nullptr && i_cOp_Map_B[0].GetNumElements() > 0;
+		if (cMSDB.Get_Spectrum(i_cParam, i_eSpectrum_Type, o_cOutput) == 0)
+		{
+			XVECTOR cParameters;
+			cParameters.Set_Size(bShell? 7 : 5);
+			cParameters.Set(0,1.0); // 1d after explosion
+			cParameters.Set(1,i_cParam.m_dPhotosphere_Velocity_kkms); // ps velocity
+			cParameters.Set(2,i_cParam.m_dPhotosphere_Temp_kK); // ps temp
+
+			cParameters.Set(3,i_cParam.m_dEjecta_Effective_Temperature_kK); // fix excitation temp
+			if (i_eSpectrum_Type == msdb::COMBINED || i_eSpectrum_Type == msdb::EJECTA_ONLY)
+				cParameters.Set(4,i_cParam.m_dEjecta_Log_Scalar); // PVF scalar
+			else
+				cParameters.Set(4,-20.0); // PVF scalar
+
+	//				printf("%.5e %.5e\n",dEjecta_Scalar,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
+			if (bShell)
+			{
+				cParameters.Set(5,i_cParam.m_dShell_Effective_Temperature_kK); // fix excitation temp
+				if (i_eSpectrum_Type == msdb::COMBINED || i_eSpectrum_Type == msdb::SHELL_ONLY)
+					cParameters.Set(6,i_cParam.m_dShell_Log_Scalar); // HVF scalar
+				else
+					cParameters.Set(6,-20.0); // HVF scalar
+			}
+			//cParameters.Print();
+			Generate_Synow_Spectra(i_cTarget,i_cOp_Map_A[0],i_cOp_Map_B[0],i_cParam.m_uiIon,cParameters,o_cOutput,-2.0,-2.0);
+			msdb::dbid dbidID = cMSDB.Add_Spectrum(i_cParam, i_eSpectrum_Type, o_cOutput);
+		}
+	}
+}
 
 double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 {
-	msdb::DATABASE	cMSDB;
+	
 	double dFit = DBL_MAX;
 	spectra_fit_data *lpcCall_Data = (spectra_fit_data *)i_lpvSpectra_Fit_Data;
 	if (lpcCall_Data && lpcCall_Data->m_lpcTarget != nullptr && lpcCall_Data->m_lpcOpacity_Map_A != nullptr)
@@ -644,39 +681,52 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		//std::cout << lpcCall_Data->m_lpcTarget->wl(0) << " " << lpcCall_Data->m_lpcTarget->flux(0) << std::endl;
 		ES::Spectrum cOutput  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_lpcTarget->wl(0), lpcCall_Data->m_lpcTarget->wl(lpcCall_Data->m_lpcTarget->size() - 1), lpcCall_Data->m_lpcTarget->size());
 
+		ES::Spectrum cOutput_Continuum  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
+		ES::Spectrum cTarget_Continuum  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
+		ES::Spectrum cTrue_Continuum  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
 		bool bShell = lpcCall_Data->m_lpcOpacity_Map_B != nullptr && lpcCall_Data->m_lpcOpacity_Map_B->GetNumElements() > 0;
 		// look to see if this particular vector has been processed
 
-		lpcCall_Data->m_cParam.m_dPhotosphere_Velocity_kkms = i_vX[1];
-		lpcCall_Data->m_cParam.m_dEjecta_Log_Scalar = i_vX[2];
-		lpcCall_Data->m_cParam.m_dShell_Log_Scalar = i_vX[3];
-		lpcCall_Data->m_cParam.m_dPhotosphere_Temp_kK = i_vX[0];
-		lpcCall_Data->m_cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
-		lpcCall_Data->m_cParam.m_dShell_Effective_Temperature_kK = 10.0;
+		msdb::USER_PARAMETERS cParam;
 
-		if (cMSDB.Get_Spectrum(lpcCall_Data->m_cParam, msdb::COMBINED, cOutput) == 0)
+		cParam = lpcCall_Data->m_cParam;
+		cParam.m_dPhotosphere_Velocity_kkms = i_vX[1];
+		cParam.m_dEjecta_Log_Scalar = i_vX[2];
+		cParam.m_dShell_Log_Scalar = i_vX[3];
+		cParam.m_dPhotosphere_Temp_kK = i_vX[0];
+		cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
+		cParam.m_dShell_Effective_Temperature_kK = 10.0;
+		msdb_load_generate(cParam,msdb::COMBINED,lpcCall_Data->m_lpcTarget[0],lpcCall_Data->m_lpcOpacity_Map_A,lpcCall_Data->m_lpcOpacity_Map_B,cOutput);
+
+		cParam.m_dWavelength_Range_Lower_Ang = lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang;
+		cParam.m_dWavelength_Range_Upper_Ang = lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang;
+
+		msdb_load_generate(cParam,msdb::COMBINED,cTarget_Continuum,lpcCall_Data->m_lpcOpacity_Map_A,lpcCall_Data->m_lpcOpacity_Map_B,cOutput_Continuum);
+		msdb_load_generate(cParam,msdb::CONTINUUM,cTarget_Continuum,lpcCall_Data->m_lpcOpacity_Map_A,lpcCall_Data->m_lpcOpacity_Map_B,cTrue_Continuum);
+///		std::ofstream ofTemp;
+//		ofTemp.open("last_c.csv");
+		for (unsigned int uiI = 0; uiI < cOutput_Continuum.size(); uiI++)
 		{
-			XVECTOR cParameters;
-			cParameters.Set_Size(bShell? 7 : 5);
-			cParameters.Set(0,1.0); // 1d after explosion
-			cParameters.Set(1,lpcCall_Data->m_cParam.m_dPhotosphere_Velocity_kkms); // ps velocity
-			cParameters.Set(2,lpcCall_Data->m_cParam.m_dPhotosphere_Temp_kK); // ps temp
-
-			cParameters.Set(3,lpcCall_Data->m_cParam.m_dEjecta_Effective_Temperature_kK); // fix excitation temp
-			cParameters.Set(4,lpcCall_Data->m_cParam.m_dEjecta_Log_Scalar); // PVF scalar
-	//				printf("%.5e %.5e\n",dEjecta_Scalar,dEjecta_Scalar + log10(dEjecta_Scalar_Prof / dEjecta_Scalar_Ref));
-			if (bShell)
-			{
-				cParameters.Set(5,lpcCall_Data->m_cParam.m_dShell_Effective_Temperature_kK); // fix excitation temp
-				cParameters.Set(6,lpcCall_Data->m_cParam.m_dShell_Log_Scalar); // HVF scalar
-			}
-			//cParameters.Print();
-			Generate_Synow_Spectra(lpcCall_Data->m_lpcTarget[0],lpcCall_Data->m_lpcOpacity_Map_A[0],lpcCall_Data->m_lpcOpacity_Map_B[0],lpcCall_Data->m_cParam.m_uiIon,cParameters,cOutput,-2.0,-2.0);
-			msdb::dbid dbidID = cMSDB.Add_Spectrum(lpcCall_Data->m_cParam, msdb::COMBINED, cOutput);
+//			if (ofTemp.is_open())
+//			{
+//				ofTemp << cOutput_Continuum.wl(uiI) << ", " << cOutput_Continuum.flux(uiI) << ", " << cTrue_Continuum.flux(uiI) << std::endl;
+//			}
+			cOutput_Continuum.flux(uiI) /= cTrue_Continuum.flux(uiI);
+			cTarget_Continuum.flux(uiI) = 1.0;
+		
 		}
-	//	fprintf(stdout,".");
-	//	fflush(stdout);
-		dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cParam.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cParam.m_dWavelength_Range_Upper_Ang,2,true);
+/*		ofTemp.close();
+		ofTemp.open("last_f.csv");
+		if (ofTemp.is_open())
+		{
+			for (unsigned int uiI = 0; uiI < lpcCall_Data->m_lpcTarget[0].size(); uiI++)
+			{
+					ofTemp << lpcCall_Data->m_lpcTarget[0].wl(uiI) << ", " << lpcCall_Data->m_lpcTarget[0].flux(uiI) << ", " << cOutput.flux(uiI) << std::endl;
+			}
+		}
+		ofTemp.close();*/
+
+		dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cParam.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cParam.m_dWavelength_Range_Upper_Ang,2,true) + Get_Fit(cTarget_Continuum, cOutput_Continuum, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang,2,true);
 	}
 //	fprintf(stdout,"_");
 //	fflush(stdout);
@@ -736,6 +786,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 //		std::cout << "Ejecta map: " << std::scientific << cCall_Data.m_lpcOpacity_Map_A[0].GetElement(1,250) << std::endl;
 	//std::string szCache = ".fitcache";
 	ES::Spectrum cTarget;
+	ES::Spectrum cFull_Target;
 	cCall_Data.m_lpcTarget = &cTarget;
 	if (!i_cFit.m_vData.empty())
 	{
@@ -759,6 +810,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dWL_Min;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = dWL_Max;
 		cTarget = ES::Spectrum::create_from_size(vSpec_Subset.size());
+		cFull_Target = ES::Spectrum::create_from_size(i_cFit.m_vData.size());
 		// fill target spectrum
 		unsigned int uiIdx = 0;
 		for (specfit::spectraldata::const_iterator iterI = vSpec_Subset.cbegin(); iterI != vSpec_Subset.end(); iterI++)
@@ -766,6 +818,14 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			cTarget.wl(uiIdx) = std::get<0>(*iterI);
 			cTarget.flux(uiIdx) = std::get<1>(*iterI);
 			cTarget.flux_error(uiIdx) = std::get<2>(*iterI);
+			uiIdx++;
+		}
+		uiIdx = 0;
+		for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end(); iterI++)
+		{
+			cFull_Target.wl(uiIdx) = std::get<0>(*iterI);
+			cFull_Target.flux(uiIdx) = std::get<1>(*iterI);
+			cFull_Target.flux_error(uiIdx) = std::get<2>(*iterI);
 			uiIdx++;
 		}
 	}
@@ -870,6 +930,28 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	vUpper_Bounds += vStarting_Point;
 	vLower_Bounds += vStarting_Point;
 
+	cCall_Data.m_cContinuum_Band_Param = cCall_Data.m_cParam;
+	switch (i_cFit.m_eFeature)
+	{
+	case specfit::CaNIR:
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = 5500.0;
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = 7000.0;
+		break;
+	case specfit::CaHK:
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = 5500.0;
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = 7000.0;
+		break;
+	case specfit::Si6355:
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = 7500.0;
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = 8500.0;
+		break;
+	case specfit::O7773:
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = 5000.0;
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = 6500.0;
+		break;
+	}
+	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();
+
 
 	XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
 
@@ -903,16 +985,15 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	cContinuum_Parameters.Set(5,80.0); // PS ion vmax
 	cContinuum_Parameters.Set(6,1.0); // PS ion vscale
 
-	ES::Spectrum csResult(cTarget);
-	ES::Spectrum cContinuum(cTarget);
-	ES::Spectrum cResult_EO(cTarget);
-	ES::Spectrum cResult_SO(cTarget);
+	ES::Spectrum csFull_Result(cFull_Target);
+	ES::Spectrum csResult(cFull_Target);
+	ES::Spectrum cContinuum(cFull_Target);
+	ES::Spectrum cResult_EO(cFull_Target);
+	ES::Spectrum cResult_SO(cFull_Target);
 	csResult.zero_flux();
 	cContinuum.zero_flux();
 	cResult_EO.zero_flux();
 	cResult_SO.zero_flux();
-
-	msdb::DATABASE cMSDB(false);
 
 	cCall_Data.m_cParam.m_dTime_After_Explosion = 1.0;
 	cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
@@ -922,77 +1003,36 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	cCall_Data.m_cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
 	cCall_Data.m_cParam.m_dShell_Effective_Temperature_kK = 10.0;
 
-	//cParam.m_dPhotosphere_Velocity_kkms = cContinuum_Parameters.Get(0);
-	if (cMSDB.Get_Spectrum(cCall_Data.m_cParam, msdb::CONTINUUM, cContinuum) == 0)
-	{
-		//printf("generating continuua\n");
-		Generate_Synow_Spectra_Exp(cContinuum,2001,cContinuum_Parameters,cContinuum); // ion irrelevant for this 
-		//printf("Adding to db\n");
-		cMSDB.Add_Spectrum(cCall_Data.m_cParam, msdb::CONTINUUM, cContinuum);
-		//printf("done\n");
-	}
-	if (cMSDB.Get_Spectrum(cCall_Data.m_cParam, msdb::COMBINED, csResult) == 0)
-	{
-		Generate_Synow_Spectra(csResult, cCall_Data.m_lpcOpacity_Map_A[0], cCall_Data.m_lpcOpacity_Map_B[0], cCall_Data.m_cParam.m_uiIon, cParameters, csResult,-2.0,-2.0);
-		msdb::dbid dbidID = cMSDB.Add_Spectrum(cCall_Data.m_cParam, msdb::COMBINED, csResult);
-		if (!bShell)
-		{
-			cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, csResult);
-		}
-		else
-		{
-			cParameters.Set(6,-40.0);
-			Generate_Synow_Spectra(cResult_EO, cCall_Data.m_lpcOpacity_Map_A[0], cCall_Data.m_lpcOpacity_Map_B[0], cCall_Data.m_cParam.m_uiIon, cParameters, cResult_EO,-2.0,-2.0);
-			cMSDB.Add_Spectrum(dbidID, msdb::EJECTA_ONLY, cResult_EO);
-			cParameters.Set(6,vStarting_Point[3]);
+	
+	msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cTarget, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csResult);
 
-			cParameters.Set(4,-40.0);
-			Generate_Synow_Spectra(cResult_SO, cCall_Data.m_lpcOpacity_Map_A[0], cCall_Data.m_lpcOpacity_Map_B[0], cCall_Data.m_cParam.m_uiIon, cParameters, cResult_SO,-2.0,-2.0);
-			cMSDB.Add_Spectrum(dbidID, msdb::SHELL_ONLY, cResult_SO);
-			cParameters.Set(4,vStarting_Point[2]);
-		}
-	}
-	else
-	{
-		if (cMSDB.Get_Spectrum(cCall_Data.m_cParam, msdb::EJECTA_ONLY, cResult_EO) == 0)
-		{
-			cParameters.Set(6,-40.0);
-			Generate_Synow_Spectra(cResult_EO, cCall_Data.m_lpcOpacity_Map_A[0], cCall_Data.m_lpcOpacity_Map_B[0], cCall_Data.m_cParam.m_uiIon, cParameters, cResult_EO,-2.0,-2.0);
-			msdb::dbid dbidID = cMSDB.Add_Spectrum(cCall_Data.m_cParam, msdb::EJECTA_ONLY, cResult_EO);
-			cParameters.Set(6,vStarting_Point[3]);
-		}
-		if (bShell)
-		{
-			if (cMSDB.Get_Spectrum(cCall_Data.m_cParam, msdb::SHELL_ONLY, cResult_SO) == 0)
-			{
-				cParameters.Set(4,-40.0);
-				Generate_Synow_Spectra(cResult_SO, cCall_Data.m_lpcOpacity_Map_A[0], cCall_Data.m_lpcOpacity_Map_B[0], cCall_Data.m_cParam.m_uiIon, cParameters, cResult_SO,-2.0,-2.0);
-				msdb::dbid dbidID = cMSDB.Add_Spectrum(cCall_Data.m_cParam, msdb::SHELL_ONLY, cResult_SO);
-				cParameters.Set(4,vStarting_Point[2]);
-			}
-		}
-	}
+	cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = std::get<0>(*(i_cFit.m_vData.begin()));
+	cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = std::get<0>(*(i_cFit.m_vData.rbegin()));
+	msdb_load_generate(cCall_Data.m_cParam, msdb::CONTINUUM, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, cContinuum);
+	msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csFull_Result);
+	msdb_load_generate(cCall_Data.m_cParam, msdb::EJECTA_ONLY, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, cResult_EO);
+	msdb_load_generate(cCall_Data.m_cParam, msdb::SHELL_ONLY, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, cResult_SO);
+
 
 	double dTarget_Flux, dGenerated_Flux;
-	Get_Normalization_Fluxes(cTarget, csResult, FIT_BLUE_WL, FIT_RED_WL, dTarget_Flux, dGenerated_Flux);
+	Get_Normalization_Fluxes(cFull_Target, csFull_Result, FIT_BLUE_WL, FIT_RED_WL, dTarget_Flux, dGenerated_Flux);
 
 	double	dNorm = dTarget_Flux  / dGenerated_Flux;
-	for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
+	for (unsigned int uiI = 0; uiI < cFull_Target.size(); uiI++)
 	{
-		o_cFit.m_vpdSpectrum_Target.push_back(std::pair<double,double>(cTarget.wl(uiI),cTarget.flux(uiI)));
+		o_cFit.m_vpdSpectrum_Target.push_back(std::pair<double,double>(cFull_Target.wl(uiI),cFull_Target.flux(uiI)));
 		o_cFit.m_vpdSpectrum_Synthetic_Ejecta_Only.push_back(std::pair<double,double>(cResult_EO.wl(uiI),cResult_EO.flux(uiI) * dNorm));
 		o_cFit.m_vpdSpectrum_Synthetic_Shell_Only.push_back(std::pair<double,double>(cResult_SO.wl(uiI),cResult_SO.flux(uiI) * dNorm));
 		o_cFit.m_vpdSpectrum_Synthetic_Continuum.push_back(std::pair<double,double>(cContinuum.wl(uiI),cContinuum.flux(uiI) * dNorm));
-		o_cFit.m_vpdSpectrum_Synthetic.push_back(std::pair<double,double>(csResult.wl(uiI),csResult.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic.push_back(std::pair<double,double>(csFull_Result.wl(uiI),csFull_Result.flux(uiI) * dNorm));
 	}
-	double * lpdX = new double[cTarget.size()];
+	std::vector<double> vError;
 	for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
-		lpdX[uiI] = cTarget.flux(uiI) - csResult.flux(uiI);
+		vError.push_back(cTarget.flux(uiI) - csResult.flux(uiI) * dNorm);
 	
-	Get_Raw_Moments(lpdX,cTarget.size(),6,o_cFit.m_vdRaw_Moments);
+	Get_Raw_Moments(vError,6,o_cFit.m_vdRaw_Moments);
 	Get_Central_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdCentral_Moments);
 	Get_Standardized_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdStandardized_Moments);
-	delete [] lpdX;
 
 	return o_cFit.m_vdRaw_Moments[1];
 }
