@@ -6,6 +6,7 @@
 #include <sstream>
 #include <xfit.h>
 #include <fstream>
+#include <iomanip>
 /*
 void SavePointsCache(const char * i_lpszFilename, const XVECTOR * lpvPoints, unsigned int uiNum_Points, unsigned int uiNum_Parameters, const double * lpdFit)
 {
@@ -562,11 +563,16 @@ public:
 	const XDATASET *				m_lpcOpacity_Map_A;
 	const XDATASET *				m_lpcOpacity_Map_B;
 
+	bool					m_bDebug;
+	unsigned int			m_uiDebug_Idx;
+
 	spectra_fit_data(void) : m_cParam()
 	{
 		m_lpcTarget = nullptr;
 		m_lpcOpacity_Map_A = nullptr;
 		m_lpcOpacity_Map_B = nullptr;
+		m_bDebug = false;
+		m_uiDebug_Idx = 1;
 	}
 };
 
@@ -727,13 +733,61 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		ofTemp.close();*/
 
 		dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cParam.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cParam.m_dWavelength_Range_Upper_Ang,2,true) + Get_Fit(cTarget_Continuum, cOutput_Continuum, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang,2,true);
+
+		if (lpcCall_Data->m_bDebug)
+		{
+			std::ofstream fsDebug;
+			std::ostringstream ossDebugFilepath;
+			ossDebugFilepath << ".debug/";
+			ossDebugFilepath << lpcCall_Data->m_uiDebug_Idx;
+			ossDebugFilepath << "_";
+			ossDebugFilepath << std::setprecision(6);
+			ossDebugFilepath << i_vX[0];
+			ossDebugFilepath << "_";
+			ossDebugFilepath << i_vX[1];
+			ossDebugFilepath << "_";
+			ossDebugFilepath << i_vX[2];
+			ossDebugFilepath << "_";
+			ossDebugFilepath << i_vX[3];
+			ossDebugFilepath << ".csv";
+
+			fsDebug.open(ossDebugFilepath.str().c_str());
+			if (fsDebug.is_open())
+			{
+				fsDebug << std::setprecision(6);
+				double dTgt_Norm, dGen_Norm;
+				Get_Normalization_Fluxes(lpcCall_Data->m_lpcTarget[0], cOutput, FIT_BLUE_WL, FIT_RED_WL, dTgt_Norm, dGen_Norm);
+				for (unsigned int uiI = 0; uiI < cOutput_Continuum.size(); uiI++)
+				{
+					fsDebug.flags(std::ios::fixed);
+					fsDebug << cOutput_Continuum.wl(uiI) << ", ";
+					fsDebug.flags(std::ios::scientific);
+					fsDebug << cTarget_Continuum.flux(uiI) << ", ";
+					fsDebug << cOutput_Continuum.flux(uiI);
+					fsDebug << std::endl;
+				}
+				for (unsigned int uiI = 0; uiI < lpcCall_Data->m_lpcTarget[0].size(); uiI++)
+				{
+					fsDebug.flags(std::ios::fixed);
+					fsDebug << lpcCall_Data->m_lpcTarget[0].wl(uiI) << ", ";
+					fsDebug.flags(std::ios::scientific);
+					fsDebug << (lpcCall_Data->m_lpcTarget[0].flux(uiI) / dTgt_Norm) << ", ";
+					fsDebug << (cOutput.flux(uiI) / dGen_Norm);
+					fsDebug << std::endl;
+				}
+				fsDebug.close();
+			}
+			else
+				std::cerr << xconsole::bold << xconsole::foreground_red << "Error:" << xconsole::reset << " unable to open file " << ossDebugFilepath.str() << std::endl;
+		}
+		lpcCall_Data->m_uiDebug_Idx++;
 	}
 //	fprintf(stdout,"_");
 //	fflush(stdout);
 	return dFit;
 }
 
-double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit)
+double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug)
 {
 
 
@@ -750,6 +804,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 //		std::cout << "Shell map " << std::scientific << i_cModel.m_dsShell.GetElement(1,700) << std::endl;
 	}
 
+	cCall_Data.m_bDebug = i_bDebug;
 	switch (i_cFit.m_eFeature)
 	{
 	case specfit::CaNIR:

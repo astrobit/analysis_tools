@@ -116,7 +116,7 @@ namespace specfit
 		fit_result(void);
 	};
 
-	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit);
+	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug = false);
 
 
 };

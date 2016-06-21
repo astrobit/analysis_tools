@@ -1032,7 +1032,7 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 //
 //------------------------------------------------------------------------------
 typedef std::vector < specfit::fit_result > best_fit_results;
-void Perform_Fits(std::ofstream & io_ofsIndividual_Fit_File, std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults)
+void Perform_Fits(std::ofstream & io_ofsIndividual_Fit_File, std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug = false)
 {
 	for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); iterFit != i_vfitFits.end(); iterFit++)
 	{
@@ -1066,7 +1066,7 @@ void Perform_Fits(std::ofstream & io_ofsIndividual_Fit_File, std::vector <specfi
 				{
 					std::cout << "Model # " << *iterMod << std::endl;
 					specfit::fit_result	cFit_Result;
-					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result);
+					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug);
 					if (dFit >= 0.0 && dFit < m_dBest_Fit)
 					{
 						cBest_Fit_Result = cFit_Result;
@@ -1087,7 +1087,7 @@ void Perform_Fits(std::ofstream & io_ofsIndividual_Fit_File, std::vector <specfi
 						{
 							std::cout << "Model # " << *iterMod << std::endl;
 							specfit::fit_result	cFit_Result;
-							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result);
+							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug);
 							if (dFit >= 0.0 && dFit < m_dBest_Fit)
 							{
 								cBest_Fit_Result = cFit_Result;
@@ -1151,17 +1151,12 @@ void Output_Result_Header(std::ofstream & io_ofsFile)
 //
 //------------------------------------------------------------------------------
 
-void Output_Results(const best_fit_results & i_vResults)
+void Output_Results(std::ofstream & io_fsBest_Fits, const best_fit_results & i_vResults)
 {
-	std::ofstream ofsBest_Fits;
-	ofsBest_Fits.open("best_fit_data.csv");
-	assert(ofsBest_Fits.is_open());
-
-	Output_Result_Header(ofsBest_Fits);
 
 	for (best_fit_results::const_iterator iterI = i_vResults.cbegin(); iterI != i_vResults.cend(); iterI++)
 	{
-		Write_Fit(ofsBest_Fits,*iterI);
+		Write_Fit(io_fsBest_Fits,*iterI);
 	}
 
 }
@@ -1180,48 +1175,65 @@ void Output_Results(const best_fit_results & i_vResults)
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	std::vector<std::string> vCL_Arguments;
+	std::vector<std::string> vFile_List;
 	for (unsigned int uiI = 1; uiI < i_iArg_Count; uiI++)
 	{
 		vCL_Arguments.push_back(std::string(i_lpszArg_Values[uiI]));
 	}
-	if (vCL_Arguments.size() > 0)
+	bool bDebug = false;
+	for (std::vector<std::string>::iterator iterI = vCL_Arguments.begin(); iterI != vCL_Arguments.end(); iterI++)
 	{
-		if (vCL_Arguments[0].find(".xml") != std::string::npos)
-		{
-			std::vector <specfit::fit> vfitFits;
-			std::map< unsigned int, specfit::model> mModel_Data;
-			std::map< std::string, std::vector<unsigned int> > mModel_Lists;
-			std::map< std::string, std::string > mDatafile_List;
-			std::map< std::string, Json::Value> mJson_Data;
-			std::map< std::string, std::vector<std::tuple<double,double,double> > > mNon_Json_Data;
-			best_fit_results vResults;
-			std::vector < std::vector < std::pair< gauss_fit_results, gauss_fit_results > > > vGauss_Fits_Results;
+		if (iterI->find(".xml") != std::string::npos)
+			vFile_List.push_back(*iterI);
+		else if (*iterI == "--debug")
+			bDebug = true;
+		else
+			std::cerr << "Unrecognized command line parameter " << *iterI << std::endl;
+	}
+	std::ofstream ofsIndividual_Fits;
+	ofsIndividual_Fits.open("individual_fit_data.csv");
+	assert(ofsIndividual_Fits.is_open());
+	Output_Result_Header(ofsIndividual_Fits);
 
-			Parse_XML( vCL_Arguments[0], vfitFits, mModel_Data, mModel_Lists, mDatafile_List);
-			Load_Data_Files( mDatafile_List, mJson_Data, mNon_Json_Data);
-			Validate_JSON_Data( mJson_Data);
-			Load_Models( vfitFits, mModel_Lists, mModel_Data);
-			Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
+	std::ofstream ofsBest_Fits;
+	ofsBest_Fits.open("best_fit_data.csv");
+	assert(ofsBest_Fits.is_open());
+	Output_Result_Header(ofsBest_Fits);
 
-			
-			// Deredden spectra if requested
-			Deredden( vfitFits);
-			std::ofstream ofsIndividual_Fits;
-			ofsIndividual_Fits.open("individual_fit_data.csv");
-			assert(ofsIndividual_Fits.is_open());
-			Output_Result_Header(ofsIndividual_Fits);
-			// Done confirming and loading the data; begin the actual fitting
-			Perform_Fits( ofsIndividual_Fits, vfitFits, mModel_Lists, mModel_Data, vResults);
-			// process the results to get Gaussian fits
+	if (bDebug)
+		std::cout << xconsole::bold << "Debug mode active" << xconsole::reset << std::endl;
+
+	for (std::vector<std::string>::iterator iterI = vFile_List.begin(); iterI != vFile_List.end(); iterI++)
+	{
+		std::vector <specfit::fit> vfitFits;
+		std::map< unsigned int, specfit::model> mModel_Data;
+		std::map< std::string, std::vector<unsigned int> > mModel_Lists;
+		std::map< std::string, std::string > mDatafile_List;
+		std::map< std::string, Json::Value> mJson_Data;
+		std::map< std::string, std::vector<std::tuple<double,double,double> > > mNon_Json_Data;
+		best_fit_results vResults;
+		std::vector < std::vector < std::pair< gauss_fit_results, gauss_fit_results > > > vGauss_Fits_Results;
+
+		Parse_XML( *iterI, vfitFits, mModel_Data, mModel_Lists, mDatafile_List);
+		Load_Data_Files( mDatafile_List, mJson_Data, mNon_Json_Data);
+		Validate_JSON_Data( mJson_Data);
+		Load_Models( vfitFits, mModel_Lists, mModel_Data);
+		Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
+
+		
+		// Deredden spectra if requested
+		Deredden( vfitFits);
+		// Done confirming and loading the data; begin the actual fitting
+		Perform_Fits( ofsIndividual_Fits, vfitFits, mModel_Lists, mModel_Data, vResults, bDebug);
+		// process the results to get Gaussian fits
 //			Process_Results( vResults
- //                  vA_Flat = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
-  //                                  cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF,
+//                  vA_Flat = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
+//                                  cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF,
 //									vSigma_Flat, dSmin_Flat,&cSingle_Flat_Fit,&cDouble_Flat_Fit);
 
-			Output_Results(vResults);
-		}
-
-
+		Output_Results(ofsBest_Fits,vResults);
 	}
+	if (ofsIndividual_Fits.is_open())
+		ofsIndividual_Fits.close();
 	return 0;
 }
