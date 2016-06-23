@@ -825,6 +825,8 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 			std::ofstream fsDebug;
 			std::ostringstream ossDebugFilepath;
 			ossDebugFilepath << ".debug/";
+			ossDebugFilepath << cParam.m_uiModel_ID;
+			ossDebugFilepath << "_";
 			ossDebugFilepath << lpcCall_Data->m_uiDebug_Idx;
 			ossDebugFilepath << "_";
 			ossDebugFilepath << std::setprecision(6);
@@ -833,8 +835,11 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 			ossDebugFilepath << i_vX[1];
 			ossDebugFilepath << "_";
 			ossDebugFilepath << i_vX[2];
-			ossDebugFilepath << "_";
-			ossDebugFilepath << i_vX[3];
+			if (i_vX.size() > 3)
+			{
+				ossDebugFilepath << "_";
+				ossDebugFilepath << i_vX[3];
+			}
 			if (i_vX.size() == 6)
 			{
 				ossDebugFilepath << "_";
