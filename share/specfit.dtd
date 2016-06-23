@@ -45,8 +45,11 @@
 <!ATTLIST SUGGESTPARAM
 	ps_temp	CDATA	#IMPLIED
 	ps_vel	CDATA #IMPLIED
+	ejecta_ps_vel	CDATA #IMPLIED
+	shell_ps_vel	CDATA #IMPLIED
 	ejecta_temp	CDATA #IMPLIED
 	shell_temp	CDATA #IMPLIED
 	ejecta_log_S	CDATA	#IMPLIED
 	shell_log_S		CDATA #IMPLIED
+	ejecta_shell_mixing	CDATA #IMPLIED
 >

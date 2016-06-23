@@ -14,6 +14,12 @@
 #include <line_routines.h>
 #include <cstdio>
 	
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+/*
 class dictionarynode
 {
 public:
@@ -83,7 +89,7 @@ void Parse(const Json::Value & i_jvValue, unsigned int i_uiTab_Level, dictionary
 		}
 	}
 }
-
+*/
 
 //------------------------------------------------------------------------------
 //
@@ -376,6 +382,15 @@ void Parse_XML(const std::string &i_szFilename,
 										else if (std::string((const char *)lpCurr_Attr->name) == "ps_vel")
 										{
 											cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel = Attr_Get_Double(lpCurr_Attr,nan(""));
+											cFit.m_cSuggested_Param[specfit::comp_shell].m_dPS_Vel = cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel;
+										}
+										else if (std::string((const char *)lpCurr_Attr->name) == "ejecta_ps_vel")
+										{
+											cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel = Attr_Get_Double(lpCurr_Attr,nan(""));
+										}
+										else if (std::string((const char *)lpCurr_Attr->name) == "shell_ps_vel")
+										{
+											cFit.m_cSuggested_Param[specfit::comp_shell].m_dPS_Vel = Attr_Get_Double(lpCurr_Attr,nan(""));
 										}
 										else if (std::string((const char *)lpCurr_Attr->name) == "ejecta_temp")
 										{
@@ -393,6 +408,12 @@ void Parse_XML(const std::string &i_szFilename,
 										{
 											cFit.m_cSuggested_Param[specfit::comp_shell].m_dLog_S = Attr_Get_Double(lpCurr_Attr,nan(""));
 										}
+										else if (std::string((const char *)lpCurr_Attr->name) == "ejecta_shell_mixing")
+										{
+											cFit.m_cSuggested_Param.m_dMixing_Fraction = Attr_Get_Double(lpCurr_Attr,nan(""));
+										}
+
+
 										lpCurr_Attr = lpCurr_Attr->next;
 									}
 								}
@@ -1190,6 +1211,25 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		else
 			std::cerr << "Unrecognized command line parameter " << *iterI << std::endl;
 	}
+	if (bDebug)
+	{
+		DIR * fileDir = opendir(".debug");
+
+		if (fileDir != nullptr)
+		{
+			closedir(fileDir);
+			system("rm .debug/*");
+		}
+		else
+		{
+			if (mkdir(".debug",S_IRWXU) != 0)
+			{
+				std::cerr << xconsole::foreground_red << xconsole::bold << "Error: " << xconsole::reset << "Unable to create .debug directory" << std::endl;
+				return 1;
+			}
+		}	
+	}
+
 	std::ofstream ofsIndividual_Fits;
 	ofsIndividual_Fits.open("individual_fit_data.csv");
 	assert(ofsIndividual_Fits.is_open());
