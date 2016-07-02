@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -7,8 +7,8 @@ SRCDIR=./src
 BINDIR=./bin
 TMPDIR=./obj
 LIBDIR=./lib
-CXXFLAGS+=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) --std=c++14 -c
-CLFLAGS=-I$(INCLUDEDIR) -L$(LIBDIR) --std=c++14
+CXXFLAGS+=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) --std=c++14 -fopenmp -c
+CLFLAGS=-I$(INCLUDEDIR) -L$(LIBDIR) --std=c++14 -fopenmp 
 LFLAGS=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) -L$(LIBDIR)
 LIBCOMP=ar
 LIBCOMPFLAG=-cvr
@@ -319,6 +319,11 @@ endif
 genmsdb: $(BINDIR)/genmsdb
 $(BINDIR)/genmsdb: $(SRCDIR)/gen_msdb.cpp 
 	$(CXX)  $(ESFLAGS) $(CLFLAGS) $(SRCDIR)/gen_msdb.cpp $(ESLIBS) -lmsdb -o $(BINDIR)/genmsdb
+
+gensingle: $(BINDIR)/gensingle
+$(BINDIR)/gensingle: $(SRCDIR)/gensingle.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
+	$(CXX)  $(ESFLAGS) $(CLFLAGS) $(SRCDIR)/gensingle.cpp $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/gensingle
+
 
 clean:
 	-rm $(BINDIR)/*
