@@ -67,6 +67,7 @@ namespace specfit
 		params						m_cSuggested_Param;
 		double						m_dE_BmV; // E (B-V) value to use for dereddening
 		bool						m_bUse_JSON_ebv; // use the ebv data from the JSON datafile
+		bool						m_bUse_Two_Component_Fit; // set true to have a separate ejecta and shell photosphere and a mixing ratio
 		spectraldata m_vData;
 		fit(void) : m_cSuggested_Param()
 		{
@@ -78,6 +79,7 @@ namespace specfit
 			m_bScale_Starting_Log_S = true;
 			m_dTime_Scale_Power_Law = -2.0;
 			m_dDelay_From_Explosion_To_Bmax = 18.0;
+			m_bUse_Two_Component_Fit = false;
 		}
 	};
 
