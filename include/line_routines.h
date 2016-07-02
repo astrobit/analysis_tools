@@ -30,6 +30,14 @@ public:
 
 
 void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i_dPS_Temp_kK, const double & i_dPS_Velocity_kkms, ION_DATA * i_lpcIon_Data, unsigned int i_uiNum_Ions, ES::Spectrum &io_cOutput);
+// xvector parameters for Generate_Synow_Spectra:
+// 0: time after explosion in days
+// 1: photosphere velocity in 1000 km/s
+// 2: photosphere temperature in 1000 K
+// 3: excitation temperature for PVF  in 1000 K
+// 4: log_{10} S for PVF
+// 5: excitation temperature for HVF  in 1000 K
+// 6: log_{10} S for HVF
 void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput, const double & i_dTime_Power_Law_A = -2.0, const double & i_dTime_Power_Law_B = -2.0);
 void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput);
 
