@@ -9,7 +9,6 @@
 #include <xstdlib.h>
 #include <xfit.h>
 #include "ES_Synow.hh"
-#include "ES_Generic_Error.hh"
 #include <float.h>
 #include <line_routines.h>
 

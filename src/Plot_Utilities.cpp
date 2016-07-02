@@ -5,7 +5,7 @@
 #include <float.h>
 #include <xio.h>
 #include "ES_Synow.hh"
-#include "ES_Generic_Error.hh"
+//#include "ES_Generic_Error.hh"
 //#include <plplot/plplot.h>
 //#include <plplot/plstream.h>
 #include <Plot_Utilities.h>

@@ -10,7 +10,7 @@
 #include <xstdlib.h>
 #include <xfit.h>
 #include "ES_Synow.hh"
-#include "ES_Generic_Error.hh"
+//#include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
 #include <float.h>
 #include <best_fit_data.h>

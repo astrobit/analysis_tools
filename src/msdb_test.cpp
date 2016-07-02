@@ -4,7 +4,7 @@
 #include <xio.h>
 #include <xlinalg.h>
 #include "ES_Synow.hh"
-#include "ES_Generic_Error.hh"
+//#include "ES_Generic_Error.hh"
 #include <best_fit_data.h>
 #include <line_routines.h>
 #include <model_spectra_db.h>

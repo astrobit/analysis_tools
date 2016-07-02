@@ -9,7 +9,7 @@
 #include <xlinalg.h>
 #include <xstdlib.h>
 #include "ES_Synow.hh"
-#include "ES_Generic_Error.hh"
+//#include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
 #include <float.h>
 #include <line_routines.h>
