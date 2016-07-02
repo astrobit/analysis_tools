@@ -9,7 +9,7 @@
 #include <xlinalg.h>
 #include <xstdlib.h>
 #include "ES_Synow.hh"
-#include "ES_Generic_Error.hh"
+//#include "ES_Generic_Error.hh"
 #include <Plot_Utilities.h>
 #include <float.h>
 #include <line_routines.h>
@@ -17,7 +17,7 @@
 extern void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_Elements, const XDATASET * i_lpOpacity_Map);
 extern unsigned int g_uiVelocity_Map_Alloc_Size;
 extern double		* g_lpdVelocities;
-extern double		* g_lpdOpacity_Profile[2];
+extern std::vector<std::vector<double> > g_lpdOpacity_Profile;
 extern ES::Synow::Grid * g_lpcGrid;
 extern ES::Synow::Grid * g_lpcGrid_Exp;
 extern ES::Synow::Opacity * g_lpcOpacity;
@@ -34,6 +34,9 @@ extern double		g_dMin_Delta;
 
 void Generate_Synow_Spectra(ES::Spectrum &o_cOutput)
 {
+	g_lpdOpacity_Profile.resize(2);
+	g_lpdOpacity_Profile[0].resize(2048);
+	g_lpdOpacity_Profile[1].resize(2048);
 	Allocate_Synow_Classes(o_cOutput,2048,NULL);
 	for (unsigned int uiI = 0; uiI < 2048; uiI++)
 	{
