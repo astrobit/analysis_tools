@@ -317,10 +317,13 @@ void Parse_XML(const std::string &i_szFilename,
 							{
 								cFit.m_dTime_Scale_Power_Law = Attr_Get_Bool(lpCurr_Attr,false);
 							}
-	
 							else if (std::string((const char *)lpCurr_Attr->name) == "usejsonebv")
 							{
 								cFit.m_bUse_JSON_ebv = Attr_Get_Bool(lpCurr_Attr,false);
+							}
+							else if (std::string((const char *)lpCurr_Attr->name) == "usetwocomponentfit")
+							{
+								cFit.m_bUse_Two_Component_Fit = Attr_Get_Bool(lpCurr_Attr,false);
 							}
 							else if (std::string((const char *)lpCurr_Attr->name) == "feature")
 							{

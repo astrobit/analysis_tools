@@ -36,6 +36,7 @@
 	bmaxdelayexpl		CDATA #IMPLIED
 	timepowerlaw CDATA #IMPLIED
 	scalestartwithtime	(true|false) #IMPLIED
+	usetwocomponentfit	(true|false) #IMPLIED
 >
 <!ELEMENT MODLIST EMPTY>
 <!ATTLIST MODLIST
