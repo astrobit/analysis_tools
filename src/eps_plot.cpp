@@ -1194,9 +1194,145 @@ unsigned int	DATA::Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, cons
 	return uiRet;
 }
 
-unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
-unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
-unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+{
+	unsigned int uiRet = -1;
+	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
+	{
+		uiRet = i_uiPlot_Data_ID;
+		SYMBOL_ITEM * lpItem = (SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet];
+		if (lpItem)
+		{
+			if (i_lpdX_Values && i_lpdY_Values && i_uiNum_Points > 0)
+			{
+
+				lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+				lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+				lpItem->m_cPlot_Symbol_Info = i_cSymbol_Parameters;
+		
+				if (i_cSymbol_Parameters.m_dSize >= 0.0)
+					lpItem->m_cPlot_Symbol_Info.m_dSize = i_cSymbol_Parameters.m_dSize;
+				else
+					lpItem->m_cPlot_Symbol_Info.m_dSize = 1.0;
+				if (lpItem->m_lppData && lpItem->m_uiNum_Points < i_uiNum_Points)
+				{
+					delete [] lpItem->m_lppData;
+					lpItem->m_lppData = new eps_pair [i_uiNum_Points];
+				}
+				lpItem->m_uiNum_Points = i_uiNum_Points;
+				for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+				{
+					lpItem->m_lppData[uiI].m_dX = i_lpdX_Values[uiI];
+					lpItem->m_lppData[uiI].m_dY = i_lpdY_Values[uiI];
+				}
+			}
+			else
+			{
+				lpItem->m_uiNum_Points = 0;
+				if (lpItem->m_lppData != nullptr)
+					delete [] lpItem->m_lppData;
+				lpItem->m_lppData = nullptr;
+			}
+		}
+		else
+			uiRet = -1;
+	}
+	return uiRet;
+}
+unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+{
+	unsigned int uiRet = -1;
+	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
+	{
+		uiRet = i_uiPlot_Data_ID;
+		SYMBOL_ITEM * lpItem = (SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet];
+		if (lpItem)
+		{
+			if (i_vdX_Values.size() > 0 && i_vdY_Values.size() == i_vdX_Values.size())
+			{
+				lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+				lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+				lpItem->m_cPlot_Symbol_Info = i_cSymbol_Parameters;
+		
+				if (i_cSymbol_Parameters.m_dSize >= 0.0)
+					lpItem->m_cPlot_Symbol_Info.m_dSize = i_cSymbol_Parameters.m_dSize;
+				else
+					lpItem->m_cPlot_Symbol_Info.m_dSize = 1.0;
+				if (lpItem->m_lppData && lpItem->m_uiNum_Points < i_vdX_Values.size())
+				{
+					delete [] lpItem->m_lppData;
+					lpItem->m_lppData = new eps_pair [i_vdX_Values.size()];
+				}
+				lpItem->m_uiNum_Points = i_vdX_Values.size();
+				for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+				{
+					lpItem->m_lppData[uiI].m_dX = i_vdX_Values[uiI];
+					lpItem->m_lppData[uiI].m_dY = i_vdY_Values[uiI];
+				}
+			}
+			else
+			{
+				lpItem->m_uiNum_Points = 0;
+				if (lpItem->m_lppData != nullptr)
+					delete [] lpItem->m_lppData;
+				lpItem->m_lppData = nullptr;
+			}
+		}
+		else
+			uiRet = -1;
+	}
+	return uiRet;
+}
+unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+{
+	unsigned int uiRet = -1;
+	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
+	{
+		uiRet = i_uiPlot_Data_ID;
+		SYMBOL_ITEM * lpItem = (SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet];
+		if (lpItem)
+		{
+			if (i_vpValues.size() > 0)
+			{
+				lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
+				lpItem->m_uiPlot_Axes_To_Use[1] = i_uiY_Axis_ID;
+				lpItem->m_cPlot_Symbol_Info = i_cSymbol_Parameters;
+	
+				if (i_cSymbol_Parameters.m_dSize >= 0.0)
+					lpItem->m_cPlot_Symbol_Info.m_dSize = i_cSymbol_Parameters.m_dSize;
+				else
+					lpItem->m_cPlot_Symbol_Info.m_dSize = 1.0;
+				if (lpItem->m_lppData && lpItem->m_uiNum_Points < i_vpValues.size())
+				{
+					delete [] lpItem->m_lppData;
+					lpItem->m_lppData = new eps_pair [i_vpValues.size()];
+				}
+				lpItem->m_uiNum_Points = i_vpValues.size();
+				if (lpItem->m_lppData)
+				{
+					for (unsigned int uiI = 0; uiI < lpItem->m_uiNum_Points; uiI++)
+					{
+						lpItem->m_lppData[uiI].m_dX = i_vpValues[uiI].m_dX;
+						lpItem->m_lppData[uiI].m_dY = i_vpValues[uiI].m_dY;
+					}
+
+					uiRet = m_vcPlot_Item_List.size();
+					m_vcPlot_Item_List.push_back(lpItem);
+				}
+			}
+			else
+			{
+				lpItem->m_uiNum_Points = 0;
+				if (lpItem->m_lppData != nullptr)
+					delete [] lpItem->m_lppData;
+				lpItem->m_lppData = nullptr;
+			}
+		}
+		else
+			uiRet = -1;
+	}
+	return uiRet;
+}
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Rectangle
