@@ -2370,7 +2370,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			double	dStart = XRoundNearest(cX_Axis_Default.m_dStart,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
-			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : 5.0;
+			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : 8.0;
 			for (double dVal = dStart; dVal <= cX_Axis_Default.m_dEnd; dVal += dMinor_Ticks)
 			{
 				if (dVal >= cX_Axis_Default.m_dLower_Limit && dVal <= cX_Axis_Default.m_dUpper_Limit) // just to make sure
@@ -2467,7 +2467,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : 5.0;
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : 8.0;
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
 						dStart =  XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
