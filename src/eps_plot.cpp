@@ -23,15 +23,15 @@ const COLOR_TRIPLET	g_cColor_Std_Grey_50(0.50,0.50,0.50);
 const COLOR_TRIPLET	g_cColor_Std_Grey_75(0.75,0.75,0.75);
 const COLOR_TRIPLET	g_cColor_Std_White(1.0,1.0,1.0);
 
-const double		g_dStipple_Std_Short_Dash[] = {2,2};
-const double		g_dStipple_Std_Long_Dash[] = {4,4};
-const double		g_dStipple_Std_Long_Short_Dash[] = {4,4,2,4};
-const double		g_dStipple_Std_Dotted[] = {2,1}; // maybe 1,1?
-const double		g_dStipple_Std_Short_Dash_Dotted[] = {2,2,1,2};
-const double		g_dStipple_Std_Long_Dash_Dotted[] = {4,4,1,4};
-const double		g_dStipple_Std_Long_Short_Dash_Dotted[] = {4,4,2,4,1,4};
-const double		g_dStipple_Std_Long_Short_Dot_Short_Dash[] = {4,4,2,4,1,4,2,4};
-const double		g_dStipple_Std_Long_Long_Dash[] = {8,8};
+const double		g_dStipple_Std_Short_Dash[] = {4,4};
+const double		g_dStipple_Std_Long_Dash[] = {8,8};
+const double		g_dStipple_Std_Long_Short_Dash[] = {8,8,4,8};
+const double		g_dStipple_Std_Dotted[] = {2,2}; // maybe 1,1?
+const double		g_dStipple_Std_Short_Dash_Dotted[] = {4,4,2,4};
+const double		g_dStipple_Std_Long_Dash_Dotted[] = {8,8,2,8};
+const double		g_dStipple_Std_Long_Short_Dash_Dotted[] = {8,8,4,8,2,8};
+const double		g_dStipple_Std_Long_Short_Dot_Short_Dash[] = {8,8,4,8,2,8,4,8};
+const double		g_dStipple_Std_Long_Long_Dash[] = {16,16};
 
 
 class SYMBOL_CONTAINER
