@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -14,7 +14,7 @@ LIBCOMP=ar
 LIBCOMPFLAG=-cvr
 PLOTUTILLIB=-lplotutil
 ESFLAGS= -fopenmp
-ESLIBS= -les -lyaml-cpp -lm -lcfitsio 
+ESLIBS= -les -lm -lcfitsio 
 XLIBSPATH=~/xlibs
 XLIBSCHANGE=$(XLIBSPATH)/lib/libxio.a $(XLIBSPATH)/lib/libxstdlib.a $(XLIBSPATH)/lib/libxmath.a $(XLIBSPATH)/lib/libxastro.a $(XLIBSPATH)/lib/libxflash.a
 XMLINCLUDE= -I/usr/include/libxml2
@@ -324,6 +324,9 @@ gensingle: $(BINDIR)/gensingle
 $(BINDIR)/gensingle: $(SRCDIR)/gensingle.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
 	$(CXX)  $(ESFLAGS) $(CLFLAGS) $(SRCDIR)/gensingle.cpp $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/gensingle
 
+ionphotcalc: $(BINDIR)/ionphotcalc
+$(BINDIR)/ionphotcalc: $(SRCDIR)/ionphotcalc.cpp $(XLIBSCHANGE)
+	$(CXX)	$(CLFLAGS) $(SRCDIR)/ionphotcalc.cpp -lxmath -lxastro -o $(BINDIR)/ionphotcalc
 
 clean:
 	-rm $(BINDIR)/*
