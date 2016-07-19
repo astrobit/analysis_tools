@@ -99,7 +99,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										unsigned int uiCol = uiJ + 2;
 										unsigned int uiRow = (uiD - 1) * 4 + 3;
 										double dV = xData.GetElement(uiCol,uiRow) * 1e-8;
-										if (!isnan(dV) && !isinf(dV) && !xData.IsElementEmpty(uiCol,uiRow))
+										if (!std::isnan(dV) && !std::isinf(dV) && !xData.IsElementEmpty(uiCol,uiRow))
 											fprintf(fileIonTable[uiJ][uiK]," & %.1f",dV);
 										else
 											fprintf(fileIonTable[uiJ][uiK]," & \\ldots");

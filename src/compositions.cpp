@@ -63,7 +63,7 @@ void	COMPOSITION_SET::Zaghloul_Saha(const double & i_dTemperature_K, const doubl
 			double dU_ip1 = m_lpdCompositions[uiJ].Get_Partition_Function(uiI + 1, i_dTemperature_K, m_dNn);
 //			printf("%f %f %e %e %e\n",dU_i,dU_ip1,dCoef,m_lpdCompositions[uiJ].Get_Ion_Energy(uiI),dKbT_Inv);
 			m_lpdF[uiJ][uiI] = dU_ip1 / dU_i * dCoef * exp(-m_lpdCompositions[uiJ].Get_Ion_Energy(uiI)*dKbT_Inv + 10.0*i_dDensity_g_cm3);
-			if (isnan(m_lpdF[uiJ][uiI]) || isinf(m_lpdF[uiJ][uiI]))
+			if (std::isnan(m_lpdF[uiJ][uiI]) || std::isinf(m_lpdF[uiJ][uiI]))
 				m_lpdF[uiJ][uiI] = 1.0e+15; // something large
 
 			if(uiI == 0)

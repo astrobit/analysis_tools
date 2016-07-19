@@ -1410,7 +1410,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			sprintf(lpszOutfile,"%s.eps",lpszDatafile);
 			xmlNewProp(root_node,BAD_CAST "outputfile", BAD_CAST lpszOutfile);
 		}
-		if (bX_Axis_Log || !isnan(dX_min) || !isnan(dX_max) || lpszX_Axis_Title)
+		if (bX_Axis_Log || !std::isnan(dX_min) || !std::isnan(dX_max) || lpszX_Axis_Title)
 		{
 			bUse_X_Axis = true;
 			xmlNodePtr axisnode = xmlNewChild(root_node, NULL, BAD_CAST "AXIS",NULL);
@@ -1418,12 +1418,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			xmlNewProp(axisnode,BAD_CAST "direction", BAD_CAST "x");
 			if (bX_Axis_Log)
 				xmlNewProp(axisnode,BAD_CAST "log", BAD_CAST "true");
-			if (!isnan(dX_min))
+			if (!std::isnan(dX_min))
 			{
 				sprintf(lpszValue,"%.17e",dX_min);
 				xmlNewProp(axisnode,BAD_CAST "min", BAD_CAST lpszValue);
 			}
-			if (!isnan(dX_max))
+			if (!std::isnan(dX_max))
 			{
 				sprintf(lpszValue,"%.17e",dX_max);
 				xmlNewProp(axisnode,BAD_CAST "max", BAD_CAST lpszValue);
@@ -1431,7 +1431,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (lpszX_Axis_Title)
 				xmlNewProp(axisnode,BAD_CAST "title", BAD_CAST lpszX_Axis_Title);
 		}
-		if (bY_Axis_Log || !isnan(dY_min) || !isnan(dY_max) || lpszY_Axis_Title)
+		if (bY_Axis_Log || !std::isnan(dY_min) || !std::isnan(dY_max) || lpszY_Axis_Title)
 		{
 			bUse_Y_Axis = true;
 			xmlNodePtr axisnode = xmlNewChild(root_node, NULL, BAD_CAST "AXIS",NULL);
@@ -1439,12 +1439,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			xmlNewProp(axisnode,BAD_CAST "direction", BAD_CAST "y");
 			if (bY_Axis_Log)
 				xmlNewProp(axisnode,BAD_CAST "log", BAD_CAST "true");
-			if (!isnan(dY_min))
+			if (!std::isnan(dY_min))
 			{
 				sprintf(lpszValue,"%.17e",dY_min);
 				xmlNewProp(axisnode,BAD_CAST "min", BAD_CAST lpszValue);
 			}
-			if (!isnan(dY_max))
+			if (!std::isnan(dY_max))
 			{
 				sprintf(lpszValue,"%.17e",dY_max);
 				xmlNewProp(axisnode,BAD_CAST "max", BAD_CAST lpszValue);
