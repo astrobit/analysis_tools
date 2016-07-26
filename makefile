@@ -303,16 +303,16 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 
 ifdef JSONCPP
 sf: $(BINDIR)/sf
-$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) libspecfit $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp
+$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) $(LIBDIR)/libspecfit.a $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp
 	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_genfits.cpp $(SRCDIR)/spectra_fit.1.0.cpp $(ESFLAGS) $(ESLIBS) $(JSONCPP) -llinerout -lspecfit -lxml2 -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
 
 genjsonfit: $(BINDIR)/genjsonfit
 $(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)
-	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/gen_json_fit_list.cpp $(JSONCPP) -lxstdlib -o $(BINDIR)/genjsonfit
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/gen_json_fit_list.cpp $(JSONCPP) -lxmath -lxstdlib -o $(BINDIR)/genjsonfit
 else
 sf: $(BINDIR)/sf
 genjsonfit: $(BINDIR)/sf
-$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp $(XLIBSCHANGE) libspecfit $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp  $(LIBDIR)/libmsdb.a
+$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp $(XLIBSCHANGE) $(LIBDIR)/libspecfit.a $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp  $(LIBDIR)/libmsdb.a
 	@echo "Symbol JSONCPP not found. Make sure that jsoncpp is installed and the JSONCPP variable points to the path to jsoncpp.cpp"
 endif
 
