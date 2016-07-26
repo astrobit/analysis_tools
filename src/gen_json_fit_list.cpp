@@ -9,6 +9,32 @@
 #include <limits>
 #include <cfloat>
 #include <cmath>
+#include <xmath.h>
+
+double Compute_MJD_Bmax(std::map<double, double> &i_mddPhotometry)
+{
+	double dMJD_Bmax = nan("");
+	if (i_mddPhotometry.size() > 3)
+	{
+		double dLast = i_mddPhotometry.rbegin()->first;
+		XSPLINE_DATA cSpline(i_mddPhotometry);
+		double dMJD_min = i_mddPhotometry.begin()->first;
+		double	dMag_Bmax = DBL_MAX;
+		for (unsigned int uiI = 0 ; uiI < 50; uiI++)
+		{
+			double dMJD = dMJD_min + uiI * 0.5;
+			if (dMJD < dLast)
+			{
+				if (cSpline.Interpolate(dMJD) < dMag_Bmax)
+				{
+					dMag_Bmax = cSpline.Interpolate(dMJD);
+					dMJD_Bmax = dMJD;
+				}
+			}
+		}
+	}
+	return dMJD_Bmax;
+}
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
@@ -19,13 +45,17 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double dMJD_Bmax = nan("");
 		std::vector<std::string> vsSource_Files;
 		std::string szFeature = "CaNIR";
-
+		bool bCompute_MJD_Bmax = false;
 		for (unsigned int uiI = 1; uiI < i_iArg_Count; uiI++)
 		{
 			std::string szCommand =  i_lpszArg_Values[uiI];
 			if (szCommand[0] == '-') // this is a option, not a filename
 			{
-				if (szCommand.find("--mjd-bmax") != std::string::npos || szCommand.find("--MJD-Bmax") != std::string::npos)
+				if (szCommand.find("--compute-mjd-bmax") != std::string::npos || szCommand.find("--Compute-MJD-Bmax") != std::string::npos)
+				{
+					bCompute_MJD_Bmax = true;
+				}
+				else if (szCommand.find("--mjd-bmax") != std::string::npos || szCommand.find("--MJD-Bmax") != std::string::npos)
 				{
 					if (szCommand.find("=") != std::string::npos)
 					{
@@ -250,6 +280,123 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					fsOut_File << "<DATAFILE filepath=\"" << vsSource_Files[uiI] << "\" id=\"file" << uiI << "\" />" << std::endl;
 					std::string szID = jmMember_List[0];
 					bool bEBV_Avail = jsonRoot[szID].isMember("ebv"); // check if the E(B-V) value is available
+					std::map< double, double > mddPhotometry_Vega;
+					std::map< double, double > mddPhotometry_CSP;
+					std::map< double, double > mddPhotometry_Unknown;
+					std::string szPhotometry_System;
+					if (bCompute_MJD_Bmax)
+					{
+						if (jsonRoot[szID].isMember("photometry")) // confirm that there is at least one source in this file
+						{
+							Json::Value jvPhotometry = jsonRoot[szID]["photometry"];
+							if (jvPhotometry.isArray())
+							{
+								for (Json::ValueConstIterator iterI = jvPhotometry.begin(); iterI != jvPhotometry.end(); iterI++)
+								{
+									if (iterI->isObject())
+									{
+										std::string szTime;
+										std::string szBand;
+										std::string szMagnitude;
+										std::string szTimeUnit;
+										std::string szSystem;
+
+										if (iterI->isMember("time"))
+										{
+											Json::Value vValue = iterI->get("time",Json::Value());
+											szTime = vValue.asString();
+										}
+										if (iterI->isMember("band"))
+										{
+											Json::Value vValue = iterI->get("band",Json::Value());
+											szBand = vValue.asString();
+										}
+										if (iterI->isMember("magnitude"))
+										{
+											Json::Value vValue = iterI->get("magnitude",Json::Value());
+											szMagnitude = vValue.asString();
+										}
+										if (iterI->isMember("system"))
+										{
+											Json::Value vValue = iterI->get("system",Json::Value());
+											szSystem = vValue.asString();
+										}
+										if (iterI->isMember("u_time"))
+										{
+											Json::Value vValue = iterI->get("u_time",Json::Value());
+											szTimeUnit = vValue.asString();
+										}
+												
+										if (!szTime.empty() && !szBand.empty() && !szMagnitude.empty() && !szTimeUnit.empty())
+										{
+											if ( szTimeUnit == "MJD" && szBand == "B")
+											{
+												double dMJD = std::stod(szTime);
+												double dMagnitude = std::stod(szMagnitude);
+												if (szSystem == "Vega")
+												{
+													mddPhotometry_Vega[dMJD] = dMagnitude;
+												}
+												else if (szSystem == "CSP")
+												{
+													mddPhotometry_CSP[dMJD] = dMagnitude;
+												}
+												else if (szSystem.empty())
+												{
+													mddPhotometry_Unknown[dMJD] = dMagnitude;
+												}
+												else
+													std::cout << "B-band photometry available in alternate system (" << szSystem << ")." << std::endl;
+											}
+										}
+									}
+								}
+							}
+						}
+
+						double dBmax_Vega = Compute_MJD_Bmax(mddPhotometry_Vega);
+						if (!std::isnan(dBmax_Vega))
+							std::cout << "Estimated Vega B-band maximum on " << dBmax_Vega << std::endl;
+
+						double dBmax_CSP = Compute_MJD_Bmax(mddPhotometry_CSP);
+						if (!std::isnan(dBmax_CSP))
+							std::cout << "Estimated CSP B-band maximum on " << dBmax_CSP << std::endl;
+
+						double dBmax_Unknown = Compute_MJD_Bmax(mddPhotometry_Unknown);
+						if (!std::isnan(dBmax_Unknown))
+							std::cout << "Estimated B-band maximum (unknown system(s)) on " << dBmax_Unknown << std::endl;
+
+						unsigned int uiMag_Count = 0;
+						dMJD_Bmax = 0.0;
+						if (!std::isnan(dBmax_Vega)) // Vega system is weighted more heavily
+						{
+							dMJD_Bmax += dBmax_Vega * 2.0;
+							uiMag_Count+=2;
+						}
+						if (!std::isnan(dBmax_CSP))
+						{
+							dMJD_Bmax += dBmax_CSP;
+							uiMag_Count++;
+						}
+						if (!std::isnan(dBmax_Unknown))
+						{
+							dMJD_Bmax += dBmax_Unknown;
+							uiMag_Count++;
+						}
+
+						if (uiMag_Count > 0)
+						{
+							dMJD_Bmax /= uiMag_Count;
+							dMJD_End = dMJD_Bmax + 5.0;
+							dMJD_Start = dMJD_Bmax - 25.0;
+						}
+						else
+						{
+							std::cout << "B-band maximum could not be computed. Exiting." << std::endl;
+							return -1;
+						}
+
+					}
 
 					if (jsonRoot[szID].isMember("spectra")) // confirm that there is at least one source in this file
 					{
@@ -311,6 +458,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							} // for (Json::ValueConstIterator iterI = jvSpectra.begin(); ...
 						} // if (jvSpectra.isArray())
 					}
+					else
+						std::cerr << xconsole::bold << xconsole::foreground_red << "Warning: " << xconsole::reset << "No spectra in file." << std::endl;
 				
 				}
 				else 
