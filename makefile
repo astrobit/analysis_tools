@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -308,7 +308,7 @@ $(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) $(LIBDIR)/libspecfit
 
 genjsonfit: $(BINDIR)/genjsonfit
 $(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)
-	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/gen_json_fit_list.cpp $(JSONCPP) -lxmath -lxstdlib -o $(BINDIR)/genjsonfit
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/gen_json_fit_list.cpp $(JSONCPP) -lxastro -lxmath -lxstdlib -o $(BINDIR)/genjsonfit
 else
 sf: $(BINDIR)/sf
 genjsonfit: $(BINDIR)/sf
@@ -327,6 +327,15 @@ $(BINDIR)/gensingle: $(SRCDIR)/gensingle.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerou
 ionphotcalc: $(BINDIR)/ionphotcalc
 $(BINDIR)/ionphotcalc: $(SRCDIR)/ionphotcalc.cpp $(XLIBSCHANGE)
 	$(CXX)	$(CLFLAGS) $(SRCDIR)/ionphotcalc.cpp -lxmath -lxastro -o $(BINDIR)/ionphotcalc
+
+ionphotcalc57: $(BINDIR)/ionphotcalc57
+$(BINDIR)/ionphotcalc57: $(SRCDIR)/ionphotcalc_m57.cpp $(XLIBSCHANGE)
+	$(CXX)	$(CLFLAGS) $(SRCDIR)/ionphotcalc_m57.cpp -lxmath -lxastro -o $(BINDIR)/ionphotcalc57
+
+
+getopdata: $(BINDIR)/getopdata
+$(BINDIR)/getopdata: $(SRCDIR)/get_opdata.cpp
+	$(CXX)	$(CLFLAGS) $(SRCDIR)/get_opdata.cpp -o $(BINDIR)/getopdata
 
 clean:
 	-rm $(BINDIR)/*
