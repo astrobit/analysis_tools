@@ -72,6 +72,14 @@ private:
 		return dRet;
 	}
 public:
+	double &	Get_Reference_Time(void)
+	{
+		return m_dReference_Time_s;
+	}
+	void Set_Reference_Time(const double & i_dTime)
+	{
+		m_dReference_Time_s = i_dTime;
+	}
 	double &	Get_Scalar(GROUP i_eGroup)
 	{
 		unsigned int uiIdx = (unsigned int)(i_eGroup - CARBON);
