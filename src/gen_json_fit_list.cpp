@@ -10,9 +10,12 @@
 #include <cfloat>
 #include <cmath>
 #include <xmath.h>
+#include <xastro.h>
 
 double Compute_MJD_Bmax(std::map<double, double> &i_mddPhotometry)
 {
+	//@@TODO: this is doing a really bad job of fitting due to noisy data
+	// need to modifiy to try a better fitting method
 	double dMJD_Bmax = nan("");
 	if (i_mddPhotometry.size() > 3)
 	{
@@ -45,13 +48,20 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double dMJD_Bmax = nan("");
 		std::vector<std::string> vsSource_Files;
 		std::string szFeature = "CaNIR";
+		double	dWL_Min_Req = 7500.0;
+		double	dWL_Max_Req = 9000.0;
 		bool bCompute_MJD_Bmax = false;
+		bool bUse_MJD_Max = false;
 		for (unsigned int uiI = 1; uiI < i_iArg_Count; uiI++)
 		{
 			std::string szCommand =  i_lpszArg_Values[uiI];
 			if (szCommand[0] == '-') // this is a option, not a filename
 			{
-				if (szCommand.find("--compute-mjd-bmax") != std::string::npos || szCommand.find("--Compute-MJD-Bmax") != std::string::npos)
+				if (szCommand.find("--use-mjd-max") != std::string::npos || szCommand.find("--use-MJD-max") != std::string::npos)
+				{
+					bUse_MJD_Max = true;
+				}
+				else if (szCommand.find("--compute-mjd-bmax") != std::string::npos || szCommand.find("--Compute-MJD-Bmax") != std::string::npos)
 				{
 					bCompute_MJD_Bmax = true;
 				}
@@ -240,13 +250,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					}
 				}
 				else
-					std::cerr << xconsole::bold << xconsole::foreground_red << "Error: " << xconsole::reset << "unreconized command line option " << szCommand << std::endl;
+					std::cerr << xconsole::bold << xconsole::foreground_red << "Error: " << xconsole::reset << "unrecognized command line option " << szCommand << std::endl;
 			}
 			else
 			{
 				vsSource_Files.push_back(szCommand);
 			}
 		}
+
+		// what is the requisite range for which spectral data must be available to try to fit?
+		if (szFeature == "Si6355")
+		{
+			dWL_Max_Req = 7000.0;
+			dWL_Min_Req = 5000.0;
+		}
+		//@@TODO other feature ranges
 		std::ofstream fsOut_File;
 		const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
 		std::string szLA_Data_Path;
@@ -284,6 +302,44 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					std::map< double, double > mddPhotometry_CSP;
 					std::map< double, double > mddPhotometry_Unknown;
 					std::string szPhotometry_System;
+					if (bUse_MJD_Max)
+					{
+						if (jsonRoot[szID].isMember("maxdate")) // confirm that there is at least max date in this file
+						{
+							Json::Value jvMaxDate = jsonRoot[szID]["maxdate"];
+							if (jvMaxDate.isArray())
+							{
+								double dMJD = 0.0;
+								unsigned int uiNum_Terms = 0;
+								for (Json::ValueConstIterator iterI = jvMaxDate.begin(); iterI != jvMaxDate.end(); iterI++)
+								{
+									if ((*iterI).isMember("value")) // confirm that there is at value within the max date
+									{
+										std::string szDate = (*iterI)["value"].asString();
+										std::string szYear = szDate.substr(0,4);
+										std::string szMonth = szDate.substr(5,2);
+										std::string szDay = szDate.substr(8,2);
+										calendar_date cDate;
+										cDate.m_iYear = std::stoi(szYear);;
+										cDate.m_uiMonth = std::stoi(szMonth);
+										cDate.m_uiDay = std::stoi(szDay);
+							
+										dMJD += XA_MJD(cDate);
+										uiNum_Terms++;
+								}
+									}
+								if (uiNum_Terms == 0) 
+									std::cerr << xconsole::bold << xconsole::foreground_yellow << "Warning: " << xconsole::reset << "could not find value for maxdate" << std::endl;
+								else
+								{
+									dMJD_Bmax = dMJD / uiNum_Terms;
+									std::cout << "Estimated B-band maximum on " << dMJD_Bmax << std::endl;
+								}
+							}
+						}
+						else 
+							std::cerr << xconsole::bold << xconsole::foreground_yellow << "Warning: " << xconsole::reset << "could not find maxdate" << std::endl;
+ 					}
 					if (bCompute_MJD_Bmax)
 					{
 						if (jsonRoot[szID].isMember("photometry")) // confirm that there is at least one source in this file
@@ -303,26 +359,54 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 										if (iterI->isMember("time"))
 										{
-											Json::Value vValue = iterI->get("time",Json::Value());
-											szTime = vValue.asString();
+//											std::cout << "photometry->time" << std::endl;
+											if (!(*iterI)["time"].isArray())
+											{
+												Json::Value vValue = iterI->get("time",Json::Value());
+												if (vValue.isString())
+													szTime = vValue.asString();
+												else if (vValue.isNumeric())
+												{
+													double dVal;
+													if (vValue.isDouble())
+														dVal = vValue.asDouble();
+													else if (vValue.isInt())
+														dVal = vValue.asInt();
+													else if (vValue.isUInt())
+														dVal = vValue.asUInt();
+													else
+														std::cerr << "Could not identify numeric type for a photometry->time value." << std::endl;
+													std::ostringstream ossVal;
+													ossVal << dVal;
+													szTime = ossVal.str();
+												}
+												else
+													std::cerr << "Could not identify data type for a photometry->time value." << std::endl;
+											}
+											else
+												szTime="0";
 										}
 										if (iterI->isMember("band"))
 										{
+//											std::cout << "photometry->band" << std::endl;
 											Json::Value vValue = iterI->get("band",Json::Value());
 											szBand = vValue.asString();
 										}
 										if (iterI->isMember("magnitude"))
 										{
+//											std::cout << "photometry->magnitude" << std::endl;
 											Json::Value vValue = iterI->get("magnitude",Json::Value());
 											szMagnitude = vValue.asString();
 										}
 										if (iterI->isMember("system"))
 										{
+//											std::cout << "photometry->system" << std::endl;
 											Json::Value vValue = iterI->get("system",Json::Value());
 											szSystem = vValue.asString();
 										}
 										if (iterI->isMember("u_time"))
 										{
+//											std::cout << "photometry->u_time" << std::endl;
 											Json::Value vValue = iterI->get("u_time",Json::Value());
 											szTimeUnit = vValue.asString();
 										}
@@ -353,6 +437,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								}
 							}
 						}
+
 
 						double dBmax_Vega = Compute_MJD_Bmax(mddPhotometry_Vega);
 						if (!std::isnan(dBmax_Vega))
@@ -435,6 +520,28 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 									{
 										double dMJD = std::stod(szMJD);
 										bInclude = (dMJD >= dMJD_Start && dMJD <= dMJD_End);
+									}
+									if (iterI->isMember("data"))
+									{
+										Json::Value jvSpec_Data = (*iterI)["data"];
+										double dWL_Min = DBL_MAX;
+										double dWL_Max = 0.0;
+										if (jvSpec_Data.isArray())
+										{
+											for (Json::ValueConstIterator iterI = jvSpec_Data.begin(); iterI != jvSpec_Data.end(); iterI++)
+											{
+												Json::Value jvCurr = (*iterI);
+												if (jvCurr.isArray())
+												{
+													double dWL = std::stod(std::string(jvCurr[0].asString()));
+													if (dWL_Min > dWL)
+														dWL_Min = dWL;
+													if (dWL_Max < dWL)
+														dWL_Max = dWL;
+												}
+											}
+										}
+										bInclude = (dWL_Min < dWL_Min_Req && dWL_Max > dWL_Max_Req);
 									}
 									if (bInclude)
 									{
