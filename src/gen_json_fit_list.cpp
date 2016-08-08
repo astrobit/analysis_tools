@@ -52,12 +52,100 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		double	dWL_Max_Req = 9000.0;
 		bool bCompute_MJD_Bmax = false;
 		bool bUse_MJD_Max = false;
+		std::string szTACC_Account;
+		std::string szJob_Email;
 		for (unsigned int uiI = 1; uiI < i_iArg_Count; uiI++)
 		{
 			std::string szCommand =  i_lpszArg_Values[uiI];
 			if (szCommand[0] == '-') // this is a option, not a filename
 			{
-				if (szCommand.find("--use-mjd-max") != std::string::npos || szCommand.find("--use-MJD-max") != std::string::npos)
+				if (szCommand.find("--TACC-account") != std::string::npos)
+				{
+					if (szCommand.find("=") != std::string::npos)
+					{
+						size_t sPos =  szCommand.find("=");
+						if (szCommand.size() > sPos)
+						{ // the data is probably here
+							szTACC_Account = szCommand.substr(sPos + 1);
+						}
+						else
+						{
+							uiI++;
+							if (uiI < i_iArg_Count)
+							{
+								szTACC_Account = i_lpszArg_Values[uiI];
+							}
+						}
+					}
+					else
+					{
+						uiI++;
+						if (uiI < i_iArg_Count)
+						{
+							szCommand = i_lpszArg_Values[uiI];
+							if (szCommand.find("=") != std::string::npos)
+							{
+								size_t sPos =  szCommand.find("=");
+								if (szCommand.size() > sPos)
+								{ // the data is probably here
+									szTACC_Account = szCommand.substr(sPos + 1);
+								}
+								else
+								{
+									uiI++;
+									if (uiI < i_iArg_Count)
+									{
+										szTACC_Account = i_lpszArg_Values[uiI];
+									}
+								}
+							}
+						}
+					}
+				}
+				else if (szCommand.find("--TACC-email") != std::string::npos)
+				{
+					if (szCommand.find("=") != std::string::npos)
+					{
+						size_t sPos =  szCommand.find("=");
+						if (szCommand.size() > sPos)
+						{ // the data is probably here
+							szJob_Email = szCommand.substr(sPos + 1);
+						}
+						else
+						{
+							uiI++;
+							if (uiI < i_iArg_Count)
+							{
+								szJob_Email = i_lpszArg_Values[uiI];
+							}
+						}
+					}
+					else
+					{
+						uiI++;
+						if (uiI < i_iArg_Count)
+						{
+							szCommand = i_lpszArg_Values[uiI];
+							if (szCommand.find("=") != std::string::npos)
+							{
+								size_t sPos =  szCommand.find("=");
+								if (szCommand.size() > sPos)
+								{ // the data is probably here
+									szJob_Email = szCommand.substr(sPos + 1);
+								}
+								else
+								{
+									uiI++;
+									if (uiI < i_iArg_Count)
+									{
+										szJob_Email = i_lpszArg_Values[uiI];
+									}
+								}
+							}
+						}
+					}
+				}
+				else if (szCommand.find("--use-mjd-max") != std::string::npos || szCommand.find("--use-MJD-max") != std::string::npos)
 				{
 					bUse_MJD_Max = true;
 				}
@@ -266,11 +354,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		//@@TODO other feature ranges
 		std::ofstream fsOut_File;
+		std::ofstream fsJob_File_Batch;
+
+		if (!szTACC_Account.empty())
+		{
+			fsJob_File_Batch.open("job_fit_all");
+			fsJob_File_Batch << "#!/bin/tcsh" << std::endl;
+		}
 		const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
 		std::string szLA_Data_Path;
 		if (lpszLA_Data_Path)
 			szLA_Data_Path = lpszLA_Data_Path;
-		fsOut_File.open("fits.xml");
+		fsOut_File.open("xml/fits.xml");
 		fsOut_File << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
 		fsOut_File << "<!DOCTYPE SPECFIT SYSTEM \"" << szLA_Data_Path << "/specfit.dtd\">" << std::endl;
 		fsOut_File << "<SPECFIT>" << std::endl;
@@ -286,6 +381,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		{
 			if (vsSource_Files[uiI].find(".json") != std::string::npos)
 			{
+				unsigned int uiSpectra_Count = 1;
 				Json::Value jsonRoot;   // starts as "null"; will contain the root value after parsing
 				std::ifstream fsData_File;
 				fsData_File.open(vsSource_Files[uiI].c_str(), std::ifstream::binary);
@@ -323,6 +419,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										cDate.m_iYear = std::stoi(szYear);;
 										cDate.m_uiMonth = std::stoi(szMonth);
 										cDate.m_uiDay = std::stoi(szDay);
+										std::cout << "max date " << cDate.m_uiDay << "/" << cDate.m_uiMonth << "/" << cDate.m_iYear << std::endl;
 							
 										dMJD += XA_MJD(cDate);
 										uiNum_Terms++;
@@ -545,6 +642,66 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 									}
 									if (bInclude)
 									{
+										std::ofstream fsOut_File_Single;
+										std::ostringstream ossFilename;
+										ossFilename << "xml/fit_" << szID << "_" << uiSpectra_Count << ".xml";
+
+										if (!szTACC_Account.empty())
+										{
+											std::ostringstream ossSlurm_Filename;
+											ossSlurm_Filename << "job/job_fit_" << szID << "_" << uiSpectra_Count;
+											std::ofstream fsSlurm_File_Single;
+											fsSlurm_File_Single.open(ossSlurm_Filename.str().c_str());
+											fsSlurm_File_Single << "#!/bin/tcsh" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -J sf_fit      #Job Name" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -o sf_fit.o%j  #Output file name" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -N 1            # Allocate tasks on 1 nodes" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -n 1           # Number of MPI tasks, assumed to be 16 task/node" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -p normal        # Queue" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -t 4:00:00      # Run time (HH:mm:ss)" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -A " << szTACC_Account << "       # Account to charge" << std::endl;
+											if (!szJob_Email.empty())
+											{
+												fsSlurm_File_Single << "#SBATCH --mail-user=" << szJob_Email << std::endl;
+												fsSlurm_File_Single << "#SBATCH --mail-type=ALL" << std::endl;
+											}
+											fsSlurm_File_Single << "sf " << ossFilename.str() << std::endl;
+
+											fsSlurm_File_Single.close();
+											fsJob_File_Batch << "sbatch " << ossSlurm_Filename.str() << std::endl;
+										}
+										fsOut_File_Single.open(ossFilename.str().c_str());
+										fsOut_File_Single << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+										fsOut_File_Single << "<!DOCTYPE SPECFIT SYSTEM \"" << szLA_Data_Path << "/specfit.dtd\">" << std::endl;
+										fsOut_File_Single << "<SPECFIT>" << std::endl;
+										fsOut_File_Single << "<MODELLIST id=\"mass\">" << std::endl;
+										fsOut_File_Single << "\t<MODEL id=\"61\"/>" << std::endl;
+										fsOut_File_Single << "\t<MODEL id=\"57\"/>" << std::endl;
+										fsOut_File_Single << "\t<MODEL id=\"41\"/>" << std::endl;
+										fsOut_File_Single << "\t<MODEL id=\"49\"/>" << std::endl;
+										fsOut_File_Single << "\t<MODEL id=\"45\"/>" << std::endl;
+										fsOut_File_Single << "</MODELLIST>" << std::endl;
+										fsOut_File_Single << "<DATAFILE filepath=\"" << vsSource_Files[uiI] << "\" id=\"file" << uiI << "\" />" << std::endl;
+
+										fsOut_File_Single << "<FIT";
+										if (!szSources.empty())
+											fsOut_File_Single << " source=\"" << szSources << "\"";
+										if (!szMJD.empty())
+											fsOut_File_Single << " mjd=\"" << szMJD << "\"";
+										if (!szInstrument.empty())
+											fsOut_File_Single << " instrument=\""<< szInstrument << "\"";
+										fsOut_File_Single << " feature=\"" << szFeature << "\" datafileid=\"file" << uiI << "\"";
+										if(bEBV_Avail)
+											fsOut_File_Single << " usejsonebv=\"true\"";
+										if (!std::isnan(dMJD_Bmax))
+											fsOut_File_Single << " mjdbmax=\"" << dMJD_Bmax << "\" scalestartwithtime=\"true\"";
+										fsOut_File_Single << " >" << std::endl;
+										fsOut_File_Single << "\t<MODLIST id=\"mass\"/>" << std::endl;
+										fsOut_File_Single << "</FIT>	" << std::endl;
+										fsOut_File_Single << "</SPECFIT>" << std::endl;
+										fsOut_File_Single.close();
+
+										//output again to combined file
 										fsOut_File << "<FIT";
 										if (!szSources.empty())
 											fsOut_File << " source=\"" << szSources << "\"";
@@ -560,6 +717,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										fsOut_File << " >" << std::endl;
 										fsOut_File << "\t<MODLIST id=\"mass\"/>" << std::endl;
 										fsOut_File << "</FIT>	" << std::endl;
+
+										uiSpectra_Count++;
 									} // if (bInclude)
 								} // if (iterI->isObject())
 							} // for (Json::ValueConstIterator iterI = jvSpectra.begin(); ...
@@ -574,6 +733,30 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 		}
 		fsOut_File << "</SPECFIT>" << std::endl;
+		fsOut_File.close();
+
+		if (!szTACC_Account.empty())
+		{
+			std::ofstream fsSlurm_File_All;
+			fsSlurm_File_All.open("job/job_fit");
+			fsSlurm_File_All << "#!/bin/tcsh" << std::endl;
+			fsSlurm_File_All << "#SBATCH -J sf_fit      #Job Name" << std::endl;
+			fsSlurm_File_All << "#SBATCH -o sf_fit.o%j  #Output file name" << std::endl;
+			fsSlurm_File_All << "#SBATCH -N 1            # Allocate tasks on 1 nodes" << std::endl;
+			fsSlurm_File_All << "#SBATCH -n 1           # Number of MPI tasks, assumed to be 16 task/node" << std::endl;
+			fsSlurm_File_All << "#SBATCH -p normal        # Queue" << std::endl;
+			fsSlurm_File_All << "#SBATCH -t 4:00:00      # Run time (HH:mm:ss)" << std::endl;
+			fsSlurm_File_All << "#SBATCH -A " << szTACC_Account << "       # Account to charge" << std::endl;
+			if (!szJob_Email.empty())
+			{
+				fsSlurm_File_All << "#SBATCH --mail-user=" << szJob_Email << std::endl;
+				fsSlurm_File_All << "#SBATCH --mail-type=ALL" << std::endl;
+			}
+			fsSlurm_File_All << "sf xml/fits.xml" << std::endl;
+
+			fsSlurm_File_All.close();
+			fsJob_File_Batch.close();
+		}
 	}
 
 	return 0;
