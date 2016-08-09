@@ -659,7 +659,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 											fsSlurm_File_Single << "#SBATCH -N 1            # Allocate tasks on 1 nodes" << std::endl;
 											fsSlurm_File_Single << "#SBATCH -n 1           # Number of MPI tasks, assumed to be 16 task/node" << std::endl;
 											fsSlurm_File_Single << "#SBATCH -p normal        # Queue" << std::endl;
-											fsSlurm_File_Single << "#SBATCH -t 4:00:00      # Run time (HH:mm:ss)" << std::endl;
+											fsSlurm_File_Single << "#SBATCH -t 8:00:00      # Run time (HH:mm:ss)" << std::endl;
 											fsSlurm_File_Single << "#SBATCH -A " << szTACC_Account << "       # Account to charge" << std::endl;
 											if (!szJob_Email.empty())
 											{
@@ -747,7 +747,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fsSlurm_File_All << "#SBATCH -N 1            # Allocate tasks on 1 nodes" << std::endl;
 			fsSlurm_File_All << "#SBATCH -n 1           # Number of MPI tasks, assumed to be 16 task/node" << std::endl;
 			fsSlurm_File_All << "#SBATCH -p normal        # Queue" << std::endl;
-			fsSlurm_File_All << "#SBATCH -t 4:00:00      # Run time (HH:mm:ss)" << std::endl;
+			fsSlurm_File_All << "#SBATCH -t 48:00:00      # Run time (HH:mm:ss)" << std::endl;
 			fsSlurm_File_All << "#SBATCH -A " << szTACC_Account << "       # Account to charge" << std::endl;
 			if (!szJob_Email.empty())
 			{
