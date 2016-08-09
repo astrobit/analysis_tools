@@ -11,6 +11,7 @@
 #include <cmath>
 #include <xmath.h>
 #include <xastro.h>
+#include <iomanip>
 
 double Compute_MJD_Bmax(std::map<double, double> &i_mddPhotometry)
 {
@@ -687,14 +688,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										if (!szSources.empty())
 											fsOut_File_Single << " source=\"" << szSources << "\"";
 										if (!szMJD.empty())
-											fsOut_File_Single << " mjd=\"" << szMJD << "\"";
+											fsOut_File_Single << std::setprecision(7) << " mjd=\"" << szMJD << "\"";
 										if (!szInstrument.empty())
 											fsOut_File_Single << " instrument=\""<< szInstrument << "\"";
 										fsOut_File_Single << " feature=\"" << szFeature << "\" datafileid=\"file" << uiI << "\"";
 										if(bEBV_Avail)
 											fsOut_File_Single << " usejsonebv=\"true\"";
 										if (!std::isnan(dMJD_Bmax))
-											fsOut_File_Single << " mjdbmax=\"" << dMJD_Bmax << "\" scalestartwithtime=\"true\"";
+											fsOut_File_Single << std::setprecision(7) << " mjdbmax=\"" << dMJD_Bmax << "\" scalestartwithtime=\"true\"";
 										fsOut_File_Single << " >" << std::endl;
 										fsOut_File_Single << "\t<MODLIST id=\"mass\"/>" << std::endl;
 										fsOut_File_Single << "</FIT>	" << std::endl;
@@ -713,7 +714,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 										if(bEBV_Avail)
 											fsOut_File << " usejsonebv=\"true\"";
 										if (!std::isnan(dMJD_Bmax))
-											fsOut_File << " mjdbmax=\"" << dMJD_Bmax << "\" scalestartwithtime=\"true\"";
+											fsOut_File << std::setprecision(7) << " mjdbmax=\"" << dMJD_Bmax << "\" scalestartwithtime=\"true\"";
 										fsOut_File << " >" << std::endl;
 										fsOut_File << "\t<MODLIST id=\"mass\"/>" << std::endl;
 										fsOut_File << "</FIT>	" << std::endl;
