@@ -1027,7 +1027,7 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 		if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
 			*iterI = '_';
 	}
-	ossSpectra_Data_File << "spectra_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".csv";
+	ossSpectra_Data_File << "Results/spectra_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".csv";
 	
 	std::ofstream ofsSpectra;
 	ofsSpectra.open(ossSpectra_Data_File.str().c_str());
