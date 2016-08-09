@@ -13,6 +13,7 @@
 #include <specfit.h>
 #include <line_routines.h>
 #include <cstdio>
+#include <iomanip>
 	
 #include <sys/types.h>
 #include <dirent.h>
@@ -846,7 +847,7 @@ void Load_Data(
 					} // if (viterFound.size() > 1)
 					if (viterFound.size() == 1)
 					{ // exactly one spectra found with the matching 
-						std::cout << "Found source " << iterFit->m_szSource << " with MJD " << iterFit->m_dMJD;
+						std::cout << "Found source " << iterFit->m_szSource << " with MJD " << std::setprecision(7) << iterFit->m_dMJD;
 						if (!iterFit->m_szInstrument.empty())
 						{
 							if (viterFound[0]->isMember("instrument"))
@@ -897,7 +898,7 @@ void Load_Data(
 					} // if (viterFound.size() == 1)
 					else
 					{
-						std::cerr << xconsole::bold << xconsole::foreground_red << "Error: " << xconsole::reset << "Unable to find source " << iterFit->m_szSource << " with MJD " << iterFit->m_dMJD;
+						std::cerr << xconsole::bold << xconsole::foreground_red << "Error: " << xconsole::reset << "Unable to find source " << iterFit->m_szSource << " with MJD " << std::setprecision(7) << iterFit->m_dMJD;
 						if (!iterFit->m_szInstrument.empty())
 							std::cerr << " and instrument " << iterFit->m_szInstrument;
 						std::cerr << std::endl;
@@ -952,7 +953,7 @@ void Deredden(std::vector <specfit::fit> &io_vfitFits)
 	{
 		if (!std::isnan(iterFit->m_dE_BmV) && iterFit->m_dE_BmV != 0.0 && !iterFit->m_vData.empty())
 		{
-			std::cout << "Dereddending " << iterFit->m_dMJD << " from " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << " with E(B-v) = " << iterFit->m_dE_BmV << std::endl;
+			std::cout << "Dereddending " << std::setprecision(7) << iterFit->m_dMJD << " from " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << " with E(B-v) = " << iterFit->m_dE_BmV << std::endl;
 			CCM_dered(iterFit->m_vData, iterFit->m_dE_BmV);
 		}
 	}
@@ -970,7 +971,7 @@ void Deredden(std::vector <specfit::fit> &io_vfitFits)
 
 void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult)
 {
-	io_ofsFile << i_cResult.m_dMJD;
+	io_ofsFile << std::setprecision(7) << i_cResult.m_dMJD;
 	switch (i_cResult.m_eFeature)
 	{
 	case specfit::CaNIR:
@@ -990,14 +991,14 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	io_ofsFile << ", \"" << i_cResult.m_szSource << "\"";
 	io_ofsFile << ", " << i_cResult.m_szInstrument;
 	io_ofsFile << ", " << i_cResult.m_uiModel;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_ejecta].m_dPS_Vel;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_ejecta].m_dPS_Temp;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_ejecta].m_dLog_S;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_ejecta].m_dExcitation_Temp;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_shell].m_dPS_Vel;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_shell].m_dPS_Temp;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_shell].m_dLog_S;
-	io_ofsFile << ", " << i_cResult.m_cParams[specfit::comp_shell].m_dExcitation_Temp;
+	io_ofsFile << ", " << std::setprecision(4) << i_cResult.m_cParams[specfit::comp_ejecta].m_dPS_Vel;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_ejecta].m_dPS_Temp;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_ejecta].m_dLog_S;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_ejecta].m_dExcitation_Temp;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dPS_Vel;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dPS_Temp;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dLog_S;
+	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dExcitation_Temp;
 
 	for (std::vector<double>::const_iterator iterI = i_cResult.m_vdRaw_Moments.cbegin(); iterI != i_cResult.m_vdRaw_Moments.cend(); iterI++)
 	{
@@ -1026,7 +1027,7 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 		if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
 			*iterI = '_';
 	}
-	ossSpectra_Data_File << "spectra_" << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".csv";
+	ossSpectra_Data_File << "spectra_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".csv";
 	
 	std::ofstream ofsSpectra;
 	ofsSpectra.open(ossSpectra_Data_File.str().c_str());
@@ -1034,12 +1035,12 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	{
 		for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size(); uiI++)
 		{
-			ofsSpectra << i_cResult.m_vpdSpectrum_Target[uiI].first;
-			ofsSpectra << "," << i_cResult.m_vpdSpectrum_Target[uiI].second;
-			ofsSpectra << "," << i_cResult.m_vpdSpectrum_Synthetic[uiI].second;
-			ofsSpectra << "," << i_cResult.m_vpdSpectrum_Synthetic_Continuum[uiI].second;
-			ofsSpectra << "," << i_cResult.m_vpdSpectrum_Synthetic_Ejecta_Only[uiI].second;
-			ofsSpectra << "," << i_cResult.m_vpdSpectrum_Synthetic_Shell_Only[uiI].second;
+			ofsSpectra << std::setprecision(10) << i_cResult.m_vpdSpectrum_Target[uiI].first;
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Target[uiI].second;
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic[uiI].second;
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Continuum[uiI].second;
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Ejecta_Only[uiI].second;
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Shell_Only[uiI].second;
 			ofsSpectra << std::endl;
 		}
 		ofsSpectra.close();
@@ -1080,7 +1081,7 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 				std::cout << "O 7773";
 				break;
 			}
-			std::cout << " fit for MJD " << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
+			std::cout << " fit for MJD " <<std::setprecision(7) <<  iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
 			std::vector<specfit::fit_result> vFit_Results;
 
 			// process individual models
@@ -1146,7 +1147,7 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 				std::cout << "O 7773";
 				break;
 			}
-			std::cout << " on MJD " << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
+			std::cout << " on MJD " << std::setprecision(7) << iterFit->m_dMJD << " from Ref. " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << std::endl;
 		} // if (!iterFit->m_vData.empty())
 	}// for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); ...
 }
