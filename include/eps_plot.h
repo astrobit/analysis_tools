@@ -91,7 +91,7 @@ namespace	epsplot
 			m_uiNum_Rows = 1;
 			m_dTitle_Margin = 1.0 / m_dHeight_Inches;
 			m_dTop_Axis_Margin = 0.0;
-			m_dBottom_Axis_Margin = 1.0 / m_dHeight_Inches;
+			m_dBottom_Axis_Margin = 1.2 / m_dHeight_Inches;
 			m_dLeft_Axis_Margin = 1.0 / m_dWidth_Inches;
 			m_dRight_Axis_Margin = 0.0;
 
