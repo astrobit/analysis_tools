@@ -666,6 +666,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 												fsSlurm_File_Single << "#SBATCH --mail-user=" << szJob_Email << std::endl;
 												fsSlurm_File_Single << "#SBATCH --mail-type=ALL" << std::endl;
 											}
+											fsSlurm_File_Single << "setenv OMP_NUM_THREADS 16 " << ossFilename.str() << std::endl;
 											fsSlurm_File_Single << "sf " << ossFilename.str() << std::endl;
 
 											fsSlurm_File_Single.close();
@@ -753,6 +754,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fsSlurm_File_All << "#SBATCH --mail-user=" << szJob_Email << std::endl;
 				fsSlurm_File_All << "#SBATCH --mail-type=ALL" << std::endl;
 			}
+			fsSlurm_File_All << "setenv OMP_NUM_THREADS 16" << std::endl;
 			fsSlurm_File_All << "sf xml/fits.xml" << std::endl;
 
 			fsSlurm_File_All.close();
