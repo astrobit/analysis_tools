@@ -216,11 +216,38 @@ void Process_Day_List(const char * lpszDay_List_String, double * &o_lpdDay_List,
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
+	if (i_iArg_Count == 1)
+	{
+		std::cout << "Usage: " << i_lpszArg_Values[0] << "[options]" << std::endl;
+		std::cout << "Options:" << std::endl;
+		std::cout << " --verbose: produces more output while running to give details of what it is doing, mostly for debugging purposes" << std::endl;
+		std::cout << " --day=X: # of days after the explosion at which to produce spectra. Default = 1d." << std::endl;
+		std::cout << " --ps-velocity=X: photosphere velocity (in 1,000 km/s) to use. If not specified the computed velocity for each model is used." << std::endl;
+		std::cout << " --ps-temp=X: photosphere temperature to use, in 1,000 K." << std::endl;
+		std::cout << " --ejecta-scalar=X: log of S^E_{k,1} factor to use." << std::endl;
+		std::cout << " --shell-scalar=X: log of S^S_{k,1} factor to use." << std::endl;
+		std::cout << " --line-region=X: determines ion and wavelength range; options are CaNIR, CaHK, Si6355, and O7773" << std::endl;
+		std::cout << " --full-spectrum: if this flag is set, the wavelength range will be 500-15000 Angstroms;" << std::endl << "    by default, only a range of about 2000 A around the feature of interest will be generated." << std::endl;
+		std::cout << " --ref-model=X: the reference model to use; S^E_{k,1} and S^S_{k,1} will be scaled by the relative values of R^E and R^S." << std::endl;
+		std::cout << " --no-ref-model: do not use a reference model for scaling S^E_{k,1} and S^S_{k,1}." << std::endl;
+		std::cout << " --use-computed-ps-velocity=X: integer value of assumed ionization state when using the photosphere velocity tables for each model; default value is 3." << std::endl;
+		std::cout << " --ejecta-only: set this flag to indicate that the shell component should not be generated (this sets log S^S_{k,1} = -20)." << std::endl;
+//		std::cout << " --shell-abundance=X: selects an abundance to use for the shell; options are \"solar\", \"Ca-rich\", ..." << std::endl;
+//		std::cout << " --ejecta-abundance=X: selects an abundance to use for the shell; options are \"solar\", \"Ca-rich\", ..." << std::endl;
+		std::cout << " --ejecta-power-law=X: time dependence of optical depth to assume for ejecta; optical depth will be T ~ (t/1d)^{-X}. Default value is 4." << std::endl;
+		std::cout << " --shell-power-law=X: time dependence of optical depth to assume for the shell; optical depth will be T ~ (t/1d)^{-X}. Default value is 4." << std::endl;
+		std::cout << " --days=X: list of days for which to generate spectra" << std::endl;
+		std::cout << " --models=X: list of models for which to generate spectra" << std::endl;
+		std::cout << " --output-name=X: name of file to which results are output" << std::endl;
+		std::cout << " --exc-temp=X: excitation temperature to use in 1000 K. Default is 10 (10,000 K)." << std::endl;
+		return 0;
+	}
 	OPACITY_PROFILE_DATA::GROUP eScalar_Type;
 	msdb::DATABASE cMSDB(true);
 	gauss_fit_parameters * lpgfpParamters;
 	bool bVerbose = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--verbose");
 	double	dDay = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--day",1.0);
+	double	dExc_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--exc-temp",10.0);
 	double	dPS_Velocity = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-velocity",-1.0);
 	double	dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ps-temp",1.0);
 	double	dEjecta_Scalar = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-scalar",1.0);
@@ -232,10 +259,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	bool	bEjecta_Only = xParse_Command_Line_Exists(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-only");
 	char lpszRef_Model_Extended[128] = {0};
 //	const char *	lpszIon_List = xParse_Command_Line_Data_Ptr(i_iArg_Count,(const char **)i_lpszArg_Values,"--ions");
-	char lpszShell_Abundance[128];
-	char lpszEjecta_Abundance[128];
-	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-abundance",lpszShell_Abundance,sizeof(lpszShell_Abundance),"");
-	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-abundance",lpszEjecta_Abundance,sizeof(lpszEjecta_Abundance),"");
+//	char lpszShell_Abundance[128];
+//	char lpszEjecta_Abundance[128];
+//	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-abundance",lpszShell_Abundance,sizeof(lpszShell_Abundance),"");
+//	xParse_Command_Line_String(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-abundance",lpszEjecta_Abundance,sizeof(lpszEjecta_Abundance),"");
 	double	dEjecta_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--ejecta-power-law",4.0);
 	double	dShell_Power_Law = xParse_Command_Line_Dbl(i_iArg_Count,(const char **)i_lpszArg_Values,"--shell-power-law",4.0);
 
@@ -301,6 +328,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	else
 		szPath_To_Output = szParameters_Path.str();
 	FILE  * fileParams = fopen(szPath_To_Output.c_str(), "wt");
+	
 	if (fileParams)
 	{
 		fprintf(fileParams,"Ejecta_scalar = %.17e\n",dEjecta_Scalar);
@@ -312,6 +340,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		else
 			fprintf(fileParams,"Ref_model = \"-\"\n");
 		fprintf(fileParams,"PS_temp = %.17e\n",dPS_Temp);
+		fprintf(fileParams,"Exc_temp = %.17ef\n",dExc_Temp);
 		
 		fclose(fileParams);
 	}
@@ -355,8 +384,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cParam.m_dTime_After_Explosion = dDay;
 //	cParam.m_dPhotosphere_Velocity_kkms = dPS_Velocity;
 	cParam.m_dPhotosphere_Temp_kK = dPS_Temp;
-	cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
-	cParam.m_dShell_Effective_Temperature_kK = 10.0;
+	cParam.m_dEjecta_Effective_Temperature_kK = dExc_Temp;
+	cParam.m_dShell_Effective_Temperature_kK = dExc_Temp;
 
 	switch (eFit_Region)
 	{
