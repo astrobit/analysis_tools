@@ -958,7 +958,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				unsigned int uiP_Cygni_Min_Idx = 0;
 				double	dMax_Flux_Flat = 0.0;
 				unsigned int uiMax_Flux_Idx = -1;
-				printf("Processing model %s\n",vModel_List[uiI]);
+				printf("Processing model %i\n",vModel_List[uiI]);
 				// first generate pEW based on flattened spectra and excluding the p Cygni peak
 				for (unsigned int uiJ = 0; uiJ < lpuiSpectra_Count[uiI]; uiJ++)
 				{
