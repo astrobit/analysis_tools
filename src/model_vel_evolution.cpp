@@ -699,7 +699,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		if (bVerbose)
 			printf("Allocating data containers.\n");
-		char lpszFilename[512];
+		char lpszFilename[1024];
 		double ** lpdSpectra_WL = new double *[vModel_List.size()];
 		double ** lpdSpectra_Flux = new double *[vModel_List.size()];
 		double ** lpdSpectra_WL_EO = new double *[vModel_List.size()];
@@ -855,17 +855,20 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		else
 		{
 			fprintf(fileOut,"wl");
-			for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
+			if (vModel_List.size() > 0)
 			{
-				fprintf(fileOut," %s-cont",vModel_List[uiI]);
-				fprintf(fileOut," %s-comb",vModel_List[uiI]);
-				fprintf(fileOut," %s-comb-flat",vModel_List[uiI]);
-				fprintf(fileOut," %s-EO",vModel_List[uiI]);
-				fprintf(fileOut," %s-EO-flat",vModel_List[uiI]);
-				fprintf(fileOut," %s-SO",vModel_List[uiI]);
-				fprintf(fileOut," %s-SO-flat",vModel_List[uiI]);
+				for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
+				{
+					fprintf(fileOut," %i-cont",vModel_List[uiI]);
+					fprintf(fileOut," %i-comb",vModel_List[uiI]);
+					fprintf(fileOut," %i-comb-flat",vModel_List[uiI]);
+					fprintf(fileOut," %i-EO",vModel_List[uiI]);
+					fprintf(fileOut," %i-EO-flat",vModel_List[uiI]);
+					fprintf(fileOut," %i-SO",vModel_List[uiI]);
+					fprintf(fileOut," %i-SO-flat",vModel_List[uiI]);
+				}
+				fprintf(fileOut,"\n");
 			}
-			fprintf(fileOut,"\n");
 			for (unsigned int uiI = 0; uiI < lpuiContinuum_Count[0]; uiI++)
 			{
 				fprintf(fileOut, "%f",lpdContinuum_WL[0][uiI]);
