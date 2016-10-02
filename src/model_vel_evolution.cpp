@@ -216,7 +216,7 @@ void Process_Day_List(const char * lpszDay_List_String, double * &o_lpdDay_List,
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
-	if (i_iArg_Count == 1)
+	if (i_iArg_Count == 1 || (i_iArg_Count == 2 && (i_lpszArg_Values[1][0] == '?' || strcmp(i_lpszArg_Values[1],"--help") == 0)) )
 	{
 		std::cout << "Usage: " << i_lpszArg_Values[0] << "[options]" << std::endl;
 		std::cout << "Options:" << std::endl;
@@ -848,41 +848,46 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		sprintf(lpszFilename,"%s.dat",lpszOutput_Name);
 		FILE * fileOut = fopen(lpszFilename,"wt");
 		if (!fileOut)
+		{
 			fprintf(stderr,"Failed to open %s for write.\n",lpszFilename);
-		fprintf(fileOut,"wl");
-		for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
-		{
-			fprintf(fileOut," %s-cont",vModel_List[uiI]);
-			fprintf(fileOut," %s-comb",vModel_List[uiI]);
-			fprintf(fileOut," %s-comb-flat",vModel_List[uiI]);
-			fprintf(fileOut," %s-EO",vModel_List[uiI]);
-			fprintf(fileOut," %s-EO-flat",vModel_List[uiI]);
-			fprintf(fileOut," %s-SO",vModel_List[uiI]);
-			fprintf(fileOut," %s-SO-flat",vModel_List[uiI]);
+			fflush(stderr);
 		}
-		fprintf(fileOut,"\n");
-		for (unsigned int uiI = 0; uiI < lpuiContinuum_Count[0]; uiI++)
+		else
 		{
-			fprintf(fileOut, "%f",lpdContinuum_WL[0][uiI]);
-			for (unsigned int uiJ = 0; uiJ < vModel_List.size(); uiJ++)
+			fprintf(fileOut,"wl");
+			for (unsigned int uiI = 0; uiI < vModel_List.size(); uiI++)
 			{
-				fprintf(fileOut, " %f",lpcSpectrum[uiJ][0].flux(uiI));
-				fprintf(fileOut, " %f",lpcSpectrum[uiJ][1].flux(uiI));
-				fprintf(fileOut, " %f",lpdSpectra_Flux[uiJ][uiI]);
-				fprintf(fileOut, " %f",lpcSpectrum[uiJ][2].flux(uiI));
-				fprintf(fileOut, " %f",lpdSpectra_Flux_EO[uiJ][uiI]);
-				fprintf(fileOut, " %f",lpcSpectrum[uiJ][3].flux(uiI));
-				fprintf(fileOut, " %f",lpdSpectra_Flux_SO[uiJ][uiI]);
+				fprintf(fileOut," %s-cont",vModel_List[uiI]);
+				fprintf(fileOut," %s-comb",vModel_List[uiI]);
+				fprintf(fileOut," %s-comb-flat",vModel_List[uiI]);
+				fprintf(fileOut," %s-EO",vModel_List[uiI]);
+				fprintf(fileOut," %s-EO-flat",vModel_List[uiI]);
+				fprintf(fileOut," %s-SO",vModel_List[uiI]);
+				fprintf(fileOut," %s-SO-flat",vModel_List[uiI]);
 			}
-			fprintf(fileOut, "\n");
+			fprintf(fileOut,"\n");
+			for (unsigned int uiI = 0; uiI < lpuiContinuum_Count[0]; uiI++)
+			{
+				fprintf(fileOut, "%f",lpdContinuum_WL[0][uiI]);
+				for (unsigned int uiJ = 0; uiJ < vModel_List.size(); uiJ++)
+				{
+					fprintf(fileOut, " %f",lpcSpectrum[uiJ][0].flux(uiI));
+					fprintf(fileOut, " %f",lpcSpectrum[uiJ][1].flux(uiI));
+					fprintf(fileOut, " %f",lpdSpectra_Flux[uiJ][uiI]);
+					fprintf(fileOut, " %f",lpcSpectrum[uiJ][2].flux(uiI));
+					fprintf(fileOut, " %f",lpdSpectra_Flux_EO[uiJ][uiI]);
+					fprintf(fileOut, " %f",lpcSpectrum[uiJ][3].flux(uiI));
+					fprintf(fileOut, " %f",lpdSpectra_Flux_SO[uiJ][uiI]);
+				}
+				fprintf(fileOut, "\n");
+			}
+			fclose(fileOut);
 		}
-		fclose(fileOut);
-
 //		fflush(stdout);
 		if (!bFull_Spectrum)
 		{
 			if (bVerbose)
-				printf("Generating anaytic data\n");
+				{printf("Generating anaytic data\n"); fflush(stdout);}
 			sprintf(lpszFilename,"%s.data.csv",lpszOutput_Name);
 			FILE * fileData = fopen(lpszFilename,"wt");
 			if (!fileData)
