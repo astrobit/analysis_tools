@@ -27,8 +27,9 @@ void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs &io_ma
 				printf("%s\n",ossCurr.str().c_str());
 				ReadDirRec(ossCurr,dirCurr,io_mapData);
 
+				ossCurr << "/transitions.csv";
 				FILE * fileTransitions;
-				fileTransitions = fopen("transitions.csv","rt");
+				fileTransitions = fopen(ossCurr.str().c_str(),"rt");
 				if (fileTransitions != nullptr)
 				{
 					fclose(fileTransitions);
