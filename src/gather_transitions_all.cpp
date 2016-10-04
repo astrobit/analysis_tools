@@ -19,11 +19,11 @@ void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs io_map
 		DIR * dirCurr;
 		if (strcmp(direntData->d_name,"..") != 0 && strcmp(direntData->d_name,".") != 0)
 		{
-			dirCurr = opendir(direntData->d_name);
+			std::ostringstream ossCurr;
+			ossCurr << io_OssdirName.str() << "/" << direntData->d_name;
+			dirCurr = opendir(ossCurr.str().c_str());
 			if (dirCurr != nullptr)
 			{
-				std::ostringstream ossCurr;
-				ossCurr << io_OssdirName.str() << "/" << direntData->d_name;
 				printf("%s\n",ossCurr.str().c_str());
 				ReadDirRec(ossCurr,dirCurr,io_mapData);
 
