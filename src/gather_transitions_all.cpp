@@ -11,7 +11,7 @@
 typedef std::map< unsigned int, unsigned int> mapmodtrs;
 typedef std::map <std::string, mapmodtrs > maptrs;
 
-void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs io_mapData)
+void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs &io_mapData)
 {
 	dirent * direntData;
 	while ((direntData = readdir(i_dirDir)) != nullptr)
@@ -60,6 +60,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fprintf(fileTrsAll,"Path, ");
 		for (maptrs::iterator iterI = mapData.begin(); iterI != mapData.end(); iterI++)
 		{
+			
 			for (mapmodtrs::iterator iterJ = iterI->second.begin(); iterJ != iterI->second.end(); iterJ++)
 			{
 				bool bFound = false;
