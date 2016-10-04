@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -340,6 +340,10 @@ $(BINDIR)/getopdata: $(SRCDIR)/get_opdata.cpp
 gathertransitions: $(BINDIR)/gathertransitions
 $(BINDIR)/gathertransitions: $(SRCDIR)/gather_transitions.cpp $(XLIBSCHANGE)
 	$(CXX)	$(CLFLAGS) $(SRCDIR)/gather_transitions.cpp -lxio -lxstdlib -o $(BINDIR)/gathertransitions
+
+gathertransitionsall: $(BINDIR)/gathertransitionsall
+$(BINDIR)/gathertransitionsall: $(SRCDIR)/gather_transitions_all.cpp $(XLIBSCHANGE)
+	$(CXX)	$(CLFLAGS) $(SRCDIR)/gather_transitions_all.cpp -lxio -lxstdlib -o $(BINDIR)/gathertransitionsall
 
 clean:
 	-rm $(BINDIR)/*
