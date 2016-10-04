@@ -27,10 +27,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			{
 				if (cEjecta.GetElement(uiJ,uiI) > cShell.GetElement(uiJ,uiI))
 				{
-					if (!vTransitions_Set[uiJ])
+					if (!vTransitions_Set[uiJ - 1])
 					{
-						vTransitions_Set[uiJ] = true;
-						vTransitions[uiJ] = cEjecta.GetElement(0,uiI);
+						vTransitions_Set[uiJ - 1] = true;
+						vTransitions[uiJ - 1] = cEjecta.GetElement(0,uiI);
 					}
 				}
 			}
@@ -61,7 +61,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (fileTransitions)
 		{
 			for (unsigned int uiJ = 1; uiJ < cEjecta.GetNumColumns(); uiJ++)
-				fprintf(fileTransitions,"%i, %i\n",vTransitions_Models[uiJ],vTransitions[uiJ]);
+				fprintf(fileTransitions,"%i, %i\n",vTransitions_Models[uiJ - 1],vTransitions[uiJ - 1]);
 			fclose(fileTransitions);
 		}
 	}
