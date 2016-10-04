@@ -37,7 +37,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 		}
 		FILE * fileEjecta = fopen("pEW_Ejecta_data.csv","rt");
-		if (fileEjecta)
+		if (fileEjecta != nullptr)
 		{
 			char lpszBuffer[1024];
 			fgets(lpszBuffer,sizeof(lpszBuffer),fileEjecta);
@@ -59,7 +59,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fclose(fileEjecta);
 		}
 		FILE * fileTransitions = fopen("transitions.csv","wt");
-		if (fileTransitions)
+		if (fileTransitions != nullptr)
 		{
 			for (unsigned int uiJ = 1; uiJ < cEjecta.GetNumColumns(); uiJ++)
 				fprintf(fileTransitions,"%i, %i\n",vTransitions_Models[uiJ - 1],vTransitions[uiJ - 1]);
