@@ -107,5 +107,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		fclose(fileTrsAll);
 	}
+	else
+		fprintf(stderr,"Unable to open transitions_all.csv\n");
 	return 0;
 }
