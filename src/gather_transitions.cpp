@@ -10,7 +10,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	cEjecta.ReadDataFile("pEW_Ejecta_data.csv", false, false,',', 1);
 	cShell.ReadDataFile("pEW_Shell_data.csv", false, false,',', 1);
 
-	if (cEjecta.GetNumRows() == cShell.GetNumRows() &&
+	if (cEjecta.GetNumRows() != 0 && 
+		cEjecta.GetNumRows() == cShell.GetNumRows() &&
 		cEjecta.GetNumColumns() == cShell.GetNumColumns())
 	{
 		std::vector<unsigned int> vTransitions;
