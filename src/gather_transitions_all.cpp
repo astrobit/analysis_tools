@@ -40,6 +40,7 @@ void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs &io_ma
 						io_mapData[ossCurr.str()][dsTransitions.GetElement(0,uiI)] = dsTransitions.GetElement(1,uiI);
 					} 
 				}
+				closedir(dirCurr);
 			}
 		}
 	}
@@ -54,6 +55,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	maptrs mapData;
 
 	ReadDirRec(ossTop,dirTop,mapData);
+	closedir(dirTop);
+
 	FILE * fileTrsAll = fopen("transitions_all.csv","wt");
 	if (fileTrsAll != nullptr)
 	{
