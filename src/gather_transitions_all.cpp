@@ -34,7 +34,7 @@ void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs &io_ma
 				{
 					fclose(fileTransitions);
 					XDATASET dsTransitions;
-					dsTransitions.ReadDataFile("transitions.csv", false, false,',', 1);
+					dsTransitions.ReadDataFile(ossCurr.str().c_str(), false, false,',', 1);
 					for (unsigned int uiI = 0; uiI < dsTransitions.GetNumRows(); uiI++)
 					{
 						io_mapData[ossCurr.str()][dsTransitions.GetElement(0,uiI)] = dsTransitions.GetElement(1,uiI);
