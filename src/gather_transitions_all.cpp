@@ -42,6 +42,8 @@ void ReadDirRec(std::ostringstream &io_OssdirName, DIR * i_dirDir, maptrs &io_ma
 				}
 				closedir(dirCurr);
 			}
+			else
+				fprintf(stderr,"error opening directory %s.\n",ossCurr.str().c_str());
 		}
 	}
 }
