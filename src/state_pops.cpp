@@ -1,15 +1,17 @@
 #include<cstdio>
 #include<cstdlib>
+#include <cfloat>
 #include <cstring>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <iostream>
 #include <iomanip>
-#include <lapacke/lapacke.h>
 #include <xastro.h>
 #include <xmath.h>
 #include <xstdlib.h>
+#include <arlnsmat.h>
+#include <arlsnsym.h>
 
 class pepn_data
 {
@@ -313,7 +315,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
 	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
 	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", 48);//20);
-	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", 0); //4);
+	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", 4);
 	double	dMaterial_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--mat-vel", 25000.0);
 
 	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
@@ -405,7 +407,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 			if (fileLevels)
 			{
-				fprintf(fileLevels,"%i, %.2f, %s, %.1f, %.1f, %.3e, %i, %i\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,iterJ->second.klvdLevel_Data.m_dZ,iterJ->second.vivkldAbsorption_Transition_Data.size(),iterJ->second.vivkldEmission_Transition_Data.size());
+				fprintf(fileLevels,"%i, %.2f, %s, %.1f, %.5f, %.3e, %i, %i\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,iterJ->second.klvdLevel_Data.m_dZ,iterJ->second.vivkldAbsorption_Transition_Data.size(),iterJ->second.vivkldEmission_Transition_Data.size());
 				uiCount++;
 			}
 
@@ -414,24 +416,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	if (fileLevels)
 		fclose(fileLevels);
 
-/*	FILE * fileLevelsTrxAbs = fopen("lev-trx-abs.csv","wt");
-	if (fileLevelsTrxAbs)
-		fprintf(fileLevelsTrxAbs,"Level ID, Element code, Lower Level , Lower Level J, Lower Level Wavenumber (cm^-1), Upper Level, Upper Level J, Upper Level Wavenumber (cm^-1)\n");
-	uiCount = 0;
-	for (size_t tIdx_Ion_J = 0; tIdx_Ion_J < vmklvdLevel_Data.size(); tIdx_Ion_J++)
-	{
-		for (imklvd iterSt_J = vmklvdLevel_Data[tIdx_Ion_J].begin(); iterSt_J != vmklvdLevel_Data[tIdx_Ion_J].end(); iterSt_J++)
-		{
-			for (ivivkld iterK = iterSt_J->second.vivkldAbsorption_Transition_Data.begin(); iterK != iterSt_J->second.vivkldAbsorption_Transition_Data.end() && !bFound; iterK++)
-			{
-				fprintf(fileLevelsTrxAbs,"%i, %.2f, %s, %.1f, %.1f, %s, %.1f, %.1f\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,(*iterK)->m_szLabel.c_str(),(*iterK)->m_dJ,(*iterK)->m_dEnergy_Level_cm);
-			}
-			uiCount++;
-		}
-	}
-	if (fileLevelsTrxAbs)
-		fclose(fileLevelsTrxAbs);
-*/
 	//Decide on matrix size based on element
 	// for the moment, let's just do this for a single ion
 	size_t tMatrix_Order = 0;
@@ -443,37 +427,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			tMatrix_Order += iterI->size();
 		}
 		std::cout << "Matrix size will be " << tMatrix_Order << std::endl;
-		// allocate space for matrices to be passed on to LAPACK
-		double * lpdA = new double [tMatrix_Order * tMatrix_Order];
-		double * lpdB = new double [tMatrix_Order * tMatrix_Order];
-		double * lpdE = new double [tMatrix_Order * tMatrix_Order];
-		double * lpdLe = new double [tMatrix_Order * tMatrix_Order];
-		double * lpdRe = new double [tMatrix_Order * tMatrix_Order];
-		double * lpdWork = new double [6 * tMatrix_Order];
-		double * lpdL_Scale = new double [tMatrix_Order]; // dggbal output
-		double * lpdR_Scale = new double [tMatrix_Order]; // dggbal output
-		int		iIlo = 0;
-		int 	iIhi = 0;
-
-		// zero output data (just in case)
-		memset(lpdL_Scale,0,tMatrix_Order * sizeof(double));
-		memset(lpdR_Scale,0,tMatrix_Order * sizeof(double));
-
-		memset(lpdE,0,tMatrix_Order * tMatrix_Order * sizeof(double));
-		memset(lpdWork,0,tMatrix_Order * 6 * sizeof(double));
-		memset(lpdLe,0,tMatrix_Order * tMatrix_Order * sizeof(double));
-		memset(lpdRe,0,tMatrix_Order * tMatrix_Order * sizeof(double));
-
-		// make B the identity matrix
-		memset(lpdB,0,tMatrix_Order * tMatrix_Order * sizeof(double));
-		for (unsigned int uiI = 0; uiI < tMatrix_Order; uiI++)
-		{
-			lpdB[uiI * (tMatrix_Order + 1)] = 1.0;
-		}
-
-		// zero A
-		memset(lpdA,0,tMatrix_Order * tMatrix_Order * sizeof(double));
-		// generate A (see Mulligan & Wheeler 2016, Eq 12-14
+		std::map<std::pair<size_t, size_t> , double> mpdSparse_Matrix;
 
 		size_t tIdx_I = 0; // column
 		size_t tIdx_J = 0; // row
@@ -528,10 +482,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 									}
 								}
 								if (bFound)
-									lpdA[tIdx_Total] = dH / iterSt_I->second.klvdLevel_Data.m_dZ;
-								if (tIdx_I == 1 && bFound)
-									std::cout << tIdx_J << " " << dH << std::endl;
-
+									mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_I,tIdx_J)] = dH / iterSt_I->second.klvdLevel_Data.m_dZ;
 							}
 							else if (tIdx_Ion_J == (tIdx_Ion_I - 1)) // potential recombination term
 							{
@@ -564,9 +515,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			{
 				for (size_t tIdx_J = 0; tIdx_J < tMatrix_Order; tIdx_J++) // row
 				{
+					std::pair<size_t,size_t> pPos(tIdx_I,tIdx_J);
 					if (tIdx_J > 0)
 						fprintf(fileMatA,", ");
-					fprintf(fileMatA,"%.17e",lpdA[tIdx]);
+					if (mpdSparse_Matrix.count(pPos) > 0)
+						fprintf(fileMatA,"%.17e",mpdSparse_Matrix[pPos]);
+					else
+						fprintf(fileMatA,"0.0");
 					tIdx++;
 				}
 				fprintf(fileMatA,"\n");
@@ -574,67 +529,93 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fclose(fileMatA);
 		}
 
-		int iMatrix_Order_lapack = (int)tMatrix_Order;
+		// generate compact spare matrix as required by arpack++
 
-
-		int iSuccess = LAPACKE_dggbal( LAPACK_COL_MAJOR , 'B', iMatrix_Order_lapack, lpdA,
-                           iMatrix_Order_lapack, lpdB, iMatrix_Order_lapack,
-                           &iIlo, &iIhi, lpdL_Scale, lpdR_Scale);
-
-		if (iSuccess == 0)
+		double * lpdValues = new double[mpdSparse_Matrix.size()];
+		int * lpiRow_Idx = new int[mpdSparse_Matrix.size()];
+		int * lpiCol_Idx = new int[tMatrix_Order + 1];
+		size_t tIdx = 0, tColIdx = 0;
+		size_t tRow = -1;
+		for (std::map<std::pair<size_t, size_t> , double>::iterator iterI = mpdSparse_Matrix.begin(); iterI != mpdSparse_Matrix.end(); iterI++)
 		{
-			char chJob = 'B';
-			char chSide = 'R';
-			int iNum_E = 0;
-			LAPACK_dtgevc(
-					&chSide, &chJob, nullptr,
-                    &iMatrix_Order_lapack, lpdA, &iMatrix_Order_lapack,
-                    lpdB, &iMatrix_Order_lapack, lpdLe,
-                    &iMatrix_Order_lapack, lpdRe, &iMatrix_Order_lapack,
-                    &iMatrix_Order_lapack, &iNum_E, lpdWork,&iSuccess );
-
-			if (iSuccess == 0)
+			lpdValues[tIdx] = iterI->second;
+			lpiRow_Idx[tIdx] = iterI->first.second;
+			if (tRow != iterI->first.first)
 			{
-			
-				LAPACK_dggbak( &chJob, &chSide, &iMatrix_Order_lapack, &iIlo,
-		                &iIhi, lpdL_Scale, lpdR_Scale,
-		                &iNum_E, lpdLe, &iMatrix_Order_lapack,
-		                &iSuccess );
-				if (iSuccess == 0)
+				lpiCol_Idx[tColIdx] = (int)tIdx;
+				tColIdx++;
+				tRow = iterI->first.first;
+			}
+			tIdx++;
+		}
+		lpiCol_Idx[tMatrix_Order] = mpdSparse_Matrix.size();
+
+/*		FILE * fileCSC = fopen("csc.csv","wt");
+		for (unsigned int uiI = 0; uiI < mpdSparse_Matrix.size(); uiI++)
+		{
+			fprintf(fileCSC,"%i, %i, %e\n",uiI,lpiRow_Idx[uiI],lpdValues[uiI]);
+		}
+		fclose(fileCSC);
+		FILE * fileCSCcol = fopen("csccol.csv","wt");
+		for (unsigned int uiI = 0; uiI < (tMatrix_Order + 1); uiI++)
+		{
+			fprintf(fileCSCcol,"%i, %i\n",uiI,lpiCol_Idx[uiI]);
+		}
+		fclose(fileCSCcol);*/
+
+		// define the compact sparse matrix used by arpack++
+		ARluNonSymMatrix<double, double> cscmA(tMatrix_Order,mpdSparse_Matrix.size(),lpdValues,lpiRow_Idx,lpiCol_Idx);
+		// define the problem for arpack++; look for 3 largest eigenvalues (for now)
+		ARluNonSymStdEig<double> cProb(4,cscmA);
+		// allow up to 10000 iterations for convergence
+		cProb.ChangeMaxit(10000);
+		// solve for the eignevectrs
+		cProb.FindEigenvectors();
+
+		size_t tEigValMaxIdx = -1;
+		double dEig_Val_Err_Min = DBL_MAX;
+		// print out the eigenvalues that were found, and identify the one that is closest to 1
+		for (size_t tI = 0; tI < cProb.ConvergedEigenvalues(); tI++)
+		{
+			if (fabs(cProb.Eigenvalue(tI) - 1.0) < dEig_Val_Err_Min)
+			{
+				dEig_Val_Err_Min = fabs(cProb.Eigenvalue(tI) - 1.0);
+				tEigValMaxIdx = tI;
+			}
+			std::cout << "Eigenvalue[" << tI << "] = " << cProb.Eigenvalue(tI) << std::endl;
+		}
+		if (tEigValMaxIdx != -1)
+		{
+			double dSum = 0.0;
+			// write out best eigenvector to console
+			std::cout << "Eigenvalue = " << cProb.Eigenvalue(tEigValMaxIdx) << std::endl;
+			for (size_t tJ = 0; tJ < cProb.GetN(); tJ++)
+			{
+				dSum += cProb.Eigenvector(tEigValMaxIdx,tJ).real();
+				std::cout << "v[" << tJ << "] = " << cProb.Eigenvector(tEigValMaxIdx,tJ) << std::endl;
+			}
+
+			// write out the normalized best eigenvector to eigv.csv, with state information
+			double dNorm = 1.0 / dSum;
+			FILE * fileOut = fopen("eigv.csv","wt");
+			if (fileOut)
+				fprintf(fileOut,"i, Element Code, State, J, Wavenumber (cm^1), Relative Population\n");
+			unsigned int uiCount = 0;
+			for (vmklvd::iterator iterI = vmklvdLevel_Data.begin(); iterI != vmklvdLevel_Data.end(); iterI++)
+			{
+				for (mklvd::iterator iterJ = iterI->begin(); iterJ != iterI->end(); iterJ++)
 				{
-					unsigned int uiJ = 0;
-					for (size_t tIdx_Ion_J = 0; tIdx_Ion_J < vmklvdLevel_Data.size(); tIdx_Ion_J++)
+					if (fileOut)
 					{
-						//for (size_t tIdx_State_J = 0; tIdx_State_J < vmklvdLevel_Data[tIdx_Ion_J].size(); tIdx_State_J++)
-						for (imklvd iterSt_J = vmklvdLevel_Data[tIdx_Ion_J].begin(); iterSt_J != vmklvdLevel_Data[tIdx_Ion_J].end(); iterSt_J++)
-						{
-							std::cout << std::fixed << std::setw(4) << iterSt_J->second.klvdLevel_Data.m_dElement_Code << " " << iterSt_J->second.klvdLevel_Data.m_szLabel << " " << std::fixed << std::setw(2) << iterSt_J->second.klvdLevel_Data.m_dJ << " " << std::scientific << lpdLe[uiJ];
-							std::cout << " " << iIlo;
-							std::cout << " " << iIhi;
-							std::cout << " " << iNum_E;
-							std::cout << std::endl;
-							uiJ++;
-						}
-						std::cout << "dggbak" << std::endl;
-						for (unsigned int uiI = 0; uiI < iMatrix_Order_lapack * iMatrix_Order_lapack; uiI++)
-							std::cout << uiI << " " << std::scientific << lpdA[uiI] << " " << lpdB[uiI] << " " << lpdL_Scale[uiI] << " " << lpdR_Scale[uiI] << std::endl;
+						fprintf(fileOut,"%i, %.2f, %s, %.1f, %.5f, %.17e\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,cProb.Eigenvector(tEigValMaxIdx,uiCount).real() * dNorm);
+						uiCount++;
 					}
-				}
-				else
-				{
-					std::cerr << "Matrix get eigenvectors (LAPACK_dggbak) failed at element " << -iSuccess << "." << std::endl;
-				}
-			}
-			else
-			{
-				std::cerr << "Matrix get eigenvectors (LAPACK_dtgevc) failed at element " << -iSuccess << "." << std::endl;
-			}
-		}
-		else
-		{
-			std::cerr << "Matrix balance failed at element " << -iSuccess << "." << std::endl;
-		}
 
+				}
+			}
+			if (fileOut)
+				fclose(fileOut);
+		}
 	}
 	return 0;
 }

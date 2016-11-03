@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepop
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -9,7 +9,7 @@ TMPDIR=./obj
 LIBDIR=./lib
 CXXFLAGS+=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) --std=c++14 -fopenmp -c
 CLFLAGS=-I$(INCLUDEDIR) -L$(LIBDIR) --std=c++14 -fopenmp 
-LFLAGS=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) -L$(LIBDIR)
+LFLAGS=-DMPICH_IGNORE_CXX_SEEK=1 -I$(INCLUDEDIR) -L$(LIBDIR) -fopenmp
 LIBCOMP=ar
 LIBCOMPFLAG=-cvr
 PLOTUTILLIB=-lplotutil
@@ -344,6 +344,11 @@ $(BINDIR)/gathertransitions: $(SRCDIR)/gather_transitions.cpp $(XLIBSCHANGE)
 gathertransitionsall: $(BINDIR)/gathertransitionsall
 $(BINDIR)/gathertransitionsall: $(SRCDIR)/gather_transitions_all.cpp $(XLIBSCHANGE)
 	$(CXX)	$(CLFLAGS) $(SRCDIR)/gather_transitions_all.cpp -lxio -lxstdlib -o $(BINDIR)/gathertransitionsall
+
+
+statepop: $(BINDIR)/statepop
+$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE)
+	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lxastro -lxmath -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
 
 clean:
 	-rm $(BINDIR)/*
