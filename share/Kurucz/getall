@@ -1,0 +1,31 @@
+#!/bin/bash
+# this gets all transition data from the Kurucz database
+# it assumes that every element from H to U is available, and assumes that 
+# every ion state of each ion is available for Ni and below
+elems=`seq 1 92`
+for elem in $elems; do
+	elemzero=`awk 'BEGIN {printf "%02i", '$elem'}'`
+	if [ $elem -le 28 ]; then
+		elemstates=`seq 1 $elem`
+	else # above 28, it seems that only the first 2 ion states are available
+		elemstates=`seq 1 2`
+	fi
+	for elemstate in $elemstates; do
+		elemstatezero=`awk 'BEGIN {printf "%02i", '$elemstate'}'`
+		if [ $elem -ge $elemstate ]; then
+			# test if the file has already been downloaded
+			lclpath=`echo "gf"$elemzero$elemstatezero".all"`
+			if [[ ! -f $lclpath ]]; then
+				filepath=`echo "http://kurucz.harvard.edu/linelists/gfall/"$lclpath`
+				# do a wget spider to see if the file exists
+				fetest=`wget -q --spider $filepath`
+				if [ $? -eq 0 ]; then
+#							echo wget $filepath
+					# if it exists, wget returns 0 , so now actually download the file
+					wget -nv $filepath
+				fi
+			fi
+		fi
+	done
+done
+

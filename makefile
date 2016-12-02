@@ -30,12 +30,13 @@ $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utiliti
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libplotutil.a $(TMPDIR)/eps_plot.o $(TMPDIR)/Plot_Utilities.o 
 Plot_Utilities: $(LIBDIR)/libplotutil.a
 
-$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE) $(SRCDIR)/line_routines_gaussian_fit.cpp $(SRCDIR)/line_routines_ccm_dered.cpp
+$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE) $(SRCDIR)/line_routines_gaussian_fit.cpp $(SRCDIR)/line_routines_ccm_dered.cpp  $(SRCDIR)/line_routines_radiation.cpp $(XLIBSCHANGE)
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines.cpp -o $(TMPDIR)/line_routines.o
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_gaussian_fit.cpp -o $(TMPDIR)/line_routines_gaussian_fit.o
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_ccm_dered.cpp -o $(TMPDIR)/line_routines_ccm_dered.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_radiation.cpp -o $(TMPDIR)/line_routines_radiation.o
 	-rm $(LIBDIR)/liblinerout.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o $(TMPDIR)/line_routines_gaussian_fit.o $(TMPDIR)/line_routines_ccm_dered.o
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o $(TMPDIR)/line_routines_gaussian_fit.o $(TMPDIR)/line_routines_ccm_dered.o $(TMPDIR)/line_routines_radiation.o
 line_routines: $(LIBDIR)/liblinerout.a
 
 msdb: $(LIBDIR)/libmsdb.a
@@ -347,8 +348,8 @@ $(BINDIR)/gathertransitionsall: $(SRCDIR)/gather_transitions_all.cpp $(XLIBSCHAN
 
 
 statepop: $(BINDIR)/statepop
-$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE)
-	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lxastro -lxmath -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
+$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h
+	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -llinerout -lxastro -lxmath -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
 
 clean:
 	-rm $(BINDIR)/*

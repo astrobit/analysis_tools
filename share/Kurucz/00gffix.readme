@@ -1,0 +1,27 @@
+19 sep 2012
+
+Tanya Ryabchikova has found that the H n=6-7 line at 12368.517 nm 
+was missing from /linelists/gfall/gf0100.all, gfall.dat, 
+/linelists/gf100/gfend.100, /linelists.gf10/gfend.10 .  This error may 
+date back to the original punched card versions of nltelines.dat and 
+nltehlines.dat and should affect all versions of those files.
+
+
+25feb2012
+
+These edges have the wrong cross sections in gf0201.all and the n=6 edges 
+have the wrong Js in gf0100.all and gf0201.all and in all files that incorporate
+them.  These have been corrected in /linelists/gf10, /linelists/gf100,
+linelists/gfall/gfall.dat, gf0100.all, and gf0201.all .  
+
+The error produced a small dip where a series of lines merges into a continuum 
+because the series extrapolated to the wrong value.
+
+
+    22.7838-17.802  2.01       0.000  0.5             438908.850 81.0 CONTINUUM   0.00  0.00  0.00     199  0 0.000  1 0.000    0    0              0    0
+    91.1357-17.460  2.01  329182.321  3.5             438908.850 81.0 CONTINUUM   0.00  0.00  0.00     299  0 0.000  2 0.000    0    0              0    0
+   204.9931-17.368  2.01  390142.359  8.5             438908.850 81.0 CONTINUUM   0.00  0.00  0.00     399  0 0.000  3 0.000    0    0              0    0
+   364.4482-17.105  2.01  411477.925 15.5             438908.850 81.0 CONTINUUM   0.00  0.00  0.00     499  0 0.000  4 0.000    0    0              0    0
+   569.4571-17.033  2.01  421353.135 24.5             438908.850 81.0 CONTINUUM   0.00  0.00  0.00     599  0 0.000  5 0.000    0    0              0    0
+   820.0224-16.950  2.01  426717.413 35.5             438908.850 81.0 CONTINUUM   0.00  0.00  0.00     699  0 0.000  6 0.000    0    0              0    0
+  3281.4482-16.348  1.00  106632.160 35.5             109678.764 81.0 CONTINUUM   0.00  0.00  0.00     699  0 0.000  6 0.000    0    0              0    0

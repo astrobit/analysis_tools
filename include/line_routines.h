@@ -5,6 +5,7 @@
 #include "ES_Synow.hh"
 #include <utility>
 #include <vector>
+#include <radiation.h>
 
 double	Equivalent_Width(const XDATASET & i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
 double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
@@ -364,4 +365,23 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 void CCM_dered(ES::Spectrum & i_cSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
 void CCM_dered(std::vector<std::pair<double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
 void CCM_dered(std::vector<std::tuple<double,double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
+
+
+class lef_data
+{
+public:
+	const radiation_field * m_lpdField;
+	double m_dReference_Frequency_Hz;
+	double m_dRedshift;
+	double m_dGamma;
+};
+
+
+double Radiation_Field_Photon_Flux_wl(const double & i_dWavelength_cm, const void * i_lpvRadiation_Field);
+double Radiation_Field_Energy_Flux_wl(const double & i_dWavelength_cm, const void * i_lpvRadiation_Field);
+double Radiation_Field_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvRadiation_Field);
+double Radiation_Field_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvRadiation_Field);
+double Lorentz_Function(const double & i_dFrequency_Hz, const double & i_dFrequency_Reference_Hz, const double & i_dGamma_Hz);
+double Line_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
+double Line_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
 

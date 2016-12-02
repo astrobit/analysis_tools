@@ -1,0 +1,38 @@
+#!/bin/bash
+# this gets all energy level and photoionization cross section raw data from the opacity project database
+# it assumes that every element from H to Fe is available, and assumes that 
+# every ion state of each ion is available
+elems=`seq 1 26`
+#elems=`seq 27 28`
+for elem in $elems; do
+	elemzero=`awk 'BEGIN {printf "%02i", '$elem'}'`
+	if [ $elem -le 28 ]; then
+		elemstates=`seq 1 $elem`
+	else
+		elemstates=`seq 1 2`
+	fi
+	for elemstate in $elemstates; do
+		elemstatezero=`awk 'BEGIN {printf "%02i", '$elemstate'}'`
+		if [ $elem -ge $elemstate ]; then
+			for type in 'e' 'p' 'f'; do
+				# test if the file has already been downloades
+				lclpath=`echo $type$elemzero"."$elemstatezero`
+				lclpathgz=`echo $type$elemzero"."$elemstatezero".gz"`
+				if [[ ! -f $lclpath ]]; then
+					if [[ ! -f $lclpathgz ]]; then
+						filepath=`echo "http://cds.u-strasbg.fr/topbase/"$type"/"$lclpathgz`
+						# do a wget spider to see if the file exists
+						fetest=`wget -q --spider $filepath`
+						if [ $? -eq 0 ]; then
+#							echo wget $filepath
+							# if it exists, wget returns 0 , so now actually download the file
+							wget -nv $filepath
+							gunzip $lclpathgz
+						fi
+					fi
+				fi
+			done
+		fi
+	done
+done
+
