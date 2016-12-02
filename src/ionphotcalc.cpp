@@ -34,7 +34,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (i_iArg_Count == 4)
 			dArea *= 4.0 * g_XASTRO.k_dpi;
 
-		double dF_n = XM_Simpsons_Integration(Planck_Photon_Number,1.0e-8,dMaximum_wavelength_cm,1 << 24,&dTemperature);
+		double dF_n = XM_Simpsons_Integration(XA_Planck_Photon_Flux,1.0e-8,dMaximum_wavelength_cm,1 << 24,&dTemperature);
 		std::cout.precision(17);
 		std::cout.setf(std::ios::scientific,std::ios::floatfield);
 		std::cout << (dF_n * dArea) << std::endl;

@@ -97,7 +97,7 @@ double Calc_Exciting_Simple(const double & i_dTransition_energy_eV, const double
 
 }
 
-double min(const double & i_dA, const double & i_dB)
+inline double min(const double & i_dA, const double & i_dB)
 {
 	return ((i_dA < i_dB) ? i_dA : i_dB);
 }
