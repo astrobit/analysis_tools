@@ -47,4 +47,6 @@ opac_test_src.csv
 
 #state info for the Opacity Project
 share/Opacity-Project/cr*.*
+share/Opacity-Project/quikread
+share/Opacity-Project/config_reprocess
 
