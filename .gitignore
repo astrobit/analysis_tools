@@ -45,3 +45,6 @@ share/*.eps
 opac_test.csv
 opac_test_src.csv
 
+#state info for the Opacity Project
+share/Opacity-Project/cr*.*
+
