@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepop
+all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib statepop
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -347,9 +347,21 @@ $(BINDIR)/gathertransitionsall: $(SRCDIR)/gather_transitions_all.cpp $(XLIBSCHAN
 	$(CXX)	$(CLFLAGS) $(SRCDIR)/gather_transitions_all.cpp -lxio -lxstdlib -o $(BINDIR)/gathertransitionsall
 
 
+$(LIBDIR)/libsp.a: $(SRCDIR)/state_pop_lib_cursor.cpp $(INCLUDEDIR)/state_pops.h $(XLIBSCHANGE) $(SRCDIR)/state_pop_lib_ang_mom.cpp $(SRCDIR)/state_pop_lib_get_def_cfg.cpp  $(SRCDIR)/state_pop_lib_prt_cfg_vect.cpp  $(SRCDIR)/state_pop_lib_read_K_state.cpp  $(SRCDIR)/state_pop_lib_read_OP_state.cpp $(SRCDIR)/state_pop_lib_ion_rec_eqv.cpp
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_cursor.cpp -o $(TMPDIR)/state_pop_lib_cursor.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_ang_mom.cpp -o $(TMPDIR)/state_pop_lib_ang_mom.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_get_def_cfg.cpp -o $(TMPDIR)/state_pop_lib_get_def_cfg.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_prt_cfg_vect.cpp -o $(TMPDIR)/state_pop_lib_prt_cfg_vect.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_read_K_state.cpp -o $(TMPDIR)/state_pop_lib_read_K_state.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_read_OP_state.cpp -o $(TMPDIR)/state_pop_lib_read_OP_state.o
+	$(CXX) $(CXXFLAGS) $(SRCDIR)/state_pop_lib_ion_rec_eqv.cpp -o $(TMPDIR)/state_pop_lib_ion_rec_eqv.o
+	-rm $(LIBDIR)/libsp.a
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsp.a $(TMPDIR)/state_pop_lib_cursor.o $(TMPDIR)/state_pop_lib_ang_mom.o $(TMPDIR)/state_pop_lib_get_def_cfg.o $(TMPDIR)/state_pop_lib_prt_cfg_vect.o $(TMPDIR)/state_pop_lib_read_K_state.o $(TMPDIR)/state_pop_lib_read_OP_state.o $(TMPDIR)/state_pop_lib_ion_rec_eqv.o
+statepoplib: $(LIBDIR)/libsp.a
+
 statepop: $(BINDIR)/statepop
-$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h
-	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -llinerout -lxastro -lxmath -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
+$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/libsp.a $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h
+	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lsp -llinerout -lxastro -lxmath -lxio -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
 
 clean:
 	-rm $(BINDIR)/*

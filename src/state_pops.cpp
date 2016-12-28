@@ -17,34 +17,245 @@
 #include <kurucz_data.h>
 #include <ios>
 #include<opacity_project_pp.h>
+#include <state_pops.h>
+#include <velocity_function.h>
+#include <unordered_map>
+#include <xastroion.h>
 
+class state_descriptor
+{
+public:
+	unsigned int 						m_uiZ; //  nuclear charge
+	unsigned int 						m_uiN; // eletron number (i.e. nuclear charge - ion)
+	double								m_dJ;
+	double								m_dEnergy_erg; // potential of state relative to ground. Ground state = 0 erg
+	inline bool operator != (const state_descriptor & i_cRHO) const
+	{
+		return (m_uiZ != i_cRHO.m_uiZ  || m_uiN != i_cRHO.m_uiN || m_dEnergy_erg != i_cRHO.m_dEnergy_erg);
+	}
+	inline bool operator == (const state_descriptor & i_cRHO) const
+	{
+		return (m_uiZ == i_cRHO.m_uiZ  && m_uiN == i_cRHO.m_uiN && m_dEnergy_erg == i_cRHO.m_dEnergy_erg);
+	}
+	inline bool operator < (const state_descriptor & i_cRHO) const
+	{
+		bool bRet = false;
+		if (m_uiZ < i_cRHO.m_uiZ)
+			bRet = true;
+		else if (m_uiZ == i_cRHO.m_uiZ)
+		{
+			if (m_uiN > i_cRHO.m_uiN)
+				bRet = true;
+			else if (m_uiN == i_cRHO.m_uiN && m_dEnergy_erg < i_cRHO.m_dEnergy_erg)
+			{
+				bRet = true;
+			}
+		}
+		return bRet;
+	}
+	inline bool operator <= (const state_descriptor & i_cRHO) const
+	{
+		return (*this < i_cRHO || *this == i_cRHO);
+	}
+	inline bool operator > (const state_descriptor & i_cRHO) const
+	{
+		return (*this != i_cRHO) && !(*this < i_cRHO);
+	}
+	inline bool operator >= (const state_descriptor & i_cRHO) const
+	{
+		return !(*this < i_cRHO);
+	}
+};
+class state_info
+{
+public:
+	unsigned int						m_uiState_ID; // unique number used for referring to this state
+
+	std::string 						m_szKurucz_State; // configuration string from Kurucz data
+	std::string 						m_szOP_State; // Configuration string based on OP project data values
+	opacity_project_level_descriptor 	m_opldState_Descriptor; // iSLP value for this state from the OP project data. If the state does not exist in the OP project data, the N and Z values will still be filled.
+
+	std::vector<config> 				m_vConfiguration; // configuration of each of the electrons for the given ionic state
+
+	double								m_dGamma; // sum of all spontaneous emission coefficients for the state
+	double								m_dEnergy_erg; // potentialof state relative to ground. Ground state = 0
+
+	double								m_dZ; // M&W Eq. 12 - sum of emission and absorption coefficients for the state
+
+	imklvd								m_imklvdKurucz_Level_Data;
+	ims									m_imsOP_Level_Data;
+
+	imklvd								m_imklvdKurucz_Level_Data_Ionized;
+
+	ims									m_imsOP_Level_Data_Ionized;
+
+};
+
+typedef std::map<opacity_project_level_descriptor, std::vector<config> > mcfg;
+
+
+
+opacity_project_level_descriptor Find_Equivalent_Level(const double & i_dElement_Code, const double & i_lpdEnergy_Level_cm, const double & i_dGamma, const std::string & i_sLabel, const mcfg &i_mcfgConfigs, const std::vector<config> & i_vcfgConfig, bool i_bQuiet = false)
+{
+	opacity_project_level_descriptor opldEquivalent_Level;
+	bool bFound = false;
+	for(auto iterK = i_mcfgConfigs.cbegin(); iterK != i_mcfgConfigs.cend() && !bFound; iterK++)
+	{
+		if (i_vcfgConfig == iterK->second)
+		{
+			bFound = true;
+			opldEquivalent_Level = iterK->first;
+		}
+	}
+	if (!bFound && !i_bQuiet)
+	{
+		// try again with SLP info stripped - this will not be quite right - it could return a 1P state 
+		std::vector<opacity_project_level_descriptor> vMatches;
+		std::vector<config> vcTest = i_vcfgConfig;
+		vcTest[0].m_uiS = vcTest[0].m_uiP = -1; vcTest[0].m_dL = -1.0;
+		for(auto iterK = i_mcfgConfigs.cbegin(); iterK != i_mcfgConfigs.cend(); iterK++)
+		{
+			if (vcTest == iterK->second)
+			{
+				vMatches.push_back(iterK->first);
+			}
+		}
+		std::cerr << "Unable to correlate Kurucz state (" << i_dElement_Code << ") " << i_sLabel << " [" << i_lpdEnergy_Level_cm << ", " << i_dGamma << "]" << std::endl;
+		std::cerr << "Possible matches:" << std::endl;
+		if (vMatches.size() >= 1)
+		{
+			for (auto iterK = vMatches.begin(); iterK != vMatches.end(); iterK++)
+			{
+				std::cerr << iterK->m_uiS << " " << iterK->m_uiL << " " << iterK->m_uiP << " " << iterK->m_uiLvl_ID << std::endl;
+			}
+		}
+		else
+			std::cerr << "None" << std::endl;
+		Print_Config_Vector(i_vcfgConfig,std::cerr);
+
+	}
+	return opldEquivalent_Level;
+}
+
+std::vector<opacity_project_level_descriptor> Find_Equivalent_Recombined_Levels(const mcfg &i_mcfgConfigs, const std::vector<config> & i_vcfgConfig, bool i_bQuiet = false)
+{
+	std::vector<opacity_project_level_descriptor> vopldLevels;
+	for(auto iterK = i_mcfgConfigs.begin(); iterK != i_mcfgConfigs.end(); iterK++)
+	{
+		if (Ion_Recombine_Equivalence(i_vcfgConfig,iterK->second))
+		{
+			vopldLevels.push_back(iterK->first);
+		}
+	}
+	return vopldLevels;
+}
+class state_correlation
+{
+public:
+	opacity_project_level_descriptor 				m_opld_Main_State;
+	opacity_project_level_descriptor 				m_opld_Ionized_State;
+	std::vector<opacity_project_level_descriptor> 	m_vopld_Recombined_States;
+};
+
+typedef std::map<size_t, imklvd> mimkvld;
+typedef std::map<size_t, state_correlation > mcorr;
 
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
 	// inputs
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
 	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
 	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", 4);//20);
 	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", 2);//4);
 	double	dMaterial_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--mat-vel", 25000.0);
+	double	dElectron_Velocity_Temperature = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--e-temp", -1);
 
 	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
+	// generate radiation field
 	Planck_radiation_field rfPlanck(dRadiation_Temperature_K);
+	if (dElectron_Velocity_Temperature == -1)
+		dElectron_Velocity_Temperature = dRadiation_Temperature_K;
+	Maxwellian_velocity_function vfMaxwell(dElectron_Velocity_Temperature);
 
+	std::map<opacity_project_level_descriptor, std::vector<config> > mConfigs;
+	mcorr mCorrelation;
+	mimkvld mimkvldKurucz_Correlation;
+
+	// load Kurucz data
 	kurucz_derived_data kddData(uiElement_Z,uiElement_Max_Ion_Species,rfPlanck,dRedshift);
 
-	std::vector<opacity_project_ion > vopIons;
+	// load Opacity Project data
+	opacity_project_element opElement;
+	opElement.Read_Element_Data(uiElement_Z);
 
-	for (unsigned int uiI = 0; uiI < uiElement_Max_Ion_Species; uiI++)
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// create mapping of Opacity Project states
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+
+	// generate map linking level descriptors to full level definitions
+	for (std::vector<opacity_project_ion>::iterator iterI = opElement.m_vopiIon_Data.begin(); iterI != opElement.m_vopiIon_Data.end(); iterI++)
 	{
-		opacity_project_ion opionCurr;
-		opionCurr.Read_Data(uiElement_Z,uiElement_Z - uiI);
-		vopIons.push_back(opionCurr);
+		for (ims iterJ = iterI->m_msStates.begin(); iterJ != iterI->m_msStates.end(); iterJ++)
+		{
+			std::cout << iterJ->first.m_uiZ << " " << iterJ->first.m_uiN << " ";
+			mConfigs[iterJ->first] = Read_OP_State(iterI->m_uiN, iterI->Get_State_Configuration(iterJ->first.m_uiS,iterJ->first.m_uiL,iterJ->first.m_uiP,iterJ->first.m_uiLvl_ID));
+		}
 	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// link Kurucz levels to Opacity Project Levels by their full configuration
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+
+	size_t tCorrelation_Idx = 0;;
+	for (size_t tIdx_Ion_I = 0; tIdx_Ion_I < kddData.m_vmklvdLevel_Data.size(); tIdx_Ion_I++)
+	{
+		for (imklvd iterJ = kddData.m_vmklvdLevel_Data[tIdx_Ion_I].begin(); iterJ != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end(); iterJ++)
+		{
+			std::vector<config> vcK_Config = Read_Kurucz_State((unsigned int)(floor(iterJ->second.klvdLevel_Data.m_dElement_Code) - fmod(iterJ->second.klvdLevel_Data.m_dElement_Code,1.0) * 100.0 + 0.001), iterJ->second.klvdLevel_Data.m_szLabel);
+			opacity_project_level_descriptor opldOP_Level = Find_Equivalent_Level(iterJ->second.klvdLevel_Data.m_dElement_Code, iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm, iterJ->second.klvdLevel_Data.m_dGamma, iterJ->second.klvdLevel_Data.m_szLabel, mConfigs,vcK_Config);
+			if (opldOP_Level.m_uiS != -1)
+			{
+				state_correlation stCorr;
+				stCorr.m_opld_Main_State = opldOP_Level;
+
+				// now identify level of ionized states
+				std::vector<config> vIon_Config;
+				auto iterK = vcK_Config.begin();
+				iterK++; // the highest state electron has been lost
+				for (; iterK != vcK_Config.end(); iterK++)
+				{
+					vIon_Config.push_back(*iterK);
+				}
+				std::string szIon_Label = iterJ->second.klvdLevel_Data.m_szLabel + "--";
+				stCorr.m_opld_Ionized_State = Find_Equivalent_Level(iterJ->second.klvdLevel_Data.m_dElement_Code, iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm, iterJ->second.klvdLevel_Data.m_dGamma,szIon_Label,mConfigs,vIon_Config);
+				// now identify the list of recombined states
+				stCorr.m_vopld_Recombined_States = Find_Equivalent_Recombined_Levels(mConfigs,vcK_Config);
+				mCorrelation[tCorrelation_Idx] = stCorr;
+				mimkvldKurucz_Correlation[tCorrelation_Idx] = iterJ;
+			}
+		}
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output list of levels to file levels.csv
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 
 	FILE * fileLevels = fopen("levels.csv","wt");
 	if (fileLevels)
-		fprintf(fileLevels,"ID, Element code, Level , J, Energy (Ryd), Gamma (s^-1), Z (s^-1), Absorbtion lines, Emission Lines\n");
+		fprintf(fileLevels,"ID, Element code, Level , J, Energy (Ryd), Gamma (s^-1), Z (s^-1), Absorbtion lines, Emission Lines, OP Project State\n");
 
 
 	unsigned int uiCount = 0;
@@ -57,7 +268,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 			if (fileLevels)
 			{
-				fprintf(fileLevels,"%i, %.2f, %s, %.1f, %.5f, %.3e, %.3e, %i, %i\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd,iterJ->second.klvdLevel_Data.m_dGamma,iterJ->second.klvdLevel_Data.m_dZ,iterJ->second.klvdLevel_Data.m_dZ,iterJ->second.vivkldAbsorption_Transition_Data.size(),iterJ->second.vivkldEmission_Transition_Data.size());
+				fprintf(fileLevels,"%i, %.2f, %s, %.1f, %.5f, %.3e, %.3e, %i, %i, ",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd,iterJ->second.klvdLevel_Data.m_dGamma,iterJ->second.klvdLevel_Data.m_dZ,iterJ->second.vivkldAbsorption_Transition_Data.size(),iterJ->second.vivkldEmission_Transition_Data.size());
+				bool bFound = false;
+				for (size_t tI = 0; tI < tCorrelation_Idx && !bFound; tI++)
+				{
+					if (mimkvldKurucz_Correlation[tI] == iterJ)
+					{
+						bFound = true;
+						if (mCorrelation.count(tI) > 0)
+						{
+							fprintf(fileLevels,"%i%i%i %i",mCorrelation[tI].m_opld_Main_State.m_uiS,mCorrelation[tI].m_opld_Main_State.m_uiL,mCorrelation[tI].m_opld_Main_State.m_uiP,mCorrelation[tI].m_opld_Main_State.m_uiLvl_ID);
+						}
+					}
+				}
+				
+				fprintf(fileLevels,"\n");
 				uiCount++;
 			}
 
@@ -65,6 +290,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 	if (fileLevels)
 		fclose(fileLevels);
+
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output list of transitions to file trx.csv
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 
 	FILE * fileTrx = fopen("trx.csv","wt");
 	if (fileTrx)
@@ -96,6 +328,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		fclose(fileTrx);
 	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Generate Matrix
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 	//Decide on matrix size based on element
 	// for the moment, let's just do this for a single ion
 	size_t tMatrix_Order = 0;
@@ -166,23 +405,62 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								}
 								if (bFound)
 								{
-									double dVal = dH / iterSt_I->second.klvdLevel_Data.m_dZ;
-									if (dVal > dMax_Val)
-										dMax_Val = dVal;
-									mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dVal;
+									mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 								}
 								//else
 								//	std::cout << tIdx_I << "<->" << tIdx_J << std::endl;
 							}
-							else if (tIdx_Ion_J == (tIdx_Ion_I - 1)) // potential recombination term
+							else if (tIdx_Ion_J == (tIdx_Ion_I - 1)) // potential photoionization term
 							{
-								//@@TODO 
-								//lpdA[tIdx_Total] = ....
+								bool bFound = false;
+								for (size_t tJ = 0; tJ < tCorrelation_Idx && !bFound; tJ++)
+								{
+									if (mimkvldKurucz_Correlation[tJ] == iterSt_J)
+									{
+										for (size_t tI = 0; tI < tCorrelation_Idx && !bFound; tI++)
+										{
+											if (mimkvldKurucz_Correlation[tI] == iterSt_I)
+											{
+												bFound = true;
+												if (mCorrelation[tJ].m_opld_Ionized_State == mCorrelation[tI].m_opld_Main_State)
+												{
+													XASTRO_ATOMIC_IONIZATION_DATA xaiIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(mCorrelation[tI].m_opld_Main_State.m_uiZ);
+													double dIon_Thresh_Ryd = xaiIon_Data.Get_Ion_State_Potential(mCorrelation[tI].m_opld_Main_State.m_uiZ - mCorrelation[tI].m_opld_Main_State.m_uiN) / g_XASTRO.k_dRy;
+													double dH = opElement.Get_Ionization_Rate(mCorrelation[tI].m_opld_Main_State,dIon_Thresh_Ryd - iterSt_I->second.klvdLevel_Data.m_dEnergy_Level_Ryd,rfPlanck,dRedshift);
+													mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
+												}
+											}
+										}
+									}
+								}
 							}
-							else if (tIdx_Ion_J == (tIdx_Ion_I + 1)) // potential photoionization term
+							else if (tIdx_Ion_J == (tIdx_Ion_I + 1)) // potential recombination term
 							{
-								//@@TODO 
-								//lpdA[tIdx_Total] = ....
+								bool bFound = false;
+								for (size_t tJ = 0; tJ < tCorrelation_Idx && !bFound; tJ++)
+								{
+									if (mimkvldKurucz_Correlation[tJ] == iterSt_J)
+									{
+										for (size_t tI = 0; tI < tCorrelation_Idx && !bFound; tI++)
+										{
+											if (mimkvldKurucz_Correlation[tI] == iterSt_I)
+											{
+												for (auto iterK = mCorrelation[tJ].m_vopld_Recombined_States.begin(); iterK != mCorrelation[tJ].m_vopld_Recombined_States.end() && !bFound; iterK++)
+												{
+													if ((*iterK) == mCorrelation[tI].m_opld_Main_State)
+													{
+														XASTRO_ATOMIC_IONIZATION_DATA xaiIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(mCorrelation[tI].m_opld_Main_State.m_uiZ);
+														double dIon_Thresh_Ryd = xaiIon_Data.Get_Ion_State_Potential(mCorrelation[tI].m_opld_Main_State.m_uiZ - mCorrelation[tI].m_opld_Main_State.m_uiN) / g_XASTRO.k_dRy;
+														bFound = true;
+														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dIon_Thresh_Ryd - iterSt_I->second.klvdLevel_Data.m_dEnergy_Level_Ryd,vfMaxwell);
+														mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
+													}
+												}
+												bFound = true; //bFound is being used in two different ways here: to control the inner iterK loop, and to control the outer tI and tJ loops. Even if the inner iterK loop doesn't find anything, the tI and tJ loops should terminate.
+											}
+										}
+									}
+								}
 							}
 							// else H = 0 (handled by memset above)
 							// -- end of processing section
@@ -195,7 +473,42 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				tIdx_J = 0; // new row
 			}
 		}
+		size_t tMatrix_Size = tIdx_I;
+		////////////////////////////////////////////////////////////////////////////////////
+		//
+		// Generate Z and divide matrix entries by z
+		//
+		////////////////////////////////////////////////////////////////////////////////////
+		for (tIdx_J = 0; tIdx_J < tMatrix_Size; tIdx_J)
+		{
+			double dZ = 0;
+			// compute Z for column j. M&W Eq. 13
+			for (tIdx_I = 0; tIdx_I < tMatrix_Size; tIdx_I)
+			{
+				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_J,tIdx_I)) > 0)
+				{
+					dZ += mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)];
+				}
+			}
+			// now divide all items in row J by the computed Z; M&W Eq. 14 / 15 (B_{ij} = H_{ij}/Z_j, but here we use j and ii instead of i and j, so here it is B_{j,ii} = H_{j,ii}/Z_{j}
+			for (size_t tIdx_II = 0; tIdx_II < tMatrix_Size; tIdx_II)
+			{
+				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_II,tIdx_J)) > 0)
+				{
+					mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)] /= dZ;
+					if (dMax_Val < mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)])
+						dMax_Val = mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)];
+				}
+			}
+
+		}
+
 		
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output matrix to matrixa.csv
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 		FILE * fileMatA = fopen("matrixa.csv","wt");
 
 		if (fileMatA)
@@ -219,8 +532,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fclose(fileMatA);
 		}
 
-		// generate compact spare matrix as required by arpack++
-
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Generate compact sparse matrix for arpack++
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 		double * lpdValues = new double[mpdSparse_Matrix.size()];
 		int * lpiRow_Idx = new int[mpdSparse_Matrix.size()];
 		int * lpiCol_Idx = new int[tMatrix_Order + 1];
@@ -254,6 +570,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		fclose(fileCSCcol);*/
 
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Perform arpack++ routines to find the eigenvectors
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 		// define the compact sparse matrix used by arpack++
 		ARluNonSymMatrix<double, double> cscmA(tMatrix_Order,mpdSparse_Matrix.size(),lpdValues,lpiRow_Idx,lpiCol_Idx);
 		// define the problem for arpack++; look for 3 largest eigenvalues (for now)
@@ -263,6 +584,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		// solve for the eignevectrs
 		cProb.FindEigenvectors();
 
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Print the eigenvalues and determine the "best" value
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 		size_t tEigValMaxIdx = -1;
 		double dEig_Val_Err_Min = DBL_MAX;
 		// print out the eigenvalues that were found, and identify the one that is closest to 1
@@ -275,6 +601,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			std::cout << "Eigenvalue[" << tI << "] = " << cProb.Eigenvalue(tI) << std::endl;
 		}
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output best eigenvector to console and file
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
 		if (tEigValMaxIdx != -1)
 		{
 			double dSum = 0.0;
