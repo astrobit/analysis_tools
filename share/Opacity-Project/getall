@@ -32,6 +32,22 @@ for elem in $elems; do
 					fi
 				fi
 			done
+			# test if the file has already been downloades
+			lclpath=`echo "cr"$elemzero"."$elemstatezero`
+			if [[ ! -f $lclpath ]]; then
+				filepath=`echo "http://cdsweb.u-strasbg.fr/cgi-bin/topbase/topbase.sh?com=di&nz1="$elem"&nz2=0&ne1="$elemstate"&ne2=0&ent=t"`
+				# do a wget spider to see if the file exists
+				fetest=`wget -q --spider $filepath`
+				if [ $? -eq 0 ]; then
+#							echo wget $filepath
+					# if it exists, wget returns 0 , so now actually download the file
+					wget -nv $filepath -O $lclpath
+#					mv $filepath $lclpath
+				fi
+			fi
+			if [[ -f $lclpath ]]; then
+				config_reprocess $elem $elemstate
+			fi
 		fi
 	done
 done
