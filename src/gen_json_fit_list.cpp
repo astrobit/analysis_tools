@@ -653,7 +653,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 											ossSlurm_Filename << "job/job_fit_" << szID << "_" << uiSpectra_Count;
 											std::ofstream fsSlurm_File_Single;
 											fsSlurm_File_Single.open(ossSlurm_Filename.str().c_str());
-											fsSlurm_File_Single << "#!/bin/tcsh" << std::endl;
+											fsSlurm_File_Single << "#!/bin/bash" << std::endl;
 											fsSlurm_File_Single << "#SBATCH -J sf_fit_" << szID << "_" << uiSpectra_Count << "      #Job Name" << std::endl;
 											fsSlurm_File_Single << "#SBATCH -o log/sf_fit_" << szID << "_" << uiSpectra_Count << ".o%j  #Output file name" << std::endl;
 											fsSlurm_File_Single << "#SBATCH -N 1            # Allocate tasks on 1 nodes" << std::endl;
@@ -741,7 +741,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		{
 			std::ofstream fsSlurm_File_All;
 			fsSlurm_File_All.open("job/job_fit");
-			fsSlurm_File_All << "#!/bin/tcsh" << std::endl;
+			fsSlurm_File_All << "#!/bin/bash" << std::endl;
 			fsSlurm_File_All << "#SBATCH -J sf_fit      #Job Name" << std::endl;
 			fsSlurm_File_All << "#SBATCH -o log/sf_fit.o%j  #Output file name" << std::endl;
 			fsSlurm_File_All << "#SBATCH -N 1            # Allocate tasks on 1 nodes" << std::endl;
@@ -754,7 +754,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fsSlurm_File_All << "#SBATCH --mail-user=" << szJob_Email << std::endl;
 				fsSlurm_File_All << "#SBATCH --mail-type=ALL" << std::endl;
 			}
-			fsSlurm_File_All << "setenv OMP_NUM_THREADS 16" << std::endl;
+			fsSlurm_File_All << "export OMP_NUM_THREADS=16" << std::endl;
 			fsSlurm_File_All << "sf xml/fits.xml" << std::endl;
 
 			fsSlurm_File_All.close();
