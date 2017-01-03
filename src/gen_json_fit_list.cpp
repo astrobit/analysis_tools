@@ -255,7 +255,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 						size_t sPos =  szCommand.find("=");
 						if (szCommand.size() > sPos)
 						{ // the data is probably here
-							std::string szData = &(szCommand[sPos]);
+							std::string szData = szCommand.substr(sPos + 1);
 							dMJD_Start = std::stod(szData);
 						}
 						else
@@ -279,7 +279,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								size_t sPos =  szCommand.find("=");
 								if (szCommand.size() > sPos)
 								{ // the data is probably here
-									std::string szData = &(szCommand[sPos]);
+									std::string szData = szCommand.substr(sPos + 1);
 									dMJD_Start = std::stod(szData);
 								}
 								else
@@ -324,7 +324,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								size_t sPos =  szCommand.find("=");
 								if (szCommand.size() > sPos)
 								{ // the data is probably here
-									szFeature = &(szCommand[sPos]);
+									szFeature = szCommand.substr(sPos + 1);
 								}
 								else
 								{
