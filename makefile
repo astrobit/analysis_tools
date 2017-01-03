@@ -1,4 +1,4 @@
-all: Plot_Utilities lineanal2 msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib statepop
+all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib statepop velfntest
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -360,8 +360,12 @@ $(LIBDIR)/libsp.a: $(SRCDIR)/state_pop_lib_cursor.cpp $(INCLUDEDIR)/state_pops.h
 statepoplib: $(LIBDIR)/libsp.a
 
 statepop: $(BINDIR)/statepop
-$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/libsp.a $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h
+$(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/libsp.a $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h  $(INCLUDEDIR)/velocity_function.h
 	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lsp -llinerout -lxastro -lxmath -lxio -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
+
+velfntest: $(BINDIR)/velfntest
+$(BINDIR)/velfntest: $(SRCDIR)/velfntest.cpp $(XLIBSCHANGE) $(INCLUDEDIR)/velocity_function.h
+	$(CXX) $(CLFLAGS) $(SRCDIR)/velfntest.cpp -lxastro -lxmath -o $(BINDIR)/velfntest
 
 clean:
 	-rm $(BINDIR)/*
