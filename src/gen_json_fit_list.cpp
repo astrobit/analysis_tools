@@ -360,7 +360,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (!szTACC_Account.empty())
 		{
 			fsJob_File_Batch.open("job_fit_all");
-			fsJob_File_Batch << "#!/bin/tcsh" << std::endl;
+			fsJob_File_Batch << "#!/bin/bash" << std::endl;
 		}
 		const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
 		std::string szLA_Data_Path;
@@ -666,7 +666,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 												fsSlurm_File_Single << "#SBATCH --mail-user=" << szJob_Email << std::endl;
 												fsSlurm_File_Single << "#SBATCH --mail-type=ALL" << std::endl;
 											}
-											fsSlurm_File_Single << "setenv OMP_NUM_THREADS 16 " << std::endl;
+											fsSlurm_File_Single << "export OMP_NUM_THREADS=16 " << std::endl;
 											fsSlurm_File_Single << "sf " << ossFilename.str() << std::endl;
 
 											fsSlurm_File_Single.close();
