@@ -12,7 +12,7 @@ public:
 	double			m_dMass_Fraction;
 	double *		m_lpdIon_Fraction; // ordered 0->Z (I, II, ... Z + I)
 private:
-	const XASTRO_ATOMIC_IONIZATION_DATA * m_lpcIon_Data;
+	XASTRO_ATOMIC_IONIZATION_DATA m_lpcIon_Data;
 	const XASTRO_ATOMIC_PARTITION_FUNCTION_DATA * m_lpcPF_Data;
 	const XASTRO_ATOMIC_PARTITION_FUNCTION_DATA_IRWIN * m_lpcPF_Data_Irwin;
 
@@ -52,8 +52,8 @@ public:
 	double	Get_Ion_Energy(unsigned int i_uiIon_State)
 	{
 		double	dRet = 1.0e-12; // ~10^12 eV - not a realistic value, but forces it into neutral state
-		if (m_lpcIon_Data && i_uiIon_State < m_uiZ)
-			dRet = m_lpcIon_Data->Get_Ion_State_Potential(i_uiIon_State);
+		if (i_uiIon_State < m_uiZ)
+			dRet = m_lpcIon_Data.Get_Ion_State_Potential(i_uiIon_State);
 		else if (i_uiIon_State == 0)
 			dRet = 1.0e-6; // lower potential for 1st ionized state if data not available
 		if (m_uiZ == 1)
@@ -70,10 +70,10 @@ public:
 		if (m_lpdIon_Fraction)
 			delete [] m_lpdIon_Fraction;
 		m_lpdIon_Fraction = new double[m_uiZ + 1];
-		m_lpcIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(m_uiZ);
+		m_lpcIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(m_uiZ);
 		m_lpcPF_Data = g_xAstro_Partition_Fn_Data.Get_PF_Data_Ptr(m_uiZ);
 		m_lpcPF_Data_Irwin = g_xAstro_Partition_Fn_Data_Irwin.Get_PF_Data_Ptr(m_uiZ);
-		if (m_lpcIon_Data == NULL)
+		if (m_lpcIon_Data.m_midIonization_energies_erg.size() == 0)
 			fprintf(stderr,"COMPOSITION::Set_Isotope: Warning - ionization energy not available for Z = %i A = %i.\n",m_uiZ,m_uiA);
 		if (m_lpcPF_Data == NULL && m_lpcPF_Data_Irwin == NULL)
 			fprintf(stderr,"COMPOSITION::Set_Isotope: Warning - partition function not available for Z = %i A = %i.\n",m_uiZ,m_uiA);
@@ -83,7 +83,7 @@ public:
 		m_uiZ = m_uiA = 1;
 		m_dMass_Fraction = 0.0;
 		m_lpdIon_Fraction = NULL;
-		m_lpcIon_Data = NULL;
+//		m_lpcIon_Data = NULL;
 		m_lpcPF_Data = NULL;
 		m_lpcPF_Data_Irwin = NULL;
 	}
@@ -91,7 +91,7 @@ public:
 	{
 		m_dMass_Fraction = 0.0;
 		m_lpdIon_Fraction = NULL;
-		m_lpcIon_Data = NULL;
+//		m_lpcIon_Data = NULL;
 		m_lpcPF_Data = NULL;
 		m_lpcPF_Data_Irwin = NULL;
 		Set_Isotope(i_uiZ,i_uiA);
@@ -100,7 +100,7 @@ public:
 	{
 		m_dMass_Fraction = 0.0;
 		m_lpdIon_Fraction = NULL;
-		m_lpcIon_Data = NULL;
+//		m_lpcIon_Data = NULL;
 		m_lpcPF_Data = NULL;
 		m_lpcPF_Data_Irwin = NULL;
 		Copy(i_cRHO);

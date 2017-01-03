@@ -106,37 +106,37 @@ int main(int iArgC,const char * lpszArgV[])
 //	XDATASET 	cCaHK_Line_Results;
 //	XDATASET 	cCaHK_Spectra_Results;
 	printf("Starting.\n");
-	XASTRO_ATOMIC_IONIZATION_DATA	* lpcIon_Energy_Data[] = {
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(1),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(2),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(2),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(6),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(7),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(8),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(10),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(12),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(14),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(16),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(18),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(20),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(20),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(21),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(22),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(22),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(23),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(24),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(24),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(25),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(26),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(26),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(27),
-		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data_Ptr(28)
+	XASTRO_ATOMIC_IONIZATION_DATA	lpcIon_Energy_Data[] = {
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(1),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(2),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(2),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(6),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(7),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(8),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(10),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(12),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(14),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(16),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(18),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(20),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(20),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(21),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(22),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(22),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(23),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(24),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(24),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(25),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(26),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(26),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(27),
+		g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(28)
 	};
 	unsigned int uiI,uiJ,uiK,uiL,uiM;
 	unsigned int uiNumAbdIon = sizeof(lpcIon_Energy_Data) / sizeof(XASTRO_ATOMIC_IONIZATION_DATA	*);
 	for (uiI = 0; uiI < uiNumAbdIon; uiI++)
 	{
-		if (lpcIon_Energy_Data[uiI] == NULL)
+		if (lpcIon_Energy_Data[uiI].m_midIonization_energies_erg.size() == 0)
 			printf("Unable to find ion %i.\n",uiI);
 	}
 	printf("Ions confirmed.\n");
