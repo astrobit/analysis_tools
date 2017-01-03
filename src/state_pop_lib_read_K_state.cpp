@@ -10,6 +10,46 @@ public:
 	char m_chValue;
 };
 
+void Report_Bad_Format(const std::string & i_szLabel, const std::vector<cc> & i_vccString)
+{
+	std::cerr << "uh oh. Unidentified format. " << i_szLabel << "(" << i_vccString.size() << "): ";
+	for (auto iterI = i_vccString.begin(); iterI != i_vccString.end(); iterI++)
+	{
+		switch (iterI->m_eType)
+		{
+		case cc::number:
+			std::cerr << "n";
+			break;
+		case cc::letter:
+			std::cerr << "l";
+			break;
+		case cc::space:
+			std::cerr << " ";
+			break;
+		case cc::paren:
+			std::cerr << iterI->m_chValue;
+			break;
+		case cc::brace:
+			std::cerr << iterI->m_chValue;
+			break;
+		case cc::plus:
+			std::cerr << "+";
+			break;
+		case cc::splat:
+			std::cerr << "*";
+			break;
+		case cc::other:
+			std::cerr << "?";
+			break;
+		default:
+			std::cerr << "X";
+			break;
+		}
+	}
+	std::cerr << std::endl;
+
+}
+
 std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLabel_Kurucz)
 {
 	std::vector<config> vRet;
@@ -44,11 +84,11 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 			vccString.push_back(ccCurr);
 			lpszCursor++;
 		}
-		else if (lpszCursor[0] == ')')
+		else if (lpszCursor[0] == ')' || lpszCursor[0] == '(')
 		{
 			cc ccCurr;
 			ccCurr.m_eType = cc::paren;
-			ccCurr.m_chValue = ')';
+			ccCurr.m_chValue = lpszCursor[0];
 			vccString.push_back(ccCurr);
 			lpszCursor++;
 		}
@@ -108,6 +148,19 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 	{
 		ccBack = (*vccString.rbegin()); vccString.pop_back();
 	}
+	if (ccBack.m_eType == cc::letter && ccBack.m_chValue == 'X')
+	{
+//		std::cerr << "here" << std::endl;
+//		Report_Bad_Format(lpszKurucz,vccString);
+		cc ccBack2 = (*vccString.rbegin());
+		if (ccBack2.m_eType == cc::letter)
+		{
+			vccString.pop_back();
+			ccBack = ccBack2;
+		}
+	}
+
+
 
 	switch (ccBack.m_eType)
 	{
@@ -149,7 +202,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 			if (vccString[0].m_eType == cc::letter)
 				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[0].m_chValue);
 			else
-				std::cerr << "uh oh. Unidentified format. " << lpszKurucz << std::endl;
+				Report_Bad_Format(lpszKurucz,vccString);
 			break;
 		case 2:
 			if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter)
@@ -158,7 +211,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[1].m_chValue);
 			}
 			else
-				std::cerr << "uh oh. Unidentified format. " << lpszKurucz << std::endl;
+				Report_Bad_Format(lpszKurucz,vccString);
 			break;
 		case 3:
 			if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number)
@@ -319,7 +372,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				}
 			}
 			else
-				std::cerr << "uh oh. Unidentified format. " << lpszKurucz << std::endl;
+				Report_Bad_Format(lpszKurucz,vccString);
 			break;
 		case 4:
 			if (vccString[0].m_eType == cc::letter && vccString[1].m_eType == cc::number && vccString[2].m_eType == cc::letter && vccString[3].m_eType == cc::number)
@@ -498,7 +551,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				}
 			}
 			else
-				std::cerr << "uh oh. Unidentified format. " << lpszKurucz << std::endl;
+				Report_Bad_Format(lpszKurucz,vccString);
 			break;
 		case 6:
 			if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number && 
@@ -664,12 +717,24 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				vRet[0].m_uin = uiN3;
 				vRet[0].m_uil = uil3;
 			}
+			else if (vccString[0].m_eType == cc::paren && vccString[1].m_eType == cc::number &&
+				vccString[2].m_eType == cc::letter && vccString[3].m_eType == cc::paren &&
+				vccString[4].m_eType == cc::number && vccString[5].m_eType == cc::letter)
+			{
+				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[2].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[5].m_chValue);
+				unsigned int uil3 = Ang_Mom_Term_To_L(vccString[8].m_chValue);
+
+				vRet[0].m_uin = vccString[4].m_chValue;
+				vRet[0].m_uil = uil2;
+				vRet[1].m_uiS = vccString[1].m_chValue;
+				vRet[1].m_dL = uil1;
+			}
 			else
-				std::cerr << "uh oh. Unidentified format. " << lpszKurucz << std::endl;
+				Report_Bad_Format(lpszKurucz,vccString);
 			break;
 		case 5:
 		default:
-			std::cerr << "uh oh. Unidentified format. " << lpszKurucz << std::endl;
+			Report_Bad_Format(lpszKurucz,vccString);
 			break;
 		}
 	}

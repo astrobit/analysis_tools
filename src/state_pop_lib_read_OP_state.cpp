@@ -149,8 +149,8 @@ std::vector<config> Read_OP_State(unsigned int i_uiNe, std::string   i_szLabel_O
 	}
 
 
-	std::cout << i_szLabel_OP << " --> ";
-	Print_Config_Vector(vRet);
+//	std::cout << i_szLabel_OP << " --> ";
+//	Print_Config_Vector(vRet);
 	return vRet;
 }
 

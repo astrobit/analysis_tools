@@ -22,74 +22,6 @@
 #include <unordered_map>
 #include <xastroion.h>
 
-class state_descriptor
-{
-public:
-	unsigned int 						m_uiZ; //  nuclear charge
-	unsigned int 						m_uiN; // eletron number (i.e. nuclear charge - ion)
-	double								m_dJ;
-	double								m_dEnergy_erg; // potential of state relative to ground. Ground state = 0 erg
-	inline bool operator != (const state_descriptor & i_cRHO) const
-	{
-		return (m_uiZ != i_cRHO.m_uiZ  || m_uiN != i_cRHO.m_uiN || m_dEnergy_erg != i_cRHO.m_dEnergy_erg);
-	}
-	inline bool operator == (const state_descriptor & i_cRHO) const
-	{
-		return (m_uiZ == i_cRHO.m_uiZ  && m_uiN == i_cRHO.m_uiN && m_dEnergy_erg == i_cRHO.m_dEnergy_erg);
-	}
-	inline bool operator < (const state_descriptor & i_cRHO) const
-	{
-		bool bRet = false;
-		if (m_uiZ < i_cRHO.m_uiZ)
-			bRet = true;
-		else if (m_uiZ == i_cRHO.m_uiZ)
-		{
-			if (m_uiN > i_cRHO.m_uiN)
-				bRet = true;
-			else if (m_uiN == i_cRHO.m_uiN && m_dEnergy_erg < i_cRHO.m_dEnergy_erg)
-			{
-				bRet = true;
-			}
-		}
-		return bRet;
-	}
-	inline bool operator <= (const state_descriptor & i_cRHO) const
-	{
-		return (*this < i_cRHO || *this == i_cRHO);
-	}
-	inline bool operator > (const state_descriptor & i_cRHO) const
-	{
-		return (*this != i_cRHO) && !(*this < i_cRHO);
-	}
-	inline bool operator >= (const state_descriptor & i_cRHO) const
-	{
-		return !(*this < i_cRHO);
-	}
-};
-class state_info
-{
-public:
-	unsigned int						m_uiState_ID; // unique number used for referring to this state
-
-	std::string 						m_szKurucz_State; // configuration string from Kurucz data
-	std::string 						m_szOP_State; // Configuration string based on OP project data values
-	opacity_project_level_descriptor 	m_opldState_Descriptor; // iSLP value for this state from the OP project data. If the state does not exist in the OP project data, the N and Z values will still be filled.
-
-	std::vector<config> 				m_vConfiguration; // configuration of each of the electrons for the given ionic state
-
-	double								m_dGamma; // sum of all spontaneous emission coefficients for the state
-	double								m_dEnergy_erg; // potentialof state relative to ground. Ground state = 0
-
-	double								m_dZ; // M&W Eq. 12 - sum of emission and absorption coefficients for the state
-
-	imklvd								m_imklvdKurucz_Level_Data;
-	ims									m_imsOP_Level_Data;
-
-	imklvd								m_imklvdKurucz_Level_Data_Ionized;
-
-	ims									m_imsOP_Level_Data_Ionized;
-
-};
 
 typedef std::map<opacity_project_level_descriptor, std::vector<config> > mcfg;
 
@@ -140,11 +72,22 @@ opacity_project_level_descriptor Find_Equivalent_Level(const double & i_dElement
 std::vector<opacity_project_level_descriptor> Find_Equivalent_Recombined_Levels(const mcfg &i_mcfgConfigs, const std::vector<config> & i_vcfgConfig, bool i_bQuiet = false)
 {
 	std::vector<opacity_project_level_descriptor> vopldLevels;
+//	if (i_vcfgConfig.size() != i_mcfgConfigs.begin()->first.m_uiZ)
+//		Print_Config_Vector(i_vcfgConfig,std::cout);
 	for(auto iterK = i_mcfgConfigs.begin(); iterK != i_mcfgConfigs.end(); iterK++)
 	{
-		if (Ion_Recombine_Equivalence(i_vcfgConfig,iterK->second))
+		if (i_vcfgConfig.size() != iterK->first.m_uiZ)
 		{
-			vopldLevels.push_back(iterK->first);
+//			if (i_vcfgConfig.size() == (iterK->first.m_uiN - 1))
+//			{
+//				std::cout << "test " << iterK->first.m_uiS << " " << iterK->first.m_uiL << " " << iterK->first.m_uiP << " " << iterK->first.m_uiLvl_ID;
+//			}
+			if (Ion_Recombine_Equivalence(i_vcfgConfig,iterK->second))
+			{
+				vopldLevels.push_back(iterK->first);
+			}
+//			if (i_vcfgConfig.size() == (iterK->first.m_uiN - 1))
+//				std::cout << std::endl;
 		}
 	}
 	return vopldLevels;
@@ -168,10 +111,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	//
 	////////////////////////////////////////////////////////////////////////////////////////
 
+	double	dN = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--n", 1e+18);
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
 	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
 	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", 4);//20);
-	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", 2);//4);
+	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", -1);//4);
+	unsigned int uiIon_Species_Only = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--only-ion", -1);//4);
+
 	double	dMaterial_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--mat-vel", 25000.0);
 	double	dElectron_Velocity_Temperature = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--e-temp", -1);
 
@@ -185,13 +131,25 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	std::map<opacity_project_level_descriptor, std::vector<config> > mConfigs;
 	mcorr mCorrelation;
 	mimkvld mimkvldKurucz_Correlation;
+	if (uiElement_Max_Ion_Species != -1 && uiIon_Species_Only != -1)
+	{
+		std::cerr << "--only-ion and --max-ion both specified. --max-ion ignored." << std::endl;
+	}
 
+	unsigned int uiMin_Ion = 0;
+	if (uiIon_Species_Only != -1)
+	{
+		uiMin_Ion = uiIon_Species_Only;
+		uiElement_Max_Ion_Species = uiIon_Species_Only;
+	}
 	// load Kurucz data
-	kurucz_derived_data kddData(uiElement_Z,uiElement_Max_Ion_Species,rfPlanck,dRedshift);
+	kurucz_derived_data kddData(uiElement_Z,uiMin_Ion,uiElement_Max_Ion_Species,rfPlanck,dRedshift);
 
 	// load Opacity Project data
 	opacity_project_element opElement;
 	opElement.Read_Element_Data(uiElement_Z);
+
+	std::vector<double> vdOP_Ground_State;
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -204,10 +162,30 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		for (ims iterJ = iterI->m_msStates.begin(); iterJ != iterI->m_msStates.end(); iterJ++)
 		{
-			std::cout << iterJ->first.m_uiZ << " " << iterJ->first.m_uiN << " ";
+			//std::cout << iterJ->first.m_uiZ << " " << iterJ->first.m_uiN << " ";
 			mConfigs[iterJ->first] = Read_OP_State(iterI->m_uiN, iterI->Get_State_Configuration(iterJ->first.m_uiS,iterJ->first.m_uiL,iterJ->first.m_uiP,iterJ->first.m_uiLvl_ID));
 		}
 	}
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// find ground state of each ion
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+
+	for (std::vector<opacity_project_ion>::iterator iterI = opElement.m_vopiIon_Data.begin(); iterI != opElement.m_vopiIon_Data.end(); iterI++)
+	{
+		double dEmin = DBL_MAX;
+		for (ims iterJ = iterI->m_msStates.begin(); iterJ != iterI->m_msStates.end(); iterJ++)
+		{
+			//std::cout << iterJ->first.m_uiZ << " " << iterJ->first.m_uiN << " ";
+			if (iterJ->second.m_dEnergy_Ry < dEmin)
+				dEmin = iterJ->second.m_dEnergy_Ry;
+		}
+		printf("Ground state %.2e\n",dEmin);
+		vdOP_Ground_State.push_back(fabs(dEmin));
+	}
+
 
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -240,8 +218,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				stCorr.m_opld_Ionized_State = Find_Equivalent_Level(iterJ->second.klvdLevel_Data.m_dElement_Code, iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm, iterJ->second.klvdLevel_Data.m_dGamma,szIon_Label,mConfigs,vIon_Config);
 				// now identify the list of recombined states
 				stCorr.m_vopld_Recombined_States = Find_Equivalent_Recombined_Levels(mConfigs,vcK_Config);
+				std::cout << "RC: " << iterJ->second.klvdLevel_Data.m_szLabel << " has " << stCorr.m_vopld_Recombined_States.size() << std::endl;
 				mCorrelation[tCorrelation_Idx] = stCorr;
 				mimkvldKurucz_Correlation[tCorrelation_Idx] = iterJ;
+				tCorrelation_Idx++;
 			}
 		}
 	}
@@ -413,11 +393,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							else if (tIdx_Ion_J == (tIdx_Ion_I - 1)) // potential photoionization term
 							{
 								bool bFound = false;
-								for (size_t tJ = 0; tJ < tCorrelation_Idx && !bFound; tJ++)
+								for (size_t tJ = 0; tJ < mimkvldKurucz_Correlation.size() && !bFound; tJ++)
 								{
 									if (mimkvldKurucz_Correlation[tJ] == iterSt_J)
 									{
-										for (size_t tI = 0; tI < tCorrelation_Idx && !bFound; tI++)
+										for (size_t tI = 0; tI < mimkvldKurucz_Correlation.size() && !bFound; tI++)
 										{
 											if (mimkvldKurucz_Correlation[tI] == iterSt_I)
 											{
@@ -425,8 +405,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 												if (mCorrelation[tJ].m_opld_Ionized_State == mCorrelation[tI].m_opld_Main_State)
 												{
 													XASTRO_ATOMIC_IONIZATION_DATA xaiIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(mCorrelation[tI].m_opld_Main_State.m_uiZ);
-													double dIon_Thresh_Ryd = xaiIon_Data.Get_Ion_State_Potential(mCorrelation[tI].m_opld_Main_State.m_uiZ - mCorrelation[tI].m_opld_Main_State.m_uiN) / g_XASTRO.k_dRy;
-													double dH = opElement.Get_Ionization_Rate(mCorrelation[tI].m_opld_Main_State,dIon_Thresh_Ryd - iterSt_I->second.klvdLevel_Data.m_dEnergy_Level_Ryd,rfPlanck,dRedshift);
+													double dIon_Thresh_Ryd = xaiIon_Data.Get_Ion_State_Potential(mCorrelation[tJ].m_opld_Main_State.m_uiZ - mCorrelation[tJ].m_opld_Main_State.m_uiN) / g_XASTRO.k_dRy;
+													double dGround_Ryd = vdOP_Ground_State[mCorrelation[tJ].m_opld_Main_State.m_uiN - 1];
+													opacity_project_state stOP_State = opElement.Find_State(mCorrelation[tJ].m_opld_Main_State);
+													double dState_E_Ryd = fabs(stOP_State.m_dEnergy_Ry);
+													double dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
+													//printf("RC Thresh %.2e %.2e %.2e %.2e\n",dIon_Thresh_Ryd,dGround_Ryd,dState_E_Ryd,dTrue_Ion_Thresh);
+							
+													double dH = opElement.Get_Ionization_Rate(mCorrelation[tJ].m_opld_Main_State,dTrue_Ion_Thresh,rfPlanck,dRedshift);
+													printf("Ion %i,%i: %.2e\n",tIdx_J,tIdx_I,dH); fflush(stdout);
 													mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 												}
 											}
@@ -437,11 +424,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							else if (tIdx_Ion_J == (tIdx_Ion_I + 1)) // potential recombination term
 							{
 								bool bFound = false;
-								for (size_t tJ = 0; tJ < tCorrelation_Idx && !bFound; tJ++)
+								for (size_t tJ = 0; tJ < mimkvldKurucz_Correlation.size() && !bFound; tJ++)
 								{
 									if (mimkvldKurucz_Correlation[tJ] == iterSt_J)
 									{
-										for (size_t tI = 0; tI < tCorrelation_Idx && !bFound; tI++)
+										for (size_t tI = 0; tI < mimkvldKurucz_Correlation.size() && !bFound; tI++)
 										{
 											if (mimkvldKurucz_Correlation[tI] == iterSt_I)
 											{
@@ -451,8 +438,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 													{
 														XASTRO_ATOMIC_IONIZATION_DATA xaiIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(mCorrelation[tI].m_opld_Main_State.m_uiZ);
 														double dIon_Thresh_Ryd = xaiIon_Data.Get_Ion_State_Potential(mCorrelation[tI].m_opld_Main_State.m_uiZ - mCorrelation[tI].m_opld_Main_State.m_uiN) / g_XASTRO.k_dRy;
+														//printf("I Thresh %.2e\n",dIon_Thresh_Ryd);
 														bFound = true;
-														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dIon_Thresh_Ryd - iterSt_I->second.klvdLevel_Data.m_dEnergy_Level_Ryd,vfMaxwell);
+														double dGround_Ryd = vdOP_Ground_State[mCorrelation[tI].m_opld_Main_State.m_uiN - 1];
+														opacity_project_state stOP_State = opElement.Find_State(mCorrelation[tI].m_opld_Main_State);
+														double dState_E_Ryd = fabs(stOP_State.m_dEnergy_Ry);
+														double dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
+														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dTrue_Ion_Thresh,vfMaxwell) * dN;
+														printf("Recomb %i,%i: %.2e\n",tIdx_J,tIdx_I,dH);fflush(stdout);
 														mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 													}
 												}
@@ -473,37 +466,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				tIdx_J = 0; // new row
 			}
 		}
-		size_t tMatrix_Size = tIdx_I;
-		////////////////////////////////////////////////////////////////////////////////////
-		//
-		// Generate Z and divide matrix entries by z
-		//
-		////////////////////////////////////////////////////////////////////////////////////
-		for (tIdx_J = 0; tIdx_J < tMatrix_Size; tIdx_J)
-		{
-			double dZ = 0;
-			// compute Z for column j. M&W Eq. 13
-			for (tIdx_I = 0; tIdx_I < tMatrix_Size; tIdx_I)
-			{
-				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_J,tIdx_I)) > 0)
-				{
-					dZ += mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)];
-				}
-			}
-			// now divide all items in row J by the computed Z; M&W Eq. 14 / 15 (B_{ij} = H_{ij}/Z_j, but here we use j and ii instead of i and j, so here it is B_{j,ii} = H_{j,ii}/Z_{j}
-			for (size_t tIdx_II = 0; tIdx_II < tMatrix_Size; tIdx_II)
-			{
-				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_II,tIdx_J)) > 0)
-				{
-					mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)] /= dZ;
-					if (dMax_Val < mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)])
-						dMax_Val = mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)];
-				}
-			}
 
-		}
-
-		
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Output matrix to matrixa.csv
@@ -511,7 +474,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	////////////////////////////////////////////////////////////////////////////////////////
 		FILE * fileMatA = fopen("matrixa.csv","wt");
 
-		if (fileMatA)
+		if (fileMatA != nullptr)
 		{
 			size_t tIdx = 0;
 			for (size_t tIdx_I = 0; tIdx_I < tMatrix_Order; tIdx_I++) // row
@@ -522,7 +485,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					if (tIdx_J > 0)
 						fprintf(fileMatA,", ");
 					if (mpdSparse_Matrix.count(pPos) > 0)
-						fprintf(fileMatA,"%.17e",mpdSparse_Matrix[pPos] / dMax_Val);
+						fprintf(fileMatA,"%.17e",mpdSparse_Matrix[pPos]);
 					else
 						fprintf(fileMatA,"0.0");
 					tIdx++;
@@ -530,6 +493,74 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				fprintf(fileMatA,"\n");
 			}
 			fclose(fileMatA);
+		}
+
+		//size_t tMatrix_Size = tIdx_I;
+		////////////////////////////////////////////////////////////////////////////////////
+		//
+		// Generate Z and divide matrix entries by z
+		//
+		////////////////////////////////////////////////////////////////////////////////////
+		std::vector<double> vdZ;
+		for (tIdx_J = 0; tIdx_J < tMatrix_Order; tIdx_J++)
+		{
+			double dZ = 0;
+			// compute Z for column j. M&W Eq. 13
+			for (tIdx_I = 0; tIdx_I < tMatrix_Order; tIdx_I++)
+			{
+				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_J,tIdx_I)) > 0)
+				{
+					dZ += mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)];
+				}
+			}
+			vdZ.push_back(dZ);
+		}
+
+		for (tIdx_J = 0; tIdx_J < tMatrix_Order; tIdx_J++)
+		{
+//			printf ("J = %i: ",tIdx_J);
+//			printf ("z = %.2e ",vdZ[tIdx_J]);
+			// now divide all items in row J by the computed Z; M&W Eq. 14 / 15 (B_{ij} = H_{ij}/Z_j, but here we use j and ii instead of i and j, so here it is B_{j,ii} = H_{j,ii}/Z_{j}
+			for (size_t tIdx_II = 0; tIdx_II < tMatrix_Order; tIdx_II++)
+			{
+				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_II,tIdx_J)) > 0)
+				{
+//					printf (" H(%i,%i) = %.2e ",tIdx_II,tIdx_J,mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)]);
+					mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)] /= vdZ[tIdx_J];
+//					printf (" H(%i,%i) = %.2e\n",tIdx_II,tIdx_J,mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)]);
+					if (dMax_Val < mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)])
+						dMax_Val = mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)];
+				}
+			}
+		}
+
+		
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output matrix to matrixa.csv
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+		FILE * fileMatB = fopen("matrixb.csv","wt");
+
+		if (fileMatB != nullptr)
+		{
+			size_t tIdx = 0;
+			for (size_t tIdx_I = 0; tIdx_I < tMatrix_Order; tIdx_I++) // row
+			{
+				for (size_t tIdx_J = 0; tIdx_J < tMatrix_Order; tIdx_J++)// column
+				{
+					std::pair<size_t,size_t> pPos(tIdx_J,tIdx_I);
+					if (tIdx_J > 0)
+						fprintf(fileMatB,", ");
+					if (mpdSparse_Matrix.count(pPos) > 0)
+						fprintf(fileMatB,"%.17e",mpdSparse_Matrix[pPos]);// / dMax_Val);
+					else
+						fprintf(fileMatB,"0.0");
+					tIdx++;
+				}
+				fprintf(fileMatB,"\n");
+			}
+			fclose(fileMatB);
 		}
 
 	////////////////////////////////////////////////////////////////////////////////////////
@@ -557,7 +588,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		lpiCol_Idx[tMatrix_Order] = mpdSparse_Matrix.size();
 
-/*		FILE * fileCSC = fopen("csc.csv","wt");
+		FILE * fileCSC = fopen("csc.csv","wt");
 		for (unsigned int uiI = 0; uiI < mpdSparse_Matrix.size(); uiI++)
 		{
 			fprintf(fileCSC,"%i, %i, %e\n",uiI,lpiRow_Idx[uiI],lpdValues[uiI]);
@@ -568,7 +599,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		{
 			fprintf(fileCSCcol,"%i, %i\n",uiI,lpiCol_Idx[uiI]);
 		}
-		fclose(fileCSCcol);*/
+		fclose(fileCSCcol);
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -608,17 +639,39 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	////////////////////////////////////////////////////////////////////////////////////////
 		if (tEigValMaxIdx != -1)
 		{
-			double dSum = 0.0;
-			// write out best eigenvector to console
+			double dMax_Val = 0.0;
+
+			// write out best eigenvector to console, and find the maximum value
 			std::cout << "Eigenvalue = " << cProb.Eigenvalue(tEigValMaxIdx) << std::endl;
 			for (size_t tJ = 0; tJ < cProb.GetN(); tJ++)
 			{
-				dSum += cProb.Eigenvector(tEigValMaxIdx,tJ).real();
+				if (fabs(cProb.Eigenvector(tEigValMaxIdx,tJ).real()) > fabs(dMax_Val))
+					dMax_Val = cProb.Eigenvector(tEigValMaxIdx,tJ).real();
 				std::cout << "v[" << tJ << "] = " << cProb.Eigenvector(tEigValMaxIdx,tJ) << std::endl;
 			}
 
+			std::cout << dMax_Val << std::endl;
+			double dNorm = 1.0 / dMax_Val;
+
+			double dSum = 0.0;
+			// normalize, ignoring small values
+			std::vector<double> vdEig; // put the resultsinto this vector
+			for (size_t tJ = 0; tJ < cProb.GetN(); tJ++)
+			{
+				double dVal = cProb.Eigenvector(tEigValMaxIdx,tJ).real() * dNorm;
+				if (fabs(dVal) < 1e-10) // approximate threshold for uncertainty)
+					dVal = 0.0;
+				dSum += dVal;
+				vdEig.push_back(dVal);
+			}
+			std::cout << dSum << std::endl;
+			dNorm = 1.0 / dSum;
+			for (size_t tJ = 0; tJ < vdEig.size(); tJ++)
+			{
+				vdEig[tJ] *= dNorm;
+			}
+
 			// write out the normalized best eigenvector to eigv.csv, with state information
-			double dNorm = 1.0 / dSum;
 			FILE * fileOut = fopen("eigv.csv","wt");
 			if (fileOut)
 				fprintf(fileOut,"i, Element Code, State, J, Wavenumber (cm^1), Relative Population\n");
@@ -629,7 +682,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				{
 					if (fileOut)
 					{
-						fprintf(fileOut,"%i, %.2f, %s, %.1f, %.5f, %.17e\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,cProb.Eigenvector(tEigValMaxIdx,uiCount).real() * dNorm);
+						fprintf(fileOut,"%i, %.2f, %s, %.1f, %.5f, %.17e\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,vdEig[uiCount]);
 						uiCount++;
 					}
 

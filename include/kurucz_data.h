@@ -271,9 +271,10 @@ class kurucz_data
 public:
 	unsigned int m_uiN;
 	unsigned int m_uiMax_Ion;
+	unsigned int m_uiMin_Ion;
 	vvkld m_vvkldLine_Data;
 
-	void Load_Data(unsigned int i_uiN, unsigned int i_uiMax_Ion)
+	void Load_Data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion)
 	{
 		const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
 		if (lpszLA_Data_Path == nullptr)
@@ -282,9 +283,10 @@ public:
 		{
 			m_uiN = i_uiN;
 			m_uiMax_Ion = i_uiMax_Ion;
+			m_uiMin_Ion = i_uiMin_Ion;
 			if (m_uiMax_Ion > m_uiN)
 				m_uiMax_Ion = m_uiN;
-			for (unsigned int uiI = 0; uiI <= m_uiMax_Ion; uiI++)
+			for (unsigned int uiI = i_uiMin_Ion; uiI <= m_uiMax_Ion; uiI++)
 			{
 				std::ostringstream ossFilename;
 				ossFilename << lpszLA_Data_Path << "/Kurucz/gf";
@@ -356,9 +358,9 @@ private:
 		}
 	}
 public:
-	kurucz_derived_data(unsigned int i_uiN, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const double & i_dRedshift)
+	kurucz_derived_data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const double & i_dRedshift)
 	{
-		m_kdKurucz_Data.Load_Data(i_uiN,i_uiMax_Ion);
+		m_kdKurucz_Data.Load_Data(i_uiN,i_uiMin_Ion,i_uiMax_Ion);
 
 
 		// Build list of levels and the associated transitions

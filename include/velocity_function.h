@@ -22,7 +22,7 @@ public:
 	{
 		double d2kt = 2.0 * g_XASTRO.k_dKb * m_dTemperature_K;
 		double dP = g_XASTRO.k_dme / (g_XASTRO.k_dpi * d2kt);
-		return 4.0 * g_XASTRO.k_dpi * dP * sqrt(dP) * i_dVelocity_cm_s * i_dVelocity_cm_s * exp(-g_XASTRO.k_dme * i_dVelocity_cm_s / d2kt);
+		return 4.0 * g_XASTRO.k_dpi * dP * sqrt(dP) * i_dVelocity_cm_s * i_dVelocity_cm_s * exp(-g_XASTRO.k_dme * i_dVelocity_cm_s * i_dVelocity_cm_s / d2kt);
 	}
 
 	Maxwellian_velocity_function(void){m_dTemperature_K = 10000.0;}
@@ -45,7 +45,7 @@ public:
 	{
 		double d2kt = 2.0 * g_XASTRO.k_dKb * m_dTemperature_K;
 		double dP = g_XASTRO.k_dme / (g_XASTRO.k_dpi * d2kt);
-		return 4.0 * g_XASTRO.k_dpi * dP * sqrt(dP) * i_dVelocity_cm_s * i_dVelocity_cm_s / (exp(g_XASTRO.k_dme * i_dVelocity_cm_s / d2kt) + 1);
+		return 4.0 * g_XASTRO.k_dpi * dP * sqrt(dP) * i_dVelocity_cm_s * i_dVelocity_cm_s / (exp(g_XASTRO.k_dme * i_dVelocity_cm_s * i_dVelocity_cm_s / d2kt) + 1);
 	}
 
 	Fermi_Dirac_velocity_function(void){m_dTemperature_K = 10000.0;}
@@ -67,7 +67,7 @@ public:
 	{
 		double d2kt = 2.0 * g_XASTRO.k_dKb * m_dTemperature_K;
 		double dP = g_XASTRO.k_dme / (g_XASTRO.k_dpi * d2kt);
-		return 4.0 * g_XASTRO.k_dpi * dP * sqrt(dP) * i_dVelocity_cm_s * i_dVelocity_cm_s / (exp(g_XASTRO.k_dme * i_dVelocity_cm_s / d2kt) - 1);
+		return 4.0 * g_XASTRO.k_dpi * dP * sqrt(dP) * i_dVelocity_cm_s * i_dVelocity_cm_s / (exp(g_XASTRO.k_dme * i_dVelocity_cm_s * i_dVelocity_cm_s / d2kt) - 1);
 	}
 
 	Bose_Einstein_velocity_function(void){m_dTemperature_K = 10000.0;}
