@@ -889,7 +889,7 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 	return dFit;
 }
 
-double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug)
+double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug, const param_set * i_lppsEjecta, const param_set * i_lppsShell)
 {
 
 
@@ -907,6 +907,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 
 	cCall_Data.m_bDebug = i_bDebug;
+	double dBlue_Edge_WL = 0.0;
 	switch (i_cFit.m_eFeature)
 	{
 	case specfit::CaNIR:
@@ -915,28 +916,48 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		//std::cout << "ej map size " << i_cModel.m_dsEjecta[3].GetNumElements();
 		//std::cout << "shell map size " << i_cModel.m_dsShell.GetNumElements();
 		cCall_Data.m_cParam.m_uiIon = 2001;
-		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 7500.0;
+		{
+			bool bQuit = false;
+			double dFlux_Max = -1.0;
+			// between about 7500 and 8000 A is the O feature. Look for it's P cygni peak and only perform fit redward of that point
+			for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end() && !bQuit; iterI++)
+			{
+				double dWL = std::get<0>(*iterI);
+				if (dWL > 8000.0)
+					bQuit = true;
+				else if (dWL > 7500.0)
+				{
+					double dFlux = std::get<1>(*iterI);
+					if (dFlux > dFlux_Max)
+					{
+						cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dWL;
+						dFlux_Max = dFlux;
+					}
+				}
+			}
+		}
+		dBlue_Edge_WL = cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 9000.0;
 		break;
 	case specfit::CaHK:
 		cCall_Data.m_cParam.m_eFeature = msdb::CaHK;
 		cCall_Data.m_cParam.m_uiIon = 2001;
 		cCall_Data.m_lpcOpacity_Map_A = &i_cModel.m_dsEjecta[3];
-		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 2500.0;
+		dBlue_Edge_WL = cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 2500.0;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 4000.0;
 		break;
 	case specfit::Si6355:
 		cCall_Data.m_cParam.m_eFeature = msdb::Si6355;
 		cCall_Data.m_cParam.m_uiIon = 1401;
 		cCall_Data.m_lpcOpacity_Map_A = &i_cModel.m_dsEjecta[3];
-		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 5500.0;
+		dBlue_Edge_WL = cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 5500.0;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 7000.0;
 		break;
 	case specfit::O7773:
 		cCall_Data.m_cParam.m_eFeature = msdb::O7773;
 		cCall_Data.m_cParam.m_uiIon = 800;
 		cCall_Data.m_lpcOpacity_Map_A = &i_cModel.m_dsEjecta[1];
-		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 6000.0;
+		dBlue_Edge_WL = cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = 6000.0;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 7500.0;
 		break;
 	}
@@ -1053,7 +1074,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	if (!std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dLog_S))
 		vStarting_Point.Set(2,i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dLog_S);
 	else
-		vStarting_Point.Set(2,3.5);
+		vStarting_Point.Set(2,2.0);
 	if (i_cFit.m_bScale_Starting_Log_S && !std::isnan(i_cFit.m_dMJD_Bmax) )
 		vLog_S_Delta.Set(2,i_cFit.m_dTime_Scale_Power_Law * log10(dDelta_Bmax));
 	if (uiParameters == 4) // shell and single component fit
@@ -1061,7 +1082,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		if (!std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_shell].m_dLog_S))
 			vStarting_Point.Set(3,i_cFit.m_cSuggested_Param[specfit::comp_shell].m_dLog_S);
 		else
-			vStarting_Point.Set(3,4.5);
+			vStarting_Point.Set(3,1.7);
 		if (i_cFit.m_bScale_Starting_Log_S && !std::isnan(i_cFit.m_dMJD_Bmax) )
 			vLog_S_Delta.Set(3,i_cFit.m_dTime_Scale_Power_Law * log10(dDelta_Bmax));
 	}
@@ -1094,7 +1115,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		if (!std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_shell].m_dLog_S))
 			vStarting_Point.Set(5,i_cFit.m_cSuggested_Param[specfit::comp_shell].m_dLog_S);
 		else
-			vStarting_Point.Set(5,4.5);
+			vStarting_Point.Set(5,1.7);
 		if (i_cFit.m_bScale_Starting_Log_S && !std::isnan(i_cFit.m_dMJD_Bmax) )
 			vLog_S_Delta.Set(5,i_cFit.m_dTime_Scale_Power_Law * log10(dDelta_Bmax));
 		if (!std::isnan(i_cFit.m_cSuggested_Param.m_dMixing_Fraction))
@@ -1201,8 +1222,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	switch (i_cFit.m_eFeature)
 	{
 	case specfit::CaNIR:
-		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = 6000.0;
-		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = 7500.0;
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = dBlue_Edge_WL - 100.0;
+		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - 1500.0;
 		break;
 	case specfit::CaHK:
 		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang = 5500.0;
@@ -1220,7 +1241,17 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();
 
 
-	XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
+	if (i_lppsEjecta != nullptr || i_lppsShell != nullptr) // the user has specified an exact set of parameters to use.
+	{
+		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
+		vStarting_Point.Set(1,i_lppsEjecta->m_dPS_Vel);
+		vStarting_Point.Set(2,i_lppsEjecta->m_dLog_S + vLog_S_Delta[2]);
+		vStarting_Point.Set(3,i_lppsShell->m_dLog_S + vLog_S_Delta[3]);
+
+		Fit_Function(vStarting_Point, &cCall_Data);
+	}
+	else
+		XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
 
 //	xPerform_Fit_Bound_Simplex(cBounds[0],cBounds[1],cThreshold,Fit_Function,cResult,&cCall_Data,szCache.c_str());
 

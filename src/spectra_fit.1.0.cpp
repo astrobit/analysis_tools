@@ -1057,7 +1057,7 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 //
 //------------------------------------------------------------------------------
 typedef std::vector < specfit::fit_result > best_fit_results;
-void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug = false)
+void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug = false, const specfit::param_set * i_lppsEjecta = nullptr, const specfit::param_set * i_lppsShell = nullptr)
 {
 	for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); iterFit != i_vfitFits.end(); iterFit++)
 	{
@@ -1091,14 +1091,17 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 				{
 					std::cout << "Model # " << *iterMod << std::endl;
 					specfit::fit_result	cFit_Result;
-					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug);
+					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell);
 					if (dFit >= 0.0 && dFit < m_dBest_Fit)
 					{
 						cBest_Fit_Result = cFit_Result;
 						m_dBest_Fit = dFit;
 					}
 					std::ofstream ofsIndividual_Fit_File;
-					ofsIndividual_Fit_File.open("Results/individual_fit_data.csv",std::ios_base::app);
+					if (i_lppsEjecta != nullptr || i_lppsShell != nullptr)
+						ofsIndividual_Fit_File.open("Results/individual_fit_data_single.csv",std::ios_base::app);
+					else
+						ofsIndividual_Fit_File.open("Results/individual_fit_data.csv",std::ios_base::app);
 					Write_Fit(ofsIndividual_Fit_File,cFit_Result);
 					ofsIndividual_Fit_File.close();
 				}
@@ -1115,14 +1118,17 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 						{
 							std::cout << "Model # " << *iterMod << std::endl;
 							specfit::fit_result	cFit_Result;
-							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug);
+							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell);
 							if (dFit >= 0.0 && dFit < m_dBest_Fit)
 							{
 								cBest_Fit_Result = cFit_Result;
 								m_dBest_Fit = dFit;
 							}
 							std::ofstream ofsIndividual_Fit_File;
-							ofsIndividual_Fit_File.open("Results/individual_fit_data.csv",std::ios_base::app);
+							if (i_lppsEjecta != nullptr || i_lppsShell != nullptr)
+								ofsIndividual_Fit_File.open("Results/individual_fit_data_single.csv",std::ios_base::app);
+							else
+								ofsIndividual_Fit_File.open("Results/individual_fit_data.csv",std::ios_base::app);
 							Write_Fit(ofsIndividual_Fit_File,cFit_Result);
 							ofsIndividual_Fit_File.close();
 						}
@@ -1212,14 +1218,28 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		vCL_Arguments.push_back(std::string(i_lpszArg_Values[uiI]));
 	}
 	bool bDebug = false;
+	bool bSingle = false;
 	for (std::vector<std::string>::iterator iterI = vCL_Arguments.begin(); iterI != vCL_Arguments.end(); iterI++)
 	{
 		if (iterI->find(".xml") != std::string::npos)
 			vFile_List.push_back(*iterI);
 		else if (*iterI == "--debug")
 			bDebug = true;
+		else if ((iterI->substr(0,8) == "--ps-vel") || (iterI->substr(0,9) == "--ps-temp") || (iterI->substr(0,4) == "--Se") || (iterI->substr(0,4) == "--Ss"))
+			bSingle = true;
 		else
 			std::cerr << "Unrecognized command line parameter " << *iterI << std::endl;
+	}
+	specfit::param_set cRef_Data_E;
+	specfit::param_set cRef_Data_S;
+	if (bSingle)
+	{
+		cRef_Data_E.m_dPS_Vel = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 20.0);
+		cRef_Data_E.m_dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-temp", 10.0);
+		cRef_Data_E.m_dExcitation_Temp = 10000.0;
+		cRef_Data_E.m_dLog_S = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--Se", 3.0);
+		cRef_Data_S = cRef_Data_E;
+		cRef_Data_S.m_dLog_S = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--Ss", 4.0);
 	}
 	if (bDebug)
 	{
@@ -1241,30 +1261,51 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 
 	std::ifstream ifsTest;
-	ifsTest.open("Results/individual_fit_data.csv");
-	if (!ifsTest.is_open())
+	if (!bSingle)
 	{
-		std::ofstream ofsFile;
-		ofsFile.open("Results/individual_fit_data.csv",std::ios_base::app);
-		assert(ofsFile.is_open());
-		Output_Result_Header(ofsFile);
-		ofsFile.close();
+		ifsTest.open("Results/individual_fit_data.csv");
+		if (!ifsTest.is_open())
+		{
+			std::ofstream ofsFile;
+			ofsFile.open("Results/individual_fit_data.csv",std::ios_base::app);
+			assert(ofsFile.is_open());
+			Output_Result_Header(ofsFile);
+			ofsFile.close();
+		}
+		else
+			ifsTest.close();
 	}
 	else
-		ifsTest.close();
+	{
+		ifsTest.open("Results/individual_fit_data_single.csv");
+		if (!ifsTest.is_open())
+		{
+			std::ofstream ofsFile;
+			ofsFile.open("Results/individual_fit_data_single.csv",std::ios_base::app);
+			assert(ofsFile.is_open());
+			Output_Result_Header(ofsFile);
+			ofsFile.close();
+		}
+		else
+			ifsTest.close();
+	}
+
 	
 
-	ifsTest.open("Results/best_fit_data.csv");
-	if (!ifsTest.is_open())
+	if (!bSingle)
 	{
-		std::ofstream ofsFile;
-		ofsFile.open("Results/best_fit_data.csv",std::ios_base::app);
-		assert(ofsFile.is_open());
-		Output_Result_Header(ofsFile);
-		ofsFile.close();
+		ifsTest.open("Results/best_fit_data.csv");
+		if (!ifsTest.is_open())
+		{
+			std::ofstream ofsFile;
+			ofsFile.open("Results/best_fit_data.csv",std::ios_base::app);
+			assert(ofsFile.is_open());
+			Output_Result_Header(ofsFile);
+			ofsFile.close();
+		}
+		else
+			ifsTest.close();
 	}
-	else
-		ifsTest.close();
 
 	if (bDebug)
 		std::cout << xconsole::bold << "Debug mode active" << xconsole::reset << std::endl;
@@ -1290,18 +1331,25 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		// Deredden spectra if requested
 		Deredden( vfitFits);
 		// Done confirming and loading the data; begin the actual fitting
-		Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug);
+		if (bSingle)
+			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug, &cRef_Data_E, &cRef_Data_S);
+		else
+			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug);
+
 		// process the results to get Gaussian fits
 //			Process_Results( vResults
 //                  vA_Flat = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
 //                                  cParam.m_dWavelength_Delta_Ang, dpEW_Flat_PVF, dpEW_Flat_HVF, dV_Flat_PVF, dV_Flat_HVF,
 //									vSigma_Flat, dSmin_Flat,&cSingle_Flat_Fit,&cDouble_Flat_Fit);
 
-		std::ofstream ofsBest_Fits;
-		ofsBest_Fits.open("Results/best_fit_data.csv",std::ios_base::app);
-		Output_Results(ofsBest_Fits,vResults);
-		if (ofsBest_Fits.is_open())
-			ofsBest_Fits.close();
+		if (!bSingle)
+		{
+			std::ofstream ofsBest_Fits;
+			ofsBest_Fits.open("Results/best_fit_data.csv",std::ios_base::app);
+			Output_Results(ofsBest_Fits,vResults);
+			if (ofsBest_Fits.is_open())
+				ofsBest_Fits.close();
+		}
 	}
 	return 0;
 }
