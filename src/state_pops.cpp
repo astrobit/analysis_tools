@@ -111,15 +111,44 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	//
 	////////////////////////////////////////////////////////////////////////////////////////
 
-	double	dN = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--n", 1e+18);
+	double	dN = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--n", -1.0);
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
 	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
-	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", 4);//20);
+	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", -1);//20);
 	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", -1);//4);
+	unsigned int uiElement_Min_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--min-ion", -1);//4);
 	unsigned int uiIon_Species_Only = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--only-ion", -1);//4);
 
 	double	dMaterial_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--mat-vel", 25000.0);
 	double	dElectron_Velocity_Temperature = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--e-temp", -1);
+
+	if (i_iArg_Count == 1 ||
+		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"?") ||
+		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"help") ||
+		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"HELP") ||
+		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
+		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
+		dN == -1.0 ||
+		uiElement_Z == -1 ||
+		(uiElement_Max_Ion_Species != -1 && uiElement_Max_Ion_Species > uiElement_Z)
+		)
+	{
+		std::cout << i_lpszArg_Values[0] << ": Compute the relative populations for all known electron configurations of a given element." << std::endl;
+		std::cout << "Usage:" << std::endl;
+		std::cout << i_lpszArg_Values[0] << " <options>" << std::endl;
+		std::cout << "Options / Parameters:" << std::endl;
+		std::cout << "--n=<float> : assumed (electron) density to use for recombination component, in cm^{-3}." << std::endl << std::endl;
+		std::cout << "--rad-temp=<float> : for blackbody radiation field, the blackbody temperature in K." << std::endl << "\tDefault is 10,000 K" << std::endl;
+		std::cout << "--e-temp=<float> : Kinetic temperature to use for electron velocity field." << std::endl << "\tDefault value is the photosphere (radiation) temperature." << std::endl << std::endl;
+		std::cout << "--ps-vel=<float> : Velocity of photosphere in km/s." << std::endl << "    Default = 10,000 km/s" << std::endl << std::endl;
+		std::cout << "--mat-vel=<float> : Velocity of material of interest in km/s." << std::endl << "    Default is 25,000 km/s" << std::endl << std::endl;
+		std::cout << "--elem=<integer> : Atomic number of element of interest (e.g. Hydrogen = 1)." << std::endl << std::endl;
+		std::cout << "--max-ion=<integer> : Maximum ionization state to consider; 0 is neutral," << std::endl << "\tmaximum values is atomic number of element." << std::endl << "    Default is the maximum value." << std::endl << std::endl;
+		std::cout << "--min-ion=<integer> : Minimum ionization state to consider; 0 is neutral," << std::endl << "    maximum values is atomic number of element." << std::endl << "    Default is 0." << std::endl << std::endl;
+		std::cout << "--only-ion=<integer> : Single ionization state to consider; 0 is neutral," << std::endl << "    maximum values is atomic number of element." << std::endl << "    Equivalent to setting --max-ion and --min-ion to the same value." << std::endl;
+		return 1;
+	}
+
 
 	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
 	// generate radiation field
@@ -135,8 +164,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		std::cerr << "--only-ion and --max-ion both specified. --max-ion ignored." << std::endl;
 	}
+	else if (uiElement_Min_Ion_Species != -1 && uiIon_Species_Only != -1)
+	{
+		std::cerr << "--only-ion and --min-ion both specified. --min-ion ignored." << std::endl;
+	}
 
 	unsigned int uiMin_Ion = 0;
+	if (uiElement_Min_Ion_Species != -1)
+		uiMin_Ion = uiElement_Min_Ion_Species;
 	if (uiIon_Species_Only != -1)
 	{
 		uiMin_Ion = uiIon_Species_Only;
@@ -413,7 +448,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 													//printf("RC Thresh %.2e %.2e %.2e %.2e\n",dIon_Thresh_Ryd,dGround_Ryd,dState_E_Ryd,dTrue_Ion_Thresh);
 							
 													double dH = opElement.Get_Ionization_Rate(mCorrelation[tJ].m_opld_Main_State,dTrue_Ion_Thresh,rfPlanck,dRedshift);
-													printf("Ion %i,%i: %.2e\n",tIdx_J,tIdx_I,dH); fflush(stdout);
+													//("Ion %i,%i: %.2e\n",tIdx_J,tIdx_I,dH); fflush(stdout);
 													mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 												}
 											}
@@ -445,7 +480,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 														double dState_E_Ryd = fabs(stOP_State.m_dEnergy_Ry);
 														double dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
 														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dTrue_Ion_Thresh,vfMaxwell) * dN;
-														printf("Recomb %i,%i: %.2e\n",tIdx_J,tIdx_I,dH);fflush(stdout);
+														//printf("Recomb %i,%i: %.2e\n",tIdx_J,tIdx_I,dH);fflush(stdout);
 														mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 													}
 												}
@@ -690,7 +725,74 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			if (fileOut)
 				fclose(fileOut);
+
+
+			FILE * fileTrx = fopen("trxs.csv","wt");
+			if (fileTrx)
+				fprintf(fileTrx,"Trx ID, Element code, Level (Lower) ID, Level (lower), Level (upper), Wavelength [A], A, B, B(SE), Hab (%.1f kK), Hem (%.1f kK), Z, X(ul)\n",dRadiation_Temperature_K*1e-3,dRadiation_Temperature_K*1e-3);
+
+
+			if (fileTrx)
+			{
+				unsigned int uiCount = 0;
+				size_t tState_ID = 0;
+				size_t tIon_Ref = 0;
+				for (size_t tIdx_Ion_I = 0; tIdx_Ion_I < kddData.m_vmklvdLevel_Data.size(); tIdx_Ion_I++)
+				{
+					for (imklvd iterJ = kddData.m_vmklvdLevel_Data[tIdx_Ion_I].begin(); iterJ != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end(); iterJ++)
+					{
+						for (ivivkld iterK = iterJ->second.vivkldAbsorption_Transition_Data.begin(); iterK != iterJ->second.vivkldAbsorption_Transition_Data.end(); iterK++)
+						{
+							Kurucz_Level_Data cLevel_Upper;
+							size_t tJ = tIon_Ref;
+							if ((*iterK)->m_cLevel_Upper == iterJ->second.klvdLevel_Data)
+							{
+								bool bFound = false;
+								for (imklvd iterL = kddData.m_vmklvdLevel_Data[tIdx_Ion_I].begin(); iterL != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end() && !bFound; iterL++)
+								{
+									if ((*iterK)->m_cLevel_Lower != iterL->second.klvdLevel_Data)
+										tJ++;
+									else
+										bFound = true;
+								}
+								cLevel_Upper = (*iterK)->m_cLevel_Lower;
+							}
+							else
+							{
+								size_t tJ = 0;
+								bool bFound = false;
+								for (imklvd iterL = kddData.m_vmklvdLevel_Data[tIdx_Ion_I].begin(); iterL != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end() && !bFound; iterL++)
+								{
+									if ((*iterK)->m_cLevel_Upper != iterL->second.klvdLevel_Data)
+										tJ++;
+									else
+										bFound = true;
+								}
+								cLevel_Upper = (*iterK)->m_cLevel_Upper;
+							}
+							double dNup = vdEig[tJ];
+							double dNlow = vdEig[tState_ID];
+							double dVal = 1e-11;
+							if (dNlow > 0 && dNup > 0)
+								dVal = dNlow - dNup * iterJ->second.klvdLevel_Data.m_dStat_Weight / cLevel_Upper.m_dStat_Weight;
+							if (dVal < 0.0)
+								dVal = 1e-11;
+							double dX = 8.0 * g_XASTRO.k_dpi * (*iterK)->m_dFrequency_Hz * (*iterK)->m_dFrequency_Hz / (g_XASTRO.k_dc * g_XASTRO.k_dc * (*iterK)->m_dEinstein_A * dN * dVal);
+
+							fprintf(fileTrx,"%i, %.2f, %i, %s %.1f, %s %.1f, %.3f, %.3e, %.3e, %.3e, %.3e, %.3e, %.3e, %.3e\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,tState_ID,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ, cLevel_Upper.m_szLabel.c_str(), cLevel_Upper.m_dJ, (*iterK)->m_dWavelength_cm * 1e8, (*iterK)->m_dEinstein_A, (*iterK)->m_dEinstein_B, (*iterK)->m_dEinstein_B_SE, (*iterK)->m_dH_abs, (*iterK)->m_dH_em, iterJ->second.klvdLevel_Data.m_dZ,dX);
+							uiCount++;
+						}
+						tState_ID++;
+					}
+					tIon_Ref = tState_ID;
+				}
+				fclose(fileTrx);
+			}
+
+			
 		}
+		else
+			std::cerr << "Failed to generate an eigenvector." << std::endl;
 	}
 	return 0;
 }

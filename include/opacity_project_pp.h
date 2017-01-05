@@ -305,7 +305,7 @@ public:
 						double dMW = i_cVel_Fn(dVelocity);
 						double dF = dg_neut / (dg_plus * 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi) * dVelocity * i_cVel_Fn(dVelocity) * dCS * dE_Rel * dE_Rel * dDelta_E;
 						//if (isnan(dF) || isinf(dF))
-							printf("f(%.2e,%.2e): s%.2e, v%.2e f%.2e er%.2e m%.2e de%.2e f%.2e\n",dE,dE_erg,dScaling,dVelocity,dFrequency,dE_Rel,dMW,dDelta_E,dF);
+						//	printf("f(%.2e,%.2e): s%.2e, v%.2e f%.2e er%.2e m%.2e de%.2e f%.2e\n",dE,dE_erg,dScaling,dVelocity,dFrequency,dE_Rel,dMW,dDelta_E,dF);
 						dSum += dF;
 					}
 
