@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <eps_plot.h>
 /*
 class dictionarynode
 {
@@ -1045,6 +1046,53 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 		}
 		ofsSpectra.close();
 	}
+
+	std::ostringstream ossSpectra_Data_Plot_File;
+	ossSpectra_Data_Plot_File << "Results/Plots/spectra_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".eps";
+	
+
+	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+	epsplot::DATA cPlot;
+	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
+	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+
+
+	cX_Axis_Parameters.Set_Title("Wavelength [A]");
+	cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+	cY_Axis_Parameters.Set_Title("Flux");
+	cY_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+	cY_Axis_Parameters.m_dLower_Limit = 0.0;
+
+	unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis_Parameters);
+	unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis_Parameters);
+
+	cPlot_Parameters.m_uiNum_Columns = 1;
+	cPlot_Parameters.m_uiNum_Rows = 1;
+	cPlot_Parameters.m_dWidth_Inches = 11.0;
+	cPlot_Parameters.m_dHeight_Inches = 8.5;
+
+	cPlot.Set_Plot_Filename(ossSpectra_Data_Plot_File.str().c_str());
+
+	epsplot::LINE_PARAMETERS cLine_Parameters;
+
+	std::vector<double> vX;
+	std::vector<double> vY_Tgt;
+	std::vector<double> vY_Synth;
+
+	for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size(); uiI++)
+	{
+		vX.push_back(i_cResult.m_vpdSpectrum_Target[uiI].first);
+		vY_Tgt.push_back(i_cResult.m_vpdSpectrum_Target[uiI].second);
+		vY_Synth.push_back(i_cResult.m_vpdSpectrum_Synthetic[uiI].second);
+	}
+	cLine_Parameters.m_eColor = epsplot::BLACK;
+	cLine_Parameters.m_eStipple = epsplot::SOLID;
+	cPlot.Set_Plot_Data(vX, vY_Tgt, cLine_Parameters, uiX_Axis, uiY_Axis);
+	cLine_Parameters.m_eColor = epsplot::RED;
+	cLine_Parameters.m_eStipple = epsplot::LONG_DASH;
+	cPlot.Set_Plot_Data(vX, vY_Synth, cLine_Parameters, uiX_Axis, uiY_Axis);
+
+	cPlot.Plot(cPlot_Parameters);
 }
 
 //------------------------------------------------------------------------------
@@ -1098,6 +1146,7 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 						m_dBest_Fit = dFit;
 					}
 					std::ofstream ofsIndividual_Fit_File;
+					std::ofstream ofsIndividual_Fit_File_Plot;
 					if (i_lppsEjecta != nullptr || i_lppsShell != nullptr)
 						ofsIndividual_Fit_File.open("Results/individual_fit_data_single.csv",std::ios_base::app);
 					else
