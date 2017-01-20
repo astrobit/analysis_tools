@@ -1246,9 +1246,13 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		while (uiI < lpvPS_Data->GetNumRows() && lpvPS_Data->GetElement(0,uiI) < dDelta_Bmax)
 			uiI++;
 		double dPS_Vel;
+		if (uiI == lpvPS_Data->GetNumRows())
+			uiI = lpvPS_Data->GetNumRows() - 1; // extrapolate from the end of the table
 		if (uiI != 0)
 		{
 			dPS_Vel = ((lpvPS_Data->GetElement(4,uiI) - lpvPS_Data->GetElement(4,uiI - 1)) / (lpvPS_Data->GetElement(0,uiI) - lpvPS_Data->GetElement(0,uiI - 1)) * (dDelta_Bmax - lpvPS_Data->GetElement(0,uiI - 1)) + lpvPS_Data->GetElement(4,uiI - 1)) * 1.0e-8;
+			if (dPS_Vel < 1.0) // we expect the material to still be optically thick;  enforce a lower limit of about 1000 km/s
+				dPS_Vel = 1.0;
 		}
 		else
 			dPS_Vel = lpvPS_Data->GetElement(4,uiI) * 1.0e-8;
@@ -1426,7 +1430,12 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();
 
 
-	if (i_lppsEjecta != nullptr || i_lppsShell != nullptr) // the user has specified an exact set of parameters to use.
+	if (vStarting_Point.is_nan())
+	{
+		std::cerr << "Error: starting point contains nan." << std::endl;
+		return DBL_MAX;
+	}
+	else if (i_lppsEjecta != nullptr || i_lppsShell != nullptr) // the user has specified an exact set of parameters to use.
 	{
 		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
 		vStarting_Point.Set(1,i_lppsEjecta->m_dPS_Vel);
