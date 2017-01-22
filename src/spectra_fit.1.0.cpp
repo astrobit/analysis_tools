@@ -1250,6 +1250,7 @@ void Output_Result_Header(std::ofstream & io_ofsFile)
 		io_ofsFile <<  ", Central Fit Moment " << uiI;
 	for (unsigned int uiI = 1; uiI <= 6; uiI++)
 		io_ofsFile <<  ", Standardized Fit Moment " << uiI;
+	io_ofsFile <<  ",	Observed pEW, Observed Vmin (km/s), Fit pEW, Fit Vmin (km/s), Gaussian Fit Amplitude (PVF), Gaussian Fit Width (PVF), Gaussian Fit Central Wavelength (PVF), Gaussian Fit Amplitude (HVF), Gaussian Fit Width (HVF), Gaussian Fit Central Wavelength (HVF), Gaussian Fit pEW (PVF), Gaussian Fit pEW (HVF), Gaussian Fit Velocity (PVF), Gaussian Fit Velocity (HVF)";
 	io_ofsFile <<  std::endl;
 }
 //------------------------------------------------------------------------------

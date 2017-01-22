@@ -1026,7 +1026,7 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 		else if (dWL < 8000.0)
 		{
 			double dFlux = i_cGenerated.flux(uiI) / i_cContinuum.flux(uiI);
-			if (dFlux > 0.99)
+			if (dFlux > 0.98)
 			{
 				uiBlue_Idx = uiI;
 				bQuit = true;
@@ -1035,6 +1035,7 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 			}
 		}
 	}
+	printf("Left: %.1f\n",dBlue_WL);
 
 
 	// calculate the P cygni slope
@@ -1056,8 +1057,8 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 	o_cModel_Data.m_cSynthetic_Observables.m_fpParameters.Reset();
 	for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
 	{
-		double dWL = i_cGenerated.wl(uiJ);
-		double dFlux = i_cGenerated.flux(uiJ);
+		double dWL = i_cGenerated.wl(uiJ + uiBlue_Idx);
+		double dFlux = i_cGenerated.flux(uiJ + uiBlue_Idx);
 		double dContinuum_Flux = (dWL - dWL_O_Peak) * dSlope + dFlux_O_Peak;
 		double dFlux_Eff = dContinuum_Flux - dFlux;
 		double dNorm_Flux_Eff = dFlux_Eff / dContinuum_Flux;
@@ -1065,7 +1066,7 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 		o_cModel_Data.m_cSynthetic_Observables.m_fpParameters.Process_pEW(dNorm_Flux_Eff,dDel_WL_Ang); // 
 		o_cModel_Data.m_cSynthetic_Observables.m_fpParameters.Process_Vmin(dWL,dFlux,8542.09); /// use central line of CaIII triplet for velocity determination
 
-		vX.Set(uiJ,i_cGenerated.wl(uiJ));
+		vX.Set(uiJ,dWL);
 		vW.Set(uiJ,0.01); // arbitrary weight
 		vY.Set(uiJ,dFlux_Eff);
 	}
