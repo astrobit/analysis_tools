@@ -972,6 +972,7 @@ void Deredden(std::vector <specfit::fit> &io_vfitFits)
 
 void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult)
 {
+	int iDef_Precision = io_ofsFile.precision();
 	io_ofsFile << std::setprecision(7) << i_cResult.m_dMJD;
 	switch (i_cResult.m_eFeature)
 	{
@@ -1000,7 +1001,7 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dPS_Temp;
 	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dLog_S;
 	io_ofsFile << ", " << std::setprecision(4) <<i_cResult.m_cParams[specfit::comp_shell].m_dExcitation_Temp;
-
+	io_ofsFile << std::setprecision(17) << std::scientific;
 	for (std::vector<double>::const_iterator iterI = i_cResult.m_vdRaw_Moments.cbegin(); iterI != i_cResult.m_vdRaw_Moments.cend(); iterI++)
 	{
 		io_ofsFile << ", " << *iterI;
@@ -1013,6 +1014,30 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	{
 		io_ofsFile << ", " << *iterI;
 	}
+	io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_fpParameters.m_d_pEW;
+	io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_fpParameters.m_dVmin;
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_fpParameters.m_d_pEW;
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_fpParameters.m_dVmin;
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit[0];
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit[1];
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit[2];
+	if (i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit.size() > 3)
+	{
+		io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit[3];
+		io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit[4];
+		io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit[5];
+	}
+	else
+	{
+		io_ofsFile << ", " << "-";
+		io_ofsFile << ", " << "-";
+		io_ofsFile << ", " << "-";
+	}
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_pEW_PVF;
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_pEW_HVF;
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_V_PVF;
+	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_V_HVF;
+	io_ofsFile << std::defaultfloat << std::setprecision(iDef_Precision);
 	io_ofsFile << std::endl;
 
 	std::ostringstream ossSpectra_Data_File;

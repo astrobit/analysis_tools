@@ -553,36 +553,6 @@ public:
 
 };*/
 
-class feature_parameters
-{
-public:
-	double	m_d_pEW;
-	double	m_dVmin;
-	double	m_dFlux_vmin;
-
-	void Process_Vmin(const double &i_dWL, const double &i_dFlux, const double & i_dWL_Ref, bool i_bProcess = true)
-	{
-		if (i_bProcess)
-		{
-			if (i_dFlux < m_dFlux_vmin)
-			{
-				m_dVmin = Compute_Velocity(i_dWL,i_dWL_Ref);
-				m_dFlux_vmin = i_dFlux;
-			}
-		}
-	}
-	void Process_pEW(const double & i_dFlux, const double & i_dDelta_WL)
-	{
-		m_d_pEW += (1.0 - i_dFlux) * i_dDelta_WL;
-	}
-	void	Reset(void)
-	{
-		m_d_pEW = 0.0;
-		m_dVmin = 0.0;
-		m_dFlux_vmin = DBL_MAX;
-	}
-	feature_parameters(void) { Reset();}
-};
 
 
 class spectra_fit_data
@@ -598,7 +568,7 @@ public:
 	bool					m_bDebug;
 	unsigned int			m_uiDebug_Idx;
 
-	feature_parameters		m_fpTarget_Feature_Parameters;
+	specfit::feature_parameters		m_fpTarget_Feature_Parameters;
 	double					m_dOII_P_Cygni_Peak_WL;
 	double 					m_dCaII_P_Cygni_Peak_WL;
 
@@ -714,7 +684,9 @@ void msdb_load_generate(msdb::USER_PARAMETERS	&i_cParam, msdb::SPECTRUM_TYPE i_e
 		}
 	}
 }
-double pEW_Fit(const ES::Spectrum &i_cGenerated, const feature_parameters & i_fpTarget_Feature, feature_parameters	&o_cModel_Data)
+
+
+double pEW_Fit(const ES::Spectrum &i_cGenerated, const specfit::feature_parameters & i_fpTarget_Feature, specfit::feature_parameters	&o_cModel_Data)
 {
 	// idenfity the P Cygni peak of the Ca NIR feature
 	unsigned int uiCaII_Idx = 0;
@@ -766,7 +738,7 @@ double pEW_Fit(const ES::Spectrum &i_cGenerated, const feature_parameters & i_fp
 	// velocity is a value of ~10000, with expected error of order 500
 	return dErr;
 }
-double Continuum_Fit(const ES::Spectrum &i_cGenerated, const ES::Spectrum &i_cContinuum, feature_parameters	&o_cModel_Data)
+double Continuum_Fit(const ES::Spectrum &i_cGenerated, const ES::Spectrum &i_cContinuum, specfit::feature_parameters	&o_cModel_Data)
 {
 	//printf(" [%.2e %.2e] ",i_cGenerated.flux(10),i_cContinuum.flux(10));
 	double dDel_WL_Ang = (i_cGenerated.wl(1) - i_cGenerated.wl(0));
@@ -793,7 +765,7 @@ double Continuum_Fit(const ES::Spectrum &i_cGenerated, const ES::Spectrum &i_cCo
 
 double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 {
-	
+//	printf(".");fflush(stdout);
 	double dFit = DBL_MAX;
 	spectra_fit_data *lpcCall_Data = (spectra_fit_data *)i_lpvSpectra_Fit_Data;
 	if (lpcCall_Data && lpcCall_Data->m_lpcTarget != nullptr && lpcCall_Data->m_lpcOpacity_Map_A != nullptr)
@@ -927,10 +899,12 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		}
 		double dTgt_Norm, dGen_Norm;
 		Get_Normalization_Fluxes(lpcCall_Data->m_lpcTarget[0], cOutput, FIT_BLUE_WL, FIT_RED_WL, dTgt_Norm, dGen_Norm);
-		feature_parameters cfpModel,cfpCont_Model;
-
+		specfit::feature_parameters cfpModel,cfpCont_Model;
+		printf("--");
+		fflush(stdout);
 		dFit = pEW_Fit(cOutput,lpcCall_Data->m_fpTarget_Feature_Parameters,cfpModel) + Continuum_Fit(cOutput_Continuum,cTrue_Continuum,cfpCont_Model);
 		printf(" (%.2f %.1f -- %.2f) ",cfpModel.m_d_pEW,cfpModel.m_dVmin,cfpCont_Model.m_d_pEW);
+		fflush(stdout);
 
 		double dScale = lpcCall_Data->m_lpcTarget[0].flux(0) / dTgt_Norm;
 		//scaling continuum for fit: the scaling factors for the main fitting region will be used, so scale
@@ -1008,6 +982,106 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 }
 
 
+void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cContinuum, specfit::fit_result	&o_cModel_Data)
+{
+	// idenfity the P Cygni peak of the Ca NIR feature
+	unsigned int uiCaII_Idx = 0;
+	double dCaII_P_Cygni_Peak_WL;
+	double dCaII_P_Cygni_Peak_flux;
+	bool bQuit = false;
+	double dFlux_Max = -1.0;
+	for (unsigned int uiI = 0; uiI < i_cGenerated.size() && !bQuit; uiI++)
+	{
+		double dWL = i_cGenerated.wl(uiI);
+		if (dWL > 8900.0) // assume the peak is between 8400 and 8900 A.
+			bQuit = true;
+		else if (dWL > 8400.0)
+		{
+			double dFlux = i_cGenerated.flux(uiI);
+			if (dFlux > dFlux_Max)
+			{
+				uiCaII_Idx = uiI;
+				dCaII_P_Cygni_Peak_WL = dWL;
+				dFlux_Max = dFlux;
+				
+			}
+		}
+	}
+	dCaII_P_Cygni_Peak_flux = dFlux_Max;
+	unsigned int uiBlue_Idx;
+	double	dBlue_WL;
+	dFlux_Max = -1.0;
+	bQuit = false;
+	for (unsigned int uiI = uiCaII_Idx; uiI > 0 && !bQuit; uiI--)
+	{
+		double dWL = i_cGenerated.wl(uiI);
+		if (dWL < 7000.0) // assume the blue edge is between 7000 and 8000 A.
+		{
+			double dFlux = i_cGenerated.flux(uiI) / i_cContinuum.flux(uiI);
+			uiBlue_Idx = uiI;
+			bQuit = true;
+			dBlue_WL = dWL;
+			dFlux_Max = dFlux;
+		}
+		else if (dWL < 8000.0)
+		{
+			double dFlux = i_cGenerated.flux(uiI) / i_cContinuum.flux(uiI);
+			if (dFlux > 0.99)
+			{
+				uiBlue_Idx = uiI;
+				bQuit = true;
+				dBlue_WL = dWL;
+				dFlux_Max = dFlux;
+			}
+		}
+	}
+
+
+	// calculate the P cygni slope
+	unsigned int uiNum_Points = uiCaII_Idx - uiBlue_Idx + 1;
+	double dFlux_O_Peak = i_cGenerated.flux(uiBlue_Idx);
+	double dWL_O_Peak = i_cGenerated.wl(uiBlue_Idx);
+	double dFlux_Ca_Peak = dCaII_P_Cygni_Peak_flux;
+	double dWL_Ca_Peak = dCaII_P_Cygni_Peak_WL;
+	double	dSlope = (dFlux_Ca_Peak - dFlux_O_Peak) / (dWL_Ca_Peak - dWL_O_Peak);
+	double dDel_WL_Ang = (i_cGenerated.wl(1) - i_cGenerated.wl(0));
+	// now find the P Cygni pEW and the velocity of the minimum of the feature
+	xvector vA, vX, vY, vW, vSigma;
+	double dSmin;
+	gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
+
+	vY.Set_Size(uiNum_Points);
+	vX.Set_Size(uiNum_Points);
+	vW.Set_Size(uiNum_Points);
+	o_cModel_Data.m_cSynthetic_Observables.m_fpParameters.Reset();
+	for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
+	{
+		double dWL = i_cGenerated.wl(uiJ);
+		double dFlux = i_cGenerated.flux(uiJ);
+		double dContinuum_Flux = (dWL - dWL_O_Peak) * dSlope + dFlux_O_Peak;
+		double dFlux_Eff = dContinuum_Flux - dFlux;
+		double dNorm_Flux_Eff = dFlux_Eff / dContinuum_Flux;
+
+		o_cModel_Data.m_cSynthetic_Observables.m_fpParameters.Process_pEW(dNorm_Flux_Eff,dDel_WL_Ang); // 
+		o_cModel_Data.m_cSynthetic_Observables.m_fpParameters.Process_Vmin(dWL,dFlux,8542.09); /// use central line of CaIII triplet for velocity determination
+
+		vX.Set(uiJ,i_cGenerated.wl(uiJ));
+		vW.Set(uiJ,0.01); // arbitrary weight
+		vY.Set(uiJ,dFlux_Eff);
+	}
+	
+	o_cModel_Data.m_cSynthetic_Observables.m_xvGaussian_Fit = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
+                    dDel_WL_Ang, o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_pEW_PVF, 
+					o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_pEW_HVF, 
+					o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_V_PVF, 
+					o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_V_HVF, 
+					o_cModel_Data.m_cSynthetic_Observables.m_xvGaussian_Fit_Uncertainty,  
+					o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_Fit_S, 
+					&o_cModel_Data.m_cSynthetic_Observables.m_gfrSingle_Gaussian_Fit, 
+					&o_cModel_Data.m_cSynthetic_Observables.m_gfrDouble_Gaussian_Fit);
+
+}
+
 double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug, const param_set * i_lppsEjecta, const param_set * i_lppsShell)
 {
 
@@ -1082,7 +1156,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 				}
 				uiIdx++;
 			}
-			feature_parameters	cRaw_Data;
+			//specfit::feature_parameters	cRaw_Data;
 //			gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 //			XVECTOR	vX, vY, vA, vW, vSigma;
 //			double	dSmin_Single = DBL_MAX;
@@ -1102,6 +1176,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			double	dSlope = (dFlux_Ca_Peak - dFlux_O_Peak) / (dWL_Ca_Peak - dWL_O_Peak);
 			
 			double dDel_WL_Ang = (std::get<0>(i_cFit.m_vData[uiO_Idx + 1]) - std::get<0>(i_cFit.m_vData[uiO_Idx]));
+			o_cFit.m_cTarget_Observables.m_fpParameters.Reset();
 			for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
 			{
 				double dWL = std::get<0>(i_cFit.m_vData[uiJ + uiO_Idx]);
@@ -1112,14 +1187,14 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 //				vW.Set(uiJ,0.01); // arbitrary weight
 //				vY.Set(uiJ,dFlux_Eff);
 
-				cRaw_Data.Process_pEW(dFlux_Eff / dContinuum_Flux,dDel_WL_Ang); // 
-				cRaw_Data.Process_Vmin(dWL,dFlux,8542.09);
+				o_cFit.m_cTarget_Observables.m_fpParameters.Process_pEW(dFlux_Eff / dContinuum_Flux,dDel_WL_Ang); // 
+				o_cFit.m_cTarget_Observables.m_fpParameters.Process_Vmin(dWL,dFlux,8542.09);
 			}
 //           vA = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
 //                                dDel_WL_Ang, d_pEW_PVF, d_pEW_HVF, dV_PVF, dV_HVF, vSigma, dSmin, &cSingle_Fit,&cDouble_Fit);
 			// Perform Gaussian fit to target feature
-			printf("Target pEW = %.2f\tTarget Vel = %.1f\n",cRaw_Data.m_d_pEW,cRaw_Data.m_dVmin);
-			cCall_Data.m_fpTarget_Feature_Parameters = cRaw_Data;
+			printf("Target pEW = %.2f\tTarget Vel = %.1f\n",o_cFit.m_cTarget_Observables.m_fpParameters.m_d_pEW,o_cFit.m_cTarget_Observables.m_fpParameters.m_dVmin);
+			cCall_Data.m_fpTarget_Feature_Parameters = o_cFit.m_cTarget_Observables.m_fpParameters;
 			dBlue_Edge_WL = dWL_O_Peak;
 		}
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 9000.0;
@@ -1562,6 +1637,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		msdb_load_generate(cCall_Data.m_cParam, msdb::SHELL_ONLY, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, cFull_Result_SO);
 	}
 
+	//printf("...");fflush(stdout);
+	Calc_Observables(csFull_Result,cContinuum,o_cFit);
+
 	double dTarget_Flux, dGenerated_Flux;
 	Get_Normalization_Fluxes(cFull_Target, csFull_Result, FIT_BLUE_WL, FIT_RED_WL, dTarget_Flux, dGenerated_Flux);
 
@@ -1574,6 +1652,10 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		o_cFit.m_vpdSpectrum_Synthetic_Continuum.push_back(std::pair<double,double>(cContinuum.wl(uiI),cContinuum.flux(uiI) * dNorm));
 		o_cFit.m_vpdSpectrum_Synthetic.push_back(std::pair<double,double>(csFull_Result.wl(uiI),csFull_Result.flux(uiI) * dNorm));
 	}
+	//feature_parameters cfpModel,cfpCont_Model;
+
+	//dFit = pEW_Fit(cOutput,lpcCall_Data->m_fpTarget_Feature_Parameters,cfpModel) + Continuum_Fit(cOutput_Continuum,cTrue_Continuum,cfpCont_Model);
+
 	std::vector<double> vError;
 	for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
 		vError.push_back(cTarget.flux(uiI) - csResult.flux(uiI) * dNorm);
@@ -1582,7 +1664,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	Get_Central_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdCentral_Moments);
 	Get_Standardized_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdStandardized_Moments);
 
+
 	return o_cFit.m_vdRaw_Moments[1];
 }
-
 

@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <tuple>
 #include <opacity_profile_data.h>
+#include <xlinalg.h>
+#include <line_routines.h>
 
 namespace specfit
 {
@@ -87,13 +89,61 @@ namespace specfit
 	{
 	public:
 		unsigned int m_uiModel_ID;
-		XDATASET	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
-		XDATASET	m_dsShell;
+		xdataset	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
+		xdataset	m_dsShell;
 		OPACITY_PROFILE_DATA	m_opdOp_Profile_Data;
-		XDATASET	m_dsPhotosphere;
-		XDATASET	m_dsEjecta_Photosphere;
+		xdataset	m_dsPhotosphere;
+		xdataset	m_dsEjecta_Photosphere;
 	};
 
+
+	class feature_parameters
+	{
+	public:
+		double	m_d_pEW;
+		double	m_dVmin;
+		double	m_dFlux_vmin;
+
+		void Process_Vmin(const double &i_dWL, const double &i_dFlux, const double & i_dWL_Ref, bool i_bProcess = true)
+		{
+			if (i_bProcess)
+			{
+				if (i_dFlux < m_dFlux_vmin)
+				{
+					m_dVmin = Compute_Velocity(i_dWL,i_dWL_Ref);
+					m_dFlux_vmin = i_dFlux;
+				}
+			}
+		}
+		void Process_pEW(const double & i_dFlux, const double & i_dDelta_WL)
+		{
+			m_d_pEW += (1.0 - i_dFlux) * i_dDelta_WL;
+		}
+		void	Reset(void)
+		{
+			m_d_pEW = 0.0;
+			m_dVmin = 0.0;
+			m_dFlux_vmin = DBL_MAX;
+		}
+		feature_parameters(void) { Reset();}
+	};
+	class result_observables
+	{
+	public:
+		feature_parameters						m_fpParameters;
+
+		xvector									m_xvGaussian_Fit;
+		xvector									m_xvGaussian_Fit_Uncertainty;
+		double									m_dGaussian_Fit_S;
+		gauss_fit_results						m_gfrSingle_Gaussian_Fit;
+		gauss_fit_results						m_gfrDouble_Gaussian_Fit;
+
+		double									m_dGaussian_pEW_PVF;
+		double									m_dGaussian_pEW_HVF;
+		double									m_dGaussian_V_PVF;
+		double									m_dGaussian_V_HVF;
+
+	};
 	class fit_result
 	{
 	public:
@@ -113,6 +163,10 @@ namespace specfit
 		std::vector<double> 					m_vdRaw_Moments;
 		std::vector<double> 					m_vdCentral_Moments;
 		std::vector<double> 					m_vdStandardized_Moments;
+
+		result_observables						m_cTarget_Observables;
+		result_observables						m_cSynthetic_Observables;
+
 
 		void clear();
 		fit_result(void);
