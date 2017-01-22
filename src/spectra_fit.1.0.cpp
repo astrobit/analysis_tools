@@ -14,6 +14,7 @@
 #include <line_routines.h>
 #include <cstdio>
 #include <iomanip>
+#include <ios>
 	
 #include <sys/types.h>
 #include <dirent.h>
@@ -973,6 +974,7 @@ void Deredden(std::vector <specfit::fit> &io_vfitFits)
 void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult)
 {
 	int iDef_Precision = io_ofsFile.precision();
+	std::ios_base::fmtflags fFlags = io_ofsFile.flags();
 	io_ofsFile << std::setprecision(7) << i_cResult.m_dMJD;
 	switch (i_cResult.m_eFeature)
 	{
@@ -1037,7 +1039,9 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_pEW_HVF;
 	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_V_PVF;
 	io_ofsFile << ", " << i_cResult.m_cSynthetic_Observables.m_dGaussian_V_HVF;
-	io_ofsFile << std::defaultfloat << std::setprecision(iDef_Precision);
+	io_ofsFile << std::setprecision(iDef_Precision);
+	io_ofsFile.flags(fFlags);
+//	io_ofsFile << std::defaultfloat 
 	io_ofsFile << std::endl;
 
 	std::ostringstream ossSpectra_Data_File;

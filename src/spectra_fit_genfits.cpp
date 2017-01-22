@@ -1035,7 +1035,6 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 			}
 		}
 	}
-	printf("Left: %.1f\n",dBlue_WL);
 
 
 	// calculate the P cygni slope
