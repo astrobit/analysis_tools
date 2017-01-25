@@ -1050,6 +1050,8 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 	double dSmin;
 	gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 
+	o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue = dFlux_O_Peak;
+	o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Red = dWL_Ca_Peak;
 	vY.Set_Size(uiNum_Points);
 	vX.Set_Size(uiNum_Points);
 	vW.Set_Size(uiNum_Points);
@@ -1067,7 +1069,7 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 
 		vX.Set(uiJ,dWL);
 		vW.Set(uiJ,0.01); // arbitrary weight
-		vY.Set(uiJ,dFlux_Eff);
+		vY.Set(uiJ,dNorm_Flux_Eff);
 	}
 	
 	o_cModel_Data.m_cSynthetic_Observables.m_xvGaussian_Fit = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
@@ -1157,8 +1159,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 				uiIdx++;
 			}
 			//specfit::feature_parameters	cRaw_Data;
-//			gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
-//			XVECTOR	vX, vY, vA, vW, vSigma;
+			gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
+			XVECTOR	vX, vY, vA, vW, vSigma;
 //			double	dSmin_Single = DBL_MAX;
 //			double	dSmin;
 //			double	dSmin_Flat;
@@ -1166,9 +1168,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			unsigned int uiNum_Points = uiCaII_Idx - uiO_Idx + 1;
 //			gauss_fit_results	cSingle_Fit;
 //			gauss_fit_results	cDouble_Fit;
-//			vY.Set_Size(uiNum_Points);
-//			vX.Set_Size(uiNum_Points);
-//			vW.Set_Size(uiNum_Points);
+			vY.Set_Size(uiNum_Points);
+			vX.Set_Size(uiNum_Points);
+			vW.Set_Size(uiNum_Points);
 			double dFlux_O_Peak = std::get<1>(i_cFit.m_vData[uiO_Idx]);
 			double dWL_O_Peak = std::get<0>(i_cFit.m_vData[uiO_Idx]);
 			double dFlux_Ca_Peak = std::get<1>(i_cFit.m_vData[uiCaII_Idx]);
@@ -1183,17 +1185,37 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 				double dFlux = std::get<1>(i_cFit.m_vData[uiJ + uiO_Idx]);
 				double dContinuum_Flux = (dWL - dWL_O_Peak) * dSlope + dFlux_O_Peak;
 				double dFlux_Eff = dContinuum_Flux - dFlux;
-//				vX.Set(uiJ,dWL);
-//				vW.Set(uiJ,0.01); // arbitrary weight
-//				vY.Set(uiJ,dFlux_Eff);
+				vX.Set(uiJ,dWL);
+				vW.Set(uiJ,0.01); // arbitrary weight
+				vY.Set(uiJ,dFlux_Eff / dContinuum_Flux);
 
 				o_cFit.m_cTarget_Observables.m_fpParameters.Process_pEW(dFlux_Eff / dContinuum_Flux,dDel_WL_Ang); // 
 				o_cFit.m_cTarget_Observables.m_fpParameters.Process_Vmin(dWL,dFlux,8542.09);
 			}
+
+			o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue = dFlux_O_Peak;
+			o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Red = dWL_Ca_Peak;
+
+			o_cFit.m_cTarget_Observables.m_xvGaussian_Fit = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
+				            dDel_WL_Ang, o_cFit.m_cTarget_Observables.m_dGaussian_pEW_PVF, 
+							o_cFit.m_cTarget_Observables.m_dGaussian_pEW_HVF, 
+							o_cFit.m_cTarget_Observables.m_dGaussian_V_PVF, 
+							o_cFit.m_cTarget_Observables.m_dGaussian_V_HVF, 
+							o_cFit.m_cTarget_Observables.m_xvGaussian_Fit_Uncertainty,  
+							o_cFit.m_cTarget_Observables.m_dGaussian_Fit_S, 
+							&o_cFit.m_cTarget_Observables.m_gfrSingle_Gaussian_Fit, 
+							&o_cFit.m_cTarget_Observables.m_gfrDouble_Gaussian_Fit);
+
 //           vA = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
 //                                dDel_WL_Ang, d_pEW_PVF, d_pEW_HVF, dV_PVF, dV_HVF, vSigma, dSmin, &cSingle_Fit,&cDouble_Fit);
 			// Perform Gaussian fit to target feature
-			printf("Target pEW = %.2f\tTarget Vel = %.1f\n",o_cFit.m_cTarget_Observables.m_fpParameters.m_d_pEW,o_cFit.m_cTarget_Observables.m_fpParameters.m_dVmin);
+			printf("Target pEW = %.2f(%.1f %.1f) \tTarget Vel = %.1f (%.0f %.0f)\n",o_cFit.m_cTarget_Observables.m_fpParameters.m_d_pEW,
+																		o_cFit.m_cTarget_Observables.m_dGaussian_pEW_HVF,
+																		o_cFit.m_cTarget_Observables.m_dGaussian_pEW_PVF,
+																		o_cFit.m_cTarget_Observables.m_fpParameters.m_dVmin,
+																		o_cFit.m_cTarget_Observables.m_dGaussian_V_HVF,
+																		o_cFit.m_cTarget_Observables.m_dGaussian_V_PVF
+																		);
 			cCall_Data.m_fpTarget_Feature_Parameters = o_cFit.m_cTarget_Observables.m_fpParameters;
 			dBlue_Edge_WL = dWL_O_Peak;
 		}

@@ -143,6 +143,8 @@ namespace specfit
 		double									m_dGaussian_V_PVF;
 		double									m_dGaussian_V_HVF;
 
+		double									m_dGaussian_Ref_WL_Blue;
+		double									m_dGaussian_Ref_WL_Red;
 	};
 	class fit_result
 	{
@@ -163,6 +165,9 @@ namespace specfit
 		std::vector<double> 					m_vdRaw_Moments;
 		std::vector<double> 					m_vdCentral_Moments;
 		std::vector<double> 					m_vdStandardized_Moments;
+
+		double									m_dTarget_Ref_WL_Blue;
+		double									m_dTarget_Ref_WL_Red;
 
 		result_observables						m_cTarget_Observables;
 		result_observables						m_cSynthetic_Observables;

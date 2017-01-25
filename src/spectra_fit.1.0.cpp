@@ -973,6 +973,8 @@ void Deredden(std::vector <specfit::fit> &io_vfitFits)
 
 void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult)
 {
+	double dPlot_WL_Start = -1;
+	double dPlot_WL_End = -1;
 	int iDef_Precision = io_ofsFile.precision();
 	std::ios_base::fmtflags fFlags = io_ofsFile.flags();
 	io_ofsFile << std::setprecision(7) << i_cResult.m_dMJD;
@@ -980,15 +982,23 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	{
 	case specfit::CaNIR:
 		io_ofsFile << ", " << "Ca NIR";
+		dPlot_WL_Start = 7000.0;
+		dPlot_WL_End = 9000.0;
 		break;
 	case specfit::CaHK:
 		io_ofsFile << ", " << "CaHK";
+		dPlot_WL_Start = 2000.0;
+		dPlot_WL_End = 4000.0;
 		break;
 	case specfit::Si6355:
 		io_ofsFile << ", " << "Si 6355";
+		dPlot_WL_Start = 5000.0;
+		dPlot_WL_End = 7000.0;
 		break;
 	case specfit::O7773:
 		io_ofsFile << ", " << "O 7773";
+		dPlot_WL_Start = 6000.0;
+		dPlot_WL_End = 8000.0;
 		break;
 	}
 
@@ -1076,8 +1086,8 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 		ofsSpectra.close();
 	}
 
-	std::ostringstream ossSpectra_Data_Plot_File;
-	ossSpectra_Data_Plot_File << "Results/Plots/spectra_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".eps";
+	std::ostringstream ossSpectra_Data_Plot_File_Full;
+	ossSpectra_Data_Plot_File_Full << "Results/Plots/spectra_full_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".eps";
 	
 
 	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
@@ -1100,7 +1110,7 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	cPlot_Parameters.m_dWidth_Inches = 11.0;
 	cPlot_Parameters.m_dHeight_Inches = 8.5;
 
-	cPlot.Set_Plot_Filename(ossSpectra_Data_Plot_File.str().c_str());
+	cPlot.Set_Plot_Filename(ossSpectra_Data_Plot_File_Full.str().c_str());
 
 	epsplot::LINE_PARAMETERS cLine_Parameters;
 
@@ -1122,6 +1132,26 @@ void Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_cResult
 	cPlot.Set_Plot_Data(vX, vY_Synth, cLine_Parameters, uiX_Axis, uiY_Axis);
 
 	cPlot.Plot(cPlot_Parameters);
+
+	if (dPlot_WL_End != -1 && dPlot_WL_Start != -1)
+	{
+		std::ostringstream ossSpectra_Data_Plot_File;
+		ossSpectra_Data_Plot_File << "Results/Plots/spectra_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".eps";
+	
+
+		//cX_Axis_Parameters.Set_Title("Wavelength [A]");
+		//cX_Axis_Parameters.m_dMajor_Label_Size = 24.0;
+		cX_Axis_Parameters.m_dUpper_Limit = dPlot_WL_End;
+		cX_Axis_Parameters.m_dLower_Limit = dPlot_WL_Start;
+
+		cPlot.Modify_X_Axis_Parameters(uiX_Axis, cX_Axis_Parameters);
+
+
+		cPlot.Set_Plot_Filename(ossSpectra_Data_Plot_File.str().c_str());
+
+		cPlot.Plot(cPlot_Parameters);
+	}
+	
 }
 
 //------------------------------------------------------------------------------
