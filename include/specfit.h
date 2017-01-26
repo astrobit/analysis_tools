@@ -166,9 +166,6 @@ namespace specfit
 		std::vector<double> 					m_vdCentral_Moments;
 		std::vector<double> 					m_vdStandardized_Moments;
 
-		double									m_dTarget_Ref_WL_Blue;
-		double									m_dTarget_Ref_WL_Red;
-
 		result_observables						m_cTarget_Observables;
 		result_observables						m_cSynthetic_Observables;
 
