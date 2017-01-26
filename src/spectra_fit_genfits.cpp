@@ -1050,8 +1050,8 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 	double dSmin;
 	gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 
-	o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue = dFlux_O_Peak;
-	o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Red = dWL_Ca_Peak;
+	o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_Ref_WL_Blue = dWL_O_Peak;
+	o_cModel_Data.m_cSynthetic_Observables.m_dGaussian_Ref_WL_Red = dWL_Ca_Peak;
 	vY.Set_Size(uiNum_Points);
 	vX.Set_Size(uiNum_Points);
 	vW.Set_Size(uiNum_Points);
@@ -1193,7 +1193,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 				o_cFit.m_cTarget_Observables.m_fpParameters.Process_Vmin(dWL,dFlux,8542.09);
 			}
 
-			o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue = dFlux_O_Peak;
+			o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue = dWL_O_Peak;
 			o_cFit.m_cTarget_Observables.m_dGaussian_Ref_WL_Red = dWL_Ca_Peak;
 
 			o_cFit.m_cTarget_Observables.m_xvGaussian_Fit = Perform_Gaussian_Fit(vX, vY, vW, lpgfpParamters,
