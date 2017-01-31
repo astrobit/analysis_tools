@@ -1421,13 +1421,20 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 						m_dBest_Fit = dFit;
 					}
 					std::ofstream ofsIndividual_Fit_File;
-					std::ofstream ofsIndividual_Fit_File_Plot;
 					if (i_lppsEjecta != nullptr || i_lppsShell != nullptr)
 						ofsIndividual_Fit_File.open("Results/individual_fit_data_single.csv",std::ios_base::app);
 					else
 						ofsIndividual_Fit_File.open("Results/individual_fit_data.csv",std::ios_base::app);
 					Write_Fit(ofsIndividual_Fit_File,cFit_Result);
 					ofsIndividual_Fit_File.close();
+
+					std::ofstream ofsModel_Fit_File;
+					std::ostringstream ossModel_Fit_File;
+					ossModel_Fit_File << "Results/model_fit_data_" << cFit_Result.m_uiModel << ".csv";
+					ofsModel_Fit_File.open(ossModel_Fit_File.str().c_str(),std::ios_base::app);
+					Write_Fit(ofsModel_Fit_File,cFit_Result);
+					ofsModel_Fit_File.close();
+
 					if (!bTarget_Data_Written)
 					{
 						std::ofstream ofsTarget_Data_File;
@@ -1463,6 +1470,14 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 								ofsIndividual_Fit_File.open("Results/individual_fit_data.csv",std::ios_base::app);
 							Write_Fit(ofsIndividual_Fit_File,cFit_Result);
 							ofsIndividual_Fit_File.close();
+
+							std::ofstream ofsModel_Fit_File;
+							std::ostringstream ossModel_Fit_File;
+							ossModel_Fit_File << "Results/model_fit_data_" << cFit_Result.m_uiModel << ".csv";
+							ofsModel_Fit_File.open(ossModel_Fit_File.str().c_str(),std::ios_base::app);
+							Write_Fit(ofsModel_Fit_File,cFit_Result);
+							ofsModel_Fit_File.close();
+
 							if (!bTarget_Data_Written)
 							{
 								std::ofstream ofsTarget_Data_File;
@@ -1698,7 +1713,26 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		Load_Models( vfitFits, mModel_Lists, mModel_Data);
 		Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
 
-		
+		std::cout << "here" << std::endl;
+		// generate header lines for model specific fit results files
+		for (auto iterModels = mModel_Data.begin(); iterModels != mModel_Data.end(); iterModels++)
+		{
+			std::ostringstream ossModel_Fit_File;
+			ossModel_Fit_File << "Results/model_fit_data_" << iterModels->first << ".csv";
+			std::cout << ossModel_Fit_File.str() << std::endl;
+			ifsTest.open(ossModel_Fit_File.str().c_str());
+			if (!ifsTest.is_open())
+			{
+				std::ofstream ofsFile;
+				ofsFile.open(ossModel_Fit_File.str().c_str(),std::ios_base::app);
+				assert(ofsFile.is_open());
+				Output_Result_Header(ofsFile);
+				ofsFile.close();
+			}
+			else
+				ifsTest.close();
+		}
+
 		// Deredden spectra if requested
 		Deredden( vfitFits);
 		// Done confirming and loading the data; begin the actual fitting
