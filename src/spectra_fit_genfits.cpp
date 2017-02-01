@@ -730,7 +730,7 @@ double pEW_Fit(const ES::Spectrum &i_cGenerated, const specfit::feature_paramete
 		o_cModel_Data.Process_Vmin(dWL,dFlux,8542.09); /// use central line of CaIII triplet for velocity determination
 	}
 
-	double dpEW_Err = (o_cModel_Data.m_d_pEW - i_fpTarget_Feature.m_d_pEW);
+	double dpEW_Err = (o_cModel_Data.m_d_pEW - i_fpTarget_Feature.m_d_pEW) * 10.0; // 10.0 = extra weight to pEW
 	double dVel_Err = (o_cModel_Data.m_dVmin - i_fpTarget_Feature.m_dVmin);
 	double dErr = dpEW_Err * dpEW_Err + dVel_Err * dVel_Err * 0.01; 
 	// 0.01 is a weight applied to the velocity component so that it doesn't overpower pEW err
@@ -1082,6 +1082,19 @@ void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cCo
 					&o_cModel_Data.m_cSynthetic_Observables.m_gfrSingle_Gaussian_Fit, 
 					&o_cModel_Data.m_cSynthetic_Observables.m_gfrDouble_Gaussian_Fit);
 
+}
+
+void Inc_Index(unsigned int * io_plIndices, unsigned int i_uiNum_Indices, unsigned int i_uiWrap_Value)
+{
+	if (i_uiNum_Indices != 0)
+	{
+		io_plIndices[0]++;
+		if (io_plIndices[0] >= i_uiWrap_Value)
+		{
+			io_plIndices[0] -= i_uiWrap_Value;
+			Inc_Index(&io_plIndices[1],i_uiNum_Indices - 1,i_uiWrap_Value);
+		}
+	}
 }
 
 double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug, const param_set * i_lppsEjecta, const param_set * i_lppsShell)
@@ -1445,9 +1458,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	vLower_Bounds_Valid.resize(uiParameters);
 	vLower_Bounds.Set(0,-5.0);
 	if (std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel) && !std::isnan(i_cFit.m_dMJD_Bmax))
-		vLower_Bounds.Set(1,-2.0);
+		vLower_Bounds.Set(1,-4.0);
 	else
-		vLower_Bounds.Set(1,-5.0);
+		vLower_Bounds.Set(1,-10.0);
 	vLower_Bounds.Set(2,-0.5);
 	vLower_Bounds_Valid[0] = true;
 	vLower_Bounds_Valid[1] = true;
@@ -1478,9 +1491,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	vUpper_Bounds_Valid[2] = true;
 	vUpper_Bounds.Set(0,10.0);
 	if (std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel) && !std::isnan(i_cFit.m_dMJD_Bmax))
-		vUpper_Bounds.Set(1,2.0);
+		vUpper_Bounds.Set(1,4.0);
 	else
-		vUpper_Bounds.Set(1,5.0);
+		vUpper_Bounds.Set(1,10.0);
 	vUpper_Bounds.Set(2,0.5);
 	if (uiParameters > 3)
 	{
@@ -1527,6 +1540,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();
 
 
+
 	if (vStarting_Point.is_nan())
 	{
 		std::cerr << "Error: starting point contains nan." << std::endl;
@@ -1542,8 +1556,66 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		Fit_Function(vStarting_Point, &cCall_Data);
 	}
 	else
-		XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
+	{
+		std::vector<xvector> vxvGrid;
+		unsigned int *lpuiIndices = new unsigned int[vLower_Bounds.size()];
+		memset(lpuiIndices,0,sizeof(unsigned int) * vLower_Bounds.size());
+		xvector vDelta = vUpper_Bounds - vLower_Bounds;
+	
+		bool bDone = false;
+		do
+		{
 
+			xvector vX(vDelta.size());
+			for (unsigned int uiN = 0; uiN < vLower_Bounds.size(); uiN++)
+			{
+				vX.Set(uiN,vDelta.Get(uiN) * 0.5 * lpuiIndices[uiN]);
+			}
+			vX += vLower_Bounds;
+			vxvGrid.push_back(vX);
+			Inc_Index(lpuiIndices,vLower_Bounds.size(), 3);
+			// test for completion of grid: if all indeces have wrapped back to 0, quit
+			bDone = true;
+			for (unsigned int uiN = 0; uiN < vLower_Bounds.size() && bDone; uiN++)
+			{
+				bDone = lpuiIndices[uiN] == 0;
+			}
+		} while (!bDone);
+		double dBest_Fit_Grid = DBL_MAX;
+		xvector vStart_Point_Best;
+		char lspzFilename[256];
+		sprintf(lspzFilename,"Results/grid_fit_%02i.csv",i_cModel.m_uiModel_ID);
+		FILE * fileGridFitInfo = fopen(lspzFilename,"wt");
+		for (std::vector<xvector>::iterator iterI = vxvGrid.begin(); iterI != vxvGrid.end(); iterI++)
+		{
+			for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
+			{
+				printf("%.2f, ",iterI->Get(uiK));
+			}
+			double dFit = Fit_Function(*iterI, &cCall_Data);
+			printf("%.2e\n",dFit);
+			if (dFit < dBest_Fit_Grid)
+			{
+				vStart_Point_Best = *iterI;
+				dBest_Fit_Grid = dFit;
+			}
+			if (fileGridFitInfo)
+			{
+				for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
+				{
+					fprintf(fileGridFitInfo,"%.2f, ",iterI->Get(uiK));
+				}
+				fprintf(fileGridFitInfo,", %.2e\n",dFit);
+			}
+		}
+		if (fileGridFitInfo)
+		{
+			fclose(fileGridFitInfo);
+		}
+		vStarting_Point = vStart_Point_Best;
+		//XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
+		XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
+	}
 //	xPerform_Fit_Bound_Simplex(cBounds[0],cBounds[1],cThreshold,Fit_Function,cResult,&cCall_Data,szCache.c_str());
 
 //	printf("Generating\n");
