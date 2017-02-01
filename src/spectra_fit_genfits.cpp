@@ -1583,9 +1583,23 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		} while (!bDone);
 		double dBest_Fit_Grid = DBL_MAX;
 		xvector vStart_Point_Best;
-		char lspzFilename[256];
-		sprintf(lspzFilename,"Results/grid_fit_%02i.csv",i_cModel.m_uiModel_ID);
-		FILE * fileGridFitInfo = fopen(lspzFilename,"wt");
+		std::string szInst_File_Friendly = i_cFit.m_szInstrument;
+		for (std::string::iterator iterI = szInst_File_Friendly.begin(); iterI != szInst_File_Friendly.end(); iterI++)
+		{
+			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
+				*iterI = '_';
+		}
+		std::string szSource_File_Friendly = i_cFit.m_szSource;
+		for (std::string::iterator iterI = szSource_File_Friendly.begin(); iterI != szSource_File_Friendly.end(); iterI++)
+		{
+			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
+				*iterI = '_';
+		}
+
+		std::ostringstream ossGrid_Filename; 
+		ossGrid_Filename << "Results/grid_fit_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model_" << i_cModel.m_uiModel_ID << ".csv";
+
+		FILE * fileGridFitInfo = fopen(ossGrid_Filename.str().c_str(),"wt");
 		for (std::vector<xvector>::iterator iterI = vxvGrid.begin(); iterI != vxvGrid.end(); iterI++)
 		{
 			for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
