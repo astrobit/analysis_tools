@@ -571,6 +571,7 @@ public:
 	specfit::feature_parameters		m_fpTarget_Feature_Parameters;
 	double					m_dOII_P_Cygni_Peak_WL;
 	double 					m_dCaII_P_Cygni_Peak_WL;
+	specfit::feature_parameters		m_fpResult_Feature_Parameters;
 
 	spectra_fit_data(void) : m_cParam()
 	{
@@ -584,8 +585,10 @@ public:
 
 
 
-#define FIT_BLUE_WL 4500.0
-#define FIT_RED_WL 9000.0
+//#define FIT_BLUE_WL 4500.0
+//#define FIT_RED_WL 9000.0
+#define FIT_BLUE_WL 6500.0
+#define FIT_RED_WL 7900.0
 void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, double & o_dTarget_Flux, double & o_dGenerated_Flux)
 {
 	unsigned int uiIdx = 0;
@@ -766,6 +769,7 @@ double Continuum_Fit(const ES::Spectrum &i_cGenerated, const ES::Spectrum &i_cCo
 double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 {
 //	printf(".");fflush(stdout);
+	fflush(stdout);
 	double dFit = DBL_MAX;
 	spectra_fit_data *lpcCall_Data = (spectra_fit_data *)i_lpvSpectra_Fit_Data;
 	if (lpcCall_Data && lpcCall_Data->m_lpcTarget != nullptr && lpcCall_Data->m_lpcOpacity_Map_A != nullptr)
@@ -904,10 +908,11 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		fflush(stdout);
 		dFit = pEW_Fit(cOutput,lpcCall_Data->m_fpTarget_Feature_Parameters,cfpModel) + Continuum_Fit(cOutput_Continuum,cTrue_Continuum,cfpCont_Model);
 		printf(" (%.2f %.1f -- %.2f) ",cfpModel.m_d_pEW,cfpModel.m_dVmin,cfpCont_Model.m_d_pEW);
+		lpcCall_Data->m_fpResult_Feature_Parameters = cfpModel;
 		fflush(stdout);
 
 		double dScale = lpcCall_Data->m_lpcTarget[0].flux(0) / dTgt_Norm;
-		//scaling continuum for fit: the scaling factors for the main fitting region will be used, so scale
+		//scaling continuum for fit: the scaling factors for t main fitting region will be used, so scale
 		// true continuum to the blue edge of the fit region, and scale the test spectrum to the blue edge / scaling factor for blue edge * scaling factor for actual test region
 		// this makes sure that the continuum region gets scaled the same as the main region, so it has equal weight.
 		for (unsigned int uiI = 0; uiI < cOutput_Continuum.size(); uiI++)
@@ -915,7 +920,38 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 			cOutput_Continuum.flux(uiI) *= dScale * dGen_Norm;
 			cTarget_Continuum.flux(uiI) = lpcCall_Data->m_lpcTarget[0].flux(0);
 		}
-//		dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cParam.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cParam.m_dWavelength_Range_Upper_Ang,2,true) + Get_Fit(cTarget_Continuum, cOutput_Continuum, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang,2,false);
+		double dFlux_min = DBL_MAX;
+		double dFlux_Min_Wl = 0.0;
+		double dFlux_Max = 0.0;
+		double dFlux_Max_Wl = 0.0;
+		for (unsigned int uiI = 0; uiI < lpcCall_Data->m_lpcTarget[0].size(); uiI++)
+		{
+			double dFlux = lpcCall_Data->m_lpcTarget[0].flux(uiI);
+			if (dFlux < dFlux_min)
+			{
+				dFlux_min = dFlux;
+				dFlux_Min_Wl = lpcCall_Data->m_lpcTarget[0].wl(uiI);
+			}
+		}
+		for (unsigned int uiI = 0; uiI < lpcCall_Data->m_lpcTarget[0].size(); uiI++)
+		{
+			double dWL = lpcCall_Data->m_lpcTarget[0].wl(uiI);
+			if (dWL > dFlux_Min_Wl)
+			{
+				double dFlux = lpcCall_Data->m_lpcTarget[0].flux(uiI);
+				if (dFlux > dFlux_Max)
+				{
+					dFlux_Max = dFlux;
+					dFlux_Max_Wl = dWL;
+				}
+			}
+		}
+		dFlux_Min_Wl -= 50.0;
+//		printf("%.1f %.1f\n",dFlux_Min_Wl,dFlux_Max_Wl);
+
+		dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, dFlux_Min_Wl, dFlux_Max_Wl,2,true) ;
+		dFit += Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cParam.m_dWavelength_Range_Lower_Ang, dFlux_Min_Wl,2,true) * 0.1;
+		dFit += Get_Fit(cTarget_Continuum, cOutput_Continuum, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang,2,false);
 
 //		std::cout << std::endl << cParam.m_dWavelength_Range_Lower_Ang << " " << cOutput_Continuum.wl(0) << " " << cTarget_Continuum.wl(0) << std::endl;
 		if (lpcCall_Data->m_bDebug)
@@ -1097,7 +1133,105 @@ void Inc_Index(unsigned int * io_plIndices, unsigned int i_uiNum_Indices, unsign
 	}
 }
 
-double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug, const param_set * i_lppsEjecta, const param_set * i_lppsShell)
+double Bracket_Temperature(double & io_dTemp_Low, double & io_dTemp_Hi, const ES::Spectrum & i_cFull_Target)
+{
+	double dResult = 0.0;
+
+	double dTemp_Low = io_dTemp_Low;
+	double	dTemp_Hi = io_dTemp_Hi;
+	double dFlux_Low = 0.0;
+	double dFlux_Hi = 0.0;
+	double dFlux_Target = 0.0;
+	double dVariance_Hi = 0.0;
+	double dVariance_Lo = 0.0;
+	double dDelta_WL = (i_cFull_Target.wl(1) - i_cFull_Target.wl(0));
+	for (unsigned int uiI = 0; uiI < i_cFull_Target.size(); uiI++)
+	{
+		if (i_cFull_Target.wl(uiI) >= FIT_BLUE_WL && i_cFull_Target.wl(uiI) <= FIT_RED_WL)
+		{
+			double dE = g_XASTRO.k_dh * g_XASTRO.k_dc / (i_cFull_Target.wl(uiI) * 1.0e-8);
+
+			dFlux_Target += i_cFull_Target.flux(uiI) * dDelta_WL;
+			dFlux_Low += XA_Planck_Photon_Flux(i_cFull_Target.wl(uiI) * 1.0e-8,&dTemp_Low) * dDelta_WL * dE;
+			dFlux_Hi += XA_Planck_Photon_Flux(i_cFull_Target.wl(uiI) * 1.0e-8,&dTemp_Hi) * dDelta_WL * dE;
+
+		}
+	}
+	for (unsigned int uiI = 0; uiI < i_cFull_Target.size(); uiI++)
+	{
+		if (i_cFull_Target.wl(uiI) >= 4000)// && i_cFull_Target.wl(uiI) <= FIT_RED_WL)
+		{
+			double dE = g_XASTRO.k_dh * g_XASTRO.k_dc / (i_cFull_Target.wl(uiI) * 1.0e-8);
+			double dErr_Lo = (dFlux_Target / dFlux_Low) * XA_Planck_Photon_Flux(i_cFull_Target.wl(uiI) * 1.0e-8,&dTemp_Low) * dE - i_cFull_Target.flux(uiI);
+			double dErr_Hi = (dFlux_Target / dFlux_Hi) * XA_Planck_Photon_Flux(i_cFull_Target.wl(uiI) * 1.0e-8,&dTemp_Hi) * dE - i_cFull_Target.flux(uiI);
+			dVariance_Lo += dErr_Lo * dErr_Lo;
+			dVariance_Hi += dErr_Hi * dErr_Hi;
+
+		}
+	}
+
+	unsigned int uiCount = 0;
+	do
+	{
+		double dTemp_Test= (dTemp_Hi - dTemp_Low) * 0.5 + dTemp_Low;
+		double dFlux_Test = 0.0;
+		double dVariance_Test = 0.0;
+		for (unsigned int uiI = 0; uiI < i_cFull_Target.size(); uiI++)
+		{
+			if (i_cFull_Target.wl(uiI) >= FIT_BLUE_WL && i_cFull_Target.wl(uiI) <= FIT_RED_WL)
+			{
+				double dE = g_XASTRO.k_dh * g_XASTRO.k_dc / (i_cFull_Target.wl(uiI) * 1.0e-8);
+
+				dFlux_Test += XA_Planck_Photon_Flux(i_cFull_Target.wl(uiI) * 1.0e-8,&dTemp_Test) * dDelta_WL * dE;
+			}
+		}
+		for (unsigned int uiI = 0; uiI < i_cFull_Target.size(); uiI++)
+		{
+			if (i_cFull_Target.wl(uiI) >= 4000)//FIT_BLUE_WL && i_cFull_Target.wl(uiI) <= FIT_RED_WL)
+			{
+				double dE = g_XASTRO.k_dh * g_XASTRO.k_dc / (i_cFull_Target.wl(uiI) * 1.0e-8);
+				double dErr_Test = (dFlux_Target / dFlux_Test) * XA_Planck_Photon_Flux(i_cFull_Target.wl(uiI) * 1.0e-8,&dTemp_Test) * dE - i_cFull_Target.flux(uiI);
+				dVariance_Test += dErr_Test * dErr_Test;
+
+			}
+		}
+		dResult = dVariance_Test;
+		if (dVariance_Lo < dVariance_Hi && dVariance_Test < dVariance_Hi)
+		{
+			dVariance_Hi = dVariance_Test;
+			dTemp_Hi = dTemp_Test;
+		}
+		else if (dVariance_Lo > dVariance_Hi && dVariance_Test < dVariance_Lo)
+		{
+			dVariance_Lo = dVariance_Test;
+			dTemp_Low = dTemp_Test;
+		}
+		else
+		{
+			double dTemp_Tests[2] = {dTemp_Test,dTemp_Test};
+			double dTest_Low = Bracket_Temperature(dTemp_Low,dTemp_Tests[0],i_cFull_Target);
+			double dTest_Hi = Bracket_Temperature(dTemp_Tests[1],dTemp_Hi,i_cFull_Target);
+			if (dTest_Low < dTest_Hi)
+			{
+				dTemp_Hi = dTemp_Tests[0];
+				dResult =  dTest_Low;
+			}
+			else
+			{
+				dTemp_Low = dTemp_Tests[1];
+				dResult =  dTest_Hi;
+			}
+			uiCount = 9;
+		}
+		uiCount++;
+	} while (uiCount < 8);
+
+	io_dTemp_Low = dTemp_Low;
+	io_dTemp_Hi = dTemp_Hi;
+	return dResult;
+}
+
+double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug, const param_set * i_lppsEjecta, const param_set * i_lppsShell,const bool * i_lpbPerform_Single_Fit)
 {
 
 
@@ -1303,6 +1437,13 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		}
 	}
 
+	double dTemp_Low = 10000.0;
+	double	dTemp_Hi = 25000.0;
+	double dVar = Bracket_Temperature(dTemp_Low,dTemp_Hi,cFull_Target);
+	printf("%.2e : (%.0f - %.0f)\n",dVar,dTemp_Low,dTemp_Hi);
+	// debug: set temps to 5000
+	//dTemp_Low = dTemp_Hi = 5000.0;
+
 	cCall_Data.m_cParam.m_dTime_After_Explosion = 1.0; // 1d after explosion, since this is degenerate with log S
 	
 	cCall_Data.m_cParam.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang) / cTarget.size();
@@ -1456,11 +1597,12 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 	vLower_Bounds.Set_Size(uiParameters);
 	vLower_Bounds_Valid.resize(uiParameters);
-	vLower_Bounds.Set(0,-5.0);
-	if (std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel) && !std::isnan(i_cFit.m_dMJD_Bmax))
-		vLower_Bounds.Set(1,-4.0);
-	else
-		vLower_Bounds.Set(1,-10.0);
+	vLower_Bounds.Set(0,dTemp_Low * 1.0e-3);
+	vLower_Bounds.Set(1,5.0);
+//	if (std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel) && !std::isnan(i_cFit.m_dMJD_Bmax))
+//		vLower_Bounds.Set(1,5.0);
+//	else
+//		vLower_Bounds.Set(1,-10.0);
 	vLower_Bounds.Set(2,-0.5);
 	vLower_Bounds_Valid[0] = true;
 	vLower_Bounds_Valid[1] = true;
@@ -1489,15 +1631,16 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	vUpper_Bounds_Valid[0] = true;
 	vUpper_Bounds_Valid[1] = true;
 	vUpper_Bounds_Valid[2] = true;
-	vUpper_Bounds.Set(0,10.0);
-	if (std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel) && !std::isnan(i_cFit.m_dMJD_Bmax))
-		vUpper_Bounds.Set(1,4.0);
-	else
-		vUpper_Bounds.Set(1,10.0);
-	vUpper_Bounds.Set(2,0.5);
+	vUpper_Bounds.Set(0,dTemp_Hi * 1.0e-3);
+//	if (std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel) && !std::isnan(i_cFit.m_dMJD_Bmax))
+//		vUpper_Bounds.Set(1,4.0);
+//	else
+//		vUpper_Bounds.Set(1,10.0);
+	vUpper_Bounds.Set(1,25.0);
+	vUpper_Bounds.Set(2,3.0);
 	if (uiParameters > 3)
 	{
-		vUpper_Bounds.Set(3,0.5);
+		vUpper_Bounds.Set(3,3.0);
 		vUpper_Bounds_Valid[3] = true;
 	}
 	else if (uiParameters == 7)
@@ -1514,8 +1657,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		vUpper_Bounds.Set(6,0.75);
 		vUpper_Bounds_Valid[6] = true;
 	}
-	vUpper_Bounds += vStarting_Point;
-	vLower_Bounds += vStarting_Point;
+	printf("Temp: %.0f %.0f\n",vLower_Bounds.Get(0),vUpper_Bounds.Get(0));
+	//vUpper_Bounds += vStarting_Point;
+	//vLower_Bounds += vStarting_Point;
 
 	cCall_Data.m_cContinuum_Band_Param = cCall_Data.m_cParam;
 	switch (i_cFit.m_eFeature)
@@ -1538,7 +1682,23 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		break;
 	}
 	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();
+	if (i_lpbPerform_Single_Fit != nullptr && i_lpbPerform_Single_Fit[0])
+	{
+		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
+		vStarting_Point.Set(1,i_lppsEjecta->m_dPS_Vel);
+		vStarting_Point.Set(2,i_lppsEjecta->m_dLog_S + vLog_S_Delta[2]);
+		vStarting_Point.Set(3,i_lppsShell->m_dLog_S + vLog_S_Delta[3]);
 
+		vLower_Bounds.Set(0,vStarting_Point.Get(0)-2.5);
+		vLower_Bounds.Set(1,vStarting_Point.Get(1)-2.5);
+		vLower_Bounds.Set(2,vStarting_Point.Get(2)-0.3);
+		vLower_Bounds.Set(3,vStarting_Point.Get(3)-0.3);
+
+		vUpper_Bounds.Set(0,vStarting_Point.Get(0)+2.5);
+		vUpper_Bounds.Set(1,vStarting_Point.Get(1)+2.5);
+		vUpper_Bounds.Set(2,vStarting_Point.Get(2)+0.3);
+		vUpper_Bounds.Set(3,vStarting_Point.Get(3)+0.3);
+	}
 
 
 	if (vStarting_Point.is_nan())
@@ -1546,7 +1706,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		std::cerr << "Error: starting point contains nan." << std::endl;
 		return DBL_MAX;
 	}
-	else if (i_lppsEjecta != nullptr || i_lppsShell != nullptr) // the user has specified an exact set of parameters to use.
+	else if ((i_lppsEjecta != nullptr || i_lppsShell != nullptr) && !i_lpbPerform_Single_Fit[0]) // the user has specified an exact set of parameters to use.
 	{
 		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
 		vStarting_Point.Set(1,i_lppsEjecta->m_dPS_Vel);
@@ -1557,78 +1717,98 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 	else
 	{
-		std::vector<xvector> vxvGrid;
-		unsigned int *lpuiIndices = new unsigned int[vLower_Bounds.size()];
-		memset(lpuiIndices,0,sizeof(unsigned int) * vLower_Bounds.size());
-		xvector vDelta = vUpper_Bounds - vLower_Bounds;
-	
-		bool bDone = false;
+		unsigned int uiRefines = 0;
+		unsigned int uiRefines_Max = 4;
+		unsigned int uiGrid_Size = 4;
+		if ((i_lppsEjecta != nullptr || i_lppsShell != nullptr) && i_lpbPerform_Single_Fit[0]) // the user has specified an exact set of parameters to use.
+		{
+			//uiRefines_Max = 4;
+			uiGrid_Size = 2;
+		}
+
 		do
 		{
+			std::vector<xvector> vxvGrid;
+			unsigned int *lpuiIndices = new unsigned int[vLower_Bounds.size() - 1];
+			memset(lpuiIndices,0,sizeof(unsigned int) * vLower_Bounds.size() - 1);
+			xvector vDelta = vUpper_Bounds - vLower_Bounds;
+			double dGrid_Side = 1.0 / uiGrid_Size;
+	
+			bool bDone = false;
+			do
+			{
 
-			xvector vX(vDelta.size());
-			for (unsigned int uiN = 0; uiN < vLower_Bounds.size(); uiN++)
+				xvector vX(vDelta.size());
+				vX.Set(0,0.0);
+				for (unsigned int uiN = 1; uiN < vLower_Bounds.size(); uiN++)
+				{
+					vX.Set(uiN,vDelta.Get(uiN) * dGrid_Side * lpuiIndices[uiN - 1]);
+				}
+				vX += vLower_Bounds;
+				vxvGrid.push_back(vX);
+				Inc_Index(lpuiIndices,vLower_Bounds.size() - 1, uiGrid_Size + 1);
+				// test for completion of grid: if all indeces have wrapped back to 0, quit
+				bDone = true;
+				for (unsigned int uiN = 0; uiN < vLower_Bounds.size() - 1 && bDone; uiN++)
+				{
+					bDone = lpuiIndices[uiN] == 0;
+				}
+			} while (!bDone);
+			double dBest_Fit_Grid = DBL_MAX;
+			xvector vStart_Point_Best;
+			std::string szInst_File_Friendly = i_cFit.m_szInstrument;
+			for (std::string::iterator iterI = szInst_File_Friendly.begin(); iterI != szInst_File_Friendly.end(); iterI++)
 			{
-				vX.Set(uiN,vDelta.Get(uiN) * 0.5 * lpuiIndices[uiN]);
+				if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
+					*iterI = '_';
 			}
-			vX += vLower_Bounds;
-			vxvGrid.push_back(vX);
-			Inc_Index(lpuiIndices,vLower_Bounds.size(), 3);
-			// test for completion of grid: if all indeces have wrapped back to 0, quit
-			bDone = true;
-			for (unsigned int uiN = 0; uiN < vLower_Bounds.size() && bDone; uiN++)
+			std::string szSource_File_Friendly = i_cFit.m_szSource;
+			for (std::string::iterator iterI = szSource_File_Friendly.begin(); iterI != szSource_File_Friendly.end(); iterI++)
 			{
-				bDone = lpuiIndices[uiN] == 0;
+				if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
+					*iterI = '_';
 			}
-		} while (!bDone);
-		double dBest_Fit_Grid = DBL_MAX;
-		xvector vStart_Point_Best;
-		std::string szInst_File_Friendly = i_cFit.m_szInstrument;
-		for (std::string::iterator iterI = szInst_File_Friendly.begin(); iterI != szInst_File_Friendly.end(); iterI++)
-		{
-			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
-				*iterI = '_';
-		}
-		std::string szSource_File_Friendly = i_cFit.m_szSource;
-		for (std::string::iterator iterI = szSource_File_Friendly.begin(); iterI != szSource_File_Friendly.end(); iterI++)
-		{
-			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
-				*iterI = '_';
-		}
 
-		std::ostringstream ossGrid_Filename; 
-		ossGrid_Filename << "Results/grid_fit_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model_" << i_cModel.m_uiModel_ID << ".csv";
+			std::ostringstream ossGrid_Filename; 
+			ossGrid_Filename << "Results/grid_fit_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model_" << i_cModel.m_uiModel_ID << ".csv";
 
-		FILE * fileGridFitInfo = fopen(ossGrid_Filename.str().c_str(),"wt");
-		for (std::vector<xvector>::iterator iterI = vxvGrid.begin(); iterI != vxvGrid.end(); iterI++)
-		{
-			for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
-			{
-				printf("%.2f, ",iterI->Get(uiK));
-			}
-			double dFit = Fit_Function(*iterI, &cCall_Data);
-			printf("%.2e\n",dFit);
-			if (dFit < dBest_Fit_Grid)
-			{
-				vStart_Point_Best = *iterI;
-				dBest_Fit_Grid = dFit;
-			}
-			if (fileGridFitInfo)
+			FILE * fileGridFitInfo = fopen(ossGrid_Filename.str().c_str(),"wt");
+			for (std::vector<xvector>::iterator iterI = vxvGrid.begin(); iterI != vxvGrid.end(); iterI++)
 			{
 				for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
 				{
-					fprintf(fileGridFitInfo,"%.2f, ",iterI->Get(uiK));
+					printf("%.2f, ",iterI->Get(uiK));
 				}
-				fprintf(fileGridFitInfo,", %.2e\n",dFit);
+				double dFit = Fit_Function(*iterI, &cCall_Data);
+				printf("%.2e\n",dFit);
+				if (dFit < dBest_Fit_Grid)
+				{
+					vStart_Point_Best = *iterI;
+					dBest_Fit_Grid = dFit;
+				}
+				if (fileGridFitInfo)
+				{
+					for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
+					{
+						fprintf(fileGridFitInfo,"%.2f, ",iterI->Get(uiK));
+					}
+					fprintf(fileGridFitInfo,"%.2e, %.2e, %.2e\n",dFit,cCall_Data.m_fpResult_Feature_Parameters.m_d_pEW,cCall_Data.m_fpResult_Feature_Parameters.m_dVmin);
+				}
 			}
-		}
-		if (fileGridFitInfo)
-		{
-			fclose(fileGridFitInfo);
-		}
-		vStarting_Point = vStart_Point_Best;
+			if (fileGridFitInfo)
+			{
+				fclose(fileGridFitInfo);
+			}
+			vStarting_Point = vStart_Point_Best;
+
+			vDelta *= 0.5 * dGrid_Side;
+			vUpper_Bounds = vStarting_Point + 0.5 * vDelta;
+			vLower_Bounds = vStarting_Point - 0.5 * vDelta;
+			uiRefines++;
+		} while (uiRefines < uiRefines_Max);
 		//XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
-		XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
+		Fit_Function(vStarting_Point, &cCall_Data);
+//		XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
 	}
 //	xPerform_Fit_Bound_Simplex(cBounds[0],cBounds[1],cThreshold,Fit_Function,cResult,&cCall_Data,szCache.c_str());
 

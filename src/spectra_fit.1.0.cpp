@@ -1379,7 +1379,7 @@ void Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & i_
 //
 //------------------------------------------------------------------------------
 typedef std::vector < specfit::fit_result > best_fit_results;
-void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug = false, const specfit::param_set * i_lppsEjecta = nullptr, const specfit::param_set * i_lppsShell = nullptr)
+void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug = false, const specfit::param_set * i_lppsEjecta = nullptr, const specfit::param_set * i_lppsShell = nullptr, const bool * i_lpbPerform_Single_Fit = nullptr)
 {
 	bool bTarget_Data_Written = false;
 	for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); iterFit != i_vfitFits.end(); iterFit++)
@@ -1414,7 +1414,7 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 				{
 					std::cout << "Model # " << *iterMod << std::endl;
 					specfit::fit_result	cFit_Result;
-					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell);
+					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell,i_lpbPerform_Single_Fit);
 					if (dFit >= 0.0 && dFit < m_dBest_Fit)
 					{
 						cBest_Fit_Result = cFit_Result;
@@ -1457,7 +1457,7 @@ void Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::s
 						{
 							std::cout << "Model # " << *iterMod << std::endl;
 							specfit::fit_result	cFit_Result;
-							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell);
+							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell,i_lpbPerform_Single_Fit);
 							if (dFit >= 0.0 && dFit < m_dBest_Fit)
 							{
 								cBest_Fit_Result = cFit_Result;
@@ -1592,6 +1592,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	}
 	bool bDebug = false;
 	bool bSingle = false;
+	bool bTry_Single_Fit = false;
 	for (std::vector<std::string>::iterator iterI = vCL_Arguments.begin(); iterI != vCL_Arguments.end(); iterI++)
 	{
 		if (iterI->find(".xml") != std::string::npos)
@@ -1600,6 +1601,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			bDebug = true;
 		else if ((iterI->substr(0,8) == "--ps-vel") || (iterI->substr(0,9) == "--ps-temp") || (iterI->substr(0,4) == "--Se") || (iterI->substr(0,4) == "--Ss"))
 			bSingle = true;
+		else  if (iterI->substr(0,5) == "--fit")
+			bTry_Single_Fit = true;
 		else
 			std::cerr << "Unrecognized command line parameter " << *iterI << std::endl;
 	}
@@ -1613,6 +1616,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		cRef_Data_E.m_dLog_S = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--Se", 3.0);
 		cRef_Data_S = cRef_Data_E;
 		cRef_Data_S.m_dLog_S = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--Ss", 4.0);
+		bTry_Single_Fit = xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values, "--fit");
 	}
 	if (bDebug)
 	{
@@ -1713,7 +1717,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		Load_Models( vfitFits, mModel_Lists, mModel_Data);
 		Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
 
-		std::cout << "here" << std::endl;
 		// generate header lines for model specific fit results files
 		for (auto iterModels = mModel_Data.begin(); iterModels != mModel_Data.end(); iterModels++)
 		{
@@ -1737,7 +1740,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		Deredden( vfitFits);
 		// Done confirming and loading the data; begin the actual fitting
 		if (bSingle)
-			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug, &cRef_Data_E, &cRef_Data_S);
+			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug, &cRef_Data_E, &cRef_Data_S, &bTry_Single_Fit);
 		else
 			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug);
 

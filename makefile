@@ -305,7 +305,7 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 ifdef JSONCPP
 sf: $(BINDIR)/sf
 $(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) $(LIBDIR)/libspecfit.a $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp $(INCLUDEDIR)/eps_plot.h
-	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_genfits.cpp $(SRCDIR)/spectra_fit.1.0.cpp $(ESFLAGS) $(ESLIBS) $(JSONCPP) $(PLOTUTILLIB) -llinerout -lspecfit -lxml2 -lxmath -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_genfits.cpp $(SRCDIR)/spectra_fit.1.0.cpp $(ESFLAGS) $(ESLIBS) $(JSONCPP) $(PLOTUTILLIB) -llinerout -lspecfit -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
 
 genjsonfit: $(BINDIR)/genjsonfit
 $(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)

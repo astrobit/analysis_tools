@@ -174,7 +174,7 @@ namespace specfit
 		fit_result(void);
 	};
 
-	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug = false, const param_set * i_lppsEjecta = nullptr, const param_set * i_lppsShell = nullptr);
+	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug = false, const param_set * i_lppsEjecta = nullptr, const param_set * i_lppsShell = nullptr, const bool * i_lpbPerform_Single_Fit = nullptr);
 
 
 };
