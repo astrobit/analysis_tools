@@ -179,3 +179,8 @@ namespace specfit
 
 };
 
+//#define FIT_BLUE_WL 4500.0
+//#define FIT_RED_WL 9000.0
+#define FIT_BLUE_WL 6500.0
+#define FIT_RED_WL 7900.0
+
