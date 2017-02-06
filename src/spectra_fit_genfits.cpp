@@ -39,10 +39,6 @@ public:
 
 
 
-//#define FIT_BLUE_WL 4500.0
-//#define FIT_RED_WL 9000.0
-#define FIT_BLUE_WL 6500.0
-#define FIT_RED_WL 7900.0
 void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, double & o_dTarget_Flux, double & o_dGenerated_Flux)
 {
 	unsigned int uiIdx = 0;
