@@ -1,5 +1,4 @@
 #include <specfit.h>
-#include <model_spectra_db.h>
 #include <xlinalg.h>
 #include <xmath.h>
 #include <line_routines.h>
@@ -7,35 +6,6 @@
 #include <xfit.h>
 #include <fstream>
 #include <iomanip>
-
-
-class spectra_fit_data
-{
-public:
-	msdb::USER_PARAMETERS	m_cParam;
-	msdb::USER_PARAMETERS	m_cContinuum_Band_Param;
-
-	const ES::Spectrum *	m_lpcTarget;
-	const XDATASET *				m_lpcOpacity_Map_A;
-	const XDATASET *				m_lpcOpacity_Map_B;
-
-	bool					m_bDebug;
-	unsigned int			m_uiDebug_Idx;
-
-	specfit::feature_parameters		m_fpTarget_Feature_Parameters;
-	double					m_dOII_P_Cygni_Peak_WL;
-	double 					m_dCaII_P_Cygni_Peak_WL;
-	specfit::feature_parameters		m_fpResult_Feature_Parameters;
-
-	spectra_fit_data(void) : m_cParam()
-	{
-		m_lpcTarget = nullptr;
-		m_lpcOpacity_Map_A = nullptr;
-		m_lpcOpacity_Map_B = nullptr;
-		m_bDebug = false;
-		m_uiDebug_Idx = 1;
-	}
-};
 
 
 
@@ -221,7 +191,7 @@ double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 //	printf(".");fflush(stdout);
 	fflush(stdout);
 	double dFit = DBL_MAX;
-	spectra_fit_data *lpcCall_Data = (spectra_fit_data *)i_lpvSpectra_Fit_Data;
+	specfit::spectra_fit_data *lpcCall_Data = (specfit::spectra_fit_data *)i_lpvSpectra_Fit_Data;
 	if (lpcCall_Data && lpcCall_Data->m_lpcTarget != nullptr && lpcCall_Data->m_lpcOpacity_Map_A != nullptr)
 	{
 		//std::cout << lpcCall_Data->m_lpcTarget->wl(0) << " " << lpcCall_Data->m_lpcTarget->flux(0) << std::endl;
@@ -685,7 +655,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 {
 
 
-	spectra_fit_data cCall_Data;
+	specfit::spectra_fit_data cCall_Data;
 
 	bool bShell = i_cModel.m_dsShell.GetNumElements() != 0;
 

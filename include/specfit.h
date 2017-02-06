@@ -6,6 +6,7 @@
 #include <opacity_profile_data.h>
 #include <xlinalg.h>
 #include <line_routines.h>
+#include <model_spectra_db.h>
 
 namespace specfit
 {
@@ -173,6 +174,37 @@ namespace specfit
 		void clear();
 		fit_result(void);
 	};
+
+
+	class spectra_fit_data
+	{
+	public:
+		msdb::USER_PARAMETERS	m_cParam;
+		msdb::USER_PARAMETERS	m_cContinuum_Band_Param;
+
+		const ES::Spectrum *	m_lpcTarget;
+		const XDATASET *				m_lpcOpacity_Map_A;
+		const XDATASET *				m_lpcOpacity_Map_B;
+
+		bool					m_bDebug;
+		unsigned int			m_uiDebug_Idx;
+
+		specfit::feature_parameters		m_fpTarget_Feature_Parameters;
+		double					m_dOII_P_Cygni_Peak_WL;
+		double 					m_dCaII_P_Cygni_Peak_WL;
+		specfit::feature_parameters		m_fpResult_Feature_Parameters;
+
+		spectra_fit_data(void) : m_cParam()
+		{
+			m_lpcTarget = nullptr;
+			m_lpcOpacity_Map_A = nullptr;
+			m_lpcOpacity_Map_B = nullptr;
+			m_bDebug = false;
+			m_uiDebug_Idx = 1;
+		}
+	};
+
+
 
 	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug = false, const param_set * i_lppsEjecta = nullptr, const param_set * i_lppsShell = nullptr, const bool * i_lpbPerform_Single_Fit = nullptr);
 
