@@ -45,12 +45,6 @@ $(LIBDIR)/libmsdb.a: $(SRCDIR)/model_spectra_db.cpp $(INCLUDEDIR)/model_spectra_
 	-rm $(LIBDIR)/libmsdb.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libmsdb.a $(TMPDIR)/model_spectra_db.o
 
-libspecfit: $(LIBDIR)/libspecfit.a
-$(LIBDIR)/libspecfit.a: $(SRCDIR)/spectra_fit_fit_results.cpp $(INCLUDEDIR)/specfit.h
-	$(CXX) $(CXXFLAGS) $(ESFLAGS) $(SRCDIR)/spectra_fit_fit_results.cpp -o $(TMPDIR)/spectra_fit_fit_results.o
-	-rm $(LIBDIR)/libspecfit.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libspecfit.a $(TMPDIR)/spectra_fit_fit_results.o
-
 $(OBJDIR)/line_anal.o: $(SRCDIR)/line_anal.cpp
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_anal.cpp  -o $(OBJDIR)/line_anal.o
 
@@ -304,8 +298,34 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 
 ifdef JSONCPP
 sf: $(BINDIR)/sf
-$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) $(LIBDIR)/libspecfit.a $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp $(INCLUDEDIR)/eps_plot.h
-	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_genfits.cpp $(SRCDIR)/spectra_fit.1.0.cpp $(ESFLAGS) $(ESLIBS) $(JSONCPP) $(PLOTUTILLIB) -llinerout -lspecfit -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
+$(LIBDIR)/libsf.a: $(SRCDIR)/sf_add_model_to_list.cpp $(SRCDIR)/sf_bracket_temp.cpp $(SRCDIR)/sf_calc_observables.cpp $(SRCDIR)/sf_continuum_fit.cpp $(SRCDIR)/sf_deredden.cpp $(SRCDIR)/sf_fit_function.cpp $(SRCDIR)/sf_get_fit.cpp $(SRCDIR)/sf_get_norm_flux.cpp $(SRCDIR)/sf_inc_index.cpp $(SRCDIR)/sf_load_data.cpp $(SRCDIR)/sf_load_data_files.cpp $(SRCDIR)/sf_load_models.cpp $(SRCDIR)/sf_msdb_load_gen.cpp $(SRCDIR)/sf_output_results.cpp $(SRCDIR)/sf_parse_xml.cpp $(SRCDIR)/sf_perform_fits.cpp $(SRCDIR)/sf_pew_fit.cpp $(SRCDIR)/sf_validate_json_data.cpp $(SRCDIR)/sf_write_fit.cpp $(SRCDIR)/sf_write_target_fit.cpp   $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp $(SRCDIR)/spectra_fit_fit_results.cpp
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_add_model_to_list.cpp -o $(TMPDIR)/sf_add_model_to_list.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_bracket_temp.cpp -o $(TMPDIR)/sf_bracket_temp.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_calc_observables.cpp -o $(TMPDIR)/sf_calc_observables.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_continuum_fit.cpp -o $(TMPDIR)/sf_continuum_fit.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_deredden.cpp -o $(TMPDIR)/sf_deredden.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_function.cpp -o $(TMPDIR)/sf_fit_function.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_fit.cpp -o $(TMPDIR)/sf_get_fit.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_norm_flux.cpp -o $(TMPDIR)/sf_get_norm_flux.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_inc_index.cpp -o $(TMPDIR)/sf_inc_index.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data.cpp -o $(TMPDIR)/sf_load_data.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data_files.cpp -o $(TMPDIR)/sf_load_data_files.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_models.cpp -o $(TMPDIR)/sf_load_models.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_msdb_load_gen.cpp -o $(TMPDIR)/sf_msdb_load_gen.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_output_results.cpp -o $(TMPDIR)/sf_output_results.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_parse_xml.cpp -o $(TMPDIR)/sf_parse_xml.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_perform_fits.cpp -o $(TMPDIR)/sf_perform_fits.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_pew_fit.cpp -o $(TMPDIR)/sf_pew_fit.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_validate_json_data.cpp -o $(TMPDIR)/sf_validate_json_data.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_fit.cpp -o $(TMPDIR)/sf_write_fit.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_target_fit.cpp -o $(TMPDIR)/sf_write_target_fit.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_genfits.cpp -o $(TMPDIR)/spectra_fit_genfits.o
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit_fit_results.cpp -o $(TMPDIR)/spectra_fit_fit_results.o
+	-rm $(LIBDIR)/libsf.a
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(TMPDIR)/sf_add_model_to_list.o  $(TMPDIR)/sf_bracket_temp.o  $(TMPDIR)/sf_calc_observables.o  $(TMPDIR)/sf_continuum_fit.o $(TMPDIR)/sf_deredden.o $(TMPDIR)/sf_fit_function.o $(TMPDIR)/sf_get_fit.o $(TMPDIR)/sf_get_norm_flux.o $(TMPDIR)/sf_inc_index.o $(TMPDIR)/sf_load_data.o $(TMPDIR)/sf_load_data_files.o $(TMPDIR)/sf_load_models.o $(TMPDIR)/sf_msdb_load_gen.o $(TMPDIR)/sf_output_results.o $(TMPDIR)/sf_parse_xml.o $(TMPDIR)/sf_perform_fits.o $(TMPDIR)/sf_pew_fit.o $(TMPDIR)/sf_validate_json_data.o $(TMPDIR)/sf_write_fit.o $(TMPDIR)/sf_write_target_fit.o $(TMPDIR)/spectra_fit_genfits.o $(TMPDIR)/spectra_fit_fit_results.o
+
+$(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(LIBDIR)/libsf.a $(INCLUDEDIR)/eps_plot.h  $(INCLUDEDIR)/specfit.h
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/spectra_fit.1.0.cpp $(JSONCPP) $(ESFLAGS) -lsf $(ESLIBS) $(PLOTUTILLIB) -llinerout -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
 
 genjsonfit: $(BINDIR)/genjsonfit
 $(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)

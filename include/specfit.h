@@ -7,6 +7,30 @@
 #include <xlinalg.h>
 #include <line_routines.h>
 #include <model_spectra_db.h>
+#include <iostream>
+#include <fstream>
+#include <json.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <string>
+#include <cmath>
+#include <xio.h>
+#include <opacity_profile_data.h>
+#include <sstream>
+#include <sys/types.h>
+#include <dirent.h>
+#include <specfit.h>
+#include <line_routines.h>
+#include <cstdio>
+#include <iomanip>
+#include <ios>
+	
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <eps_plot.h>
 
 namespace specfit
 {
@@ -189,10 +213,10 @@ namespace specfit
 		bool					m_bDebug;
 		unsigned int			m_uiDebug_Idx;
 
-		specfit::feature_parameters		m_fpTarget_Feature_Parameters;
+		feature_parameters		m_fpTarget_Feature_Parameters;
 		double					m_dOII_P_Cygni_Peak_WL;
 		double 					m_dCaII_P_Cygni_Peak_WL;
-		specfit::feature_parameters		m_fpResult_Feature_Parameters;
+		feature_parameters		m_fpResult_Feature_Parameters;
 
 		spectra_fit_data(void) : m_cParam()
 		{
@@ -204,9 +228,57 @@ namespace specfit
 		}
 	};
 
+	typedef std::vector < fit_result > best_fit_results;
+
+	void Output_Results(std::ofstream & io_fsBest_Fits, const best_fit_results & i_vResults);
+	void Parse_XML(const std::string &i_szFilename,
+		std::vector <fit> &o_vfitFits ,
+		std::map< unsigned int, model> &o_mModel_Data,
+		std::map< std::string, std::vector<unsigned int> > &o_mModel_Lists,
+		std::map< std::string, std::string > &o_mDatafile_List
+		);
+	void Load_Data_Files(const std::map< std::string, std::string > &i_mDatafile_List,
+		std::map< std::string, Json::Value> &o_mJson_Data,
+		std::map< std::string, std::vector<std::tuple<double,double,double> > > &o_mNon_Json_Data
+		);
+	void Validate_JSON_Data(const std::map< std::string, Json::Value> &i_mJson_Data);
+	void Add_Model_To_List(std::map< unsigned int, model> &io_o_mModel_Data, unsigned int i_uiModel);
+	void Load_Models(
+		std::vector <fit> &i_vfitFits,
+		std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists,
+		std::map< unsigned int, model> &o_mModel_Data
+		);
+	void Load_Data(
+		std::vector <fit> &io_vfitFits,
+		std::map< std::string, Json::Value> &i_mJson_Data,
+		std::map< std::string, std::vector<std::tuple<double,double,double> > > &i_mNon_Json_Data);
+	void Deredden(std::vector <fit> &io_vfitFits);
+	void Output_Result_Header(std::ofstream & io_ofsFile); // located in sf_write_fit.cpp
+	void Write_Fit(std::ofstream & io_ofsFile, const fit_result & i_cResult);
+	void Output_Target_Result_Header(std::ofstream & io_ofsFile); // located in sf_write_target_fit.cpp
+	void Write_Target_Fit(std::ofstream & io_ofsFile, const fit_result & i_cResult);
+
+	void Perform_Fits(std::vector <fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug = false, const param_set * i_lppsEjecta = nullptr, const param_set * i_lppsShell = nullptr, const bool * i_lpbPerform_Single_Fit = nullptr);
+
+
+
+
+
 
 
 	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug = false, const param_set * i_lppsEjecta = nullptr, const param_set * i_lppsShell = nullptr, const bool * i_lpbPerform_Single_Fit = nullptr);
+	void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, double & o_dTarget_Flux,	 double & o_dGenerated_Flux);
+	double	Get_Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiMoment, bool i_bRegenerate_Normalization = true);
+	void msdb_load_generate(msdb::USER_PARAMETERS	&i_cParam, msdb::SPECTRUM_TYPE i_eSpectrum_Type, const ES::Spectrum &i_cTarget, const XDATASET * i_cOp_Map_A, const XDATASET * i_cOp_Map_B, ES::Spectrum & o_cOutput);
+	double pEW_Fit(const ES::Spectrum &i_cGenerated, const feature_parameters & i_fpTarget_Feature, feature_parameters	&o_cModel_Data);
+	double Continuum_Fit(const ES::Spectrum &i_cGenerated, const ES::Spectrum &i_cContinuum, feature_parameters	&o_cModel_Data);
+	double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data);
+	void Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cContinuum, fit_result	&o_cModel_Data);
+	void Inc_Index(unsigned int * io_plIndices, unsigned int i_uiNum_Indices, unsigned int i_uiWrap_Value);
+	double Bracket_Temperature(double & io_dTemp_Low, double & io_dTemp_Hi, const ES::Spectrum & i_cFull_Target);
+
+	extern double	g_dTarget_Normalization_Flux;
+	extern double	g_dGenerated_Normalization_Flux;
 
 
 };
