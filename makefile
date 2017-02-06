@@ -24,6 +24,8 @@ ifdef TACC_HDF5_LIB
 endif
 SRC_SF := $(wildcard $(SRCDIR)/sf_*.cpp)
 OBJS_SF := $(subst $(SRCDIR),$(TMPDIR),$(patsubst %.cpp,%.o,$(SRC_SF)))
+SRC_LR := $(wildcard $(SRCDIR)/line_routines*.cpp)
+OBJS_LR := $(subst $(SRCDIR),$(TMPDIR),$(patsubst %.cpp,%.o,$(SRC_LR)))
 
 $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $< -o $@
@@ -35,13 +37,9 @@ $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utiliti
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libplotutil.a $(TMPDIR)/eps_plot.o $(TMPDIR)/Plot_Utilities.o 
 Plot_Utilities: $(LIBDIR)/libplotutil.a
 
-$(LIBDIR)/liblinerout.a: $(SRCDIR)/line_routines.cpp $(INCLUDEDIR)/line_routines.h $(XLIBSCHANGE) $(SRCDIR)/line_routines_gaussian_fit.cpp $(SRCDIR)/line_routines_ccm_dered.cpp  $(SRCDIR)/line_routines_radiation.cpp $(XLIBSCHANGE)
-	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines.cpp -o $(TMPDIR)/line_routines.o
-	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_gaussian_fit.cpp -o $(TMPDIR)/line_routines_gaussian_fit.o
-	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_ccm_dered.cpp -o $(TMPDIR)/line_routines_ccm_dered.o
-	$(CXX) $(CXXFLAGS) $(SRCDIR)/line_routines_radiation.cpp -o $(TMPDIR)/line_routines_radiation.o
+$(LIBDIR)/liblinerout.a: $(OBJS_LR) $(XLIBSCHANGE)
 	-rm $(LIBDIR)/liblinerout.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(TMPDIR)/line_routines.o $(TMPDIR)/line_routines_gaussian_fit.o $(TMPDIR)/line_routines_ccm_dered.o $(TMPDIR)/line_routines_radiation.o
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(OBJS_LR)
 line_routines: $(LIBDIR)/liblinerout.a
 
 msdb: $(LIBDIR)/libmsdb.a
