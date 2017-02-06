@@ -22,6 +22,11 @@ ifdef TACC_HDF5_LIB
 	LFLAGS += -L$(TACC_HDF5_LIB)
 	CLFLAGS += -L$(TACC_HDF5_LIB)
 endif
+SRC_SF := $(wildcard $(SRCDIR)/sf_*.cpp)
+OBJS_SF := $(subst $(SRCDIR),$(TMPDIR),$(patsubst %.cpp,%.o,$(SRC_SF)))
+
+$(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $< -o $@
 
 $(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utilities.h $(XLIBSCHANGE) $(INCLUDEDIR)/eps_plot.h $(SRCDIR)/eps_plot.cpp
 	$(CXX) $(CXXFLAGS) $(SRCDIR)/Plot_Utilities.cpp -o $(TMPDIR)/Plot_Utilities.o
@@ -298,31 +303,31 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 
 ifdef JSONCPP
 sf: $(BINDIR)/sf
-$(LIBDIR)/libsf.a: $(SRCDIR)/sf_add_model_to_list.cpp $(SRCDIR)/sf_bracket_temp.cpp $(SRCDIR)/sf_calc_observables.cpp $(SRCDIR)/sf_continuum_fit.cpp $(SRCDIR)/sf_deredden.cpp $(SRCDIR)/sf_fit_function.cpp $(SRCDIR)/sf_get_fit.cpp $(SRCDIR)/sf_get_norm_flux.cpp $(SRCDIR)/sf_inc_index.cpp $(SRCDIR)/sf_load_data.cpp $(SRCDIR)/sf_load_data_files.cpp $(SRCDIR)/sf_load_models.cpp $(SRCDIR)/sf_msdb_load_gen.cpp $(SRCDIR)/sf_output_results.cpp $(SRCDIR)/sf_parse_xml.cpp $(SRCDIR)/sf_perform_fits.cpp $(SRCDIR)/sf_pew_fit.cpp $(SRCDIR)/sf_validate_json_data.cpp $(SRCDIR)/sf_write_fit.cpp $(SRCDIR)/sf_write_target_fit.cpp   $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/sf_generate_fit.cpp $(SRCDIR)/sf_fit_results.cpp
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_add_model_to_list.cpp -o $(TMPDIR)/sf_add_model_to_list.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_bracket_temp.cpp -o $(TMPDIR)/sf_bracket_temp.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_calc_observables.cpp -o $(TMPDIR)/sf_calc_observables.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_continuum_fit.cpp -o $(TMPDIR)/sf_continuum_fit.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_deredden.cpp -o $(TMPDIR)/sf_deredden.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_function.cpp -o $(TMPDIR)/sf_fit_function.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_fit.cpp -o $(TMPDIR)/sf_get_fit.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_norm_flux.cpp -o $(TMPDIR)/sf_get_norm_flux.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_inc_index.cpp -o $(TMPDIR)/sf_inc_index.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data.cpp -o $(TMPDIR)/sf_load_data.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data_files.cpp -o $(TMPDIR)/sf_load_data_files.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_models.cpp -o $(TMPDIR)/sf_load_models.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_msdb_load_gen.cpp -o $(TMPDIR)/sf_msdb_load_gen.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_output_results.cpp -o $(TMPDIR)/sf_output_results.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_parse_xml.cpp -o $(TMPDIR)/sf_parse_xml.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_perform_fits.cpp -o $(TMPDIR)/sf_perform_fits.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_pew_fit.cpp -o $(TMPDIR)/sf_pew_fit.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_validate_json_data.cpp -o $(TMPDIR)/sf_validate_json_data.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_fit.cpp -o $(TMPDIR)/sf_write_fit.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_target_fit.cpp -o $(TMPDIR)/sf_write_target_fit.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_generate_fit.cpp -o $(TMPDIR)/sf_generate_fit.o
-	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_results.cpp -o $(TMPDIR)/sf_fit_results.o
+$(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_add_model_to_list.cpp -o $(TMPDIR)/sf_add_model_to_list.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_bracket_temp.cpp -o $(TMPDIR)/sf_bracket_temp.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_calc_observables.cpp -o $(TMPDIR)/sf_calc_observables.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_continuum_fit.cpp -o $(TMPDIR)/sf_continuum_fit.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_deredden.cpp -o $(TMPDIR)/sf_deredden.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_function.cpp -o $(TMPDIR)/sf_fit_function.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_fit.cpp -o $(TMPDIR)/sf_get_fit.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_norm_flux.cpp -o $(TMPDIR)/sf_get_norm_flux.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_inc_index.cpp -o $(TMPDIR)/sf_inc_index.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data.cpp -o $(TMPDIR)/sf_load_data.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data_files.cpp -o $(TMPDIR)/sf_load_data_files.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_models.cpp -o $(TMPDIR)/sf_load_models.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_msdb_load_gen.cpp -o $(TMPDIR)/sf_msdb_load_gen.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_output_results.cpp -o $(TMPDIR)/sf_output_results.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_parse_xml.cpp -o $(TMPDIR)/sf_parse_xml.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_perform_fits.cpp -o $(TMPDIR)/sf_perform_fits.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_pew_fit.cpp -o $(TMPDIR)/sf_pew_fit.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_validate_json_data.cpp -o $(TMPDIR)/sf_validate_json_data.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_fit.cpp -o $(TMPDIR)/sf_write_fit.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_target_fit.cpp -o $(TMPDIR)/sf_write_target_fit.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_generate_fit.cpp -o $(TMPDIR)/sf_generate_fit.o
+#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_results.cpp -o $(TMPDIR)/sf_fit_results.o
 	-rm $(LIBDIR)/libsf.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(TMPDIR)/sf_add_model_to_list.o  $(TMPDIR)/sf_bracket_temp.o  $(TMPDIR)/sf_calc_observables.o  $(TMPDIR)/sf_continuum_fit.o $(TMPDIR)/sf_deredden.o $(TMPDIR)/sf_fit_function.o $(TMPDIR)/sf_get_fit.o $(TMPDIR)/sf_get_norm_flux.o $(TMPDIR)/sf_inc_index.o $(TMPDIR)/sf_load_data.o $(TMPDIR)/sf_load_data_files.o $(TMPDIR)/sf_load_models.o $(TMPDIR)/sf_msdb_load_gen.o $(TMPDIR)/sf_output_results.o $(TMPDIR)/sf_parse_xml.o $(TMPDIR)/sf_perform_fits.o $(TMPDIR)/sf_pew_fit.o $(TMPDIR)/sf_validate_json_data.o $(TMPDIR)/sf_write_fit.o $(TMPDIR)/sf_write_target_fit.o $(TMPDIR)/sf_generate_fit.o $(TMPDIR)/sf_fit_results.o
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(OBJS_SF)
 
 $(BINDIR)/sf: $(SRCDIR)/sf.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(LIBDIR)/libsf.a $(INCLUDEDIR)/eps_plot.h  $(INCLUDEDIR)/specfit.h
 	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf.cpp $(JSONCPP) $(ESFLAGS) -lsf $(ESLIBS) $(PLOTUTILLIB) -llinerout -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
