@@ -316,7 +316,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 				}
 				XVECTOR	vX;
 				vX = m_vWavelength;
-				GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+				gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 				double dpEW_PVF, dpEW_HVF;
 				Compute_Gaussian_Fit_pEW(vX, m_vGaussian_Fit_Data, m_vWavelength[1] - m_vWavelength[0], lpgfpParamters, dpEW_PVF, dpEW_HVF);
 				m_dFit_pEW = dpEW_HVF + dpEW_PVF;
@@ -452,7 +452,7 @@ void FIT_VIZ_MAIN::Export_Graphic(void)
 	cPlot.Set_Plot_Data(m_vWavelength, m_vFlux, cLine_Parameters, uiX_Axis, uiY_Axis);
 
 
-	GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+	gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 	for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 	{
 		double dX = (m_vWavelength[uiI] - m_vWavelength[0]);

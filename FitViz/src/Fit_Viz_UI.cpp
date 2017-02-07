@@ -435,7 +435,7 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 		                }
 						m_vFit_Residuals.clear();
 						m_vFlux_Fit.clear();
-						GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+						gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 						{
 							double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);
@@ -670,7 +670,7 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 						printf(" (%f %f)\n",1.0 + Multi_Gaussian(m_vWavelength[m_uiManual_Fit_Central_Idx],vA,&g_cgfpCaNIR)[0],m_vFlux[m_uiManual_Fit_Central_Idx]);
 						m_vFit_Residuals.clear();
 						m_vFlux_Fit.clear();
-						GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+						gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 						for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 						{
 							double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],vA,lpgfpParamters).Get(0);
@@ -713,7 +713,7 @@ void FIT_VIZ_MAIN::on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_T
 
 		m_vFit_Residuals.clear();
 		m_vFlux_Fit.clear();
-		GAUSS_FIT_PARAMETERS * lpgfpParamters = &g_cgfpCaNIR;
+		gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 		for (unsigned int uiI = 0; uiI < m_vWavelength.size(); uiI++)
 		{
 			double dY = 1.0 + Multi_Gaussian(m_vWavelength[uiI],m_vManual_Fit_Data,lpgfpParamters).Get(0);

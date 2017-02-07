@@ -66,7 +66,7 @@ extern XVECTOR	g_vFit_Results;
 extern XVECTOR g_vX;
 extern XVECTOR	g_vY;
 extern XVECTOR g_vW;
-extern GAUSS_FIT_PARAMETERS * g_lpgfpParamters;
+extern gauss_fit_parameters * g_lpgfpParamters;
 extern double g_dSuggested_Center_WL;
 extern double g_dSuggested_Center_Flux;
 extern double g_dSuggested_Center_Second_WL;

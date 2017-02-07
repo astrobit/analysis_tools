@@ -15,7 +15,7 @@ XVECTOR	g_vFit_Results;
 XVECTOR g_vX;
 XVECTOR	g_vY;
 XVECTOR g_vW;
-GAUSS_FIT_PARAMETERS * g_lpgfpParamters = &g_cgfpCaNIR;
+gauss_fit_parameters * g_lpgfpParamters = &g_cgfpCaNIR;
 double g_dSuggested_Center_WL;
 double g_dSuggested_Center_Flux;
 double g_dSuggested_Center_Second_WL = -1.0;
