@@ -10,7 +10,7 @@ LA_INCDIR=../include
 ESFLAGS= -fopenmp
 ESLIBS= -les -lyaml-cpp -lm -lcfitsio 
 CFLAGS=-I$(LA_INCDIR) -I$(INCDIR) -I/usr/include/freetype2 -std=c++11 $(ESFLAGS) -c
-LFLAGS=-std=c++11
+LFLAGS=-std=c++11 -pthread
 LIBS=-L../lib -llinerout -lplotutil -lxio -lxstdlib -lxmath -lfreetype -lftgl -lX11 -lGLU -lGL $(ESLIBS) -lEngineMk1 
 CC=mpic++
 INCLUDES=$(wildcard $(INCDIR)/*.hpp)
