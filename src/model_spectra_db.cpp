@@ -550,4 +550,5 @@ SPECTRUM_TYPE msdb::Identify_Spectrum_Type(const PARAMETERS & i_cParameters)
 	return eType;
 }
 
+
 	

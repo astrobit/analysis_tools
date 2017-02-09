@@ -315,12 +315,12 @@ void Allocate_Synow_Classes(const ES::Spectrum &i_cTarget, unsigned int uiNum_El
 
 void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput, const double & i_dPower_Law_A, const double & i_dPower_Law_B)
 {
-//	printf("allocate\n"); fflush(stdout);
+	//printf("allocate\n"); fflush(stdout);
 	Allocate_Synow_Classes(i_cTarget,0,&i_cOpacity_Map_A);
 //    o_cOutput = ES::Spectrum::create_from_range_and_size( i_cTarget.wl(0), i_cTarget.wl(i_cTarget.size() - 1), i_cTarget.size());
 //    ES::Spectrum output = ES::Spectrum::create_from_spectrum( o_cOutput );
 //    ES::Spectrum reference = ES::Spectrum::create_from_spectrum( i_cTarget );
-
+	//printf("vmax\n"); fflush(stdout);
 //	printf("I: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
 //	printf("%.3e\n",o_cOutput.flux(100));
 
@@ -336,7 +336,7 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 //	double	dT_ref = i_cParameters.Get(0) * (i_cOpacity_Map_A.GetElement(2,0) - i_cOpacity_Map_A.GetElement(1,0)) + i_cOpacity_Map_A.GetElement(1,0);
 //	double	dT_Scalar = pow(i_cParameters.Get(0) / i_cOpacity_Map_A.GetElement(1,0),-2.0);
 	double dT_ref = i_cParameters.Get(0) / i_cOpacity_Map_A.GetElement(1,0);
-//	printf("t scalar = %.2e (%.4f %.4f)\n",dT_Scalar,i_cParameters.Get(0),i_cOpacity_Map_A.GetElement(1,0));
+//	printf("t scalar = %.2e (%.4f %.4f)\n",dT_ref,i_cParameters.Get(0),i_cOpacity_Map_A.GetElement(1,0));
 //	int iT_ref = (int )(i_cParameters.Get(0) + 0.5);
 //	if (iT_ref < 0)
 //		iT_ref = 0;
@@ -367,7 +367,7 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 	cSetup.user_profile = g_lpdOpacity_Profile;
 	cSetup.additive_opacities = true;
 	//printf("%i %i\n",i_cOpacity_Map_A.GetNumElements(),i_cOpacity_Map_B.GetNumElements());
-//	std::cout << "setup grid wl " << g_lpcGrid->wl << std::endl; std::cout.flush();
+	//std::cout << "setup grid wl " << g_lpcGrid->wl << std::endl; std::cout.flush();
 //	std::cout << "setup grid v_user " << g_lpcGrid->v_user << std::endl; std::cout.flush();
 //	fflush(stdout);
 	
@@ -384,7 +384,7 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 			cSetup.user_profile[0][uiI] = i_cOpacity_Map_A.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_A);
 		else
 			cSetup.user_profile[0][uiI] = 0.0;
-//		std::cout << uiI << " " << cSetup.user_profile[0][uiI] << std::endl;
+		//std::cout << uiI << " " << cSetup.user_profile[0][uiI] << std::endl;
 	}
 	if (i_cOpacity_Map_B.GetNumElements() > 0)
 	{
@@ -401,23 +401,23 @@ void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cO
 				cSetup.user_profile[1][uiI] = i_cOpacity_Map_B.GetElement(1,uiI + 1) * pow(dT_ref,i_dPower_Law_B);
 			else
 				cSetup.user_profile[1][uiI] = 0.0;
-//			std::cout << uiI << " " << cSetup.user_profile[1][uiI] << std::endl;
+			//std::cout << uiI << " " << cSetup.user_profile[1][uiI] << std::endl;
 		}
 	}
 
 //	std::cout << "setup(2) grid wl " << g_lpcGrid->wl << std::endl; std::cout.flush();
 //	std::cout << "setup(2) grid v_user " << g_lpcGrid->v_user << std::endl; std::cout.flush();
-//	printf("reset\n"); fflush(stdout);
+	//printf("reset\n"); fflush(stdout);
 	g_lpcGrid->reset(cSetup);
 //	std::cout << "reset grid wl " << g_lpcGrid->wl << std::endl; std::cout.flush();
 //	std::cout << "reset grid v_user " << g_lpcGrid->v_user << std::endl; std::cout.flush();
-//	printf("generate\n"); fflush(stdout);
+	//printf("generate\n"); fflush(stdout);
     g_lpcGrid[0]( cSetup );
 //	printf("P: %.2e %.2e\n",output.wl(100),output.flux(100));
 //	std::cout << "generate grid wl " << g_lpcGrid->wl << std::endl; std::cout.flush();
 //	std::cout << "generate grid v_user " << g_lpcGrid->v_user << std::endl; std::cout.flush();
 	o_cOutput = g_lpcOutput[0];
-//	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
+	//printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));
 
 //	printf("%.3e\n",o_cOutput.flux(100));
 //	printf("O: %.2e %.2e\n",o_cOutput.wl(100),o_cOutput.flux(100));

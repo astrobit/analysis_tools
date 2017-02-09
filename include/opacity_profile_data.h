@@ -4,10 +4,11 @@
 #include <cmath>
 #include <cstdlib>
 
-class OPACITY_PROFILE_DATA
+class opacity_profile_data
 {
 public:
 	enum	GROUP	{CARBON,OXYGEN,MAGNESIUM,SILICON,IRON,SHELL};
+	enum 	group	{carbon,oxygen,magnesium,silicon,iron,shell};
 	double	m_dReference_Velocity[6];
 	double	m_dReference_Abundance[6];
 	double	m_dReference_Density[6];
@@ -15,7 +16,7 @@ public:
 	double	m_dReference_Time_s;
 	double	m_dReference_Normalization_Time[6];
 public:
-	OPACITY_PROFILE_DATA(void)
+	opacity_profile_data(void)
 	{
 		m_dReference_Velocity[0] = 0.0;
 		m_dReference_Velocity[1] = 0.0;
@@ -318,3 +319,4 @@ public:
 		return iRet;
 	}
 };
+typedef opacity_profile_data OPACITY_PROFILE_DATA;

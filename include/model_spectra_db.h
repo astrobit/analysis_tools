@@ -2,6 +2,7 @@
 #include <cmath>
 #include <ctime>
 #include "ES_Synow.hh"
+#include <xio.h>
 
 namespace msdb
 {
@@ -181,4 +182,5 @@ namespace msdb
 		std::vector<dbid> Get_Spectra_List(void); // retrieve list of all dbid in the database
 	};
 	SPECTRUM_TYPE Identify_Spectrum_Type(const PARAMETERS & i_cParameters);
+
 }

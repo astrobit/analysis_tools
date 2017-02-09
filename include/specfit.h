@@ -269,7 +269,6 @@ namespace specfit
 	double GenerateFit(const fit & i_cFit, const model & i_cModel, fit_result & o_cFit, bool i_bDebug = false, const param_set * i_lppsEjecta = nullptr, const param_set * i_lppsShell = nullptr, const bool * i_lpbPerform_Single_Fit = nullptr);
 	void Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, double & o_dTarget_Flux,	 double & o_dGenerated_Flux);
 	double	Get_Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const double &i_dMin_WL, const double &i_dMax_WL, unsigned int i_uiMoment, bool i_bRegenerate_Normalization = true);
-	void msdb_load_generate(msdb::USER_PARAMETERS	&i_cParam, msdb::SPECTRUM_TYPE i_eSpectrum_Type, const ES::Spectrum &i_cTarget, const XDATASET * i_cOp_Map_A, const XDATASET * i_cOp_Map_B, ES::Spectrum & o_cOutput);
 	double pEW_Fit(const ES::Spectrum &i_cGenerated, const feature_parameters & i_fpTarget_Feature, feature_parameters	&o_cModel_Data);
 	double Continuum_Fit(const ES::Spectrum &i_cGenerated, const ES::Spectrum &i_cContinuum, feature_parameters	&o_cModel_Data);
 	double Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data);

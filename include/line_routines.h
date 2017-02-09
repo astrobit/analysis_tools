@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 #include <radiation.h>
+#include <model_spectra_db.h>
 
 double	Equivalent_Width(const XDATASET & i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
 double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
@@ -41,6 +42,7 @@ void Generate_Synow_Multi_Ion_Spectra(const double & i_dT_days, const double & i
 // 6: log_{10} S for HVF
 void Generate_Synow_Spectra(const ES::Spectrum &i_cTarget, const XDATASET & i_cOpacity_Map_A, const XDATASET & i_cOpacity_Map_B, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput, const double & i_dTime_Power_Law_A = -2.0, const double & i_dTime_Power_Law_B = -2.0);
 void Generate_Synow_Spectra_Exp(const ES::Spectrum &i_cTarget, unsigned int i_uiIon, const XVECTOR & i_cParameters, ES::Spectrum &o_cOutput);
+void msdb_load_generate(msdb::USER_PARAMETERS	&i_cParam, msdb::SPECTRUM_TYPE i_eSpectrum_Type, const ES::Spectrum &i_cTarget, const xdataset * i_cOp_Map_A, const xdataset * i_cOp_Map_B, ES::Spectrum & o_cOutput);
 
 
 void Find_Minimum(ES::Spectrum * i_lpcSpectra, unsigned int i_uiNum_Spectra, double * o_lpdMinima_WL, double * o_lpdMinima_Flux, const double & i_dMin_WL = -1.0, const double & i_dMax_WL = -1.0);
@@ -365,6 +367,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 void CCM_dered(ES::Spectrum & i_cSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
 void CCM_dered(std::vector<std::pair<double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
 void CCM_dered(std::vector<std::tuple<double,double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
+void CCM_dered(const double & i_dWavelength, double & io_dFlux, const double & i_dE_BmV, const double & i_dRv = 3.1);
 
 
 class lef_data

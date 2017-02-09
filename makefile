@@ -1,4 +1,4 @@
-all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib statepop velfntest
+all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels multiion testeps libcomp sahatest genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib statepop velfntest libOSC
 #spectrafit excluded (obsolete)
 .PHONY: all
 
@@ -302,28 +302,6 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 ifdef JSONCPP
 sf: $(BINDIR)/sf
 $(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_add_model_to_list.cpp -o $(TMPDIR)/sf_add_model_to_list.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_bracket_temp.cpp -o $(TMPDIR)/sf_bracket_temp.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_calc_observables.cpp -o $(TMPDIR)/sf_calc_observables.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_continuum_fit.cpp -o $(TMPDIR)/sf_continuum_fit.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_deredden.cpp -o $(TMPDIR)/sf_deredden.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_function.cpp -o $(TMPDIR)/sf_fit_function.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_fit.cpp -o $(TMPDIR)/sf_get_fit.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_get_norm_flux.cpp -o $(TMPDIR)/sf_get_norm_flux.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_inc_index.cpp -o $(TMPDIR)/sf_inc_index.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data.cpp -o $(TMPDIR)/sf_load_data.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_data_files.cpp -o $(TMPDIR)/sf_load_data_files.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_load_models.cpp -o $(TMPDIR)/sf_load_models.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_msdb_load_gen.cpp -o $(TMPDIR)/sf_msdb_load_gen.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_output_results.cpp -o $(TMPDIR)/sf_output_results.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_parse_xml.cpp -o $(TMPDIR)/sf_parse_xml.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_perform_fits.cpp -o $(TMPDIR)/sf_perform_fits.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_pew_fit.cpp -o $(TMPDIR)/sf_pew_fit.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_validate_json_data.cpp -o $(TMPDIR)/sf_validate_json_data.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_fit.cpp -o $(TMPDIR)/sf_write_fit.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_write_target_fit.cpp -o $(TMPDIR)/sf_write_target_fit.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_generate_fit.cpp -o $(TMPDIR)/sf_generate_fit.o
-#	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf_fit_results.cpp -o $(TMPDIR)/sf_fit_results.o
 	-rm $(LIBDIR)/libsf.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(OBJS_SF)
 
@@ -333,12 +311,19 @@ $(BINDIR)/sf: $(SRCDIR)/sf.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)
 genjsonfit: $(BINDIR)/genjsonfit
 $(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)
 	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/gen_json_fit_list.cpp $(JSONCPP) -lxastro -lxmath -lxstdlib -o $(BINDIR)/genjsonfit
+
+$(LIBDIR)/libOSC.a: $(TMPDIR)/libOSC.o $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a
+	-rm $(LIBDIR)/libOSC.a
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libOSC.a $(TMPDIR)/libOSC.o
+libOSC: $(LIBDIR)/libOSC.a
+
 else
 sf: $(BINDIR)/sf
 genjsonfit: $(BINDIR)/sf
 $(BINDIR)/sf: $(SRCDIR)/spectra_fit.1.0.cpp $(XLIBSCHANGE) $(LIBDIR)/libspecfit.a $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(SRCDIR)/spectra_fit_genfits.cpp  $(LIBDIR)/libmsdb.a
 	@echo "Symbol JSONCPP not found. Make sure that jsoncpp is installed and the JSONCPP variable points to the path to jsoncpp.cpp"
 endif
+
 
 genmsdb: $(BINDIR)/genmsdb
 $(BINDIR)/genmsdb: $(SRCDIR)/gen_msdb.cpp 
