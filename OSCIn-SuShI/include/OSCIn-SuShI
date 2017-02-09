@@ -1,0 +1,163 @@
+#include <core.hpp>
+#include <xio.h>
+#include <xlinalg.h>
+#include <line_routines.h>
+#include <thread>
+#include <OSC.hpp>
+#include <opacity_profile_data.h>
+
+enum button_id
+{
+	error_ack,
+	spectrum_select_up,
+	spectrum_select_down,
+	feature_select_up,
+	feature_select_down,
+	model_select_up,
+	model_select_down,
+	temp_select_up,
+	temp_select_down,
+	exc_temp_select_up,
+	exc_temp_select_down,
+	elem_select_up,
+	elem_select_down,
+	ion_select_up,
+	ion_select_down,
+	velocity_select_up,
+	velocity_select_down,
+	shell_scalar_up,
+	shell_scalar_down,
+	ejecta_scalar_up,
+	ejecta_scalar_down,
+	norm_wl_blue_up,
+	norm_wl_blue_down,
+	norm_wl_red_up,
+	norm_wl_red_down,
+	fit_request,
+	save_request,
+	refine_request,
+	spectrum_display_area,
+	quit_request
+
+};
+
+class spectrum_data
+{
+public:
+	bool			m_bValid;
+	double			m_dPS_Temp;
+	double			m_dPS_Velocity;
+	double			m_dEjecta_Scalar;
+	double			m_dShell_Scalar;
+	unsigned int	m_uiIon;
+
+
+	ES::Spectrum	m_specResult;
+
+	spectrum_data(void)
+	{
+		m_bValid = false;
+	}
+};
+class model
+{
+public:
+	unsigned int m_uiModel_ID;
+	xdataset	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
+	xdataset	m_dsShell;
+	OPACITY_PROFILE_DATA	m_opdOp_Profile_Data;
+	xdataset	m_dsPhotosphere;
+	xdataset	m_dsEjecta_Photosphere;
+
+
+	void Load_Model(unsigned int i_uiModel);
+
+	model(void){m_uiModel_ID = -1;}
+	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
+};
+
+ES::Spectrum Get_ES_Spectrum(const OSCspectrum & i_cRHO);
+void Process_Generate_Requests(void);
+
+
+class OSCIn_SuShI_main : public main
+{
+private:
+	pane_id	m_idPane;
+	pane_id m_idError_Pane;
+
+	OSCfile	m_OSCfile;
+	std::map<OSCspectra_id, OSCspectrum >::iterator m_iterSelected_ID;
+
+	// items for display
+	OSCspectra_id	m_idSelected_ID;
+	OSCspectrum		m_specSelected_Spectrum;
+	double			m_dSelected_Flux_Max[4];
+
+	spectrum_data	m_sdGenerated_Spectrum;
+	double			m_dGenerated_Spectrum_Norm;
+	spectrum_data	m_sdGenerated_Spectrum_Prev;
+	double			m_dGenerated_Spectrum_Prev_Norm;
+
+	std::map<button_id, BUTTON_INFO> m_mMain_Pane_Buttons;
+	std::map<button_id, BUTTON_INFO> m_mError_Pane_Buttons;
+	std::vector<std::string> m_vsError_Info;
+	criticalsection	m_csEvent_Queue;
+
+	enum feature_select {fs_start,fs_full,fs_CaHK,fs_Si6355,fs_CaNIR,fs_end};
+	feature_select m_eFeature_Select;
+	std::thread 	m_thrGen;
+
+	bool			m_bQuit_Request_Pending;
+
+
+	double			m_dPS_Temp;
+	double			m_dPS_Velocity;
+	double			m_dEjecta_Scalar;
+	double			m_dShell_Scalar;
+	double			m_dExc_Temp;
+	unsigned int	m_uiModel;
+
+	double			m_dNorm_Blue;
+	double			m_dNorm_Red;
+
+	unsigned int	m_uiElement;
+	unsigned int	m_uiIon;
+
+
+	double		m_dTimer;
+	bool		m_bFlasher_1s_50p;
+	std::deque<button_id> m_qEvent_List;
+
+	std::map<unsigned int, model> m_mapModels;
+
+	void Process_Selected_Spectrum(void);
+	void Normalize(void);
+
+public:
+	OSCIn_SuShI_main(void) : m_thrGen(Process_Generate_Requests)  {m_thrGen.detach();};
+private:
+	void on_key_down(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
+	void on_key_up(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
+	void on_mouse_button_double_click(MOUSEBUTTON i_eButton, const PAIR<unsigned int> &i_tMouse_Position);
+	void on_mouse_button_down(MOUSEBUTTON i_eButton, const PAIR<unsigned int> &i_tMouse_Position);
+	void on_mouse_button_up(MOUSEBUTTON i_eButton, const PAIR<unsigned int> &i_tMouse_Position);
+	void on_mousemove(const PAIR<unsigned int> &i_tMouse_Position);
+	void on_mouse_wheel(MOUSEBUTTON i_eWheel, int i_iWheel_Delta, const PAIR<unsigned int> &i_tMouse_Position);
+	void on_timer(unsigned int i_uiTimer_ID, const double & i_dDelta_Time_s);
+
+	void init(void); // initialization routine; rendering context not created
+	void gfx_display(pane_id i_idPane); // primary display routine
+	void gfx_init(void); // initialization routine; rendering context already created
+	void gfx_reshape(const PAIR<unsigned int> & i_tNew_Size); // window size change
+	void gfx_close(void); // graphics exiting; rendering context still active
+	void close(void); // program exiting; rendering context destroyed
+};
+
+extern bool				g_bQuit_Thread;
+extern bool 			g_bGen_Process_Request;
+extern bool				g_bGen_In_Progress;
+extern bool				g_bGen_Done;
+extern spectrum_data		g_sdGen_Spectrum_Result;
+extern model *				g_lpmGen_Model;
+extern bool				g_bGen_Thread_Running;
