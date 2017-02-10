@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cfloat>
 
 void OSCIn_SuShI_main::Process_Selected_Spectrum(void)
 {
@@ -45,28 +46,52 @@ ES::Spectrum Get_ES_Spectrum(const OSCspectrum & i_cRHO)
 	return i_cLHO;
 }
 
+double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red)
+{
+	double dTgt_Norm = 0.0;
+	for (unsigned int uiI = 0; uiI < i_cTarget.size(); uiI++)
+	{
+		if (i_cTarget.wl(uiI) >= i_dNorm_Blue && i_cTarget.wl(uiI) <= i_dNorm_Red)
+			dTgt_Norm += i_cTarget.flux(uiI);
+	}
+	return dTgt_Norm;
+}
+double Get_Norm_Const(const ES::Spectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red)
+{
+	double dTgt_Norm = 0.0;
+	for (unsigned int uiI = 0; uiI < i_cTarget.size(); uiI++)
+	{
+		if (i_cTarget.wl(uiI) >= i_dNorm_Blue && i_cTarget.wl(uiI) <= i_dNorm_Red)
+			dTgt_Norm += i_cTarget.flux(uiI);
+	}
+	return dTgt_Norm;
+}
+
 
 void OSCIn_SuShI_main::Normalize(void)
 {
-	double dTgt_Norm = 0.0, dGen_Norm = 0.0;
-	for (unsigned int uiI = 0; uiI < m_specSelected_Spectrum.size(); uiI++)
+	double dTgt_Norm = Get_Norm_Const(m_specSelected_Spectrum,m_dNorm_Blue, m_dNorm_Red);
+	if (m_sdGenerated_Spectrum.m_bValid)
 	{
-		if (m_specSelected_Spectrum.wl(uiI) >= m_dNorm_Blue && m_specSelected_Spectrum.wl(uiI) <= m_dNorm_Red)
-			dTgt_Norm += m_specSelected_Spectrum.flux(uiI);
+		double dGen_Norm = Get_Norm_Const(m_sdGenerated_Spectrum.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		m_dGenerated_Spectrum_Norm = dTgt_Norm / dGen_Norm;
 	}
-	for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult.size(); uiI++)
+	if (m_sdGenerated_Spectrum_Prev.m_bValid)
 	{
-		if (g_sdGen_Spectrum_Result.m_specResult.wl(uiI) >= m_dNorm_Blue && g_sdGen_Spectrum_Result.m_specResult.wl(uiI) <= m_dNorm_Red)
-			dGen_Norm += g_sdGen_Spectrum_Result.m_specResult.flux(uiI);
+		double dGen_Norm_Prev = Get_Norm_Const(m_sdGenerated_Spectrum_Prev.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		m_dGenerated_Spectrum_Prev_Norm = dTgt_Norm / dGen_Norm_Prev;
 	}
-	m_dGenerated_Spectrum_Norm = dTgt_Norm / dGen_Norm;
-	dGen_Norm = 0.0;
-	for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum_Prev.m_specResult.size(); uiI++)
+	if (m_sdRefine_Spectrum_Curr.m_bValid)
 	{
-		if (m_sdGenerated_Spectrum_Prev.m_specResult.wl(uiI) >= m_dNorm_Blue && m_sdGenerated_Spectrum_Prev.m_specResult.wl(uiI) <= m_dNorm_Red)
-			dGen_Norm += m_sdGenerated_Spectrum_Prev.m_specResult.flux(uiI);
+		double dGen_Norm = Get_Norm_Const(m_sdRefine_Spectrum_Curr.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		m_dRefine_Spectrum_Norm = dTgt_Norm / dGen_Norm;
 	}
-	m_dGenerated_Spectrum_Prev_Norm = dTgt_Norm / dGen_Norm;
+	if (m_sdRefine_Spectrum_Best.m_bValid)
+	{
+		double dGen_Norm = Get_Norm_Const(m_sdRefine_Spectrum_Best.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		m_dRefine_Spectrum_Best_Norm = dTgt_Norm / dGen_Norm;
+	}
+
 }
 
 //------------------------------------------------------------------------------
@@ -138,6 +163,7 @@ void model::Load_Model(unsigned int i_uiModel)
 	}
 }
 
+bool				g_bAbort_Request = false;
 bool				g_bQuit_Thread = false;
 bool 				g_bGen_Process_Request = false;
 bool				g_bGen_In_Progress = false;
@@ -146,6 +172,72 @@ bool				g_bGen_Thread_Running = false;
 spectrum_data		g_sdGen_Spectrum_Result;
 model *				g_lpmGen_Model = nullptr;
 
+void Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum & o_cTarget, msdb::USER_PARAMETERS &o_cUser_Param, opacity_profile_data::group & o_eModel_Group, bool & o_bIon_Valid)
+{
+	o_cUser_Param.m_uiModel_ID = i_uiModel_ID;
+	o_cUser_Param.m_uiIon = i_cData.m_uiIon;
+	o_cUser_Param.m_eFeature = msdb::CaNIR;
+	o_cUser_Param.m_dTime_After_Explosion = 1.0;
+	o_cUser_Param.m_dPhotosphere_Velocity_kkms = i_cData.m_dPS_Velocity;
+	o_cUser_Param.m_dPhotosphere_Temp_kK = i_cData.m_dPS_Temp;
+	o_cUser_Param.m_dEjecta_Log_Scalar = i_cData.m_dEjecta_Scalar;
+	o_cUser_Param.m_dShell_Log_Scalar = i_cData.m_dShell_Scalar;
+	o_cUser_Param.m_dEjecta_Effective_Temperature_kK = i_cData.m_dExc_Temp;
+	o_cUser_Param.m_dShell_Effective_Temperature_kK = i_cData.m_dExc_Temp;
+	o_cUser_Param.m_dWavelength_Range_Lower_Ang = i_cData.m_specResult.wl(0);
+	o_cUser_Param.m_dWavelength_Range_Upper_Ang = i_cData.m_specResult.wl(i_cData.m_specResult.size() - 1);
+	o_cUser_Param.m_dWavelength_Delta_Ang = i_cData.m_specResult.wl(1) - i_cData.m_specResult.wl(0);
+	o_cUser_Param.m_dEjecta_Scalar_Time_Power_Law = -2.0;
+	o_cUser_Param.m_dShell_Scalar_Time_Power_Law = -2.0;
+
+	unsigned int uiElem = o_cUser_Param.m_uiIon / 100;
+	o_bIon_Valid = false;
+	switch (uiElem)
+	{
+	case 6:
+		o_eModel_Group = opacity_profile_data::carbon;
+		o_bIon_Valid = true;
+		break;
+	case 8:
+		o_eModel_Group = opacity_profile_data::magnesium;
+		o_bIon_Valid = true;
+		break;
+	case 9:
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+		o_eModel_Group = opacity_profile_data::magnesium;
+		o_bIon_Valid = true;
+		break;
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+		o_eModel_Group = opacity_profile_data::silicon;
+		o_bIon_Valid = true;
+		break;
+	case 24:
+	case 25:
+	case 26:
+	case 27:
+	case 28:
+	case 29:
+	case 30:
+		o_eModel_Group = opacity_profile_data::iron;
+		o_bIon_Valid = true;
+		break;
+	}
+
+
+	o_cTarget = i_cData.m_specResult;
+}
 void Process_Generate_Requests(void)
 {
 	g_bGen_Thread_Running = true;
@@ -153,75 +245,18 @@ void Process_Generate_Requests(void)
 	{
 		if (g_bGen_Process_Request && g_sdGen_Spectrum_Result.m_bValid)
 		{
+			ES::Spectrum cTarget;
+			msdb::USER_PARAMETERS cParam;
+			opacity_profile_data::group eModel_Group = opacity_profile_data::carbon;
+			bool bValid_Ion = false;
+
 			g_bGen_Done = false;
 			g_bGen_In_Progress = true;
 			g_bGen_Process_Request = false;
 			
-			msdb::USER_PARAMETERS cParam;
-			opacity_profile_data::group eModel_Group = opacity_profile_data::carbon;
-			cParam.m_uiModel_ID = g_lpmGen_Model->m_uiModel_ID;
-			cParam.m_uiIon = g_sdGen_Spectrum_Result.m_uiIon;
-			cParam.m_eFeature = msdb::CaNIR;
-			cParam.m_dTime_After_Explosion = 1.0;
-			cParam.m_dPhotosphere_Velocity_kkms = g_sdGen_Spectrum_Result.m_dPS_Velocity;
-			cParam.m_dPhotosphere_Temp_kK = g_sdGen_Spectrum_Result.m_dPS_Temp;
-			cParam.m_dEjecta_Log_Scalar = g_sdGen_Spectrum_Result.m_dEjecta_Scalar;
-			cParam.m_dShell_Log_Scalar = g_sdGen_Spectrum_Result.m_dShell_Scalar;
-			cParam.m_dEjecta_Effective_Temperature_kK = 10.0;
-			cParam.m_dShell_Effective_Temperature_kK = 10.0;
-			cParam.m_dWavelength_Range_Lower_Ang = g_sdGen_Spectrum_Result.m_specResult.wl(0);
-			cParam.m_dWavelength_Range_Upper_Ang = g_sdGen_Spectrum_Result.m_specResult.wl(g_sdGen_Spectrum_Result.m_specResult.size() - 1);
-			cParam.m_dWavelength_Delta_Ang = g_sdGen_Spectrum_Result.m_specResult.wl(1) - g_sdGen_Spectrum_Result.m_specResult.wl(0);
-			cParam.m_dEjecta_Scalar_Time_Power_Law = -2.0;
-			cParam.m_dShell_Scalar_Time_Power_Law = -2.0;
 
-			unsigned int uiElem = cParam.m_uiIon / 100;
-			bool bValid_Ion = false;
-			switch (uiElem)
-			{
-			case 6:
-				eModel_Group = opacity_profile_data::carbon;
-				bValid_Ion = true;
-				break;
-			case 8:
-				eModel_Group = opacity_profile_data::magnesium;
-				bValid_Ion = true;
-				break;
-			case 9:
-			case 10:
-			case 11:
-			case 12:
-			case 13:
-				eModel_Group = opacity_profile_data::magnesium;
-				bValid_Ion = true;
-				break;
-			case 14:
-			case 15:
-			case 16:
-			case 17:
-			case 18:
-			case 19:
-			case 20:
-			case 21:
-			case 22:
-			case 23:
-				eModel_Group = opacity_profile_data::silicon;
-				bValid_Ion = true;
-				break;
-			case 24:
-			case 25:
-			case 26:
-			case 27:
-			case 28:
-			case 29:
-			case 30:
-				eModel_Group = opacity_profile_data::iron;
-				bValid_Ion = true;
-				break;
-			}
+			Prep(g_sdGen_Spectrum_Result,g_lpmGen_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
 
-
-			ES::Spectrum cTarget = g_sdGen_Spectrum_Result.m_specResult;
 			g_sdGen_Spectrum_Result.m_specResult.zero_flux();
 			if (bValid_Ion)
 			{
@@ -231,6 +266,139 @@ void Process_Generate_Requests(void)
 			g_bGen_Done = true;
 			g_bGen_In_Progress = false;
 		}
+		usleep(10); // hand process back to the OS for a bit to reduce CPU load
 	} while (!g_bQuit_Thread);
 	g_bGen_Thread_Running = false;
 }
+
+bool				g_bRefine_Process_Request = false;
+bool				g_bRefine_In_Progress = false;
+bool				g_bRefine_Done = false;
+bool				g_bRefine_Thread_Running = false;
+unsigned int		g_uiRefine_Result_ID = 0;
+spectrum_data		g_sdRefine_Result;
+double				g_dRefine_Result_Quality = 0.0;
+double				g_dRefine_Norm_Blue_WL = 7900.0;
+double				g_dRefine_Norm_Red_WL = 8500.0;
+double				g_dRefine_Fit_Blue_WL = 7500.0;
+double				g_dRefine_Fit_Red_WL = 8500.0;
+model *				g_lpmRefine_Model = nullptr;
+spectrum_data		g_sdRefine_Result_Curr;
+double				g_dRefine_Result_Curr_Quality = 0.0;
+spectrum_data		g_sdRefine_Result_Curr_Best;
+double				g_dRefine_Result_Curr_Best_Quality = 0.0;
+
+void Process_Refine_Requests(void)
+{
+	g_bRefine_Thread_Running = true;
+	do
+	{
+		if (g_bRefine_Process_Request && g_sdRefine_Result.m_bValid)
+		{
+			ES::Spectrum cTarget;
+			msdb::USER_PARAMETERS cParam;
+			msdb::USER_PARAMETERS cParam_Curr;
+			msdb::USER_PARAMETERS	cParam_Save;
+			double dQuality_Save = DBL_MAX;
+			opacity_profile_data::group eModel_Group = opacity_profile_data::carbon;
+			bool bValid_Ion = false;
+
+			g_bRefine_Done = false;
+			g_bRefine_In_Progress = true;
+			g_bRefine_Process_Request = false;
+			g_uiRefine_Result_ID = 0;
+			
+			xvector xvRefine_Params(4);
+			xvRefine_Params.Set(0,5.0);
+			xvRefine_Params.Set(1,2.0);
+			xvRefine_Params.Set(2,0.3);
+			xvRefine_Params.Set(3,0.3);
+			
+			Prep(g_sdRefine_Result,g_lpmGen_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
+			double dNorm_Target = Get_Norm_Const(cTarget,g_dRefine_Norm_Blue_WL,g_dRefine_Norm_Red_WL);
+			g_sdRefine_Result_Curr = g_sdRefine_Result;
+			g_sdRefine_Result_Curr_Best = g_sdRefine_Result;
+
+			if (bValid_Ion)
+			{
+				if (cParam.m_dPhotosphere_Temp_kK < xvRefine_Params.Get(0))
+					cParam.m_dPhotosphere_Temp_kK = xvRefine_Params.Get(0);
+
+				for (unsigned int uiRef_Level = 0; uiRef_Level < 6 && !g_bAbort_Request; uiRef_Level++)
+				{
+					for (int iTemp = -1; iTemp < 2 && !g_bAbort_Request; iTemp++)
+						for (int iVel = -1; iVel < 2 && !g_bAbort_Request; iVel++)
+							for (int iSs = -1; iSs < 2 && !g_bAbort_Request; iSs++)
+								for (int iSe = -1; iSe < 2 && !g_bAbort_Request; iSe++)
+								{
+									cParam_Curr = cParam;
+									ES::Spectrum esResult;
+									cParam_Curr.m_dPhotosphere_Temp_kK += iTemp * xvRefine_Params.Get(0);
+									cParam_Curr.m_dPhotosphere_Velocity_kkms += iVel * xvRefine_Params.Get(1);
+									cParam_Curr.m_dEjecta_Log_Scalar += iSs * xvRefine_Params.Get(2);
+									cParam_Curr.m_dShell_Log_Scalar += iSe * xvRefine_Params.Get(3);
+									unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
+									msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
+									double dNorm_Gen = Get_Norm_Const(esResult,g_dRefine_Norm_Blue_WL,g_dRefine_Norm_Red_WL);
+									double dNorm = dNorm_Target / dNorm_Gen;
+									double dSum_Err_2 = 0.0;
+									for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
+									{
+										if (esResult.wl(uiI) >= g_dRefine_Fit_Blue_WL && esResult.wl(uiI) <= g_dRefine_Fit_Red_WL)
+										{
+											double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
+											dSum_Err_2 += dErr * dErr;
+										}
+									}
+									if (dSum_Err_2 < dQuality_Save)
+									{
+										dQuality_Save = dSum_Err_2;
+										cParam_Save = cParam_Curr;
+										g_sdRefine_Result_Curr_Best.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
+										g_sdRefine_Result_Curr_Best.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
+										g_sdRefine_Result_Curr_Best.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
+										g_sdRefine_Result_Curr_Best.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
+										g_sdRefine_Result_Curr_Best.m_specResult = esResult;
+										g_dRefine_Result_Curr_Best_Quality = dSum_Err_2;
+									}
+									g_sdRefine_Result_Curr.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
+									g_sdRefine_Result_Curr.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
+									g_sdRefine_Result_Curr.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
+									g_sdRefine_Result_Curr.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
+									g_sdRefine_Result_Curr.m_specResult = esResult;
+									g_dRefine_Result_Curr_Quality = dSum_Err_2;
+
+									g_uiRefine_Result_ID++;
+//									std::cout << g_uiRefine_Result_ID << std::endl;
+									sleep(1); // just in case the generate is already done, to give user a chance to see it.
+									
+								}
+					cParam = cParam_Save;
+					xvRefine_Params *= 0.5;
+				}
+			}
+			
+			if (!g_bAbort_Request)
+			{
+				g_sdRefine_Result = g_sdRefine_Result_Curr_Best;
+				g_dRefine_Result_Quality = g_dRefine_Result_Curr_Best_Quality;
+
+				g_bRefine_Done = true;
+				g_bRefine_In_Progress = false;
+			}
+			else
+			{
+				g_sdRefine_Result.m_bValid  = false;
+				g_sdRefine_Result_Curr.m_bValid  = false;
+				g_sdRefine_Result_Curr_Best.m_bValid  = false;
+				g_bRefine_Done = false;
+				g_bRefine_In_Progress = false;
+
+				g_bAbort_Request = false;
+			}
+		}
+		usleep(10); // hand process back to the OS for a bit to reduce CPU load
+	} while (!g_bQuit_Thread);
+	g_bRefine_Thread_Running = false;
+}
+

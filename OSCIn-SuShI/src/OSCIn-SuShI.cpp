@@ -25,8 +25,8 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_eFeature_Select = fs_full;
 
 		m_uiModel = 57;
-		m_dPS_Temp = 12.5;
-		m_dPS_Velocity = 25.0;
+		m_dPS_Temp = 8.0;
+		m_dPS_Velocity = 18.0;
 		m_dEjecta_Scalar = 2.4;
 		m_dShell_Scalar = 2.7;
 		m_dExc_Temp = 10.0;
@@ -36,6 +36,9 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 
 		m_dNorm_Blue = 7900.0;
 		m_dNorm_Red = 8500.0;
+
+		m_dRefine_Blue = 7500.0;
+		m_dRefine_Red = 8500.0;
 
 		m_mapModels[41] = model(41);
 		m_mapModels[45] = model(45);

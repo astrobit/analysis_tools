@@ -19,22 +19,47 @@ enum button_id
 	temp_select_down,
 	exc_temp_select_up,
 	exc_temp_select_down,
+	exc_temp_select_big_up,
+	exc_temp_select_big_down,
 	elem_select_up,
 	elem_select_down,
 	ion_select_up,
 	ion_select_down,
+	temp_select_big_up,
+	temp_select_big_down,
+	velocity_select_big_up,
+	velocity_select_big_down,
 	velocity_select_up,
 	velocity_select_down,
 	shell_scalar_up,
 	shell_scalar_down,
 	ejecta_scalar_up,
 	ejecta_scalar_down,
+	shell_scalar_big_up,
+	shell_scalar_big_down,
+	ejecta_scalar_big_up,
+	ejecta_scalar_big_down,
 	norm_wl_blue_up,
 	norm_wl_blue_down,
 	norm_wl_red_up,
 	norm_wl_red_down,
-	fit_request,
+	norm_wl_blue_big_up,
+	norm_wl_blue_big_down,
+	norm_wl_red_big_up,
+	norm_wl_red_big_down,
+	ref_fit_range_blue_big_up,
+	ref_fit_range_blue_up,
+	ref_fit_range_blue_big_down,
+	ref_fit_range_blue_down,
+	ref_fit_range_red_big_up,
+	ref_fit_range_red_up,
+	ref_fit_range_red_big_down,
+	ref_fit_range_red_down,
+	abort_request,
+	gen_request,
+	copy_refine_request,
 	save_request,
+	save_refine_request,
 	refine_request,
 	spectrum_display_area,
 	quit_request
@@ -50,6 +75,7 @@ public:
 	double			m_dEjecta_Scalar;
 	double			m_dShell_Scalar;
 	unsigned int	m_uiIon;
+	double			m_dExc_Temp;
 
 
 	ES::Spectrum	m_specResult;
@@ -78,6 +104,9 @@ public:
 
 ES::Spectrum Get_ES_Spectrum(const OSCspectrum & i_cRHO);
 void Process_Generate_Requests(void);
+void Process_Refine_Requests(void);
+double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
+double Get_Norm_Const(const ES::Spectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
 
 
 class OSCIn_SuShI_main : public main
@@ -107,6 +136,7 @@ private:
 	enum feature_select {fs_start,fs_full,fs_CaHK,fs_Si6355,fs_CaNIR,fs_end};
 	feature_select m_eFeature_Select;
 	std::thread 	m_thrGen;
+	std::thread 	m_thrRefine;
 
 	bool			m_bQuit_Request_Pending;
 
@@ -121,8 +151,26 @@ private:
 	double			m_dNorm_Blue;
 	double			m_dNorm_Red;
 
+	double			m_dRefine_Blue;
+	double			m_dRefine_Red;
+
 	unsigned int	m_uiElement;
 	unsigned int	m_uiIon;
+
+	double			m_dRow_1_Text;
+	double			m_dRow_2_Text;
+	double			m_dRow_3_Text;
+	double			m_dRow_4_Text;
+	double			m_dText_Y[20];
+	double			m_dText_Comp_Y[20];
+
+	spectrum_data		m_sdRefine_Spectrum_Curr;
+	double				m_dRefine_Spectrum_Curr_Quality;
+	double				m_dRefine_Spectrum_Norm;
+	spectrum_data		m_sdRefine_Spectrum_Best;
+	double				m_dRefine_Spectrum_Best_Quality;
+	double				m_dRefine_Spectrum_Best_Norm;
+	unsigned int		m_uiRefine_Result_ID;
 
 
 	double		m_dTimer;
@@ -134,8 +182,10 @@ private:
 	void Process_Selected_Spectrum(void);
 	void Normalize(void);
 
+
+
 public:
-	OSCIn_SuShI_main(void) : m_thrGen(Process_Generate_Requests)  {m_thrGen.detach();};
+	OSCIn_SuShI_main(void) : m_thrGen(Process_Generate_Requests), m_thrRefine(Process_Refine_Requests)  {m_thrGen.detach();m_thrRefine.detach();};
 private:
 	void on_key_down(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
 	void on_key_up(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
@@ -154,6 +204,7 @@ private:
 	void close(void); // program exiting; rendering context destroyed
 };
 
+extern bool				g_bAbort_Request;
 extern bool				g_bQuit_Thread;
 extern bool 			g_bGen_Process_Request;
 extern bool				g_bGen_In_Progress;
@@ -161,3 +212,21 @@ extern bool				g_bGen_Done;
 extern spectrum_data		g_sdGen_Spectrum_Result;
 extern model *				g_lpmGen_Model;
 extern bool				g_bGen_Thread_Running;
+
+extern bool				g_bRefine_Process_Request;
+extern bool				g_bRefine_In_Progress;
+extern bool				g_bRefine_Done;
+extern bool				g_bRefine_Thread_Running;
+extern unsigned int		g_uiRefine_Result_ID;
+extern spectrum_data		g_sdRefine_Result;
+extern double				g_dRefine_Result_Quality;
+extern double				g_dRefine_Norm_Blue_WL;
+extern double				g_dRefine_Norm_Red_WL;
+extern double				g_dRefine_Fit_Blue_WL;
+extern double				g_dRefine_Fit_Red_WL;
+extern model *				g_lpmRefine_Model;
+extern spectrum_data		g_sdRefine_Result_Curr;
+extern double				g_dRefine_Result_Curr_Quality;
+extern spectrum_data		g_sdRefine_Result_Curr_Best;
+extern double				g_dRefine_Result_Curr_Best_Quality;
+

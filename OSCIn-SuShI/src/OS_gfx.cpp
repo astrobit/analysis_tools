@@ -36,12 +36,22 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mError_Pane_Buttons.clear();
 	m_mError_Pane_Buttons[error_ack] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.5 - 0.05,0.20),PAIR<double>(0.14,0.07),error_ack);
 	PAIR<double> pSB_Size = PAIR<double>(0.05,0.05);
-	PAIR<double> pSmSB_Size = PAIR<double>(0.025,0.025);
-	PAIR<double> pLB_Size = PAIR<double>(0.15,0.05);
+	PAIR<double> pSmSB_Size = PAIR<double>(0.015,0.015);
+	PAIR<double> pLB_Size = PAIR<double>(0.15,0.040);
 	PAIR<double> pSmB_Size = PAIR<double>(0.05,0.05);
 	PAIR<double> pTB_Size = PAIR<double>(0.10,0.10);
 	PAIR<double> pIB_Size = PAIR<double>(0.10,0.04);
 	PAIR<double> pIB_Size_Sml = PAIR<double>(0.10,0.03);
+
+	double dSmSB_Pos_Y[20];
+	for (unsigned int uiI = 0; uiI < 20; uiI+= 2)
+	{
+		dSmSB_Pos_Y[uiI] = 0.3 - uiI * 0.02125;
+		dSmSB_Pos_Y[uiI + 1] = dSmSB_Pos_Y[uiI] - 0.020;
+		m_dText_Y[uiI / 2] = dSmSB_Pos_Y[uiI] - 0.02125;
+		m_dText_Comp_Y[uiI / 2] = 0.283927 - uiI * 0.015;
+	}
+	
 
 	dAR = Get_Pane_Aspect_Ratio(m_idPane);
 	m_mMain_Pane_Buttons.clear();
@@ -51,26 +61,70 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mMain_Pane_Buttons[feature_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,0.245),pSB_Size,feature_select_down);
 	m_mMain_Pane_Buttons[spectrum_display_area] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.30),PAIR<double>(dAR * 0.98,0.7),spectrum_display_area);
 
-	m_mMain_Pane_Buttons[model_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.300),pSmSB_Size,model_select_up);
-	m_mMain_Pane_Buttons[model_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.275),pSmSB_Size,model_select_down);
-	m_mMain_Pane_Buttons[temp_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.250),pSmSB_Size,temp_select_up);
-	m_mMain_Pane_Buttons[temp_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.225),pSmSB_Size,temp_select_down);
-	m_mMain_Pane_Buttons[velocity_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.200),pSmSB_Size,velocity_select_up);
-	m_mMain_Pane_Buttons[velocity_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.175),pSmSB_Size,velocity_select_down);
-	m_mMain_Pane_Buttons[shell_scalar_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.150),pSmSB_Size,shell_scalar_up);
-	m_mMain_Pane_Buttons[shell_scalar_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.125),pSmSB_Size,shell_scalar_down);
-	m_mMain_Pane_Buttons[ejecta_scalar_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.100),pSmSB_Size,ejecta_scalar_up);
-	m_mMain_Pane_Buttons[ejecta_scalar_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.65,0.075),pSmSB_Size,ejecta_scalar_down);
+	double dRow_1 = 0.65;
+	double dRow_2 = 0.67;
+	m_dRow_1_Text = 0.70;
+	double dRow_3 = 0.97;
+	double dRow_4 = 0.95;
+	m_dRow_2_Text = 1.00;
+	m_dRow_3_Text = 1.20;
+	m_dRow_4_Text = 1.40;
 
-	m_mMain_Pane_Buttons[norm_wl_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.95,0.150),pSmSB_Size,norm_wl_blue_up);
-	m_mMain_Pane_Buttons[norm_wl_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.95,0.125),pSmSB_Size,norm_wl_blue_down);
-	m_mMain_Pane_Buttons[norm_wl_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.95,0.100),pSmSB_Size,norm_wl_red_up);
-	m_mMain_Pane_Buttons[norm_wl_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.95,0.075),pSmSB_Size,norm_wl_red_down);
+	m_mMain_Pane_Buttons[model_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[0]),pSmSB_Size,model_select_up);
+	m_mMain_Pane_Buttons[model_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[1]),pSmSB_Size,model_select_down);
+	m_mMain_Pane_Buttons[temp_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[2]),pSmSB_Size,temp_select_up);
+	m_mMain_Pane_Buttons[temp_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[3]),pSmSB_Size,temp_select_down);
+	m_mMain_Pane_Buttons[velocity_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[4]),pSmSB_Size,velocity_select_up);
+	m_mMain_Pane_Buttons[velocity_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[5]),pSmSB_Size,velocity_select_down);
+	m_mMain_Pane_Buttons[shell_scalar_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[6]),pSmSB_Size,shell_scalar_up);
+	m_mMain_Pane_Buttons[shell_scalar_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[7]),pSmSB_Size,shell_scalar_down);
+	m_mMain_Pane_Buttons[ejecta_scalar_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[8]),pSmSB_Size,ejecta_scalar_up);
+	m_mMain_Pane_Buttons[ejecta_scalar_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[9]),pSmSB_Size,ejecta_scalar_down);
+	m_mMain_Pane_Buttons[exc_temp_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[10]),pSmSB_Size,exc_temp_select_up);
+	m_mMain_Pane_Buttons[exc_temp_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[11]),pSmSB_Size,exc_temp_select_down);
+
+	m_mMain_Pane_Buttons[temp_select_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[2]),pSmSB_Size,temp_select_big_up);
+	m_mMain_Pane_Buttons[temp_select_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[3]),pSmSB_Size,temp_select_big_down);
+	m_mMain_Pane_Buttons[velocity_select_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[4]),pSmSB_Size,velocity_select_big_up);
+	m_mMain_Pane_Buttons[velocity_select_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[5]),pSmSB_Size,velocity_select_big_down);
+	m_mMain_Pane_Buttons[shell_scalar_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[6]),pSmSB_Size,shell_scalar_big_up);
+	m_mMain_Pane_Buttons[shell_scalar_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[7]),pSmSB_Size,shell_scalar_big_down);
+	m_mMain_Pane_Buttons[ejecta_scalar_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[8]),pSmSB_Size,ejecta_scalar_big_up);
+	m_mMain_Pane_Buttons[ejecta_scalar_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[9]),pSmSB_Size,ejecta_scalar_big_down);
+	m_mMain_Pane_Buttons[exc_temp_select_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[10]),pSmSB_Size,exc_temp_select_big_up);
+	m_mMain_Pane_Buttons[exc_temp_select_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_1,dSmSB_Pos_Y[11]),pSmSB_Size,exc_temp_select_big_down);
+
+	m_mMain_Pane_Buttons[elem_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[0]),pSmSB_Size,elem_select_up);
+	m_mMain_Pane_Buttons[elem_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[1]),pSmSB_Size,elem_select_down);
+	m_mMain_Pane_Buttons[ion_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[2]),pSmSB_Size,ion_select_up);
+	m_mMain_Pane_Buttons[ion_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[3]),pSmSB_Size,ion_select_down);
+	m_mMain_Pane_Buttons[norm_wl_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[4]),pSmSB_Size,norm_wl_blue_up);
+	m_mMain_Pane_Buttons[norm_wl_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[5]),pSmSB_Size,norm_wl_blue_down);
+	m_mMain_Pane_Buttons[norm_wl_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[6]),pSmSB_Size,norm_wl_red_up);
+	m_mMain_Pane_Buttons[norm_wl_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[7]),pSmSB_Size,norm_wl_red_down);
+	m_mMain_Pane_Buttons[ref_fit_range_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[8]),pSmSB_Size,ref_fit_range_blue_up);
+	m_mMain_Pane_Buttons[ref_fit_range_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[9]),pSmSB_Size,ref_fit_range_blue_down);
+	m_mMain_Pane_Buttons[ref_fit_range_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[10]),pSmSB_Size,ref_fit_range_red_up);
+	m_mMain_Pane_Buttons[ref_fit_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[11]),pSmSB_Size,ref_fit_range_red_down);
 
 
-	m_mMain_Pane_Buttons[fit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.70,0.05),pLB_Size,fit_request);
-	m_mMain_Pane_Buttons[save_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.90,0.05),pLB_Size,save_request);
-	m_mMain_Pane_Buttons[quit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.15),pLB_Size,quit_request);
+
+	m_mMain_Pane_Buttons[norm_wl_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[4]),pSmSB_Size,norm_wl_blue_big_up);
+	m_mMain_Pane_Buttons[norm_wl_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[5]),pSmSB_Size,norm_wl_blue_big_down);
+	m_mMain_Pane_Buttons[norm_wl_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[6]),pSmSB_Size,norm_wl_red_big_up);
+	m_mMain_Pane_Buttons[norm_wl_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[7]),pSmSB_Size,norm_wl_red_big_down);
+	m_mMain_Pane_Buttons[ref_fit_range_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[8]),pSmSB_Size,ref_fit_range_blue_big_up);
+	m_mMain_Pane_Buttons[ref_fit_range_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[9]),pSmSB_Size,ref_fit_range_blue_big_down);
+	m_mMain_Pane_Buttons[ref_fit_range_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[10]),pSmSB_Size,ref_fit_range_red_big_up);
+	m_mMain_Pane_Buttons[ref_fit_range_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[11]),pSmSB_Size,ref_fit_range_red_big_down);
+
+	m_mMain_Pane_Buttons[gen_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.60,0.04),pLB_Size,gen_request);
+	m_mMain_Pane_Buttons[save_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.77,0.04),pLB_Size,save_request);
+	m_mMain_Pane_Buttons[refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.94,0.04),pLB_Size,refine_request);
+	m_mMain_Pane_Buttons[copy_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.11,0.04),pLB_Size,copy_refine_request);
+	m_mMain_Pane_Buttons[save_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.28,0.04),pLB_Size,save_refine_request);
+	m_mMain_Pane_Buttons[abort_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.58,0.04),pLB_Size,abort_request);
+	m_mMain_Pane_Buttons[quit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.04),pLB_Size,quit_request);
 
 }
 void OSCIn_SuShI_main::gfx_close(void) // graphics exiting; rendering context still active
@@ -114,10 +168,10 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 		ossMJD << "MJD " << m_idSelected_ID.m_dDate_MJD;
 
 		std::ostringstream ossTemp;
-		ossTemp << m_dPS_Temp << " K";
+		ossTemp << "Tps: " << m_dPS_Temp << " kK";
 
 		std::ostringstream ossVel;
-		ossVel << m_dPS_Velocity << " x1000 km/s";
+		ossVel << "Vps: " << m_dPS_Velocity << " x1000 km/s";
 
 		std::ostringstream ossSs;
 		ossSs << "Ss: " << std::setprecision(3) << m_dShell_Scalar;
@@ -128,8 +182,22 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 		std::ostringstream ossNorm_Blue;
 		ossNorm_Blue << "Norm: " << std::setprecision(4) << m_dNorm_Blue;
 		std::ostringstream ossNorm_Red;
-		ossNorm_Red << "    : " << std::setprecision(4) << m_dNorm_Red;
+		ossNorm_Red << "..........: " << std::setprecision(4) << m_dNorm_Red;
 
+		std::ostringstream ossRef_Range_Blue;
+		ossRef_Range_Blue << "Fit: " << std::setprecision(4) << m_dRefine_Blue;
+		std::ostringstream ossRef_Range_Red;
+		ossRef_Range_Red << "......: " << std::setprecision(4) << m_dRefine_Red;
+
+		char lpszElem[4];
+		memset(lpszElem,0,sizeof(lpszElem));
+		xGet_Element_Symbol(m_uiElement,lpszElem);
+
+		char lpszIon[16];
+		xRomanNumeralGenerator(lpszIon,m_uiIon + 1);
+
+		std::ostringstream ossExc_Temp;
+		ossExc_Temp << "Te: " << m_dExc_Temp << " kK";
 
 		std::string szModel;
 
@@ -176,18 +244,76 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 			glPrintJustified(0.05,0.075,0.25,0.0,szFeature.c_str(),HJ_LEFT,VJ_MIDDLE);
 
 
-			glPrintJustified(0.03,0.70,0.275,0.0,szModel.c_str(),HJ_LEFT,VJ_MIDDLE);
-			glPrintJustified(0.03,0.70,0.225,0.0,ossTemp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glPrintJustified(0.03,0.70,0.175,0.0,ossVel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glPrintJustified(0.03,0.70,0.125,0.0,ossSs.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glPrintJustified(0.03,0.70,0.075,0.0,ossSe.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[0],0.0,szModel.c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[1],0.0,ossTemp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[2],0.0,ossVel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[3],0.0,ossSs.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[4],0.0,ossSe.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[5],0.0,ossExc_Temp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 
-			glPrintJustified(0.03,0.98,0.125,0.0,ossNorm_Blue.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glPrintJustified(0.03,0.98,0.075,0.0,ossNorm_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+
+			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[0],0.0,lpszElem,HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[1],0.0,lpszIon,HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[2],0.0,ossNorm_Blue.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[3],0.0,ossNorm_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[4],0.0,ossRef_Range_Blue.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[5],0.0,ossRef_Range_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+
+
+			if (m_sdRefine_Spectrum_Curr.m_bValid)
+			{
+				std::ostringstream ossRef_Temp;
+				std::ostringstream ossRef_Vel;
+				std::ostringstream ossRef_Ss;
+				std::ostringstream ossRef_Se;
+				std::ostringstream ossRef_Quality;
+
+				ossRef_Temp << "Tps: " << m_sdRefine_Spectrum_Curr.m_dPS_Temp << " kK";
+				ossRef_Vel << "Vps: " << m_sdRefine_Spectrum_Curr.m_dPS_Velocity << " km/s";
+				ossRef_Ss << "Ss: " << m_sdRefine_Spectrum_Curr.m_dShell_Scalar;
+				ossRef_Se << "Se: " << m_sdRefine_Spectrum_Curr.m_dEjecta_Scalar;
+				ossRef_Quality << "Q: " << m_dRefine_Spectrum_Curr_Quality;
+
+				glColor4d(0.0,1.00,0.0,1.0);
+				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[0],0.0,ossRef_Quality.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[1],0.0,ossRef_Temp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[2],0.0,ossRef_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[3],0.0,ossRef_Ss.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[4],0.0,ossRef_Se.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			}
+
+			if (m_sdRefine_Spectrum_Best.m_bValid)
+			{
+				std::ostringstream ossRef_Best_Temp;
+				std::ostringstream ossRef_Best_Vel;
+				std::ostringstream ossRef_Best_Ss;
+				std::ostringstream ossRef_Best_Se;
+				std::ostringstream ossRef_Best_Quality;
+
+				ossRef_Best_Temp << "Tps: " << m_sdRefine_Spectrum_Best.m_dPS_Temp << " kK";
+				ossRef_Best_Vel << "Vps: " << m_sdRefine_Spectrum_Best.m_dPS_Velocity << " km/s";
+				ossRef_Best_Ss << "Ss: " << m_sdRefine_Spectrum_Best.m_dShell_Scalar;
+				ossRef_Best_Se << "Se: " << m_sdRefine_Spectrum_Best.m_dEjecta_Scalar;
+				ossRef_Best_Quality << "Q: " << m_dRefine_Spectrum_Best_Quality;
+
+				glColor4d(0.0,0.75,0.0,1.0);
+				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[0],0.0,ossRef_Best_Quality.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[1],0.0,ossRef_Best_Temp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[2],0.0,ossRef_Best_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[3],0.0,ossRef_Best_Ss.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[4],0.0,ossRef_Best_Se.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			}
 
 			if (g_bGen_In_Progress && m_bFlasher_1s_50p)
-				glPrintJustified(0.03,0.050,0.90,0.0,"Generating",HJ_LEFT,VJ_MIDDLE);
-
+			{
+				glColor4d(0.0,0.0,1.0,1.0);
+				glPrintJustified(0.02,0.050,0.90,0.0,"Generating",HJ_LEFT,VJ_MIDDLE);
+			}
+			if (g_bRefine_In_Progress && m_bFlasher_1s_50p)
+			{
+				glColor4d(0.0,1.0,0.0,1.0);
+				glPrintJustified(0.02,0.050,0.85,0.0,"Refining",HJ_LEFT,VJ_MIDDLE);
+			}
 		glPopMatrix();
 		for (std::map<button_id,BUTTON_INFO>::const_iterator cI = m_mMain_Pane_Buttons.begin(); cI != m_mMain_Pane_Buttons.end(); cI++)
 		{
@@ -205,10 +331,24 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case model_select_up:
 				case temp_select_up:
 				case velocity_select_up:
+				case temp_select_big_up:
+				case velocity_select_big_up:
+				case shell_scalar_big_up:
+				case ejecta_scalar_big_up:
 				case shell_scalar_up:
 				case ejecta_scalar_up:
 				case norm_wl_blue_up:
 				case norm_wl_red_up:
+				case exc_temp_select_up:
+				case norm_wl_blue_big_up:
+				case norm_wl_red_big_up:
+				case exc_temp_select_big_up:
+				case elem_select_up:
+				case ion_select_up:
+				case ref_fit_range_blue_up:
+				case ref_fit_range_red_up:
+				case ref_fit_range_blue_big_up:
+				case ref_fit_range_red_big_up:
 					Draw_Scroll_Button(SBD_UP, true);
 					break;
 				case spectrum_select_down:
@@ -216,19 +356,49 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case model_select_down:
 				case temp_select_down:
 				case velocity_select_down:
+				case temp_select_big_down:
+				case velocity_select_big_down:
 				case shell_scalar_down:
 				case ejecta_scalar_down:
+				case shell_scalar_big_down:
+				case ejecta_scalar_big_down:
 				case norm_wl_blue_down:
 				case norm_wl_red_down:
+				case exc_temp_select_down:
+				case norm_wl_blue_big_down:
+				case norm_wl_red_big_down:
+				case exc_temp_select_big_down:
+				case elem_select_down:
+				case ion_select_down:
+				case ref_fit_range_blue_down:
+				case ref_fit_range_red_down:
+				case ref_fit_range_blue_big_down:
+				case ref_fit_range_red_big_down:
 					Draw_Scroll_Button(SBD_DOWN, true);
 					break;
-				case fit_request:
+				case gen_request:
 					glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Button_With_Text(dSize,"Gen");
+					break;
+				case refine_request:
+					glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Button_With_Text(dSize,"Refine");
 					break;
 				case quit_request:
 					glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Button_With_Text(dSize,"Quit");
+					break;
+				case save_refine_request:
+					glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Button_With_Text(dSize,"Save Ref.");
+					break;
+				case copy_refine_request:
+					glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Button_With_Text(dSize,"Copy");
+					break;
+				case abort_request:
+					glColor4d(0.75,0.0,0.0,1.0);
+					Draw_Button_With_Text(dSize,"Abort");
 					break;
 				case save_request:
 					glColor4d(0.75,0.75,0.75,1.0);
@@ -357,6 +527,39 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 										{
 											double dX = (m_sdGenerated_Spectrum.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
 											double dY = m_sdGenerated_Spectrum.m_specResult.flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+											glVertex2d(dX,dY);
+										}
+									}
+									glEnd();
+								}
+								if (g_bRefine_In_Progress && m_sdRefine_Spectrum_Curr.m_bValid)
+								{
+									glColor4d(0.0,1.0,0.0,1.0);
+									glBegin(GL_LINE_STRIP);
+									for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Curr.m_specResult.size(); uiI++)
+									{
+										if (m_sdRefine_Spectrum_Curr.m_specResult.wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Curr.m_specResult.wl(uiI) <= dWL_End)
+										{
+											double dX = (m_sdRefine_Spectrum_Curr.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_sdRefine_Spectrum_Curr.m_specResult.flux(uiI) * m_dRefine_Spectrum_Norm * dFlux_Scale;
+											glVertex2d(dX,dY);
+										}
+									}
+									glEnd();
+								}
+								if (m_sdRefine_Spectrum_Best.m_bValid)
+								{
+									if (!g_bRefine_In_Progress)
+										glColor4d(0.0,1.0,0.0,1.0);
+									else
+										glColor4d(0.75,1.0,0.75,1.0);
+									glBegin(GL_LINE_STRIP);
+									for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Best.m_specResult.size(); uiI++)
+									{
+										if (m_sdRefine_Spectrum_Best.m_specResult.wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Best.m_specResult.wl(uiI) <= dWL_End)
+										{
+											double dX = (m_sdRefine_Spectrum_Best.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_sdRefine_Spectrum_Best.m_specResult.flux(uiI) * m_dRefine_Spectrum_Best_Norm * dFlux_Scale;
 											glVertex2d(dX,dY);
 										}
 									}
