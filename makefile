@@ -301,7 +301,7 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 
 ifdef JSONCPP
 sf: $(BINDIR)/sf
-$(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a
+$(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(INCLUDEDIR)/specfit.h
 	-rm $(LIBDIR)/libsf.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(OBJS_SF)
 

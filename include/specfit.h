@@ -32,6 +32,11 @@
 #include <unistd.h>
 #include <eps_plot.h>
 
+//#define FIT_BLUE_WL 4500.0
+//#define FIT_RED_WL 9000.0
+#define FIT_BLUE_WL 6500.0
+#define FIT_RED_WL 7900.0
+
 namespace specfit
 {
 	enum feature {feat_undef, CaNIR, CaHK, Si6355, O7773};
@@ -52,6 +57,20 @@ namespace specfit
 			m_dExcitation_Temp = nan("");
 		}
 	};
+	class params_range
+	{
+	public:
+		double	m_dBlue_WL;
+		double	m_dRed_WL;
+
+		params_range(void)
+		{
+			m_dBlue_WL = -1.0;
+			m_dRed_WL = -1.0;
+		}
+
+	};
+
 	class params
 	{
 	public:
@@ -92,6 +111,8 @@ namespace specfit
 		std::vector <unsigned int> 	m_vuiModels;
 		std::vector <std::string> 	m_vsModel_Lists;
 		params						m_cSuggested_Param;
+		params_range				m_cNorm_Range;
+		params_range				m_cFit_Range;
 		double						m_dE_BmV; // E (B-V) value to use for dereddening
 		bool						m_bUse_JSON_ebv; // use the ebv data from the JSON datafile
 		bool						m_bUse_Two_Component_Fit; // set true to have a separate ejecta and shell photosphere and a mixing ratio
@@ -235,7 +256,9 @@ namespace specfit
 		std::vector <fit> &o_vfitFits ,
 		std::map< unsigned int, model> &o_mModel_Data,
 		std::map< std::string, std::vector<unsigned int> > &o_mModel_Lists,
-		std::map< std::string, std::string > &o_mDatafile_List
+		std::map< std::string, std::string > &o_mDatafile_List,
+		const params_range & i_cNorm_Range,
+		const params_range & i_cFit_Range
 		);
 	void Load_Data_Files(const std::map< std::string, std::string > &i_mDatafile_List,
 		std::map< std::string, Json::Value> &o_mJson_Data,
@@ -282,8 +305,4 @@ namespace specfit
 
 };
 
-//#define FIT_BLUE_WL 4500.0
-//#define FIT_RED_WL 9000.0
-#define FIT_BLUE_WL 6500.0
-#define FIT_RED_WL 7900.0
 

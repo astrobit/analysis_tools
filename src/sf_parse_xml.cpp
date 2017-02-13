@@ -119,7 +119,9 @@ void specfit::Parse_XML(const std::string &i_szFilename,
 	std::vector <specfit::fit> &o_vfitFits ,
 	std::map< unsigned int, specfit::model> &o_mModel_Data,
 	std::map< std::string, std::vector<unsigned int> > &o_mModel_Lists,
-	std::map< std::string, std::string > &o_mDatafile_List
+	std::map< std::string, std::string > &o_mDatafile_List,
+	const params_range & i_cNorm_Range,
+	const params_range & i_cFit_Range
 	)
 {
 	xmlDocPtr doc = xmlReadFile(i_szFilename.c_str(), nullptr, XML_PARSE_DTDVALID);
@@ -356,6 +358,8 @@ void specfit::Parse_XML(const std::string &i_szFilename,
 							}
 							lpCurr_Model_Node = lpCurr_Model_Node->next;
 						}
+						cFit.m_cNorm_Range = i_cNorm_Range;
+						cFit.m_cFit_Range = i_cFit_Range;
 						o_vfitFits.push_back(cFit);
 					}
 					break;

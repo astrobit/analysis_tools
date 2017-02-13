@@ -46,31 +46,46 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	bool bDebug = false;
 	bool bSingle = false;
 	bool bTry_Single_Fit = false;
+	specfit::params_range cNorm_Range;
+	specfit::params_range cFit_Range;
+
+	// read command line parameters, complain if one isn't recognized
 	for (std::vector<std::string>::iterator iterI = vCL_Arguments.begin(); iterI != vCL_Arguments.end(); iterI++)
 	{
 		if (iterI->find(".xml") != std::string::npos)
 			vFile_List.push_back(*iterI);
 		else if (*iterI == "--debug")
 			bDebug = true;
-		else if ((iterI->substr(0,8) == "--ps-vel") || (iterI->substr(0,9) == "--ps-temp") || (iterI->substr(0,4) == "--Se") || (iterI->substr(0,4) == "--Ss"))
+		else if ((iterI->substr(0,8) == "--ps-vel") || (iterI->substr(0,9) == "--ps-temp") || (iterI->substr(0,9) == "--exc-temp") || (iterI->substr(0,4) == "--Se") || (iterI->substr(0,4) == "--Ss"))
 			bSingle = true;
+		else if (iterI->substr(0,8) == "--norm-wl-blue")
+			cNorm_Range.m_dBlue_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--norm-wl-blue", FIT_BLUE_WL);
+		else if (iterI->substr(0,8) == "--norm-wl-red")
+			cNorm_Range.m_dRed_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--norm-wl-red", FIT_RED_WL);
+		else if (iterI->substr(0,8) == "--fit-wl-blue")
+			cFit_Range.m_dBlue_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--fit-wl-blue", FIT_BLUE_WL);
+		else if (iterI->substr(0,8) == "--fit-wl-red")
+			cFit_Range.m_dRed_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--fit-wl-red", FIT_RED_WL);
 		else  if (iterI->substr(0,5) == "--fit")
 			bTry_Single_Fit = true;
 		else
 			std::cerr << "Unrecognized command line parameter " << *iterI << std::endl;
 	}
+	// if generating a single parameter set is requested (or a starting point is specfiied by the user for fitting),
+	// fill in the user specified paramters
 	specfit::param_set cRef_Data_E;
 	specfit::param_set cRef_Data_S;
 	if (bSingle)
 	{
 		cRef_Data_E.m_dPS_Vel = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 20.0);
 		cRef_Data_E.m_dPS_Temp = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-temp", 10.0);
-		cRef_Data_E.m_dExcitation_Temp = 10000.0;
+		cRef_Data_E.m_dExcitation_Temp = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--exc-temp", 10.0);
 		cRef_Data_E.m_dLog_S = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--Se", 3.0);
 		cRef_Data_S = cRef_Data_E;
 		cRef_Data_S.m_dLog_S = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--Ss", 4.0);
 		bTry_Single_Fit = xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values, "--fit");
 	}
+	// create debug directory if it doesn't exist
 	if (bDebug)
 	{
 		DIR * fileDir = opendir(".debug");
@@ -90,6 +105,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}	
 	}
 
+	// create and write header line to individiual fit data file if it doesn't exist
 	std::ifstream ifsTest;
 	if (!bSingle)
 	{
@@ -120,6 +136,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			ifsTest.close();
 	}
 
+	// create and write header line to target fit data file if it doesn't exist
 	ifsTest.open("Results/target_fit_data.csv");
 	if (!ifsTest.is_open())
 	{
@@ -135,6 +152,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 
 
+	// create and write header line to best fit data file if it doesn't exist
 	if (!bSingle)
 	{
 		ifsTest.open("Results/best_fit_data.csv");
@@ -153,6 +171,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	if (bDebug)
 		std::cout << xconsole::bold << "Debug mode active" << xconsole::reset << std::endl;
 
+	// loop through all xml files 
 	for (std::vector<std::string>::iterator iterI = vFile_List.begin(); iterI != vFile_List.end(); iterI++)
 	{
 		std::vector <specfit::fit> vfitFits;
@@ -164,7 +183,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		best_fit_results vResults;
 		std::vector < std::vector < std::pair< gauss_fit_results, gauss_fit_results > > > vGauss_Fits_Results;
 
-		Parse_XML( *iterI, vfitFits, mModel_Data, mModel_Lists, mDatafile_List);
+		Parse_XML( *iterI, vfitFits, mModel_Data, mModel_Lists, mDatafile_List, cNorm_Range, cFit_Range);
 		Load_Data_Files( mDatafile_List, mJson_Data, mNon_Json_Data);
 		Validate_JSON_Data( mJson_Data);
 		Load_Models( vfitFits, mModel_Lists, mModel_Data);
