@@ -305,7 +305,7 @@ $(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/l
 	-rm $(LIBDIR)/libsf.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(OBJS_SF)
 
-$(BINDIR)/sf: $(SRCDIR)/sf.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(LIBDIR)/libsf.a $(INCLUDEDIR)/eps_plot.h  $(INCLUDEDIR)/specfit.h
+$(BINDIR)/sf: $(SRCDIR)/sf.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(LIBDIR)/libsf.a $(INCLUDEDIR)/eps_plot.h  $(INCLUDEDIR)/specfit.h $(LIBDIR)/libplotutil.a
 	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf.cpp $(JSONCPP) $(ESFLAGS) -lsf $(ESLIBS) $(PLOTUTILLIB) -llinerout -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
 
 genjsonfit: $(BINDIR)/genjsonfit
