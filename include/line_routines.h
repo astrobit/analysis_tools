@@ -388,3 +388,5 @@ double Lorentz_Function(const double & i_dFrequency_Hz, const double & i_dFreque
 double Line_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
 double Line_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
 
+double Get_Element_Number(const char * i_lpszNuclide);
+
