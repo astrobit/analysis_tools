@@ -6,6 +6,7 @@
 #include <xfit.h>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 double	specfit::g_dTarget_Normalization_Flux = -1;
 double	specfit::g_dGenerated_Normalization_Flux = -1;
@@ -15,6 +16,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 
 	specfit::spectra_fit_data cCall_Data;
+
+	cCall_Data.m_cNorm_Range = i_cFit.m_cNorm_Range;
+	cCall_Data.m_cFit_Range = i_cFit.m_cFit_Range;
 
 	bool bShell = i_cModel.m_dsShell.GetNumElements() != 0;
 
@@ -169,6 +173,33 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = 7500.0;
 		break;
 	}
+	double dRange_Min = -1.0;
+	double dRange_Max = -1.0;
+	if (i_cFit.m_cNorm_Range.m_dBlue_WL != -1 && i_cFit.m_cNorm_Range.m_dRed_WL != -1)
+	{
+		dRange_Min = i_cFit.m_cNorm_Range.m_dBlue_WL;
+		dRange_Max = i_cFit.m_cNorm_Range.m_dRed_WL;
+
+	}
+	if (i_cFit.m_cFit_Range.m_dBlue_WL != -1 && i_cFit.m_cFit_Range.m_dRed_WL != -1)
+	{
+		if (dRange_Min == -1)
+		{
+			dRange_Min = i_cFit.m_cNorm_Range.m_dBlue_WL;
+			dRange_Max = i_cFit.m_cNorm_Range.m_dRed_WL;
+		}
+		else
+		{
+			dRange_Min = std::min(i_cFit.m_cNorm_Range.m_dBlue_WL,dRange_Min);
+			dRange_Max = std::max(i_cFit.m_cNorm_Range.m_dRed_WL,dRange_Max);
+		}
+
+	}
+	if (dRange_Min != -1)
+	{
+		dBlue_Edge_WL = cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dRange_Min;
+		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = dRange_Max;
+	}
 //		std::cout << "Ejecta map: " << std::scientific << cCall_Data.m_lpcOpacity_Map_A[0].GetElement(1,250) << std::endl;
 	//std::string szCache = ".fitcache";
 	ES::Spectrum cTarget;
@@ -195,25 +226,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dWL_Min;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = dWL_Max;
-		cTarget = ES::Spectrum::create_from_size(vSpec_Subset.size());
-		cFull_Target = ES::Spectrum::create_from_size(i_cFit.m_vData.size());
-		// fill target spectrum
-		unsigned int uiIdx = 0;
-		for (specfit::spectraldata::const_iterator iterI = vSpec_Subset.cbegin(); iterI != vSpec_Subset.end(); iterI++)
-		{
-			cTarget.wl(uiIdx) = std::get<0>(*iterI);
-			cTarget.flux(uiIdx) = std::get<1>(*iterI);
-			cTarget.flux_error(uiIdx) = std::get<2>(*iterI);
-			uiIdx++;
-		}
-		uiIdx = 0;
-		for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end(); iterI++)
-		{
-			cFull_Target.wl(uiIdx) = std::get<0>(*iterI);
-			cFull_Target.flux(uiIdx) = std::get<1>(*iterI);
-			cFull_Target.flux_error(uiIdx) = std::get<2>(*iterI);
-			uiIdx++;
-		}
+		cTarget = ES::Spectrum::create_from_vector(vSpec_Subset);
+		cFull_Target = ES::Spectrum::create_from_vector(i_cFit.m_vData);
 	}
 
 	double dTemp_Low = 10000.0;
@@ -343,7 +357,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			vStarting_Point.Set(6,0.25);
 	}
 	//printf("logsdelta %f\n",vLog_S_Delta[2]);
-	vStarting_Point += vLog_S_Delta;
+	if (i_lpbPerform_Single_Fit == nullptr || !i_lpbPerform_Single_Fit[0])
+		vStarting_Point += vLog_S_Delta;
 	vEpsilon.Set_Size(uiParameters);
 	vEpsilon.Set(0,0.05);
 	vEpsilon.Set(1,0.05);
@@ -708,7 +723,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	Calc_Observables(csFull_Result,cContinuum,o_cFit);
 
 	double dTarget_Flux, dGenerated_Flux;
-	Get_Normalization_Fluxes(cFull_Target, csFull_Result, FIT_BLUE_WL, FIT_RED_WL, dTarget_Flux, dGenerated_Flux);
+	Get_Normalization_Fluxes(cFull_Target, csFull_Result, i_cFit.m_cNorm_Range, dTarget_Flux, dGenerated_Flux);
 
 	double	dNorm = dTarget_Flux  / dGenerated_Flux;
 	for (unsigned int uiI = 0; uiI < cFull_Target.size(); uiI++)

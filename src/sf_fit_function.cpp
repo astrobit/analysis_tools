@@ -16,17 +16,17 @@ double specfit::Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 	if (lpcCall_Data && lpcCall_Data->m_lpcTarget != nullptr && lpcCall_Data->m_lpcOpacity_Map_A != nullptr)
 	{
 		//std::cout << lpcCall_Data->m_lpcTarget->wl(0) << " " << lpcCall_Data->m_lpcTarget->flux(0) << std::endl;
-		ES::Spectrum cOutput_Sh  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_lpcTarget->wl(0), lpcCall_Data->m_lpcTarget->wl(lpcCall_Data->m_lpcTarget->size() - 1), lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cOutput_Ej  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_lpcTarget->wl(0), lpcCall_Data->m_lpcTarget->wl(lpcCall_Data->m_lpcTarget->size() - 1), lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cOutput  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_lpcTarget->wl(0), lpcCall_Data->m_lpcTarget->wl(lpcCall_Data->m_lpcTarget->size() - 1), lpcCall_Data->m_lpcTarget->size());
+		ES::Spectrum cOutput_Sh  = ES::Spectrum::create_from_spectrum( *lpcCall_Data->m_lpcTarget);
+		ES::Spectrum cOutput_Ej  = ES::Spectrum::create_from_spectrum( *lpcCall_Data->m_lpcTarget);
+		ES::Spectrum cOutput  = ES::Spectrum::create_from_spectrum( *lpcCall_Data->m_lpcTarget);
 
 		ES::Spectrum cOutput_Continuum  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cOutput_Continuum_Ej  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cOutput_Continuum_Sh  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cTarget_Continuum  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cTrue_Continuum  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cTrue_Continuum_Ej  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
-		ES::Spectrum cTrue_Continuum_Sh  = ES::Spectrum::create_from_range_and_size( lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang, lpcCall_Data->m_lpcTarget->size());
+		ES::Spectrum cOutput_Continuum_Ej  = ES::Spectrum::create_from_spectrum( cOutput_Continuum);
+		ES::Spectrum cOutput_Continuum_Sh  = ES::Spectrum::create_from_spectrum( cOutput_Continuum);
+		ES::Spectrum cTarget_Continuum  = ES::Spectrum::create_from_spectrum( cOutput_Continuum);
+		ES::Spectrum cTrue_Continuum  = ES::Spectrum::create_from_spectrum( cOutput_Continuum);
+		ES::Spectrum cTrue_Continuum_Ej  = ES::Spectrum::create_from_spectrum( cOutput_Continuum);
+		ES::Spectrum cTrue_Continuum_Sh  = ES::Spectrum::create_from_spectrum( cOutput_Continuum);
 		bool bShell = lpcCall_Data->m_lpcOpacity_Map_B != nullptr && lpcCall_Data->m_lpcOpacity_Map_B->GetNumElements() > 0;
 		// look to see if this particular vector has been processed
 
@@ -143,7 +143,7 @@ double specfit::Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 			break;
 		}
 		double dTgt_Norm, dGen_Norm;
-		Get_Normalization_Fluxes(lpcCall_Data->m_lpcTarget[0], cOutput, FIT_BLUE_WL, FIT_RED_WL, dTgt_Norm, dGen_Norm);
+		Get_Normalization_Fluxes(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cNorm_Range, dTgt_Norm, dGen_Norm);
 		specfit::feature_parameters cfpModel,cfpCont_Model;
 		printf("--");
 		fflush(stdout);
@@ -189,10 +189,20 @@ double specfit::Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 		}
 		dFlux_Min_Wl -= 50.0;
 //		printf("%.1f %.1f\n",dFlux_Min_Wl,dFlux_Max_Wl);
+		specfit::params_range cParam_Range_Fit_Weak(cOutput.wl(0),dFlux_Min_Wl);
+		specfit::params_range cParam_Range_Fit_Strong(dFlux_Min_Wl,cOutput.wl(cOutput.size() - 1));
+		specfit::params_range cParam_Range_Fit_Continuum(lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang,lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang);
 
-		dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, dFlux_Min_Wl, dFlux_Max_Wl,2,true) ;
-		dFit += Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cParam.m_dWavelength_Range_Lower_Ang, dFlux_Min_Wl,2,true) * 0.1;
-		dFit += Get_Fit(cTarget_Continuum, cOutput_Continuum, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang, lpcCall_Data->m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang,2,false);
+		if (lpcCall_Data->m_cFit_Range.m_dBlue_WL != -1 && lpcCall_Data->m_cFit_Range.m_dBlue_WL != -1)
+		{
+			dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cNorm_Range, lpcCall_Data->m_cFit_Range,2,true) ;
+		}
+		else
+		{
+			dFit = Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cNorm_Range, cParam_Range_Fit_Strong,2,true) ;
+			dFit += Get_Fit(lpcCall_Data->m_lpcTarget[0], cOutput, lpcCall_Data->m_cNorm_Range, cParam_Range_Fit_Weak,2,false) * 0.1;
+		}
+		dFit += Get_Fit(cTarget_Continuum, cOutput_Continuum, lpcCall_Data->m_cNorm_Range, cParam_Range_Fit_Continuum, 2 ,false);
 
 //		std::cout << std::endl << cParam.m_dWavelength_Range_Lower_Ang << " " << cOutput_Continuum.wl(0) << " " << cTarget_Continuum.wl(0) << std::endl;
 		if (lpcCall_Data->m_bDebug)
