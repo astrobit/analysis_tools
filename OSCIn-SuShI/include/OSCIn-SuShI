@@ -77,6 +77,14 @@ public:
 	unsigned int	m_uiIon;
 	double			m_dExc_Temp;
 
+	double			m_dFit_WL_Blue;
+	double			m_dFit_WL_Red;
+
+	double			m_dNorm_WL_Blue;
+	double			m_dNorm_WL_Red;
+
+	double			m_dQuality_of_Fit;
+
 
 	ES::Spectrum	m_specResult;
 
@@ -102,7 +110,6 @@ public:
 	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
 };
 
-ES::Spectrum Get_ES_Spectrum(const OSCspectrum & i_cRHO);
 void Process_Generate_Requests(void);
 void Process_Refine_Requests(void);
 double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
@@ -159,16 +166,17 @@ private:
 
 	double			m_dRow_1_Text;
 	double			m_dRow_2_Text;
+	double			m_dRow_3_Text_Labels;
 	double			m_dRow_3_Text;
 	double			m_dRow_4_Text;
+	double			m_dRow_5_Text;
+	double			m_dRow_6_Text;
 	double			m_dText_Y[20];
 	double			m_dText_Comp_Y[20];
 
 	spectrum_data		m_sdRefine_Spectrum_Curr;
-	double				m_dRefine_Spectrum_Curr_Quality;
 	double				m_dRefine_Spectrum_Norm;
 	spectrum_data		m_sdRefine_Spectrum_Best;
-	double				m_dRefine_Spectrum_Best_Quality;
 	double				m_dRefine_Spectrum_Best_Norm;
 	unsigned int		m_uiRefine_Result_ID;
 
@@ -183,6 +191,9 @@ private:
 	void Normalize(void);
 
 
+
+	void Display_Spectrum_Information(const spectrum_data & i_cSpectrum, const double & i_dX_Position, const double * i_lpdColor);
+	void Save_Result(const std::string &i_szFilename, unsigned int m_uiModel, const spectrum_data & i_cSpectrum, bool i_bRefined_Data);
 
 public:
 	OSCIn_SuShI_main(void) : m_thrGen(Process_Generate_Requests), m_thrRefine(Process_Refine_Requests)  {m_thrGen.detach();m_thrRefine.detach();};
@@ -219,11 +230,6 @@ extern bool				g_bRefine_Done;
 extern bool				g_bRefine_Thread_Running;
 extern unsigned int		g_uiRefine_Result_ID;
 extern spectrum_data		g_sdRefine_Result;
-extern double				g_dRefine_Result_Quality;
-extern double				g_dRefine_Norm_Blue_WL;
-extern double				g_dRefine_Norm_Red_WL;
-extern double				g_dRefine_Fit_Blue_WL;
-extern double				g_dRefine_Fit_Red_WL;
 extern model *				g_lpmRefine_Model;
 extern spectrum_data		g_sdRefine_Result_Curr;
 extern double				g_dRefine_Result_Curr_Quality;

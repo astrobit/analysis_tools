@@ -373,90 +373,13 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 			break;
 		case save_request:
 			{
-				FILE * fileSaves = fopen("results.csv","rt");
-				if (fileSaves == nullptr)
-				{
-					fileSaves = fopen("results.csv","wt");
-					fprintf(fileSaves,"dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, PS Temp, PS Velocity, Ss, Se\n");
-					fclose(fileSaves);
-				}
-				else
-					fclose(fileSaves);
-				fileSaves = fopen("results.csv","at");
-				if (fileSaves != nullptr)
-				{
-					time_t timer;
-					tm * lpTime;
-					time(&timer);  /* get current time; same as: timer = time(NULL)  */
-					lpTime = gmtime(&timer);
-
-					fprintf(fileSaves,"%02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.2f, %.2f, %.2f, %.2f\n",
-									lpTime->tm_mday, 
-									lpTime->tm_mon+1, 
-									lpTime->tm_year + 1900, 
-									lpTime->tm_hour, 
-									lpTime->tm_min, 
-									lpTime->tm_sec,
-									m_OSCfile.m_szSupernova_ID.c_str(),
-									m_idSelected_ID.m_dDate_MJD,
-									m_idSelected_ID.m_szInstrument.c_str(),
-									m_idSelected_ID.m_szSources.c_str(),
-									m_uiModel,
-									m_uiElement,
-									m_uiIon,
-									m_dPS_Temp,
-									m_dPS_Velocity,
-									m_dShell_Scalar,
-									m_dEjecta_Scalar);
-					fclose(fileSaves);
-				}
+				Save_Result("results.csv",m_uiModel,m_sdGenerated_Spectrum,false);
 			}
 			break;
 		case save_refine_request:
 			if (!g_bRefine_In_Progress && m_sdRefine_Spectrum_Best.m_bValid)
 			{
-				FILE * fileSaves = fopen("refine_results.csv","rt");
-				if (fileSaves == nullptr)
-				{
-					fileSaves = fopen("refine_results.csv","wt");
-					fprintf(fileSaves,"dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, Norm. Blue WL, Norm. Red WL, Fit Blue WL, Fit Red WL, PS Temp, PS Velocity, Ss, Se, Quality\n");
-					fclose(fileSaves);
-				}
-				else
-					fclose(fileSaves);
-				fileSaves = fopen("refine_results.csv","at");
-				if (fileSaves != nullptr)
-				{
-					time_t timer;
-					tm * lpTime;
-					time(&timer);  /* get current time; same as: timer = time(NULL)  */
-					lpTime = gmtime(&timer);
-
-					fprintf(fileSaves,"%02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.0f, %.0f, %.0f, %.0f, %.17e, %.17e, %.17e, %.17e, %.17e\n",
-									lpTime->tm_mday, 
-									lpTime->tm_mon+1, 
-									lpTime->tm_year + 1900, 
-									lpTime->tm_hour, 
-									lpTime->tm_min, 
-									lpTime->tm_sec,
-									m_OSCfile.m_szSupernova_ID.c_str(),
-									m_idSelected_ID.m_dDate_MJD,
-									m_idSelected_ID.m_szInstrument.c_str(),
-									m_idSelected_ID.m_szSources.c_str(),
-									m_uiModel, // assume they haven't changed it
-									m_sdRefine_Spectrum_Best.m_uiIon / 100,
-									m_sdRefine_Spectrum_Best.m_uiIon % 100,
-									m_dNorm_Blue,
-									m_dNorm_Red,
-									m_dRefine_Blue,
-									m_dRefine_Red,
-									m_sdRefine_Spectrum_Best.m_dPS_Temp,
-									m_sdRefine_Spectrum_Best.m_dPS_Velocity,
-									m_sdRefine_Spectrum_Best.m_dShell_Scalar,
-									m_sdRefine_Spectrum_Best.m_dEjecta_Scalar,
-									m_dRefine_Spectrum_Best_Quality);
-					fclose(fileSaves);
-				}
+				Save_Result("refine_results.csv",m_uiModel,m_sdRefine_Spectrum_Best,true);
 			}
 			break;
 		case gen_request:
@@ -468,8 +391,12 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_sdGen_Spectrum_Result.m_dEjecta_Scalar = m_dEjecta_Scalar;
 				g_sdGen_Spectrum_Result.m_dExc_Temp = m_dExc_Temp;
 				g_sdGen_Spectrum_Result.m_uiIon = m_uiElement * 100 + m_uiIon;//m_uiModel;
+				g_sdGen_Spectrum_Result.m_dNorm_WL_Blue = m_dNorm_Blue;
+				g_sdGen_Spectrum_Result.m_dNorm_WL_Red = m_dNorm_Red;
+				g_sdGen_Spectrum_Result.m_dFit_WL_Blue = m_dRefine_Blue;
+				g_sdGen_Spectrum_Result.m_dFit_WL_Red = m_dRefine_Red;
 				g_lpmGen_Model = &m_mapModels[m_uiModel];
-				g_sdGen_Spectrum_Result.m_specResult = Get_ES_Spectrum(m_specSelected_Spectrum);
+				g_sdGen_Spectrum_Result.m_specResult = ES::Spectrum::create_copy_from_vector(m_specSelected_Spectrum.Get_Tuple_Vector());
 				g_sdGen_Spectrum_Result.m_bValid = true;
 				g_bGen_Process_Request = true;
 			}
@@ -491,13 +418,13 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_sdRefine_Result.m_dShell_Scalar = m_dShell_Scalar;
 				g_sdRefine_Result.m_dEjecta_Scalar = m_dEjecta_Scalar;
 				g_sdRefine_Result.m_dExc_Temp = m_dExc_Temp;
+				g_sdRefine_Result.m_dFit_WL_Blue = m_dRefine_Blue;
+				g_sdRefine_Result.m_dFit_WL_Red = m_dRefine_Red;
+				g_sdRefine_Result.m_dNorm_WL_Blue = m_dNorm_Blue;
+				g_sdRefine_Result.m_dNorm_WL_Red = m_dNorm_Red;
 				g_sdRefine_Result.m_uiIon = m_uiElement * 100 + m_uiIon;//m_uiModel;
 				g_lpmRefine_Model = &m_mapModels[m_uiModel];
-				g_sdRefine_Result.m_specResult = Get_ES_Spectrum(m_specSelected_Spectrum);
-				g_dRefine_Norm_Blue_WL = m_dNorm_Blue;
-				g_dRefine_Norm_Red_WL = m_dNorm_Red;
-				g_dRefine_Fit_Blue_WL = m_dRefine_Blue;
-				g_dRefine_Fit_Red_WL = m_dRefine_Red;
+				g_sdRefine_Result.m_specResult = ES::Spectrum::create_copy_from_vector(m_specSelected_Spectrum.Get_Tuple_Vector());
 				g_sdRefine_Result.m_bValid = true;
 				g_bRefine_Process_Request = true;
 			}
@@ -537,9 +464,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 	if (g_bRefine_Done)
 	{
 		m_sdRefine_Spectrum_Best = g_sdRefine_Result;
-		m_dRefine_Spectrum_Best_Quality = g_dRefine_Result_Quality;
 		m_sdRefine_Spectrum_Curr.m_bValid = false;
-		m_dRefine_Spectrum_Curr_Quality = 0.0;
 		Normalize();
 		g_bRefine_Done = false;
 		Request_Refresh();
@@ -548,9 +473,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 	{
 		m_uiRefine_Result_ID = g_uiRefine_Result_ID;
 		m_sdRefine_Spectrum_Best = g_sdRefine_Result_Curr_Best;
-		m_dRefine_Spectrum_Best_Quality = g_dRefine_Result_Curr_Best_Quality;
 		m_sdRefine_Spectrum_Curr = g_sdRefine_Result_Curr;
-		m_dRefine_Spectrum_Curr_Quality = g_dRefine_Result_Curr_Quality;
 		Normalize();
 		Request_Refresh();
 	}

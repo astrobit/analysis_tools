@@ -32,19 +32,6 @@ void OSCIn_SuShI_main::Process_Selected_Spectrum(void)
 			m_dSelected_Flux_Max[0] = iterI->m_dFlux;
 	}
 }
-ES::Spectrum Get_ES_Spectrum(const OSCspectrum & i_cRHO)
-{
-	FILE * fileTemp = fopen("temp.spc","wt");
-	for (unsigned int uiI = 0; uiI < i_cRHO.size(); uiI++)
-	{
-		fprintf(fileTemp,"%.2f %.17e %.17e\n",i_cRHO.wl(uiI),i_cRHO.flux(uiI),i_cRHO.flux_error(uiI));
-	}
-	fclose(fileTemp);
-
-	ES::Spectrum i_cLHO = ES::Spectrum::create_from_ascii_file("temp.spc");
-	
-	return i_cLHO;
-}
 
 double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red)
 {
@@ -262,6 +249,21 @@ void Process_Generate_Requests(void)
 			{
 				unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
 				msdb_load_generate(cParam, msdb::COMBINED, cTarget, &g_lpmGen_Model->m_dsEjecta[uiIdx], &g_lpmGen_Model->m_dsShell, g_sdGen_Spectrum_Result.m_specResult);
+				double dNorm_Target = Get_Norm_Const(cTarget,g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
+				double dNorm_Gen = Get_Norm_Const(g_sdGen_Spectrum_Result.m_specResult,g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
+				double dNorm = dNorm_Target / dNorm_Gen;
+				double dSum_Err_2 = 0.0;
+				for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult.size(); uiI++)
+				{
+					if (g_sdGen_Spectrum_Result.m_specResult.wl(uiI) >= g_sdGen_Spectrum_Result.m_dFit_WL_Blue && g_sdGen_Spectrum_Result.m_specResult.wl(uiI) <= g_sdGen_Spectrum_Result.m_dFit_WL_Red)
+					{
+						double dErr = g_sdGen_Spectrum_Result.m_specResult.flux(uiI) * dNorm - cTarget.flux(uiI);
+						dSum_Err_2 += dErr * dErr;
+					}
+				}
+				g_sdGen_Spectrum_Result.m_dQuality_of_Fit = dSum_Err_2;
+				
+
 			}
 			g_bGen_Done = true;
 			g_bGen_In_Progress = false;
@@ -277,16 +279,9 @@ bool				g_bRefine_Done = false;
 bool				g_bRefine_Thread_Running = false;
 unsigned int		g_uiRefine_Result_ID = 0;
 spectrum_data		g_sdRefine_Result;
-double				g_dRefine_Result_Quality = 0.0;
-double				g_dRefine_Norm_Blue_WL = 7900.0;
-double				g_dRefine_Norm_Red_WL = 8500.0;
-double				g_dRefine_Fit_Blue_WL = 7500.0;
-double				g_dRefine_Fit_Red_WL = 8500.0;
 model *				g_lpmRefine_Model = nullptr;
 spectrum_data		g_sdRefine_Result_Curr;
-double				g_dRefine_Result_Curr_Quality = 0.0;
 spectrum_data		g_sdRefine_Result_Curr_Best;
-double				g_dRefine_Result_Curr_Best_Quality = 0.0;
 
 void Process_Refine_Requests(void)
 {
@@ -315,7 +310,7 @@ void Process_Refine_Requests(void)
 			xvRefine_Params.Set(3,0.3);
 			
 			Prep(g_sdRefine_Result,g_lpmGen_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
-			double dNorm_Target = Get_Norm_Const(cTarget,g_dRefine_Norm_Blue_WL,g_dRefine_Norm_Red_WL);
+			double dNorm_Target = Get_Norm_Const(cTarget,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
 			g_sdRefine_Result_Curr = g_sdRefine_Result;
 			g_sdRefine_Result_Curr_Best = g_sdRefine_Result;
 
@@ -339,12 +334,12 @@ void Process_Refine_Requests(void)
 									cParam_Curr.m_dShell_Log_Scalar += iSe * xvRefine_Params.Get(3);
 									unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
 									msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
-									double dNorm_Gen = Get_Norm_Const(esResult,g_dRefine_Norm_Blue_WL,g_dRefine_Norm_Red_WL);
+									double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
 									double dNorm = dNorm_Target / dNorm_Gen;
 									double dSum_Err_2 = 0.0;
 									for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
 									{
-										if (esResult.wl(uiI) >= g_dRefine_Fit_Blue_WL && esResult.wl(uiI) <= g_dRefine_Fit_Red_WL)
+										if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
 										{
 											double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
 											dSum_Err_2 += dErr * dErr;
@@ -359,14 +354,14 @@ void Process_Refine_Requests(void)
 										g_sdRefine_Result_Curr_Best.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
 										g_sdRefine_Result_Curr_Best.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
 										g_sdRefine_Result_Curr_Best.m_specResult = esResult;
-										g_dRefine_Result_Curr_Best_Quality = dSum_Err_2;
+										g_sdRefine_Result_Curr_Best.m_dQuality_of_Fit = dSum_Err_2;
 									}
 									g_sdRefine_Result_Curr.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
 									g_sdRefine_Result_Curr.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
 									g_sdRefine_Result_Curr.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
 									g_sdRefine_Result_Curr.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
 									g_sdRefine_Result_Curr.m_specResult = esResult;
-									g_dRefine_Result_Curr_Quality = dSum_Err_2;
+									g_sdRefine_Result_Curr.m_dQuality_of_Fit = dSum_Err_2;
 
 									g_uiRefine_Result_ID++;
 //									std::cout << g_uiRefine_Result_ID << std::endl;
@@ -381,7 +376,6 @@ void Process_Refine_Requests(void)
 			if (!g_bAbort_Request)
 			{
 				g_sdRefine_Result = g_sdRefine_Result_Curr_Best;
-				g_dRefine_Result_Quality = g_dRefine_Result_Curr_Best_Quality;
 
 				g_bRefine_Done = true;
 				g_bRefine_In_Progress = false;
@@ -400,5 +394,85 @@ void Process_Refine_Requests(void)
 		usleep(10); // hand process back to the OS for a bit to reduce CPU load
 	} while (!g_bQuit_Thread);
 	g_bRefine_Thread_Running = false;
+}
+
+void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int i_uiModel, const spectrum_data & i_cSpectrum, bool i_bRefined_Data)
+{
+	if (i_cSpectrum.m_bValid)
+	{
+		unsigned int uiID = 1;
+		FILE * fileSaves = fopen(i_szFilename.c_str(),"rt");
+		if (fileSaves == nullptr)
+		{
+			fileSaves = fopen(i_szFilename.c_str(),"wt");
+			fprintf(fileSaves,"#, dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, Norm. Blue WL, Norm. Red WL, Fit Blue WL, Fit Red WL, PS Temp, PS Velocity, Ss, Se, Quality\n");
+			fclose(fileSaves);
+		}
+		else
+		{
+			char lpszBuffer[512] = {0};
+			char lpszBufferLast[512] = {0};
+			while (!feof(fileSaves))
+			{
+				strcpy(lpszBufferLast,lpszBuffer);
+				fgets(lpszBuffer,sizeof(lpszBuffer),fileSaves);
+			}
+			uiID = atoi(lpszBufferLast) + 1;
+			fclose(fileSaves);
+		}
+		fileSaves = fopen(i_szFilename.c_str(),"at");
+		if (fileSaves != nullptr)
+		{
+			time_t timer;
+			tm * lpTime;
+			time(&timer);  /* get current time; same as: timer = time(NULL)  */
+			lpTime = gmtime(&timer);
+
+			fprintf(fileSaves,"%i, %02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.0f, %.0f, %.0f, %.0f, %.17e, %.17e, %.17e, %.17e, %.17e\n",
+							uiID,
+							lpTime->tm_mday, 
+							lpTime->tm_mon+1, 
+							lpTime->tm_year + 1900, 
+							lpTime->tm_hour, 
+							lpTime->tm_min, 
+							lpTime->tm_sec,
+							m_OSCfile.m_szSupernova_ID.c_str(),
+							m_idSelected_ID.m_dDate_MJD,
+							m_idSelected_ID.m_szInstrument.c_str(),
+							m_idSelected_ID.m_szSources.c_str(),
+							i_uiModel, // assume they haven't changed it
+							i_cSpectrum.m_uiIon / 100,
+							i_cSpectrum.m_uiIon % 100,
+							i_cSpectrum.m_dNorm_WL_Blue,
+							i_cSpectrum.m_dNorm_WL_Red,
+							i_cSpectrum.m_dFit_WL_Blue,
+							i_cSpectrum.m_dFit_WL_Red,
+							i_cSpectrum.m_dPS_Temp,
+							i_cSpectrum.m_dPS_Velocity,
+							i_cSpectrum.m_dShell_Scalar,
+							i_cSpectrum.m_dEjecta_Scalar,
+							i_cSpectrum.m_dQuality_of_Fit);
+			fclose(fileSaves);
+		}
+		std::ostringstream ossJobFile;
+		if (i_bRefined_Data)
+			ossJobFile << "job_refined_" << m_OSCfile.m_szSupernova_ID << "_" << uiID;
+		else
+			ossJobFile << "job_" << m_OSCfile.m_szSupernova_ID << "_" << uiID;
+		FILE * fileJob = fopen(ossJobFile.str().c_str(),"wt");
+		if (fileJob != nullptr)
+		{
+			fprintf(fileJob,"sf <xml> --ps-vel=%.3f --ps-temp=%.3f --Se=%.5f --Ss=%.5f --norm-wl-blue=%.0f --norm-wl-red=%.0f --fit-wl-blue=%.0f --fit-wl-red=%.0f --fit\n",
+							i_cSpectrum.m_dPS_Velocity,
+							i_cSpectrum.m_dPS_Temp,
+							i_cSpectrum.m_dEjecta_Scalar,
+							i_cSpectrum.m_dShell_Scalar,
+							i_cSpectrum.m_dNorm_WL_Blue,
+							i_cSpectrum.m_dNorm_WL_Red,
+							i_cSpectrum.m_dFit_WL_Blue,
+							i_cSpectrum.m_dFit_WL_Red);
+			fclose(fileJob);
+		}
+	}
 }
 

@@ -67,8 +67,11 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	double dRow_3 = 0.97;
 	double dRow_4 = 0.95;
 	m_dRow_2_Text = 1.00;
-	m_dRow_3_Text = 1.20;
+	m_dRow_3_Text_Labels = 1.20;
+	m_dRow_3_Text = 1.25;
 	m_dRow_4_Text = 1.40;
+	m_dRow_5_Text = 1.55;
+	m_dRow_6_Text = 1.70;
 
 	m_mMain_Pane_Buttons[model_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[0]),pSmSB_Size,model_select_up);
 	m_mMain_Pane_Buttons[model_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[1]),pSmSB_Size,model_select_down);
@@ -143,6 +146,37 @@ void Draw_Button_With_Text(const double & i_dSize, std::string i_szText)
 		glPrintJustified(0.4,0.0,0.0,0.0,i_szText.c_str(),HJ_CENTER,VJ_MIDDLE);
 	glPopMatrix();
 }
+
+void OSCIn_SuShI_main::Display_Spectrum_Information(const spectrum_data & i_cSpectrum, const double & i_dX_Position, const double * i_lpdColor3d)
+{
+	if (i_cSpectrum.m_bValid)
+	{
+		std::ostringstream ossRef_Temp;
+		std::ostringstream ossRef_Vel;
+		std::ostringstream ossRef_Ss;
+		std::ostringstream ossRef_Se;
+		std::ostringstream ossRef_Quality;
+
+		ossRef_Temp << i_cSpectrum.m_dPS_Temp;
+		ossRef_Vel << i_cSpectrum.m_dPS_Velocity;
+		ossRef_Ss << std::fixed << std::setprecision(2) << i_cSpectrum.m_dShell_Scalar;
+		ossRef_Se << std::fixed << std::setprecision(2) << i_cSpectrum.m_dEjecta_Scalar;
+		ossRef_Quality << std::scientific << std::setprecision(3) << i_cSpectrum.m_dQuality_of_Fit;
+
+		glColor4d(i_lpdColor3d[0],i_lpdColor3d[1],i_lpdColor3d[2],1.0);
+		glPrintJustified(0.02,i_dX_Position,m_dText_Comp_Y[0],0.0,ossRef_Quality.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+		glPrintJustified(0.02,i_dX_Position,m_dText_Comp_Y[1],0.0,ossRef_Temp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+		glPrintJustified(0.02,i_dX_Position,m_dText_Comp_Y[2],0.0,ossRef_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+		glPrintJustified(0.02,i_dX_Position,m_dText_Comp_Y[3],0.0,ossRef_Ss.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+		glPrintJustified(0.02,i_dX_Position,m_dText_Comp_Y[4],0.0,ossRef_Se.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+	}
+
+}
+
+double ltblue[3] = {0.75,0.75,1.0};
+double blue[3] = {0.0,0.0,1.0};
+double dkgreen[3] = {0.0,0.75,0.0};
+double green[3] = {0.0,1.0,0.0};
 
 void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 {
@@ -260,49 +294,17 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 			glPrintJustified(0.02,m_dRow_2_Text,m_dText_Y[5],0.0,ossRef_Range_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 
 
-			if (m_sdRefine_Spectrum_Curr.m_bValid)
-			{
-				std::ostringstream ossRef_Temp;
-				std::ostringstream ossRef_Vel;
-				std::ostringstream ossRef_Ss;
-				std::ostringstream ossRef_Se;
-				std::ostringstream ossRef_Quality;
+			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[0],0.0,"Q",HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[1],0.0,"Tps",HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[2],0.0,"Vps",HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[3],0.0,"Ss",HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[4],0.0,"Se",HJ_LEFT,VJ_MIDDLE);
 
-				ossRef_Temp << "Tps: " << m_sdRefine_Spectrum_Curr.m_dPS_Temp << " kK";
-				ossRef_Vel << "Vps: " << m_sdRefine_Spectrum_Curr.m_dPS_Velocity << " km/s";
-				ossRef_Ss << "Ss: " << m_sdRefine_Spectrum_Curr.m_dShell_Scalar;
-				ossRef_Se << "Se: " << m_sdRefine_Spectrum_Curr.m_dEjecta_Scalar;
-				ossRef_Quality << "Q: " << m_dRefine_Spectrum_Curr_Quality;
+			Display_Spectrum_Information(m_sdRefine_Spectrum_Best,m_dRow_3_Text,dkgreen);
+			Display_Spectrum_Information(m_sdRefine_Spectrum_Curr,m_dRow_4_Text,green);
+			Display_Spectrum_Information(m_sdGenerated_Spectrum,m_dRow_5_Text,blue);
+			Display_Spectrum_Information(m_sdGenerated_Spectrum_Prev,m_dRow_6_Text,ltblue);
 
-				glColor4d(0.0,1.00,0.0,1.0);
-				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[0],0.0,ossRef_Quality.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[1],0.0,ossRef_Temp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[2],0.0,ossRef_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[3],0.0,ossRef_Ss.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4_Text,m_dText_Comp_Y[4],0.0,ossRef_Se.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			}
-
-			if (m_sdRefine_Spectrum_Best.m_bValid)
-			{
-				std::ostringstream ossRef_Best_Temp;
-				std::ostringstream ossRef_Best_Vel;
-				std::ostringstream ossRef_Best_Ss;
-				std::ostringstream ossRef_Best_Se;
-				std::ostringstream ossRef_Best_Quality;
-
-				ossRef_Best_Temp << "Tps: " << m_sdRefine_Spectrum_Best.m_dPS_Temp << " kK";
-				ossRef_Best_Vel << "Vps: " << m_sdRefine_Spectrum_Best.m_dPS_Velocity << " km/s";
-				ossRef_Best_Ss << "Ss: " << m_sdRefine_Spectrum_Best.m_dShell_Scalar;
-				ossRef_Best_Se << "Se: " << m_sdRefine_Spectrum_Best.m_dEjecta_Scalar;
-				ossRef_Best_Quality << "Q: " << m_dRefine_Spectrum_Best_Quality;
-
-				glColor4d(0.0,0.75,0.0,1.0);
-				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[0],0.0,ossRef_Best_Quality.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[1],0.0,ossRef_Best_Temp.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[2],0.0,ossRef_Best_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[3],0.0,ossRef_Best_Ss.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_3_Text,m_dText_Comp_Y[4],0.0,ossRef_Best_Se.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			}
 
 			if (g_bGen_In_Progress && m_bFlasher_1s_50p)
 			{

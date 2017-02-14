@@ -28,17 +28,17 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_dPS_Temp = 8.0;
 		m_dPS_Velocity = 18.0;
 		m_dEjecta_Scalar = 2.4;
-		m_dShell_Scalar = 2.7;
+		m_dShell_Scalar = 2.8;
 		m_dExc_Temp = 10.0;
 
 		m_uiElement = 20;
 		m_uiIon = 1;
 
 		m_dNorm_Blue = 7900.0;
-		m_dNorm_Red = 8500.0;
+		m_dNorm_Red = 8600.0;
 
-		m_dRefine_Blue = 7500.0;
-		m_dRefine_Red = 8500.0;
+		m_dRefine_Blue = 7700.0;
+		m_dRefine_Red = 8600.0;
 
 		m_mapModels[41] = model(41);
 		m_mapModels[45] = model(45);
