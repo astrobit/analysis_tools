@@ -82,6 +82,8 @@ public:
 	std::vector <OSCspectrum_dp>::reverse_iterator rbegin(void) { return m_vSpectrum.rbegin();}
 	std::vector <OSCspectrum_dp>::reverse_iterator rend(void) { return m_vSpectrum.rend();}
 
+	std::vector <std::tuple<double, double, double> > Get_Tuple_Vector(void) const;
+
 	size_t size(void) const {return m_vSpectrum.size();}
 
 	void Deredden(const double & i_dE_BmV);

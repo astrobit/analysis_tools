@@ -176,3 +176,12 @@ void OSCspectrum::Deredden(const double & i_dE_BmV)
 		}
 	}
 }
+
+std::vector <std::tuple<double, double, double> > OSCspectrum::Get_Tuple_Vector(void) const
+{
+	std::vector <std::tuple<double, double, double> > vtRes;
+	for(auto iterI = m_vSpectrum.cbegin(); iterI != m_vSpectrum.cend(); iterI++)
+		vtRes.push_back(std::tuple<double, double, double> ( iterI->m_dWavelength, iterI->m_dFlux, iterI->m_dFlux_Error));
+	return vtRes;
+}
+
