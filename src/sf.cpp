@@ -58,13 +58,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			bDebug = true;
 		else if ((iterI->substr(0,8) == "--ps-vel") || (iterI->substr(0,9) == "--ps-temp") || (iterI->substr(0,9) == "--exc-temp") || (iterI->substr(0,4) == "--Se") || (iterI->substr(0,4) == "--Ss"))
 			bSingle = true;
-		else if (iterI->substr(0,8) == "--norm-wl-blue")
+		else if (iterI->substr(0,14) == "--norm-wl-blue")
 			cNorm_Range.m_dBlue_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--norm-wl-blue", FIT_BLUE_WL);
-		else if (iterI->substr(0,8) == "--norm-wl-red")
+		else if (iterI->substr(0,13) == "--norm-wl-red")
 			cNorm_Range.m_dRed_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--norm-wl-red", FIT_RED_WL);
-		else if (iterI->substr(0,8) == "--fit-wl-blue")
+		else if (iterI->substr(0,13) == "--fit-wl-blue")
 			cFit_Range.m_dBlue_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--fit-wl-blue", FIT_BLUE_WL);
-		else if (iterI->substr(0,8) == "--fit-wl-red")
+		else if (iterI->substr(0,12) == "--fit-wl-red")
 			cFit_Range.m_dRed_WL = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--fit-wl-red", FIT_RED_WL);
 		else  if (iterI->substr(0,5) == "--fit")
 			bTry_Single_Fit = true;
