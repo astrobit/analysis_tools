@@ -226,10 +226,9 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dWL_Min;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = dWL_Max;
-		cTarget = ES::Spectrum::create_from_vector(vSpec_Subset);
-		cFull_Target = ES::Spectrum::create_from_vector(i_cFit.m_vData);
+		cTarget = ES::Spectrum::create_copy_from_vector(vSpec_Subset);
+		cFull_Target = ES::Spectrum::create_copy_from_vector(i_cFit.m_vData);
 	}
-
 	double dTemp_Low = 10000.0;
 	double	dTemp_Hi = 25000.0;
 	double dVar = Bracket_Temperature(dTemp_Low,dTemp_Hi,cFull_Target);
