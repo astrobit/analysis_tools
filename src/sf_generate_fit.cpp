@@ -271,7 +271,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	if (!std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Temp))
 		vStarting_Point.Set(0,i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Temp);
 	else
-		vStarting_Point.Set(0,10.0);
+		vStarting_Point.Set(0,(dTemp_Low + dTemp_Hi) * 0.5 * 1e-3);
 	if (!std::isnan(i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel))
 		vStarting_Point.Set(1,i_cFit.m_cSuggested_Param[specfit::comp_ejecta].m_dPS_Vel);
 	else if (!std::isnan(i_cFit.m_dMJD_Bmax))
@@ -479,8 +479,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	{
 		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
 		vStarting_Point.Set(1,i_lppsEjecta->m_dPS_Vel);
-		vStarting_Point.Set(2,i_lppsEjecta->m_dLog_S + vLog_S_Delta[2]);
-		vStarting_Point.Set(3,i_lppsShell->m_dLog_S + vLog_S_Delta[3]);
+		vStarting_Point.Set(2,i_lppsEjecta->m_dLog_S);
+		vStarting_Point.Set(3,i_lppsShell->m_dLog_S);
 
 		vLower_Bounds.Set(0,vStarting_Point.Get(0)-2.5);
 		vLower_Bounds.Set(1,vStarting_Point.Get(1)-2.5);
@@ -503,8 +503,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	{
 		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
 		vStarting_Point.Set(1,i_lppsEjecta->m_dPS_Vel);
-		vStarting_Point.Set(2,i_lppsEjecta->m_dLog_S + vLog_S_Delta[2]);
-		vStarting_Point.Set(3,i_lppsShell->m_dLog_S + vLog_S_Delta[3]);
+		vStarting_Point.Set(2,i_lppsEjecta->m_dLog_S);
+		vStarting_Point.Set(3,i_lppsShell->m_dLog_S);
 
 		Fit_Function(vStarting_Point, &cCall_Data);
 	}
