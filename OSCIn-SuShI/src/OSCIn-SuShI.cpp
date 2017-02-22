@@ -48,6 +48,8 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_dGauss_Fit_Blue = 7700.0;
 		m_dGauss_Fit_Red = 8600.0;
 
+		m_dFlux_Zoom = 1.0;
+
 		Process_Selected_Spectrum();
 
 	}

@@ -71,6 +71,9 @@ enum button_id
 	gauss_fit_range_red_up,
 	gauss_fit_range_red_big_down,
 	gauss_fit_range_red_down,
+	flux_zoom_in,
+	flux_zoom_out,
+	clear_request,
 	spectrum_display_area,
 	quit_request
 
@@ -202,6 +205,8 @@ private:
 
 	double			m_dGauss_Fit_Blue;
 	double			m_dGauss_Fit_Red;
+
+	double			m_dFlux_Zoom;
 
 	unsigned int	m_uiElement;
 	unsigned int	m_uiIon;
