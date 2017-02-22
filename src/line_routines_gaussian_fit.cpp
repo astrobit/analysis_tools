@@ -187,23 +187,71 @@ XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, con
 	double	dDbl_HWHM;
 	unsigned int uiI;
 	XVECTOR vRet;
-	double dVariance_Min = DBL_MAX;
-	unsigned int uiVar_Min_Idx;
-	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
+	double dVariance_Max = 0;//DBL_MAX;
+	unsigned int uiVar_Max_Idx;
+	std::vector<double> vdErr;
+	std::vector<unsigned int> vuiCrossings;
+	std::vector<double> vdAmplitudes;
+	std::vector<unsigned int> vuiAmplitude_Max;
+
+
+	// first identify all places where the uncertainty transitions from negative to positive
+	double dR_Last = i_vY[0] - Gaussian(i_vX[0],i_vA,(void*)i_lpgfpParamters).Get(0);
+	vdErr.push_back(dR_Last);
+	double dAmplitude_Curr = 0.0;
+	unsigned int uiAmplitude_Curr_Idx;
+	for (unsigned int uiI = 1; uiI < i_vY.Get_Size(); uiI++)
 	{
 		double dR = i_vY[uiI] - Gaussian(i_vX[uiI],i_vA,(void*)i_lpgfpParamters).Get(0);
-		if (dR < dVariance_Min)
+		vdErr.push_back(dR);
+		if (sign(dR) != sign(dR_Last))
 		{
-			dVariance_Min = dR;
-			uiVar_Min_Idx = uiI;
+			if (vuiCrossings.size() > 0)
+			{
+				vdAmplitudes.push_back(dAmplitude_Curr);
+				vuiAmplitude_Max.push_back(uiAmplitude_Curr_Idx);
+			}
+			vuiCrossings.push_back(uiI);
+			dAmplitude_Curr = 0.0;
+		}
+		if (fabs(dR) > dAmplitude_Curr)
+		{
+			dAmplitude_Curr = fabs(dR);
+			uiAmplitude_Curr_Idx = uiI;
+		}
+		dR_Last = dR;
+	}
+	if (vuiCrossings.size() == 0)
+	{
+		dVariance_Max = 0.0;
+		for (unsigned int uiI = 0; uiI < vdErr.size(); uiI++)
+		{
+			if (fabs(vdErr[uiI]) > dVariance_Max)
+			{
+				dVariance_Max = vdErr[uiI];
+				uiVar_Max_Idx = uiI;
+			}
 		}
 	}
-	dDbl_Center = i_vX[uiVar_Min_Idx];
-	dDbl_Amplitude = dVariance_Min;
-	while (uiVar_Min_Idx > 0 && (i_vY[uiVar_Min_Idx] - Multi_Gaussian(i_vX[uiVar_Min_Idx],i_vA,(void*)i_lpgfpParamters).Get(0)) < (0.5 * dDbl_Amplitude))
-		uiVar_Min_Idx--;
-
-	dDbl_HWHM = Determine_HWHM(fabs(i_vX[uiVar_Min_Idx] - dDbl_Center),dDbl_Center,i_vX[uiVar_Min_Idx],i_lpgfpParamters);
+	else
+	{
+		dVariance_Max = 0.0;
+		for (unsigned int uiI = 0; uiI < vdAmplitudes.size(); uiI++)
+		{
+			if (vdAmplitudes[uiI] > dVariance_Max)
+			{
+				uiVar_Max_Idx = vuiAmplitude_Max[uiI];
+				dVariance_Max = vdAmplitudes[uiI];
+			}
+		}
+		dVariance_Max = vdErr[uiVar_Max_Idx];
+	}
+	dDbl_Center = i_vX[uiVar_Max_Idx];
+	dDbl_Amplitude = dVariance_Max;
+	while (uiVar_Max_Idx > 0 && fabs(i_vY[uiVar_Max_Idx] - Gaussian(i_vX[uiVar_Max_Idx],i_vA,(void*)i_lpgfpParamters).Get(0)) > fabs(0.5 * dDbl_Amplitude))
+		uiVar_Max_Idx--;
+	//printf("HWHM %f %e %i\n",i_vX[uiVar_Max_Idx] - dDbl_Center,dDbl_Amplitude,uiVar_Max_Idx);
+	dDbl_HWHM = Determine_HWHM(fabs(i_vX[uiVar_Max_Idx] - dDbl_Center),dDbl_Center,i_vX[uiVar_Max_Idx],i_lpgfpParamters);
 	vRet.Set_Size(3);
 	vRet.Set(0,dDbl_Amplitude);
 	vRet.Set(1,dDbl_HWHM);
@@ -314,10 +362,10 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	vA.Set(1,dHWHM);
 	vA.Set(2,dCenter);
 	vA2 = Estimate_Second_Gaussian(vA,i_vX,vSmoothed_Data,i_lpgfpParamters);
-//	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,vA2[0],vA2[1],vA2[2]);
+	//printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,vA2[0],vA2[1],vA2[2]);
 
 	vA.Set_Size(6);
-	if (dCenter > vA2[2])
+	if (dCenter > vA2[2] || (vA[0] < 0.1 * dAmplitude) || (sign(dAmplitude) != sign(vA[0])))
 	{
 		vA.Set(0,dAmplitude);
 		vA.Set(1,dHWHM);
@@ -361,11 +409,11 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	unsigned int uiCount = 0;
 	while (dSmin == 0.0 && vA[2] >= i_vX[0] && vA[2] <= i_vX[i_vX.Get_Size() - 1])
 	{
-//		printf("PGs: %f %f %f\n",vA[0],vA[1],vA[2]);
+		//printf("PGs: %e %e %e\n",vA[0],vA[1],vA[2]);
 		mCovariance_Matrix.Zero();
 		if (GeneralFit(i_vX, i_vY ,i_vW, Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024,-20,NULL,&vAest))
 		{
-//			printf("PGs-r: %f %f %f\n",vA[0],vA[1],vA[2]);
+			//printf("PGs-r: %e %e %e\n",vA[0],vA[1],vA[2]);
 		    vA_Single = vA;
 		    dSmin_Single = dSmin;
 		    mCovariance_Matrix_Single = mCovariance_Matrix;
@@ -378,7 +426,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
 		else
 		{
-//			printf("PGs-e: %f %f %f\n",vAest[0],vAest[1],vAest[2]);
+			//printf("PGs-e: %e %e %e\n",vAest[0],vAest[1],vAest[2]);
 			if (dPerturb < 0)
 				dPerturb *= -2;
 			else
@@ -392,10 +440,11 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	while (dSmin == 0.0 && vA[2] >= i_vX[0] && vA[2] <= i_vX[i_vX.Get_Size() - 1])
 	{
 		mCovariance_Matrix.Zero();
-//		printf("PGd-s: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
+		//printf("PGd-s: %e %e %e - %e %e %e\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
 		if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,512,-30,NULL,&vAest))
 		{
-//			printf("PGd-r: %f %f %f - %f %f %f\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
+			double dDel_S = fabs(dSmin - dSmin_Single);
+			//printf("PGd-r: %e %e %e - %e %e %e - %e %e %e\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5],dSmin,dSmin_Single,dDel_S);
 			if (io_lpDouble_Fit)
 			{
 				io_lpDouble_Fit->m_vA = vA;
@@ -403,7 +452,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 				io_lpDouble_Fit->m_mCovariance = mCovariance_Matrix;
 			}
 		    // if the single guassian fit is better, use those results
-		    if (dSmin > dSmin_Single && dSmin_Single != 0.0)
+		    if (dSmin > dSmin_Single && dDel_S / dSmin > 0.01 && dSmin_Single != 0.0)
 		    {
 		        vA = vA_Single;
 		        dSmin = dSmin_Single;
@@ -437,7 +486,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
 		else
 		{
-//			printf("PGd-e: %f %f %f - %f %f %f\n",vAest[0],vAest[1],vAest[2],vAest[3],vAest[4],vAest[5]);
+			//printf("PGd-e: %e %e %e - %e %e %e\n",vAest[0],vAest[1],vAest[2],vAest[3],vAest[4],vAest[5]);
 			if (dPerturb < 0)
 				dPerturb *= -2;
 			else
