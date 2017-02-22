@@ -577,13 +577,6 @@ void Process_Fit_Requests(void)
 						break;
 					}
 
-					FILE * fileFit = fopen("fitdata.csv","wt");
-					if (fileFit)
-					{
-						for (unsigned int uiI = 0; uiI < vdWL.size(); uiI++)
-							fprintf(fileFit,"%.1f, %.5f\n",vdWL[uiI],vdFlux[uiI]);
-						fclose(fileFit);
-					}
 					double dS;
 					xvector vSigmas;
 					xvector vRes = Perform_Gaussian_Fit(xvector(vdWL), xvector(vdFlux), xvector(vdFlux_Error), lpgfpParamters,
