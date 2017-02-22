@@ -31,6 +31,8 @@ void OSCIn_SuShI_main::Process_Selected_Spectrum(void)
 		if (iterI->m_dFlux > m_dSelected_Flux_Max[0])
 			m_dSelected_Flux_Max[0] = iterI->m_dFlux;
 	}
+	Normalize();
+	Calc_Observed_pEW();
 }
 
 double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red)
@@ -474,5 +476,213 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 			fclose(fileJob);
 		}
 	}
+}
+
+
+bool				g_bFit_Process_Request = false;
+bool				g_bFit_In_Progress = false;
+bool				g_bFit_Done = false;
+bool				g_bFit_Thread_Running = false;
+gaussian_fit_data	g_cFit_Result;
+
+class linear_interpolation
+{
+private:
+	double 	m_dSlope;
+	double	m_dX0;
+	double	m_dY0;
+
+public:
+	linear_interpolation(const std::pair<double, double> & i_pddX1, const std::pair<double, double> & i_pddX2)
+	{
+		m_dSlope = (i_pddX2.second - i_pddX1.second) / (i_pddX2.first - i_pddX1.first);
+		m_dX0 = i_pddX1.first;
+		m_dY0 = i_pddX1.second;
+	}
+	inline double Interpolate(const double & i_dX) const
+	{
+		return (i_dX - m_dX0) * m_dSlope + m_dY0;
+	}
+	inline double operator << (const double & i_dX) const {return Interpolate(i_dX);}
+};
+
+void Process_Fit_Requests(void)
+{
+	g_bFit_Thread_Running = true;
+	do
+	{
+		if (g_bFit_Process_Request && g_cFit_Result.m_bValid && 
+			(g_cFit_Result.m_eFeature == fs_CaHK ||
+			g_cFit_Result.m_eFeature == fs_Si6355 ||
+			g_cFit_Result.m_eFeature == fs_CaNIR)
+			)
+		{
+			g_bFit_Done = false;
+			g_bFit_In_Progress = true;
+			g_bFit_Process_Request = false;
+
+			OSCspectrum cTarget = g_cFit_Result.m_specResult;
+
+			std::vector<double> vdWL;
+			std::vector<double> vdFlux;
+			std::vector<double> vdFlux_Error;
+
+			std::pair<double,double> pddLeft;
+			unsigned int uiIdx_Blue = -1;
+			std::pair<double,double> pddRight;
+			unsigned int uiIdx_Red = -1;
+
+			unsigned int uiI = 0;
+			while (uiI < g_cFit_Result.m_specResult.size() && g_cFit_Result.m_specResult.wl(uiI) < g_cFit_Result.m_dRange_WL_Blue)
+				uiI++;
+			if (uiI < g_cFit_Result.m_specResult.size())
+			{
+				uiIdx_Blue = uiI;
+				pddLeft.first = g_cFit_Result.m_specResult.wl(uiI);
+				pddLeft.second = g_cFit_Result.m_specResult.flux(uiI);
+
+				while (uiI < g_cFit_Result.m_specResult.size() && g_cFit_Result.m_specResult.wl(uiI) < g_cFit_Result.m_dRange_WL_Red)
+					uiI++;
+				if (uiI < g_cFit_Result.m_specResult.size())
+				{
+					pddRight.first = g_cFit_Result.m_specResult.wl(uiI);
+					pddRight.second = g_cFit_Result.m_specResult.flux(uiI);
+					uiIdx_Red = uiI;
+					linear_interpolation cLI(pddLeft,pddRight);
+			
+
+					for (uiI = uiIdx_Blue; uiI <= uiIdx_Red; uiI++)
+					{
+						double dWL = g_cFit_Result.m_specResult.wl(uiI);
+						double dFlux_Cont = cLI << dWL;
+						double dFlux_Fit = 1.0 - g_cFit_Result.m_specResult.flux(uiI) / dFlux_Cont;
+						double dFlux_Fit_Error = g_cFit_Result.m_specResult.flux_error(uiI) / dFlux_Cont;
+						if (dFlux_Fit_Error == 0.0)
+							dFlux_Fit_Error = dFlux_Fit * 0.01;
+						vdWL.push_back(dWL);
+						vdFlux.push_back(dFlux_Fit);
+						vdFlux_Error.push_back(dFlux_Fit_Error);
+					}
+					gauss_fit_parameters * lpgfpParamters;
+					switch (g_cFit_Result.m_eFeature)
+					{
+					case fs_CaHK:
+						lpgfpParamters = &g_cgfpCaHK;
+						break;
+					case fs_Si6355:
+						lpgfpParamters = &g_cgfpSi6355;
+						break;
+					case fs_CaNIR:
+						lpgfpParamters = &g_cgfpCaNIR;
+						break;
+					}
+
+					FILE * fileFit = fopen("fitdata.csv","wt");
+					if (fileFit)
+					{
+						for (unsigned int uiI = 0; uiI < vdWL.size(); uiI++)
+							fprintf(fileFit,"%.1f, %.5f\n",vdWL[uiI],vdFlux[uiI]);
+						fclose(fileFit);
+					}
+					double dS;
+					xvector vSigmas;
+					xvector vRes = Perform_Gaussian_Fit(xvector(vdWL), xvector(vdFlux), xvector(vdFlux_Error), lpgfpParamters,
+										vdWL[1] - vdWL[0], g_cFit_Result.m_d_pEW[0], g_cFit_Result.m_d_pEW[1], 
+										g_cFit_Result.m_dVelocity[0], g_cFit_Result.m_dVelocity[1], vSigmas, g_cFit_Result.m_dQuality_of_Fit);
+
+
+					g_cFit_Result.m_specResult.clear();
+					for (unsigned int uiI = 0; uiI < vdWL.size(); uiI++)
+					{
+						double dWL = vdWL[uiI];
+						double dFlux_Cont = cLI << dWL;
+
+						xvector vY = Multi_Gaussian(dWL,vRes,lpgfpParamters);
+						double dFlux_Fit = (1.0 - vY.Get(0)) * dFlux_Cont;
+						double dFlux_Error = dFlux_Fit - cTarget.flux(uiIdx_Blue + uiI);
+						g_cFit_Result.m_specResult.push_back(OSCspectrum_dp(dWL,dFlux_Fit,dFlux_Error));
+					}
+					
+				}
+			}
+			g_bFit_In_Progress = false;
+			g_bFit_Done = true;
+		}			
+		usleep(10); // hand process back to the OS for a bit to reduce CPU load
+	} while (!g_bQuit_Thread);
+	g_bFit_Thread_Running = false;
+}
+
+OSCspectrum Copy(const ES::Spectrum & i_cRHO)
+{
+	OSCspectrum cRet;
+	for (unsigned int uiI = 0; uiI < i_cRHO.size(); uiI++)
+	{
+		cRet.push_back(OSCspectrum_dp(i_cRHO.wl(uiI),i_cRHO.flux(uiI),i_cRHO.flux_error(uiI)));
+	}
+	return cRet;
+}
+
+void OSCIn_SuShI_main::Calc_Observed_pEW(void)
+{
+	m_dDirect_Measure_pEW = Calc_pEW(m_specSelected_Spectrum);
+	m_dGen_Direct_Measure_pEW = 0.0;
+	m_dRefine_Direct_Measure_pEW = 0.0;
+	if (m_sdGenerated_Spectrum.m_bValid)
+		m_dGen_Direct_Measure_pEW = Calc_pEW(Copy(m_sdGenerated_Spectrum.m_specResult));
+	if (m_sdRefine_Spectrum_Best.m_bValid)
+		m_dRefine_Direct_Measure_pEW = Calc_pEW(Copy(m_sdRefine_Spectrum_Best.m_specResult));
+}
+
+
+double OSCIn_SuShI_main::Calc_pEW(const OSCspectrum & i_cSpectrum)
+{
+	double d_pEW = 0.0;
+
+	std::pair<double,double> pddLeft;
+	unsigned int uiIdx_Blue = -1;
+	std::pair<double,double> pddRight;
+	unsigned int uiIdx_Red = -1;
+
+	unsigned int uiI = 0;
+	while (uiI < i_cSpectrum.size() && i_cSpectrum.wl(uiI) < m_dGauss_Fit_Blue)
+		uiI++;
+	if (uiI < i_cSpectrum.size())
+	{
+		uiIdx_Blue = uiI;
+		pddLeft.first = i_cSpectrum.wl(uiI);
+		pddLeft.second = i_cSpectrum.flux(uiI);
+
+		while (uiI < i_cSpectrum.size() && i_cSpectrum.wl(uiI) < m_dGauss_Fit_Red)
+			uiI++;
+		if (uiI < i_cSpectrum.size())
+		{
+			pddRight.first = i_cSpectrum.wl(uiI);
+			pddRight.second = i_cSpectrum.flux(uiI);
+			uiIdx_Red = uiI;
+			linear_interpolation cLI(pddLeft,pddRight);
+
+			double dWL_last;
+			if (uiIdx_Blue > 0)
+			{
+				dWL_last = i_cSpectrum.wl(uiIdx_Blue - 1);
+			}
+			else
+			{
+				dWL_last = 2.0 * i_cSpectrum.wl(0) - i_cSpectrum.wl(1);
+			}
+
+			for (uiI = uiIdx_Blue; uiI <= uiIdx_Red && uiI != -1; uiI++)
+			{
+				double dWL = i_cSpectrum.wl(uiI);
+				double dFlux_Cont = cLI << dWL;
+				double dFlux_Fit = 1.0 - i_cSpectrum.flux(uiI) / dFlux_Cont;
+				double dDel = dWL - dWL_last;
+				d_pEW += dFlux_Fit * dDel;
+				dWL_last = dWL;
+			}
+		}
+	}
+	return d_pEW;
 }
 

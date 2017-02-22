@@ -17,7 +17,6 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_OSCfile.Deredden();
 
 		m_iterSelected_ID = m_OSCfile.m_mSpectra_List.begin();
-		Process_Selected_Spectrum();
 
 		m_dTimer = 0.0;
 		m_bFlasher_1s_50p = true;
@@ -46,6 +45,10 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_mapModels[57] = model(57);
 		m_mapModels[61] = model(61);
 
+		m_dGauss_Fit_Blue = 7700.0;
+		m_dGauss_Fit_Red = 8600.0;
+
+		Process_Selected_Spectrum();
 
 	}
 	else

@@ -69,9 +69,14 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_dRow_2_Text = 1.00;
 	m_dRow_3_Text_Labels = 1.20;
 	m_dRow_3_Text = 1.25;
+	m_dRow_3a_Text = 1.325;
 	m_dRow_4_Text = 1.40;
+	m_dRow_4a_Text = 1.475;
 	m_dRow_5_Text = 1.55;
+	m_dRow_5a_Text = 1.625;
 	m_dRow_6_Text = 1.70;
+	double dRow_5 = 1.20;
+	double dRow_6 = 1.22;
 
 	m_mMain_Pane_Buttons[model_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[0]),pSmSB_Size,model_select_up);
 	m_mMain_Pane_Buttons[model_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[1]),pSmSB_Size,model_select_down);
@@ -111,6 +116,15 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mMain_Pane_Buttons[ref_fit_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[11]),pSmSB_Size,ref_fit_range_red_down);
 
 
+	m_mMain_Pane_Buttons[gauss_fit_range_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_range_blue_big_up);
+	m_mMain_Pane_Buttons[gauss_fit_range_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_range_blue_big_down);
+	m_mMain_Pane_Buttons[gauss_fit_range_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_range_red_big_up);
+	m_mMain_Pane_Buttons[gauss_fit_range_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_range_red_big_down);
+	m_mMain_Pane_Buttons[gauss_fit_range_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_range_blue_up);
+	m_mMain_Pane_Buttons[gauss_fit_range_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_range_blue_down);
+	m_mMain_Pane_Buttons[gauss_fit_range_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_range_red_up);
+	m_mMain_Pane_Buttons[gauss_fit_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_range_red_down);
+
 
 	m_mMain_Pane_Buttons[norm_wl_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[4]),pSmSB_Size,norm_wl_blue_big_up);
 	m_mMain_Pane_Buttons[norm_wl_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[5]),pSmSB_Size,norm_wl_blue_big_down);
@@ -126,6 +140,9 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mMain_Pane_Buttons[refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.94,0.04),pLB_Size,refine_request);
 	m_mMain_Pane_Buttons[copy_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.11,0.04),pLB_Size,copy_refine_request);
 	m_mMain_Pane_Buttons[save_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.28,0.04),pLB_Size,save_refine_request);
+
+	m_mMain_Pane_Buttons[generated_fit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.14),pLB_Size,generated_fit_request);
+	m_mMain_Pane_Buttons[data_fit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.09),pLB_Size,data_fit_request);
 	m_mMain_Pane_Buttons[abort_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.58,0.04),pLB_Size,abort_request);
 	m_mMain_Pane_Buttons[quit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.04),pLB_Size,quit_request);
 
@@ -223,6 +240,12 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 		std::ostringstream ossRef_Range_Red;
 		ossRef_Range_Red << "......: " << std::setprecision(4) << m_dRefine_Red;
 
+		std::ostringstream ossGauss_Range_Blue;
+		ossGauss_Range_Blue << m_dGauss_Fit_Blue;
+
+		std::ostringstream ossGauss_Range_Red;
+		ossGauss_Range_Red << m_dGauss_Fit_Red;
+
 		char lpszElem[4];
 		memset(lpszElem,0,sizeof(lpszElem));
 		xGet_Element_Symbol(m_uiElement,lpszElem);
@@ -232,6 +255,32 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 
 		std::ostringstream ossExc_Temp;
 		ossExc_Temp << "Te: " << m_dExc_Temp << " kK";
+
+		std::ostringstream ossTgt_pEW_PVF;
+		ossTgt_pEW_PVF << m_cTarget_Gaussian_Fit.m_d_pEW[0];
+		std::ostringstream ossTgt_pEW_HVF;
+		ossTgt_pEW_HVF << m_cTarget_Gaussian_Fit.m_d_pEW[1];
+		std::ostringstream ossTgt_Vel_PVF;
+		ossTgt_Vel_PVF << m_cTarget_Gaussian_Fit.m_dVelocity[0];
+		std::ostringstream ossTgt_Vel_HVF;
+		ossTgt_Vel_HVF << m_cTarget_Gaussian_Fit.m_dVelocity[1];
+
+		std::ostringstream ossGen_pEW_PVF;
+		ossGen_pEW_PVF << m_cModel_Gaussian_Fit.m_d_pEW[0];
+		std::ostringstream ossGen_pEW_HVF;
+		ossGen_pEW_HVF << m_cModel_Gaussian_Fit.m_d_pEW[1];
+		std::ostringstream ossGen_Vel_PVF;
+		ossGen_Vel_PVF << m_cModel_Gaussian_Fit.m_dVelocity[0];
+		std::ostringstream ossGen_Vel_HVF;
+		ossGen_Vel_HVF << m_cModel_Gaussian_Fit.m_dVelocity[1];
+
+		std::ostringstream ossMeas_pEW;
+		ossMeas_pEW << m_dDirect_Measure_pEW;
+		std::ostringstream ossMeas_Gen_pEW;
+		ossMeas_Gen_pEW << m_dGen_Direct_Measure_pEW;
+		std::ostringstream ossMeas_Ref_pEW;
+		ossMeas_Ref_pEW << m_dRefine_Direct_Measure_pEW;
+
 
 		std::string szModel;
 
@@ -300,10 +349,39 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[3],0.0,"Ss",HJ_LEFT,VJ_MIDDLE);
 			glPrintJustified(0.02,m_dRow_3_Text_Labels,m_dText_Comp_Y[4],0.0,"Se",HJ_LEFT,VJ_MIDDLE);
 
+			glPrintJustified(0.02,m_dRow_3_Text,m_dText_Y[4],0.0,ossGauss_Range_Blue.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_3_Text,m_dText_Y[5],0.0,ossGauss_Range_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+
+			glColor4d(0.00,0.0,0.00,1.0);
+			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[5],0.0,ossMeas_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glColor4d(0.00,0.0,1.00,1.0);
+			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[6],0.0,ossMeas_Gen_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glColor4d(0.00,1.0,0.00,1.0);
+			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[7],0.0,ossMeas_Ref_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+
+
+			if (m_cTarget_Gaussian_Fit.m_bValid && !g_bFit_In_Progress)
+			{
+				glColor4d(0.75,0.0,0.75,1.0);
+				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[5],0.0,ossTgt_pEW_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[6],0.0,ossTgt_pEW_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[7],0.0,ossTgt_Vel_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[8],0.0,ossTgt_Vel_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			}
+			if (m_cModel_Gaussian_Fit.m_bValid && !g_bFit_In_Progress)
+			{
+				glColor4d(0.5,0.5,0.00,1.0);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[5],0.0,ossGen_pEW_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[6],0.0,ossGen_pEW_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[7],0.0,ossGen_Vel_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[8],0.0,ossGen_Vel_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			}
+
 			Display_Spectrum_Information(m_sdRefine_Spectrum_Best,m_dRow_3_Text,dkgreen);
 			Display_Spectrum_Information(m_sdRefine_Spectrum_Curr,m_dRow_4_Text,green);
 			Display_Spectrum_Information(m_sdGenerated_Spectrum,m_dRow_5_Text,blue);
 			Display_Spectrum_Information(m_sdGenerated_Spectrum_Prev,m_dRow_6_Text,ltblue);
+
 
 
 			if (g_bGen_In_Progress && m_bFlasher_1s_50p)
@@ -315,6 +393,11 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 			{
 				glColor4d(0.0,1.0,0.0,1.0);
 				glPrintJustified(0.02,0.050,0.85,0.0,"Refining",HJ_LEFT,VJ_MIDDLE);
+			}
+			if (g_bFit_In_Progress && m_bFlasher_1s_50p)
+			{
+				glColor4d(1.0,0.0,0.0,1.0);
+				glPrintJustified(0.02,0.050,0.80,0.0,"Fitting",HJ_LEFT,VJ_MIDDLE);
 			}
 		glPopMatrix();
 		for (std::map<button_id,BUTTON_INFO>::const_iterator cI = m_mMain_Pane_Buttons.begin(); cI != m_mMain_Pane_Buttons.end(); cI++)
@@ -351,6 +434,10 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case ref_fit_range_red_up:
 				case ref_fit_range_blue_big_up:
 				case ref_fit_range_red_big_up:
+				case gauss_fit_range_blue_up:
+				case gauss_fit_range_red_up:
+				case gauss_fit_range_blue_big_up:
+				case gauss_fit_range_red_big_up:
 					Draw_Scroll_Button(SBD_UP, true);
 					break;
 				case spectrum_select_down:
@@ -376,6 +463,10 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case ref_fit_range_red_down:
 				case ref_fit_range_blue_big_down:
 				case ref_fit_range_red_big_down:
+				case gauss_fit_range_blue_down:
+				case gauss_fit_range_red_down:
+				case gauss_fit_range_blue_big_down:
+				case gauss_fit_range_red_big_down:
 					Draw_Scroll_Button(SBD_DOWN, true);
 					break;
 				case gen_request:
@@ -405,6 +496,14 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case save_request:
 					glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Button_With_Text(dSize,"Save");
+					break;
+				case generated_fit_request:
+					glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Button_With_Text(dSize,"Fit (Gen)");
+					break;
+				case data_fit_request:
+					glColor4d(0.75,0.75,0.75,1.0);
+					Draw_Button_With_Text(dSize,"Fit (Data)");
 					break;
 
 				case spectrum_display_area:
@@ -567,6 +666,38 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 									}
 									glEnd();
 								}
+								if (m_cModel_Gaussian_Fit.m_bValid && !g_bFit_In_Progress)
+								{
+									glColor4d(0.5,0.5,0.0,1.0);
+									glBegin(GL_LINE_STRIP);
+									for (unsigned int uiI = 0; uiI < m_cModel_Gaussian_Fit.m_specResult.size(); uiI++)
+									{
+										if (m_cModel_Gaussian_Fit.m_specResult.wl(uiI) >= dWL_Start && m_cModel_Gaussian_Fit.m_specResult.wl(uiI) <= dWL_End)
+										{
+											double dX = (m_cModel_Gaussian_Fit.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_cModel_Gaussian_Fit.m_specResult.flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+											glVertex2d(dX,dY);
+										}
+									}
+									glEnd();
+								}
+								if (m_cTarget_Gaussian_Fit.m_bValid && !g_bFit_In_Progress)
+								{
+									glColor4d(0.75,0.0,0.75,1.0);
+									glBegin(GL_LINE_STRIP);
+									for (unsigned int uiI = 0; uiI < m_cTarget_Gaussian_Fit.m_specResult.size(); uiI++)
+									{
+										if (m_cTarget_Gaussian_Fit.m_specResult.wl(uiI) >= dWL_Start && m_cTarget_Gaussian_Fit.m_specResult.wl(uiI) <= dWL_End)
+										{
+											double dX = (m_cTarget_Gaussian_Fit.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_cTarget_Gaussian_Fit.m_specResult.flux(uiI) * dFlux_Scale;
+											glVertex2d(dX,dY);
+										}
+									}
+									glEnd();
+								}
+
+
 							}
 						glPopMatrix();
 					}

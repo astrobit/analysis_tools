@@ -61,10 +61,22 @@ enum button_id
 	save_request,
 	save_refine_request,
 	refine_request,
+	generated_fit_request,
+	data_fit_request,
+	gauss_fit_range_blue_big_up,
+	gauss_fit_range_blue_up,
+	gauss_fit_range_blue_big_down,
+	gauss_fit_range_blue_down,
+	gauss_fit_range_red_big_up,
+	gauss_fit_range_red_up,
+	gauss_fit_range_red_big_down,
+	gauss_fit_range_red_down,
 	spectrum_display_area,
 	quit_request
 
 };
+
+enum feature_select {fs_start,fs_full,fs_CaHK,fs_Si6355,fs_CaNIR,fs_end};
 
 class spectrum_data
 {
@@ -93,6 +105,30 @@ public:
 		m_bValid = false;
 	}
 };
+class gaussian_fit_data
+{
+public:
+	bool			m_bValid;
+	bool			m_bType; // 1 = generated, 0 = spectrum. Not needed by fitting routine.
+
+	double			m_dRange_WL_Blue;
+	double			m_dRange_WL_Red;
+
+	double			m_d_pEW[2];
+	double			m_dVelocity[2];
+
+	double			m_dQuality_of_Fit;
+
+	feature_select	m_eFeature;
+
+	OSCspectrum		m_specResult;
+	OSCspectrum		m_specResult_Error;
+
+	gaussian_fit_data(void)
+	{
+		m_bValid = false;
+	}
+};
 class model
 {
 public:
@@ -112,9 +148,12 @@ public:
 
 void Process_Generate_Requests(void);
 void Process_Refine_Requests(void);
+void Process_Fit_Requests(void);
+
 double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
 double Get_Norm_Const(const ES::Spectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
 
+OSCspectrum Copy(const ES::Spectrum & i_cRHO);
 
 class OSCIn_SuShI_main : public main
 {
@@ -140,10 +179,10 @@ private:
 	std::vector<std::string> m_vsError_Info;
 	criticalsection	m_csEvent_Queue;
 
-	enum feature_select {fs_start,fs_full,fs_CaHK,fs_Si6355,fs_CaNIR,fs_end};
 	feature_select m_eFeature_Select;
 	std::thread 	m_thrGen;
 	std::thread 	m_thrRefine;
+	std::thread		m_thrFit;
 
 	bool			m_bQuit_Request_Pending;
 
@@ -161,6 +200,9 @@ private:
 	double			m_dRefine_Blue;
 	double			m_dRefine_Red;
 
+	double			m_dGauss_Fit_Blue;
+	double			m_dGauss_Fit_Red;
+
 	unsigned int	m_uiElement;
 	unsigned int	m_uiIon;
 
@@ -168,8 +210,11 @@ private:
 	double			m_dRow_2_Text;
 	double			m_dRow_3_Text_Labels;
 	double			m_dRow_3_Text;
+	double			m_dRow_3a_Text;
 	double			m_dRow_4_Text;
+	double			m_dRow_4a_Text;
 	double			m_dRow_5_Text;
+	double			m_dRow_5a_Text;
 	double			m_dRow_6_Text;
 	double			m_dText_Y[20];
 	double			m_dText_Comp_Y[20];
@@ -180,6 +225,13 @@ private:
 	double				m_dRefine_Spectrum_Best_Norm;
 	unsigned int		m_uiRefine_Result_ID;
 
+	gaussian_fit_data	m_cTarget_Gaussian_Fit;
+	gaussian_fit_data	m_cModel_Gaussian_Fit;
+
+	double			m_dDirect_Measure_pEW;
+	double			m_dGen_Direct_Measure_pEW;
+	double			m_dRefine_Direct_Measure_pEW;
+
 
 	double		m_dTimer;
 	bool		m_bFlasher_1s_50p;
@@ -189,6 +241,9 @@ private:
 
 	void Process_Selected_Spectrum(void);
 	void Normalize(void);
+	void Calc_Observed_pEW(void);
+
+	double Calc_pEW(const OSCspectrum & i_cSpectrum);
 
 
 
@@ -196,7 +251,7 @@ private:
 	void Save_Result(const std::string &i_szFilename, unsigned int m_uiModel, const spectrum_data & i_cSpectrum, bool i_bRefined_Data);
 
 public:
-	OSCIn_SuShI_main(void) : m_thrGen(Process_Generate_Requests), m_thrRefine(Process_Refine_Requests)  {m_thrGen.detach();m_thrRefine.detach();};
+	OSCIn_SuShI_main(void) : m_thrGen(Process_Generate_Requests), m_thrRefine(Process_Refine_Requests), m_thrFit(Process_Fit_Requests)  {m_thrGen.detach();m_thrRefine.detach();m_thrFit.detach();};
 private:
 	void on_key_down(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
 	void on_key_up(KEYID eKey_ID, unsigned char chScan_Code, unsigned int uiRepeat_Count, bool bExtended_Key, bool bPrevious_Key_State);
@@ -232,7 +287,11 @@ extern unsigned int		g_uiRefine_Result_ID;
 extern spectrum_data		g_sdRefine_Result;
 extern model *				g_lpmRefine_Model;
 extern spectrum_data		g_sdRefine_Result_Curr;
-extern double				g_dRefine_Result_Curr_Quality;
 extern spectrum_data		g_sdRefine_Result_Curr_Best;
-extern double				g_dRefine_Result_Curr_Best_Quality;
+
+extern bool				g_bFit_Process_Request;
+extern bool				g_bFit_In_Progress;
+extern bool				g_bFit_Done;
+extern bool				g_bFit_Thread_Running;
+extern gaussian_fit_data	g_cFit_Result;
 
