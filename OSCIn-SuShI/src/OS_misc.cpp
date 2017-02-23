@@ -407,7 +407,7 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 		if (fileSaves == nullptr)
 		{
 			fileSaves = fopen(i_szFilename.c_str(),"wt");
-			fprintf(fileSaves,"#, dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, Norm. Blue WL, Norm. Red WL, Fit Blue WL, Fit Red WL, PS Temp, PS Velocity, Ss, Se, Quality\n");
+			fprintf(fileSaves,"#, dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, Norm. Blue WL, Norm. Red WL, Fit Blue WL, Fit Red WL, PS Temp, PS Velocity, Ss, Se, Quality, Gauss Fit WL Blue (Model), Gauss Fit WL Red (Model), Gausss Fit WL Blue (Target), Gauss Fit WL Red (Target)\n");
 			fclose(fileSaves);
 		}
 		else
@@ -430,7 +430,7 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 			time(&timer);  /* get current time; same as: timer = time(NULL)  */
 			lpTime = gmtime(&timer);
 
-			fprintf(fileSaves,"%i, %02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.0f, %.0f, %.0f, %.0f, %.17e, %.17e, %.17e, %.17e, %.17e\n",
+			fprintf(fileSaves,"%i, %02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.0f, %.0f, %.0f, %.0f, %.17e, %.17e, %.17e, %.17e, %.17e, %.0f, %.0f, %.0f, %.0f\n",
 							uiID,
 							lpTime->tm_mday, 
 							lpTime->tm_mon+1, 
@@ -453,7 +453,11 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 							i_cSpectrum.m_dPS_Velocity,
 							i_cSpectrum.m_dShell_Scalar,
 							i_cSpectrum.m_dEjecta_Scalar,
-							i_cSpectrum.m_dQuality_of_Fit);
+							i_cSpectrum.m_dQuality_of_Fit,
+							m_dGauss_Fit_Gen_Blue,
+							m_dGauss_Fit_Gen_Red,
+							m_dGauss_Fit_Blue,
+							m_dGauss_Fit_Red);
 			fclose(fileSaves);
 		}
 		std::ostringstream ossJobFile;
