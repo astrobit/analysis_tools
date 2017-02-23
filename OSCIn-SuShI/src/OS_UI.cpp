@@ -87,7 +87,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 			Request_Refresh();
 			break;
 		case spectrum_select_up:
-			if (m_iterSelected_ID != m_OSCfile.m_mSpectra_List.end())
+			if (m_iterSelected_ID != m_iterLast_ID)
 				m_iterSelected_ID++;
 			else
 				m_iterSelected_ID = m_OSCfile.m_mSpectra_List.begin();
@@ -99,11 +99,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 			if (m_iterSelected_ID != m_OSCfile.m_mSpectra_List.begin())
 				m_iterSelected_ID--;
 			else
-			{
-				m_iterSelected_ID = m_OSCfile.m_mSpectra_List.end();
-				if (m_iterSelected_ID != m_OSCfile.m_mSpectra_List.begin())
-					m_iterSelected_ID--;
-			}
+				m_iterSelected_ID = m_iterLast_ID;
 			Process_Selected_Spectrum();
 			Normalize();
 			Request_Refresh();

@@ -18,6 +18,13 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 
 		m_iterSelected_ID = m_OSCfile.m_mSpectra_List.begin();
 
+		std::map<OSCspectra_id, OSCspectrum >::iterator iterFindLast = m_OSCfile.m_mSpectra_List.begin();
+		while (iterFindLast != m_OSCfile.m_mSpectra_List.end())
+		{
+			m_iterLast_ID = iterFindLast;
+			iterFindLast++;
+		}
+
 		m_dTimer = 0.0;
 		m_bFlasher_1s_50p = true;
 		m_bQuit_Request_Pending = false;

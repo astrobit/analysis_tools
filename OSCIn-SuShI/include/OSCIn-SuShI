@@ -166,6 +166,7 @@ private:
 
 	OSCfile	m_OSCfile;
 	std::map<OSCspectra_id, OSCspectrum >::iterator m_iterSelected_ID;
+	std::map<OSCspectra_id, OSCspectrum >::iterator m_iterLast_ID;
 
 	// items for display
 	OSCspectra_id	m_idSelected_ID;
