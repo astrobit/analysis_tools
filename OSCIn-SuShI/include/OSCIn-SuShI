@@ -63,14 +63,22 @@ enum button_id
 	refine_request,
 	generated_fit_request,
 	data_fit_request,
-	gauss_fit_range_blue_big_up,
-	gauss_fit_range_blue_up,
-	gauss_fit_range_blue_big_down,
-	gauss_fit_range_blue_down,
-	gauss_fit_range_red_big_up,
-	gauss_fit_range_red_up,
-	gauss_fit_range_red_big_down,
-	gauss_fit_range_red_down,
+	gauss_fit_data_range_blue_big_up,
+	gauss_fit_data_range_blue_up,
+	gauss_fit_data_range_blue_big_down,
+	gauss_fit_data_range_blue_down,
+	gauss_fit_data_range_red_big_up,
+	gauss_fit_data_range_red_up,
+	gauss_fit_data_range_red_big_down,
+	gauss_fit_data_range_red_down,
+	gauss_fit_gen_range_blue_big_up,
+	gauss_fit_gen_range_blue_up,
+	gauss_fit_gen_range_blue_big_down,
+	gauss_fit_gen_range_blue_down,
+	gauss_fit_gen_range_red_big_up,
+	gauss_fit_gen_range_red_up,
+	gauss_fit_gen_range_red_big_down,
+	gauss_fit_gen_range_red_down,
 	flux_zoom_in,
 	flux_zoom_out,
 	clear_request,
@@ -207,6 +215,9 @@ private:
 	double			m_dGauss_Fit_Blue;
 	double			m_dGauss_Fit_Red;
 
+	double			m_dGauss_Fit_Gen_Blue;
+	double			m_dGauss_Fit_Gen_Red;
+
 	double			m_dFlux_Zoom;
 
 	unsigned int	m_uiElement;
@@ -222,6 +233,7 @@ private:
 	double			m_dRow_5_Text;
 	double			m_dRow_5a_Text;
 	double			m_dRow_6_Text;
+	double			m_dRow_6a_Text;
 	double			m_dText_Y[20];
 	double			m_dText_Comp_Y[20];
 
@@ -238,6 +250,9 @@ private:
 	double			m_dGen_Direct_Measure_pEW;
 	double			m_dRefine_Direct_Measure_pEW;
 
+	double			m_dDirect_Measure_Vel;
+	double			m_dGen_Direct_Measure_Vel;
+	double			m_dRefine_Direct_Measure_Vel;
 
 	double		m_dTimer;
 	bool		m_bFlasher_1s_50p;
@@ -249,7 +264,8 @@ private:
 	void Normalize(void);
 	void Calc_Observed_pEW(void);
 
-	double Calc_pEW(const OSCspectrum & i_cSpectrum);
+	double Calc_pEW(const OSCspectrum & i_cSpectrum, const double & i_dBlue_WL, const double & i_dRed_WL);
+	double Calc_Vel(const OSCspectrum & i_cSpectrum, const double & i_dBlue_WL, const double & i_dRed_WL);
 
 
 

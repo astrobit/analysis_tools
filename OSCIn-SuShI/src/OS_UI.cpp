@@ -431,51 +431,99 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_bRefine_Process_Request = true;
 			}
 			break;
-		case gauss_fit_range_blue_big_up:
+		case gauss_fit_data_range_blue_big_up:
 			if (m_dGauss_Fit_Blue < (m_dGauss_Fit_Red - 100.0))
 				m_dGauss_Fit_Blue += 100.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_blue_up:
+		case gauss_fit_data_range_blue_up:
 			if (m_dGauss_Fit_Blue < (m_dGauss_Fit_Red - 5.0))
 				m_dGauss_Fit_Blue += 5.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_blue_big_down:
+		case gauss_fit_data_range_blue_big_down:
 			if (m_dGauss_Fit_Blue > 100.0)
 				m_dGauss_Fit_Blue -= 100.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_blue_down:
+		case gauss_fit_data_range_blue_down:
 			if (m_dGauss_Fit_Blue > 5.0)
 				m_dGauss_Fit_Blue -= 5.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_red_big_up:
+		case gauss_fit_data_range_red_big_up:
 			if (m_dGauss_Fit_Red < 14900.0)
 				m_dGauss_Fit_Red += 100.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_red_up:
+		case gauss_fit_data_range_red_up:
 			if (m_dGauss_Fit_Red < 14995.0)
 				m_dGauss_Fit_Red += 5.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_red_big_down:
+		case gauss_fit_data_range_red_big_down:
 			if (m_dGauss_Fit_Red > (m_dGauss_Fit_Blue + 100.0))
 				m_dGauss_Fit_Red -= 100.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
-		case gauss_fit_range_red_down:
+		case gauss_fit_data_range_red_down:
 			if (m_dGauss_Fit_Red > (m_dGauss_Fit_Blue + 5.0))
 				m_dGauss_Fit_Red -= 5.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_blue_big_up:
+			if (m_dGauss_Fit_Gen_Blue < (m_dGauss_Fit_Gen_Red - 100.0))
+				m_dGauss_Fit_Gen_Blue += 100.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_blue_up:
+			if (m_dGauss_Fit_Gen_Blue < (m_dGauss_Fit_Gen_Red - 5.0))
+				m_dGauss_Fit_Gen_Blue += 5.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_blue_big_down:
+			if (m_dGauss_Fit_Gen_Blue > 100.0)
+				m_dGauss_Fit_Gen_Blue -= 100.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_blue_down:
+			if (m_dGauss_Fit_Gen_Blue > 5.0)
+				m_dGauss_Fit_Gen_Blue -= 5.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_red_big_up:
+			if (m_dGauss_Fit_Gen_Red < 14900.0)
+				m_dGauss_Fit_Gen_Red += 100.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_red_up:
+			if (m_dGauss_Fit_Gen_Red < 14995.0)
+				m_dGauss_Fit_Gen_Red += 5.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_red_big_down:
+			if (m_dGauss_Fit_Gen_Red > (m_dGauss_Fit_Gen_Blue + 100.0))
+				m_dGauss_Fit_Gen_Red -= 100.0;
+			Calc_Observed_pEW();
+			Request_Refresh();
+			break;
+		case gauss_fit_gen_range_red_down:
+			if (m_dGauss_Fit_Gen_Red > (m_dGauss_Fit_Gen_Blue + 5.0))
+				m_dGauss_Fit_Gen_Red -= 5.0;
 			Calc_Observed_pEW();
 			Request_Refresh();
 			break;
@@ -496,8 +544,8 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 			if (!g_bFit_In_Progress && (m_eFeature_Select == fs_CaHK || m_eFeature_Select == fs_Si6355 || m_eFeature_Select == fs_CaNIR) && !g_bRefine_In_Progress && !g_bGen_In_Progress)
 			{
 				g_cFit_Result.m_bType = true;
-				g_cFit_Result.m_dRange_WL_Blue = m_dGauss_Fit_Blue;
-				g_cFit_Result.m_dRange_WL_Red = m_dGauss_Fit_Red;
+				g_cFit_Result.m_dRange_WL_Blue = m_dGauss_Fit_Gen_Blue;
+				g_cFit_Result.m_dRange_WL_Red = m_dGauss_Fit_Gen_Red;
 				g_cFit_Result.m_eFeature = m_eFeature_Select;
 				g_cFit_Result.m_specResult = Copy(m_sdGenerated_Spectrum.m_specResult);
 				g_cFit_Result.m_bValid = true;

@@ -618,17 +618,23 @@ OSCspectrum Copy(const ES::Spectrum & i_cRHO)
 
 void OSCIn_SuShI_main::Calc_Observed_pEW(void)
 {
-	m_dDirect_Measure_pEW = Calc_pEW(m_specSelected_Spectrum);
+	m_dDirect_Measure_pEW = Calc_pEW(m_specSelected_Spectrum,m_dGauss_Fit_Blue,m_dGauss_Fit_Red);
 	m_dGen_Direct_Measure_pEW = 0.0;
 	m_dRefine_Direct_Measure_pEW = 0.0;
 	if (m_sdGenerated_Spectrum.m_bValid)
-		m_dGen_Direct_Measure_pEW = Calc_pEW(Copy(m_sdGenerated_Spectrum.m_specResult));
+		m_dGen_Direct_Measure_pEW = Calc_pEW(Copy(m_sdGenerated_Spectrum.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
 	if (m_sdRefine_Spectrum_Best.m_bValid)
-		m_dRefine_Direct_Measure_pEW = Calc_pEW(Copy(m_sdRefine_Spectrum_Best.m_specResult));
+		m_dRefine_Direct_Measure_pEW = Calc_pEW(Copy(m_sdRefine_Spectrum_Best.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
+
+	m_dDirect_Measure_Vel = Calc_Vel(m_specSelected_Spectrum,m_dGauss_Fit_Blue,m_dGauss_Fit_Red);
+	if (m_sdGenerated_Spectrum.m_bValid)
+		m_dGen_Direct_Measure_Vel = Calc_Vel(Copy(m_sdGenerated_Spectrum.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
+	if (m_sdRefine_Spectrum_Best.m_bValid)
+		m_dRefine_Direct_Measure_Vel = Calc_Vel(Copy(m_sdRefine_Spectrum_Best.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
 }
 
 
-double OSCIn_SuShI_main::Calc_pEW(const OSCspectrum & i_cSpectrum)
+double OSCIn_SuShI_main::Calc_pEW(const OSCspectrum & i_cSpectrum, const double & i_dBlue_WL, const double & i_dRed_WL)
 {
 	double d_pEW = 0.0;
 
@@ -638,7 +644,7 @@ double OSCIn_SuShI_main::Calc_pEW(const OSCspectrum & i_cSpectrum)
 	unsigned int uiIdx_Red = -1;
 
 	unsigned int uiI = 0;
-	while (uiI < i_cSpectrum.size() && i_cSpectrum.wl(uiI) < m_dGauss_Fit_Blue)
+	while (uiI < i_cSpectrum.size() && i_cSpectrum.wl(uiI) < i_dBlue_WL)
 		uiI++;
 	if (uiI < i_cSpectrum.size())
 	{
@@ -646,7 +652,7 @@ double OSCIn_SuShI_main::Calc_pEW(const OSCspectrum & i_cSpectrum)
 		pddLeft.first = i_cSpectrum.wl(uiI);
 		pddLeft.second = i_cSpectrum.flux(uiI);
 
-		while (uiI < i_cSpectrum.size() && i_cSpectrum.wl(uiI) < m_dGauss_Fit_Red)
+		while (uiI < i_cSpectrum.size() && i_cSpectrum.wl(uiI) < i_dRed_WL)
 			uiI++;
 		if (uiI < i_cSpectrum.size())
 		{
@@ -679,3 +685,21 @@ double OSCIn_SuShI_main::Calc_pEW(const OSCspectrum & i_cSpectrum)
 	return d_pEW;
 }
 
+double OSCIn_SuShI_main::Calc_Vel(const OSCspectrum & i_cSpectrum, const double & i_dBlue_WL, const double & i_dRed_WL)
+{
+	double dMin_Flux = DBL_MAX;
+	double dMin_WL;
+
+	for (unsigned int uiI = 0; uiI < i_cSpectrum.size(); uiI++)
+	{
+		if (i_cSpectrum.wl(uiI) >= i_dBlue_WL && i_cSpectrum.wl(uiI) <= i_dRed_WL)
+		{
+			if (i_cSpectrum.flux(uiI) < dMin_Flux)
+			{
+				dMin_Flux = i_cSpectrum.flux(uiI);
+				dMin_WL = i_cSpectrum.wl(uiI);
+			}
+		}
+	}
+	return Compute_Velocity(dMin_WL,g_cgfpCaNIR.m_dWl[1]);
+}

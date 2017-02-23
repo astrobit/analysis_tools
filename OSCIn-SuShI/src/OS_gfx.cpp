@@ -55,31 +55,45 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 
 	dAR = Get_Pane_Aspect_Ratio(m_idPane);
 	m_mMain_Pane_Buttons.clear();
-	m_mMain_Pane_Buttons[spectrum_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,0.155),pSB_Size,spectrum_select_up);
-	m_mMain_Pane_Buttons[spectrum_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,0.10),pSB_Size,spectrum_select_down);
-	m_mMain_Pane_Buttons[feature_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,0.300),pSB_Size,feature_select_up);
-	m_mMain_Pane_Buttons[feature_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,0.245),pSB_Size,feature_select_down);
-	m_mMain_Pane_Buttons[spectrum_display_area] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.30),PAIR<double>(dAR * 0.93,0.7),spectrum_display_area);
 
-	double dRow_1 = 0.65;
-	double dRow_2 = 0.67;
-	m_dRow_1_Text = 0.70;
-	double dRow_3 = 0.97;
-	double dRow_4 = 0.95;
-	m_dRow_2_Text = 1.00;
-	m_dRow_3_Text_Labels = 1.20;
-	m_dRow_3_Text = 1.25;
-	m_dRow_3a_Text = 1.325;
-	m_dRow_4_Text = 1.40;
-	m_dRow_4a_Text = 1.475;
-	m_dRow_5_Text = 1.55;
-	m_dRow_5a_Text = 1.625;
-	m_dRow_6_Text = 1.70;
-	double dRow_5 = 1.20;
-	double dRow_6 = 1.22;
+	double dRow_1 = 0.35;
+	double dRow_2 = dRow_1 + 0.02;
+	m_dRow_1_Text = dRow_2 + 0.03;
+	double dRow_3 = dRow_1 + 0.32;
+	double dRow_4 = dRow_3 + 0.02;
+	m_dRow_2_Text = dRow_4 + 0.03;
+	double dRow_5 = m_dRow_2_Text + 0.20;
+	double dRow_6 = dRow_5 + 0.02;
+	m_dRow_3_Text_Labels = dRow_5;
+	m_dRow_3_Text = dRow_6 + 0.03;
+	double dRow_7 = m_dRow_3_Text + 0.10;
+	double dRow_8 = dRow_7 + 0.02;
+	m_dRow_4_Text = m_dRow_3_Text + 0.15;
+	m_dRow_5_Text = m_dRow_4_Text + 0.15;
+	m_dRow_6_Text = m_dRow_5_Text + 0.15;
+
+	m_dRow_3a_Text = m_dRow_3_Text + 0.075;
+	m_dRow_4a_Text = m_dRow_4_Text + 0.075;
+	m_dRow_5a_Text = m_dRow_5_Text + 0.075;
+	m_dRow_6a_Text = m_dRow_6_Text + 0.075;
+
+	double dLB_Pos[12];
+	dLB_Pos[0] = 0.01;
+	for (unsigned int uiI = 1; uiI < 12; uiI++)
+	{
+		dLB_Pos[uiI] = dLB_Pos[uiI - 1] + 0.15 + 0.02;
+	}
+		
+
+	m_mMain_Pane_Buttons[spectrum_display_area] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.01,0.30),PAIR<double>(dAR * 0.93,0.7),spectrum_display_area);
 
 	m_mMain_Pane_Buttons[flux_zoom_in] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.94,0.41),pSB_Size,flux_zoom_in);
 	m_mMain_Pane_Buttons[flux_zoom_out] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dAR * 0.94,0.35),pSB_Size,flux_zoom_out);
+
+	m_mMain_Pane_Buttons[feature_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,dSmSB_Pos_Y[0]),pSmSB_Size,feature_select_up);
+	m_mMain_Pane_Buttons[feature_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,dSmSB_Pos_Y[1]),pSmSB_Size,feature_select_down);
+	m_mMain_Pane_Buttons[spectrum_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,dSmSB_Pos_Y[2]),pSmSB_Size,spectrum_select_up);
+	m_mMain_Pane_Buttons[spectrum_select_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.01,dSmSB_Pos_Y[7]),pSmSB_Size,spectrum_select_down);
 
 
 	m_mMain_Pane_Buttons[model_select_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_2,dSmSB_Pos_Y[0]),pSmSB_Size,model_select_up);
@@ -120,14 +134,23 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mMain_Pane_Buttons[ref_fit_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_3,dSmSB_Pos_Y[11]),pSmSB_Size,ref_fit_range_red_down);
 
 
-	m_mMain_Pane_Buttons[gauss_fit_range_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_range_blue_big_up);
-	m_mMain_Pane_Buttons[gauss_fit_range_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_range_blue_big_down);
-	m_mMain_Pane_Buttons[gauss_fit_range_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_range_red_big_up);
-	m_mMain_Pane_Buttons[gauss_fit_range_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_range_red_big_down);
-	m_mMain_Pane_Buttons[gauss_fit_range_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_range_blue_up);
-	m_mMain_Pane_Buttons[gauss_fit_range_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_range_blue_down);
-	m_mMain_Pane_Buttons[gauss_fit_range_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_range_red_up);
-	m_mMain_Pane_Buttons[gauss_fit_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_range_red_down);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_data_range_blue_big_up);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_data_range_blue_big_down);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_7,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_data_range_red_big_up);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_7,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_data_range_red_big_down);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_data_range_blue_up);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_data_range_blue_down);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_8,dSmSB_Pos_Y[8]),pSmSB_Size,gauss_fit_data_range_red_up);
+	m_mMain_Pane_Buttons[gauss_fit_data_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_8,dSmSB_Pos_Y[9]),pSmSB_Size,gauss_fit_data_range_red_down);
+
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_gen_range_blue_big_up);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_blue_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_5,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_gen_range_blue_big_down);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_7,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_gen_range_red_big_up);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_7,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_gen_range_red_big_down);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_blue_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_gen_range_blue_up);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_blue_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_6,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_gen_range_blue_down);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_red_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_8,dSmSB_Pos_Y[10]),pSmSB_Size,gauss_fit_gen_range_red_up);
+	m_mMain_Pane_Buttons[gauss_fit_gen_range_red_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_8,dSmSB_Pos_Y[11]),pSmSB_Size,gauss_fit_gen_range_red_down);
 
 
 	m_mMain_Pane_Buttons[norm_wl_blue_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[4]),pSmSB_Size,norm_wl_blue_big_up);
@@ -139,11 +162,11 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mMain_Pane_Buttons[ref_fit_range_red_big_up] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[10]),pSmSB_Size,ref_fit_range_red_big_up);
 	m_mMain_Pane_Buttons[ref_fit_range_red_big_down] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dRow_4,dSmSB_Pos_Y[11]),pSmSB_Size,ref_fit_range_red_big_down);
 
-	m_mMain_Pane_Buttons[gen_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.60,0.04),pLB_Size,gen_request);
-	m_mMain_Pane_Buttons[save_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.77,0.04),pLB_Size,save_request);
-	m_mMain_Pane_Buttons[refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(0.94,0.04),pLB_Size,refine_request);
-	m_mMain_Pane_Buttons[copy_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.11,0.04),pLB_Size,copy_refine_request);
-	m_mMain_Pane_Buttons[save_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.28,0.04),pLB_Size,save_refine_request);
+	m_mMain_Pane_Buttons[gen_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[0],0.04),pLB_Size,gen_request);
+	m_mMain_Pane_Buttons[save_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[1],0.04),pLB_Size,save_request);
+	m_mMain_Pane_Buttons[refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[2],0.04),pLB_Size,refine_request);
+	m_mMain_Pane_Buttons[copy_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[3],0.04),pLB_Size,copy_refine_request);
+	m_mMain_Pane_Buttons[save_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[4],0.04),pLB_Size,save_refine_request);
 
 	m_mMain_Pane_Buttons[clear_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.19),pLB_Size,clear_request);
 	m_mMain_Pane_Buttons[generated_fit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.14),pLB_Size,generated_fit_request);
@@ -251,6 +274,12 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 		std::ostringstream ossGauss_Range_Red;
 		ossGauss_Range_Red << m_dGauss_Fit_Red;
 
+		std::ostringstream ossGauss_Gen_Range_Blue;
+		ossGauss_Gen_Range_Blue << m_dGauss_Fit_Gen_Blue;
+
+		std::ostringstream ossGauss_Gen_Range_Red;
+		ossGauss_Gen_Range_Red << m_dGauss_Fit_Gen_Red;
+
 		char lpszElem[4];
 		memset(lpszElem,0,sizeof(lpszElem));
 		xGet_Element_Symbol(m_uiElement,lpszElem);
@@ -262,29 +291,36 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 		ossExc_Temp << "Te: " << m_dExc_Temp << " kK";
 
 		std::ostringstream ossTgt_pEW_PVF;
-		ossTgt_pEW_PVF << m_cTarget_Gaussian_Fit.m_d_pEW[0];
+		ossTgt_pEW_PVF << fabs(XRoundNearest(m_cTarget_Gaussian_Fit.m_d_pEW[0],10.0));
 		std::ostringstream ossTgt_pEW_HVF;
-		ossTgt_pEW_HVF << m_cTarget_Gaussian_Fit.m_d_pEW[1];
+		ossTgt_pEW_HVF << fabs(XRoundNearest(m_cTarget_Gaussian_Fit.m_d_pEW[1],10.0));
 		std::ostringstream ossTgt_Vel_PVF;
-		ossTgt_Vel_PVF << m_cTarget_Gaussian_Fit.m_dVelocity[0];
+		ossTgt_Vel_PVF << fabs(XRoundNearest(m_cTarget_Gaussian_Fit.m_dVelocity[0],100.0));
 		std::ostringstream ossTgt_Vel_HVF;
-		ossTgt_Vel_HVF << m_cTarget_Gaussian_Fit.m_dVelocity[1];
+		ossTgt_Vel_HVF << fabs(XRoundNearest(m_cTarget_Gaussian_Fit.m_dVelocity[1],100.0));
 
 		std::ostringstream ossGen_pEW_PVF;
-		ossGen_pEW_PVF << m_cModel_Gaussian_Fit.m_d_pEW[0];
+		ossGen_pEW_PVF << fabs(XRoundNearest(m_cModel_Gaussian_Fit.m_d_pEW[0],10.0));
 		std::ostringstream ossGen_pEW_HVF;
-		ossGen_pEW_HVF << m_cModel_Gaussian_Fit.m_d_pEW[1];
+		ossGen_pEW_HVF << fabs(XRoundNearest(m_cModel_Gaussian_Fit.m_d_pEW[1],10.0));
 		std::ostringstream ossGen_Vel_PVF;
-		ossGen_Vel_PVF << m_cModel_Gaussian_Fit.m_dVelocity[0];
+		ossGen_Vel_PVF << fabs(XRoundNearest(m_cModel_Gaussian_Fit.m_dVelocity[0],100.0));
 		std::ostringstream ossGen_Vel_HVF;
-		ossGen_Vel_HVF << m_cModel_Gaussian_Fit.m_dVelocity[1];
+		ossGen_Vel_HVF << fabs(XRoundNearest(m_cModel_Gaussian_Fit.m_dVelocity[1],100.0));
 
 		std::ostringstream ossMeas_pEW;
-		ossMeas_pEW << m_dDirect_Measure_pEW;
+		ossMeas_pEW << XRoundNearest(m_dDirect_Measure_pEW,10.0);
 		std::ostringstream ossMeas_Gen_pEW;
-		ossMeas_Gen_pEW << m_dGen_Direct_Measure_pEW;
+		ossMeas_Gen_pEW << XRoundNearest(m_dGen_Direct_Measure_pEW,10.0);
 		std::ostringstream ossMeas_Ref_pEW;
-		ossMeas_Ref_pEW << m_dRefine_Direct_Measure_pEW;
+		ossMeas_Ref_pEW << XRoundNearest(m_dRefine_Direct_Measure_pEW,10.0);
+
+		std::ostringstream ossMeas_Vel;
+		ossMeas_Vel << fabs(XRoundNearest(m_dDirect_Measure_Vel,100.0));
+		std::ostringstream ossMeas_Gen_Vel;
+		ossMeas_Gen_Vel << fabs(XRoundNearest(m_dGen_Direct_Measure_Vel,100.0));
+		std::ostringstream ossMeas_Ref_Vel;
+		ossMeas_Ref_Vel << fabs(XRoundNearest(m_dRefine_Direct_Measure_Vel,100.0));
 
 		std::ostringstream ossZoom;
 		ossZoom << m_dFlux_Zoom;
@@ -314,11 +350,9 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 		}
 
 		glPushMatrix();
-			glPrintJustified(0.05,0.075,dText_Y,0.0,m_idSelected_ID.m_szSources.c_str(),HJ_LEFT,VJ_BOTTOM);
-			dText_Y += 0.06;
-			glPrintJustified(0.05,0.075,dText_Y,0.0,m_idSelected_ID.m_szInstrument.c_str(),HJ_LEFT,VJ_BOTTOM);
-			dText_Y += 0.06;
-			glPrintJustified(0.05,0.075,dText_Y,0.0,ossMJD.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+			glPrintJustified(0.02,0.03,m_dText_Y[1],0.0,ossMJD.str().c_str(),HJ_LEFT,VJ_BOTTOM);
+			glPrintJustified(0.02,0.03,m_dText_Y[2],0.0,m_idSelected_ID.m_szInstrument.c_str(),HJ_LEFT,VJ_BOTTOM);
+			glPrintJustified(0.02,0.03,m_dText_Y[3],0.0,m_idSelected_ID.m_szSources.c_str(),HJ_LEFT,VJ_BOTTOM);
 			switch (m_eFeature_Select)
 			{
 			case fs_full:
@@ -334,7 +368,7 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				szFeature = "Ca NIR";
 				break;
 			}
-			glPrintJustified(0.05,0.075,0.25,0.0,szFeature.c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,0.03,m_dText_Y[0],0.0,szFeature.c_str(),HJ_LEFT,VJ_MIDDLE);
 
 
 			glPrintJustified(0.02,m_dRow_1_Text,m_dText_Y[0],0.0,szModel.c_str(),HJ_LEFT,VJ_MIDDLE);
@@ -361,31 +395,39 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 
 			glColor4d(0.3,0.3,0.00,1.0);
 			glPrintJustified(0.02,m_dRow_3_Text,m_dText_Y[4],0.0,ossGauss_Range_Blue.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glPrintJustified(0.02,m_dRow_3_Text,m_dText_Y[5],0.0,ossGauss_Range_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_4_Text,m_dText_Y[4],0.0,ossGauss_Range_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glColor4d(0.3,0.3,0.00,1.0);
+			glPrintJustified(0.02,m_dRow_3_Text,m_dText_Y[5],0.0,ossGauss_Gen_Range_Blue.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_4_Text,m_dText_Y[5],0.0,ossGauss_Gen_Range_Red.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 
-			glColor4d(0.00,0.0,0.00,1.0);
-			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[5],0.0,ossMeas_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glColor4d(0.00,0.0,1.00,1.0);
-			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[6],0.0,ossMeas_Gen_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-			glColor4d(0.00,1.0,0.00,1.0);
-			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[7],0.0,ossMeas_Ref_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+//			glColor4d(0.00,1.0,0.00,1.0);
+//			glPrintJustified(0.02,m_dRow_3a_Text,m_dText_Comp_Y[7],0.0,ossMeas_Ref_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 
 
+			glColor4d(1.00,0.0,1.00,1.0);
+			glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[5],0.0,ossMeas_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[6],0.0,ossMeas_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 			if (m_cTarget_Gaussian_Fit.m_bValid && !g_bFit_In_Progress)
 			{
 				glColor4d(0.75,0.0,0.75,1.0);
-				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[5],0.0,ossTgt_pEW_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[6],0.0,ossTgt_pEW_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[7],0.0,ossTgt_Vel_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[8],0.0,ossTgt_Vel_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[5],0.0,ossTgt_pEW_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[6],0.0,ossTgt_Vel_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_6a_Text,m_dText_Comp_Y[5],0.0,ossTgt_pEW_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_6a_Text,m_dText_Comp_Y[6],0.0,ossTgt_Vel_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+			}
+			if (m_sdGenerated_Spectrum.m_bValid)
+			{
+				glColor4d(0.00,0.0,1.00,1.0);
+				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[7],0.0,ossMeas_Gen_pEW.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_4a_Text,m_dText_Comp_Y[8],0.0,ossMeas_Gen_Vel.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 			}
 			if (m_cModel_Gaussian_Fit.m_bValid && !g_bFit_In_Progress)
 			{
 				glColor4d(0.5,0.5,0.00,1.0);
-				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[5],0.0,ossGen_pEW_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[6],0.0,ossGen_pEW_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[7],0.0,ossGen_Vel_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
-				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[8],0.0,ossGen_Vel_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[7],0.0,ossGen_pEW_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_5a_Text,m_dText_Comp_Y[8],0.0,ossGen_Vel_PVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_6a_Text,m_dText_Comp_Y[7],0.0,ossGen_pEW_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,m_dRow_6a_Text,m_dText_Comp_Y[8],0.0,ossGen_Vel_HVF.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 			}
 
 			glColor4d(0.0,0.0,1.0,1.0);
@@ -449,10 +491,14 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case ref_fit_range_red_up:
 				case ref_fit_range_blue_big_up:
 				case ref_fit_range_red_big_up:
-				case gauss_fit_range_blue_up:
-				case gauss_fit_range_red_up:
-				case gauss_fit_range_blue_big_up:
-				case gauss_fit_range_red_big_up:
+				case gauss_fit_data_range_blue_up:
+				case gauss_fit_data_range_red_up:
+				case gauss_fit_data_range_blue_big_up:
+				case gauss_fit_data_range_red_big_up:
+				case gauss_fit_gen_range_blue_up:
+				case gauss_fit_gen_range_red_up:
+				case gauss_fit_gen_range_blue_big_up:
+				case gauss_fit_gen_range_red_big_up:
 				case flux_zoom_in:
 					Draw_Scroll_Button(SBD_UP, true);
 					break;
@@ -479,10 +525,14 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case ref_fit_range_red_down:
 				case ref_fit_range_blue_big_down:
 				case ref_fit_range_red_big_down:
-				case gauss_fit_range_blue_down:
-				case gauss_fit_range_red_down:
-				case gauss_fit_range_blue_big_down:
-				case gauss_fit_range_red_big_down:
+				case gauss_fit_data_range_blue_down:
+				case gauss_fit_data_range_red_down:
+				case gauss_fit_data_range_blue_big_down:
+				case gauss_fit_data_range_red_big_down:
+				case gauss_fit_gen_range_blue_down:
+				case gauss_fit_gen_range_red_down:
+				case gauss_fit_gen_range_blue_big_down:
+				case gauss_fit_gen_range_red_big_down:
 				case flux_zoom_out:
 					Draw_Scroll_Button(SBD_DOWN, true);
 					break;
