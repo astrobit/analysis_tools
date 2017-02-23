@@ -148,6 +148,9 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				m_uiModel = 45;
 				break;
 			case 45:
+				m_uiModel = 17;
+				break;
+			case 17:
 				m_uiModel = 61;
 				break;
 			}
@@ -156,8 +159,11 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 		case model_select_down:
 			switch (m_uiModel)
 			{
-			case 61:
+			case 17:
 				m_uiModel = 45;
+				break;
+			case 61:
+				m_uiModel = 17;
 				break;
 			case 57:
 				m_uiModel = 61;

@@ -39,6 +39,7 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_dRefine_Blue = 7700.0;
 		m_dRefine_Red = 8600.0;
 
+		m_mapModels[17] = model(17);
 		m_mapModels[41] = model(41);
 		m_mapModels[45] = model(45);
 		m_mapModels[49] = model(49);

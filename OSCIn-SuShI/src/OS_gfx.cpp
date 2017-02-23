@@ -293,6 +293,9 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 
 		switch (m_uiModel)
 		{
+		case 17:
+			szModel = "17: No Shell";
+			break;
 		case 61:
 			szModel = "61: 0.003 Msun";
 			break;
