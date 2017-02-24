@@ -255,14 +255,18 @@ void Process_Generate_Requests(void)
 				double dNorm_Gen = Get_Norm_Const(g_sdGen_Spectrum_Result.m_specResult,g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
 				double dNorm = dNorm_Target / dNorm_Gen;
 				double dSum_Err_2 = 0.0;
+				unsigned int uiErr_Data_Count = 0;
 				for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult.size(); uiI++)
 				{
 					if (g_sdGen_Spectrum_Result.m_specResult.wl(uiI) >= g_sdGen_Spectrum_Result.m_dFit_WL_Blue && g_sdGen_Spectrum_Result.m_specResult.wl(uiI) <= g_sdGen_Spectrum_Result.m_dFit_WL_Red)
 					{
 						double dErr = g_sdGen_Spectrum_Result.m_specResult.flux(uiI) * dNorm - cTarget.flux(uiI);
 						dSum_Err_2 += dErr * dErr;
+						uiErr_Data_Count++;
 					}
 				}
+				dSum_Err_2 /= uiErr_Data_Count;
+
 				g_sdGen_Spectrum_Result.m_dQuality_of_Fit = dSum_Err_2;
 				
 
@@ -339,14 +343,17 @@ void Process_Refine_Requests(void)
 									double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
 									double dNorm = dNorm_Target / dNorm_Gen;
 									double dSum_Err_2 = 0.0;
+									unsigned int uiErr_Data_Count = 0;
 									for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
 									{
 										if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
 										{
 											double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
 											dSum_Err_2 += dErr * dErr;
+											uiErr_Data_Count++;
 										}
 									}
+									dSum_Err_2 /= uiErr_Data_Count;
 									if (dSum_Err_2 < dQuality_Save)
 									{
 										dQuality_Save = dSum_Err_2;
