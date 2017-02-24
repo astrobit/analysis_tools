@@ -16,6 +16,8 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_OSCfile.Load(m_vszCommand_Line_Parameters[0]);
 		m_OSCfile.Deredden();
 
+		Set_Window_Name(std::string("Open Supernova Catalog Interactive Viewer for Supernova - Shell Interaction (OSCIn-SuShI) --- ") + m_OSCfile.m_szSupernova_ID);
+
 		m_iterSelected_ID = m_OSCfile.m_mSpectra_List.begin();
 
 		std::map<OSCspectra_id, OSCspectrum >::iterator iterFindLast = m_OSCfile.m_mSpectra_List.begin();
