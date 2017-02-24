@@ -464,8 +464,10 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 			}
 			if (g_bRefine_In_Progress && m_bFlasher_1s_50p)
 			{
+				std::ostringstream ossRefining_Status;
+				ossRefining_Status << "Refining " << g_uiRefine_Result_ID << "/486";
 				glColor4d(0.0,1.0,0.0,1.0);
-				glPrintJustified(0.02,0.050,0.85,0.0,"Refining",HJ_LEFT,VJ_MIDDLE);
+				glPrintJustified(0.02,0.050,0.85,0.0,ossRefining_Status.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 			}
 			if (g_bFit_In_Progress && m_bFlasher_1s_50p)
 			{
