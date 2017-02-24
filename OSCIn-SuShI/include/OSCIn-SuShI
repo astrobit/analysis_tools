@@ -223,6 +223,7 @@ private:
 	unsigned int	m_uiElement;
 	unsigned int	m_uiIon;
 
+	double			m_dRow_0_Text;
 	double			m_dRow_1_Text;
 	double			m_dRow_2_Text;
 	double			m_dRow_3_Text_Labels;
@@ -234,6 +235,8 @@ private:
 	double			m_dRow_5a_Text;
 	double			m_dRow_6_Text;
 	double			m_dRow_6a_Text;
+	double			m_dRow_7_Text;
+	double			m_dRow_7a_Text;
 	double			m_dText_Y[20];
 	double			m_dText_Comp_Y[20];
 
