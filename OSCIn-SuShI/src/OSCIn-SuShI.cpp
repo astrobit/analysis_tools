@@ -63,6 +63,8 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 
 		m_dFlux_Zoom = 1.0;
 
+		m_bDisplay_Components = false;
+
 		Process_Selected_Spectrum();
 
 	}

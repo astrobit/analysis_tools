@@ -398,7 +398,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_sdGen_Spectrum_Result.m_dFit_WL_Blue = m_dRefine_Blue;
 				g_sdGen_Spectrum_Result.m_dFit_WL_Red = m_dRefine_Red;
 				g_lpmGen_Model = &m_mapModels[m_uiModel];
-				g_sdGen_Spectrum_Result.m_specResult = ES::Spectrum::create_copy_from_vector(m_specSelected_Spectrum.Get_Tuple_Vector());
+				g_sdGen_Spectrum_Result.m_specResult[0] = ES::Spectrum::create_copy_from_vector(m_specSelected_Spectrum.Get_Tuple_Vector());
 				g_sdGen_Spectrum_Result.m_bValid = true;
 				g_bGen_Process_Request = true;
 			}
@@ -426,7 +426,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_sdRefine_Result.m_dNorm_WL_Red = m_dNorm_Red;
 				g_sdRefine_Result.m_uiIon = m_uiElement * 100 + m_uiIon;//m_uiModel;
 				g_lpmRefine_Model = &m_mapModels[m_uiModel];
-				g_sdRefine_Result.m_specResult = ES::Spectrum::create_copy_from_vector(m_specSelected_Spectrum.Get_Tuple_Vector());
+				g_sdRefine_Result.m_specResult[0] = ES::Spectrum::create_copy_from_vector(m_specSelected_Spectrum.Get_Tuple_Vector());
 				g_sdRefine_Result.m_bValid = true;
 				g_bRefine_Process_Request = true;
 			}
@@ -547,7 +547,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_cFit_Result.m_dRange_WL_Blue = m_dGauss_Fit_Gen_Blue;
 				g_cFit_Result.m_dRange_WL_Red = m_dGauss_Fit_Gen_Red;
 				g_cFit_Result.m_eFeature = m_eFeature_Select;
-				g_cFit_Result.m_specResult = Copy(m_sdGenerated_Spectrum.m_specResult);
+				g_cFit_Result.m_specResult = Copy(m_sdGenerated_Spectrum.m_specResult[0]);
 				g_cFit_Result.m_bValid = true;
 				g_bFit_Process_Request = true;
 			}
@@ -563,6 +563,9 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 				g_cFit_Result.m_bValid = true;
 				g_bFit_Process_Request = true;
 			}
+			break;
+		case toggle_component_display_request:
+			m_bDisplay_Components = !m_bDisplay_Components;
 			break;
 		case abort_request:
 			if (g_bRefine_In_Progress)

@@ -62,22 +62,22 @@ void OSCIn_SuShI_main::Normalize(void)
 	double dTgt_Norm = Get_Norm_Const(m_specSelected_Spectrum,m_dNorm_Blue, m_dNorm_Red);
 	if (m_sdGenerated_Spectrum.m_bValid)
 	{
-		double dGen_Norm = Get_Norm_Const(m_sdGenerated_Spectrum.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		double dGen_Norm = Get_Norm_Const(m_sdGenerated_Spectrum.m_specResult[0],m_dNorm_Blue, m_dNorm_Red);
 		m_dGenerated_Spectrum_Norm = dTgt_Norm / dGen_Norm;
 	}
 	if (m_sdGenerated_Spectrum_Prev.m_bValid)
 	{
-		double dGen_Norm_Prev = Get_Norm_Const(m_sdGenerated_Spectrum_Prev.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		double dGen_Norm_Prev = Get_Norm_Const(m_sdGenerated_Spectrum_Prev.m_specResult[0],m_dNorm_Blue, m_dNorm_Red);
 		m_dGenerated_Spectrum_Prev_Norm = dTgt_Norm / dGen_Norm_Prev;
 	}
 	if (m_sdRefine_Spectrum_Curr.m_bValid)
 	{
-		double dGen_Norm = Get_Norm_Const(m_sdRefine_Spectrum_Curr.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		double dGen_Norm = Get_Norm_Const(m_sdRefine_Spectrum_Curr.m_specResult[0],m_dNorm_Blue, m_dNorm_Red);
 		m_dRefine_Spectrum_Norm = dTgt_Norm / dGen_Norm;
 	}
 	if (m_sdRefine_Spectrum_Best.m_bValid)
 	{
-		double dGen_Norm = Get_Norm_Const(m_sdRefine_Spectrum_Best.m_specResult,m_dNorm_Blue, m_dNorm_Red);
+		double dGen_Norm = Get_Norm_Const(m_sdRefine_Spectrum_Best.m_specResult[0],m_dNorm_Blue, m_dNorm_Red);
 		m_dRefine_Spectrum_Best_Norm = dTgt_Norm / dGen_Norm;
 	}
 
@@ -173,9 +173,9 @@ void Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum
 	o_cUser_Param.m_dShell_Log_Scalar = i_cData.m_dShell_Scalar;
 	o_cUser_Param.m_dEjecta_Effective_Temperature_kK = i_cData.m_dExc_Temp;
 	o_cUser_Param.m_dShell_Effective_Temperature_kK = i_cData.m_dExc_Temp;
-	o_cUser_Param.m_dWavelength_Range_Lower_Ang = i_cData.m_specResult.wl(0);
-	o_cUser_Param.m_dWavelength_Range_Upper_Ang = i_cData.m_specResult.wl(i_cData.m_specResult.size() - 1);
-	o_cUser_Param.m_dWavelength_Delta_Ang = i_cData.m_specResult.wl(1) - i_cData.m_specResult.wl(0);
+	o_cUser_Param.m_dWavelength_Range_Lower_Ang = i_cData.m_specResult[0].wl(0);
+	o_cUser_Param.m_dWavelength_Range_Upper_Ang = i_cData.m_specResult[0].wl(i_cData.m_specResult[0].size() - 1);
+	o_cUser_Param.m_dWavelength_Delta_Ang = i_cData.m_specResult[0].wl(1) - i_cData.m_specResult[0].wl(0);
 	o_cUser_Param.m_dEjecta_Scalar_Time_Power_Law = -2.0;
 	o_cUser_Param.m_dShell_Scalar_Time_Power_Law = -2.0;
 
@@ -225,7 +225,7 @@ void Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum
 	}
 
 
-	o_cTarget = i_cData.m_specResult;
+	o_cTarget = i_cData.m_specResult[0];
 }
 void Process_Generate_Requests(void)
 {
@@ -246,21 +246,21 @@ void Process_Generate_Requests(void)
 
 			Prep(g_sdGen_Spectrum_Result,g_lpmGen_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
 
-			g_sdGen_Spectrum_Result.m_specResult.zero_flux();
+			g_sdGen_Spectrum_Result.m_specResult[0].zero_flux();
 			if (bValid_Ion)
 			{
 				unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
-				msdb_load_generate(cParam, msdb::COMBINED, cTarget, &g_lpmGen_Model->m_dsEjecta[uiIdx], &g_lpmGen_Model->m_dsShell, g_sdGen_Spectrum_Result.m_specResult);
+				msdb_load_generate(cParam, msdb::COMBINED, cTarget, &g_lpmGen_Model->m_dsEjecta[uiIdx], &g_lpmGen_Model->m_dsShell, g_sdGen_Spectrum_Result.m_specResult[0]);
 				double dNorm_Target = Get_Norm_Const(cTarget,g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
-				double dNorm_Gen = Get_Norm_Const(g_sdGen_Spectrum_Result.m_specResult,g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
+				double dNorm_Gen = Get_Norm_Const(g_sdGen_Spectrum_Result.m_specResult[0],g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
 				double dNorm = dNorm_Target / dNorm_Gen;
 				double dSum_Err_2 = 0.0;
 				unsigned int uiErr_Data_Count = 0;
-				for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult.size(); uiI++)
+				for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult[0].size(); uiI++)
 				{
-					if (g_sdGen_Spectrum_Result.m_specResult.wl(uiI) >= g_sdGen_Spectrum_Result.m_dFit_WL_Blue && g_sdGen_Spectrum_Result.m_specResult.wl(uiI) <= g_sdGen_Spectrum_Result.m_dFit_WL_Red)
+					if (g_sdGen_Spectrum_Result.m_specResult[0].wl(uiI) >= g_sdGen_Spectrum_Result.m_dFit_WL_Blue && g_sdGen_Spectrum_Result.m_specResult[0].wl(uiI) <= g_sdGen_Spectrum_Result.m_dFit_WL_Red)
 					{
-						double dErr = g_sdGen_Spectrum_Result.m_specResult.flux(uiI) * dNorm - cTarget.flux(uiI);
+						double dErr = g_sdGen_Spectrum_Result.m_specResult[0].flux(uiI) * dNorm - cTarget.flux(uiI);
 						dSum_Err_2 += dErr * dErr;
 						uiErr_Data_Count++;
 					}
@@ -268,6 +268,8 @@ void Process_Generate_Requests(void)
 				dSum_Err_2 /= uiErr_Data_Count;
 
 				g_sdGen_Spectrum_Result.m_dQuality_of_Fit = dSum_Err_2;
+				msdb_load_generate(cParam, msdb::EJECTA_ONLY, cTarget, &g_lpmGen_Model->m_dsEjecta[uiIdx], &g_lpmGen_Model->m_dsShell, g_sdGen_Spectrum_Result.m_specResult[1]);
+				msdb_load_generate(cParam, msdb::SHELL_ONLY, cTarget, &g_lpmGen_Model->m_dsEjecta[uiIdx], &g_lpmGen_Model->m_dsShell, g_sdGen_Spectrum_Result.m_specResult[2]);
 				
 
 			}
@@ -288,10 +290,13 @@ spectrum_data		g_sdRefine_Result;
 model *				g_lpmRefine_Model = nullptr;
 spectrum_data		g_sdRefine_Result_Curr;
 spectrum_data		g_sdRefine_Result_Curr_Best;
+unsigned int		g_uiRefine_Max = 460;
 
 void Process_Refine_Requests(void)
 {
+	unsigned int uiRef_Level_Max = 9;
 	g_bRefine_Thread_Running = true;
+	g_uiRefine_Max = 3 * 3 * 3 * 3 * uiRef_Level_Max;
 	do
 	{
 		if (g_bRefine_Process_Request && g_sdRefine_Result.m_bValid)
@@ -311,21 +316,155 @@ void Process_Refine_Requests(void)
 			
 			xvector xvRefine_Params(4);
 			xvRefine_Params.Set(0,5.0);
-			xvRefine_Params.Set(1,2.0);
-			xvRefine_Params.Set(2,0.3);
-			xvRefine_Params.Set(3,0.3);
+			xvRefine_Params.Set(1,2.5);
+			xvRefine_Params.Set(2,0.4);
+			xvRefine_Params.Set(3,0.4);
 			
 			Prep(g_sdRefine_Result,g_lpmGen_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
 			double dNorm_Target = Get_Norm_Const(cTarget,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
 			g_sdRefine_Result_Curr = g_sdRefine_Result;
 			g_sdRefine_Result_Curr_Best = g_sdRefine_Result;
 
+			unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
 			if (bValid_Ion)
 			{
 				if (cParam.m_dPhotosphere_Temp_kK < xvRefine_Params.Get(0))
 					cParam.m_dPhotosphere_Temp_kK = xvRefine_Params.Get(0);
 
-				for (unsigned int uiRef_Level = 0; uiRef_Level < 6 && !g_bAbort_Request; uiRef_Level++)
+				/*
+				unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
+				double dQuality_Ref = 0.0;
+				double dQuality_Last = 0.0;
+				double dDeriv[4] = {0.0,0.0,0.0,0.0};
+				double dSum_Deriv = 0.0;
+				do
+				{
+					ES::Spectrum esResult;
+					msdb_load_generate(cParam, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
+					double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
+					double dNorm = dNorm_Target / dNorm_Gen;
+					double dSum_Err_2 = 0.0;
+					unsigned int uiErr_Data_Count = 0;
+					for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
+					{
+						if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
+						{
+							double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
+							dSum_Err_2 += dErr * dErr;
+							uiErr_Data_Count++;
+						}
+					}
+					g_sdRefine_Result_Curr_Best.m_dPS_Temp = cParam.m_dPhotosphere_Temp_kK;
+					g_sdRefine_Result_Curr_Best.m_dPS_Velocity = cParam.m_dPhotosphere_Velocity_kkms;
+					g_sdRefine_Result_Curr_Best.m_dEjecta_Scalar = cParam.m_dEjecta_Log_Scalar;
+					g_sdRefine_Result_Curr_Best.m_dShell_Scalar = cParam.m_dShell_Log_Scalar;
+					g_sdRefine_Result_Curr_Best.m_specResult[0] = esResult;
+					g_sdRefine_Result_Curr_Best.m_dQuality_of_Fit = dSum_Err_2;
+					g_sdRefine_Result_Curr = g_sdRefine_Result_Curr_Best;
+
+					g_uiRefine_Result_ID++;
+					dQuality_Ref = dSum_Err_2;
+
+					for (unsigned int uiMode = 0; uiMode < 8 && !g_bAbort_Request; uiMode++)
+					{
+						cParam_Curr = cParam;
+						switch (uiMode)
+						{
+						case 0:
+							cParam_Curr.m_dPhotosphere_Temp_kK -= 0.01;
+							break;
+						case 1:
+							cParam_Curr.m_dPhotosphere_Temp_kK += 0.01;
+							break;
+						case 2:
+							cParam_Curr.m_dPhotosphere_Velocity_kkms -= 0.01;
+							break;
+						case 3:
+							cParam_Curr.m_dPhotosphere_Velocity_kkms += 0.01;
+							break;
+						case 4:
+							cParam_Curr.m_dEjecta_Log_Scalar -= 0.01;
+							break;
+						case 5:
+							cParam_Curr.m_dEjecta_Log_Scalar += 0.01;
+							break;
+						case 6:
+							cParam_Curr.m_dShell_Log_Scalar -= 0.01;
+							break;
+						case 7:
+							cParam_Curr.m_dShell_Log_Scalar += 0.01;
+							break;
+						}
+
+						msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
+						double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
+						double dNorm = dNorm_Target / dNorm_Gen;
+						double dSum_Err_2 = 0.0;
+						unsigned int uiErr_Data_Count = 0;
+						for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
+						{
+							if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
+							{
+								double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
+								dSum_Err_2 += dErr * dErr;
+								uiErr_Data_Count++;
+							}
+						}
+						g_sdRefine_Result_Curr.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
+						g_sdRefine_Result_Curr.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
+						g_sdRefine_Result_Curr.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
+						g_sdRefine_Result_Curr.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
+						g_sdRefine_Result_Curr.m_specResult[0] = esResult;
+						g_sdRefine_Result_Curr.m_dQuality_of_Fit = dSum_Err_2;
+
+						g_uiRefine_Result_ID++;
+		//									std::cout << g_uiRefine_Result_ID << std::endl;
+						sleep(1); // just in case the generate is already done, to give user a chance to see it.
+
+						switch (uiMode)
+						{
+						case 0:
+						case 2:
+						case 4:
+						case 6:
+							dQuality_Last = dSum_Err_2;
+							break;
+						case 1:
+						case 3:
+							dDeriv[(uiMode - 1) / 2] = (dSum_Err_2 - dQuality_Last) / 0.02;
+							break;
+						case 5:
+						case 7:
+							dDeriv[(uiMode - 1) / 2] = (dSum_Err_2 - dQuality_Last) / 0.02;
+							break;
+						}
+					}
+					if (!g_bAbort_Request)
+					{
+						double dDels[4] = {dDeriv[0] / dQuality_Ref,dDeriv[0] / dQuality_Ref,dDeriv[0] / dQuality_Ref,dDeriv[0] / dQuality_Ref};
+						dSum_Deriv = dDels[0] + dDels[1] + dDels[2] + dDels[3];
+						if (fabs(dDels[0]) > 0.03)
+							cParam.m_dPhotosphere_Temp_kK -= 1.0 / dDels[0] * 0.1;
+						else
+							cParam.m_dPhotosphere_Temp_kK -= dDels[0] / 0.03;
+						if (fabs(dDels[1]) > 0.03)
+							cParam.m_dPhotosphere_Velocity_kkms -= 1.0 / dDels[1] * 0.1;
+						else
+							cParam.m_dPhotosphere_Velocity_kkms -= dDels[1] / 0.03;
+
+						if (fabs(dDels[2]) > 3.0)
+							cParam.m_dEjecta_Log_Scalar -= 1.0 / dDels[2];// * 0.1;
+						else
+							cParam.m_dEjecta_Log_Scalar -= dDels[2] / 3.0 * 0.3;// * 0.1;
+
+						if (fabs(dDels[3]) > 3.0)
+							cParam.m_dShell_Log_Scalar -= 1.0 / dDels[3];// * 0.1;
+						else
+							cParam.m_dShell_Log_Scalar -= dDels[3] / 3.0 * 0.3;// * 0.1;
+					}
+				} while (fabs(dSum_Deriv) > 0.001 && !g_bAbort_Request);
+				*/
+				for (unsigned int uiRef_Level = 0; uiRef_Level < uiRef_Level_Max && !g_bAbort_Request; uiRef_Level++)
 				{
 					for (int iTemp = -1; iTemp < 2 && !g_bAbort_Request; iTemp++)
 						for (int iVel = -1; iVel < 2 && !g_bAbort_Request; iVel++)
@@ -338,7 +477,6 @@ void Process_Refine_Requests(void)
 									cParam_Curr.m_dPhotosphere_Velocity_kkms += iVel * xvRefine_Params.Get(1);
 									cParam_Curr.m_dEjecta_Log_Scalar += iSs * xvRefine_Params.Get(2);
 									cParam_Curr.m_dShell_Log_Scalar += iSe * xvRefine_Params.Get(3);
-									unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
 									msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
 									double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
 									double dNorm = dNorm_Target / dNorm_Gen;
@@ -362,14 +500,14 @@ void Process_Refine_Requests(void)
 										g_sdRefine_Result_Curr_Best.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
 										g_sdRefine_Result_Curr_Best.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
 										g_sdRefine_Result_Curr_Best.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
-										g_sdRefine_Result_Curr_Best.m_specResult = esResult;
+										g_sdRefine_Result_Curr_Best.m_specResult[0] = esResult;
 										g_sdRefine_Result_Curr_Best.m_dQuality_of_Fit = dSum_Err_2;
 									}
 									g_sdRefine_Result_Curr.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
 									g_sdRefine_Result_Curr.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
 									g_sdRefine_Result_Curr.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
 									g_sdRefine_Result_Curr.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
-									g_sdRefine_Result_Curr.m_specResult = esResult;
+									g_sdRefine_Result_Curr.m_specResult[0] = esResult;
 									g_sdRefine_Result_Curr.m_dQuality_of_Fit = dSum_Err_2;
 
 									g_uiRefine_Result_ID++;
@@ -384,7 +522,15 @@ void Process_Refine_Requests(void)
 			
 			if (!g_bAbort_Request)
 			{
-				g_sdRefine_Result = g_sdRefine_Result_Curr_Best;
+				if (bValid_Ion)
+				{
+					ES::Spectrum esResult;
+					msdb_load_generate(cParam_Save, msdb::EJECTA_ONLY, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
+					g_sdRefine_Result_Curr_Best.m_specResult[1] = esResult;
+					msdb_load_generate(cParam_Save, msdb::SHELL_ONLY, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
+					g_sdRefine_Result_Curr_Best.m_specResult[2] = esResult;
+					g_sdRefine_Result = g_sdRefine_Result_Curr_Best;
+				}
 
 				g_bRefine_Done = true;
 				g_bRefine_In_Progress = false;
@@ -414,7 +560,7 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 		if (fileSaves == nullptr)
 		{
 			fileSaves = fopen(i_szFilename.c_str(),"wt");
-			fprintf(fileSaves,"#, dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, Norm. Blue WL, Norm. Red WL, Fit Blue WL, Fit Red WL, PS Temp, PS Velocity, Ss, Se, Quality, Gauss Fit WL Blue (Model), Gauss Fit WL Red (Model), Gausss Fit WL Blue (Target), Gauss Fit WL Red (Target)\n");
+			fprintf(fileSaves,"#, dd-mm-yyyy, hh:mm:ss, SN, MJD, Instrument, Sources, Model #, Element, Ion, Norm. Blue WL, Norm. Red WL, Fit Blue WL, Fit Red WL, PS Temp, PS Velocity, Ss, Se, Quality, Gauss Fit WL Blue (Model), Gauss Fit WL Red (Model), Gauss Fit WL Blue (Target), Gauss Fit WL Red (Target), Gauss Fit HVF Vel (Model) [1000 km/s], Gauss Fit PVF Vel (Model) [1000 km/s], Gauss Fit HVF pEW (Model) [Angstrom], Gauss Fit PVF pEW (Model) [Angstrom], Gauss Fit HVF Vel (Target) [1000 km/s], Gauss Fit PVF Vel (Target) [1000 km/s], Gauss Fit HVF pEW (Target) [Angstrom], Gauss Fit PVF pEW (Target) [Angstrom]\n");
 			fclose(fileSaves);
 		}
 		else
@@ -437,7 +583,7 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 			time(&timer);  /* get current time; same as: timer = time(NULL)  */
 			lpTime = gmtime(&timer);
 
-			fprintf(fileSaves,"%i, %02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.0f, %.0f, %.0f, %.0f, %.17e, %.17e, %.17e, %.17e, %.17e, %.0f, %.0f, %.0f, %.0f\n",
+			fprintf(fileSaves,"%i, %02i-%02i-%04i, %02i:%02i:%02i, %s, %.1f, %s, \"%s\", %i, %i, %i, %.0f, %.0f, %.0f, %.0f, %.17e, %.17e, %.17e, %.17e, %.17e, %.0f, %.0f, %.0f, %.0f,",
 							uiID,
 							lpTime->tm_mday, 
 							lpTime->tm_mon+1, 
@@ -464,7 +610,28 @@ void OSCIn_SuShI_main::Save_Result(const std::string &i_szFilename, unsigned int
 							m_dGauss_Fit_Gen_Blue,
 							m_dGauss_Fit_Gen_Red,
 							m_dGauss_Fit_Blue,
-							m_dGauss_Fit_Red);
+							m_dGauss_Fit_Red
+					);
+			fprintf(fileSaves,"%.2f, ",fabs(m_cModel_Gaussian_Fit.m_dVelocity[0]) / 1000.0);
+			if (m_cModel_Gaussian_Fit.m_dVelocity[1] != 0.0)
+				fprintf(fileSaves,"%.2f, ",fabs(m_cModel_Gaussian_Fit.m_dVelocity[1]) / 1000.0);
+			else
+				fprintf(fileSaves,"--, ");
+			fprintf(fileSaves,"%.2f, ",fabs(m_cModel_Gaussian_Fit.m_d_pEW[0]) / 1000.0);
+			if (m_cModel_Gaussian_Fit.m_d_pEW[1] != 0.0)
+				fprintf(fileSaves,"%.2f, ",fabs(m_cModel_Gaussian_Fit.m_d_pEW[1]) / 1000.0);
+			else
+				fprintf(fileSaves,"--, ");
+			fprintf(fileSaves,"%.2f, ",fabs(m_cTarget_Gaussian_Fit.m_dVelocity[0]) / 1000.0);
+			if (m_cTarget_Gaussian_Fit.m_dVelocity[1] != 0.0)
+				fprintf(fileSaves,"%.2f, ",fabs(m_cTarget_Gaussian_Fit.m_dVelocity[1]) / 1000.0);
+			else
+				fprintf(fileSaves,"--, ");
+			fprintf(fileSaves,"%.2f, ",fabs(m_cTarget_Gaussian_Fit.m_d_pEW[0]) / 1000.0);
+			if (m_cTarget_Gaussian_Fit.m_d_pEW[1] != 0.0)
+				fprintf(fileSaves,"%.2f\n",fabs(m_cTarget_Gaussian_Fit.m_d_pEW[1]) / 1000.0);
+			else
+				fprintf(fileSaves,"--\n");
 			fclose(fileSaves);
 		}
 		std::ostringstream ossJobFile;
@@ -633,15 +800,15 @@ void OSCIn_SuShI_main::Calc_Observed_pEW(void)
 	m_dGen_Direct_Measure_pEW = 0.0;
 	m_dRefine_Direct_Measure_pEW = 0.0;
 	if (m_sdGenerated_Spectrum.m_bValid)
-		m_dGen_Direct_Measure_pEW = Calc_pEW(Copy(m_sdGenerated_Spectrum.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
+		m_dGen_Direct_Measure_pEW = Calc_pEW(Copy(m_sdGenerated_Spectrum.m_specResult[0]),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
 	if (m_sdRefine_Spectrum_Best.m_bValid)
-		m_dRefine_Direct_Measure_pEW = Calc_pEW(Copy(m_sdRefine_Spectrum_Best.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
+		m_dRefine_Direct_Measure_pEW = Calc_pEW(Copy(m_sdRefine_Spectrum_Best.m_specResult[0]),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
 
 	m_dDirect_Measure_Vel = Calc_Vel(m_specSelected_Spectrum,m_dGauss_Fit_Blue,m_dGauss_Fit_Red);
 	if (m_sdGenerated_Spectrum.m_bValid)
-		m_dGen_Direct_Measure_Vel = Calc_Vel(Copy(m_sdGenerated_Spectrum.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
+		m_dGen_Direct_Measure_Vel = Calc_Vel(Copy(m_sdGenerated_Spectrum.m_specResult[0]),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
 	if (m_sdRefine_Spectrum_Best.m_bValid)
-		m_dRefine_Direct_Measure_Vel = Calc_Vel(Copy(m_sdRefine_Spectrum_Best.m_specResult),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
+		m_dRefine_Direct_Measure_Vel = Calc_Vel(Copy(m_sdRefine_Spectrum_Best.m_specResult[0]),m_dGauss_Fit_Gen_Blue,m_dGauss_Fit_Gen_Red);
 }
 
 

@@ -172,6 +172,8 @@ void OSCIn_SuShI_main::gfx_reshape(const PAIR<unsigned int> & i_tNew_Size) // wi
 	m_mMain_Pane_Buttons[save_refine_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[4],0.04),pLB_Size,save_refine_request);
 	m_mMain_Pane_Buttons[abort_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(dLB_Pos[5],0.04),pLB_Size,abort_request);
 
+	m_mMain_Pane_Buttons[toggle_component_display_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.55,0.04),pLB_Size,toggle_component_display_request);
+
 	m_mMain_Pane_Buttons[clear_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.19),pLB_Size,clear_request);
 	m_mMain_Pane_Buttons[generated_fit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.14),pLB_Size,generated_fit_request);
 	m_mMain_Pane_Buttons[data_fit_request] = BUTTON_INFO(BUTTON_INFO::RECTANGLE,PAIR<double>(1.75,0.09),pLB_Size,data_fit_request);
@@ -465,7 +467,7 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 			if (g_bRefine_In_Progress && m_bFlasher_1s_50p)
 			{
 				std::ostringstream ossRefining_Status;
-				ossRefining_Status << "Refining " << g_uiRefine_Result_ID << "/486";
+				ossRefining_Status << "Refining " << g_uiRefine_Result_ID << "/" << g_uiRefine_Max;
 				glColor4d(0.0,1.0,0.0,1.0);
 				glPrintJustified(0.02,0.050,0.85,0.0,ossRefining_Status.str().c_str(),HJ_LEFT,VJ_MIDDLE);
 			}
@@ -596,6 +598,14 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 				case clear_request:
 					glColor4d(0.75,0.75,0.75,1.0);
 					Draw_Button_With_Text(dSize,"Clear");
+					break;
+
+				case toggle_component_display_request:
+					glColor4d(0.75,0.75,0.75,1.0);
+					if (!m_bDisplay_Components)
+						Draw_Button_With_Text(dSize,"Disp. Comp.");
+					else
+						Draw_Button_With_Text(dSize,"Hide Comp.");
 					break;
 
 				case spectrum_display_area:
@@ -745,14 +755,14 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 								glEnd();
 								if (m_sdGenerated_Spectrum_Prev.m_bValid)
 								{
-									glColor4d(0.75,0.75,1.0,1.0);
+									glColor4d(0.0,0.0,1.0,0.25);
 									glBegin(GL_LINE_STRIP);
-									for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum_Prev.m_specResult.size(); uiI++)
+									for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum_Prev.m_specResult[0].size(); uiI++)
 									{
-										if (m_sdGenerated_Spectrum_Prev.m_specResult.wl(uiI) >= dWL_Start && m_sdGenerated_Spectrum_Prev.m_specResult.wl(uiI) <= dWL_End)
+										if (m_sdGenerated_Spectrum_Prev.m_specResult[0].wl(uiI) >= dWL_Start && m_sdGenerated_Spectrum_Prev.m_specResult[0].wl(uiI) <= dWL_End)
 										{
-											double dX = (m_sdGenerated_Spectrum_Prev.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
-											double dY = m_sdGenerated_Spectrum_Prev.m_specResult.flux(uiI) * m_dGenerated_Spectrum_Prev_Norm * dFlux_Scale;
+											double dX = (m_sdGenerated_Spectrum_Prev.m_specResult[0].wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_sdGenerated_Spectrum_Prev.m_specResult[0].flux(uiI) * m_dGenerated_Spectrum_Prev_Norm * dFlux_Scale;
 											glVertex2d(dX,dY);
 										}
 									}
@@ -760,14 +770,41 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 								}
 								if (m_sdGenerated_Spectrum.m_bValid)
 								{
+									if (m_bDisplay_Components)
+									{
+										glColor4d(1.0,0.0,0.0,0.5);
+										glBegin(GL_LINE_STRIP);
+										for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum.m_specResult[1].size(); uiI++)
+										{
+											if (m_sdGenerated_Spectrum.m_specResult[1].wl(uiI) >= dWL_Start && m_sdGenerated_Spectrum.m_specResult[1].wl(uiI) <= dWL_End)
+											{
+												double dX = (m_sdGenerated_Spectrum.m_specResult[1].wl(uiI) - dWL_Start) * dWL_scale;
+												double dY = m_sdGenerated_Spectrum.m_specResult[1].flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+												glVertex2d(dX,dY);
+											}
+										}
+										glEnd();
+										glColor4d(0.0,1.0,1.0,0.5);
+										glBegin(GL_LINE_STRIP);
+										for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum.m_specResult[2].size(); uiI++)
+										{
+											if (m_sdGenerated_Spectrum.m_specResult[2].wl(uiI) >= dWL_Start && m_sdGenerated_Spectrum.m_specResult[2].wl(uiI) <= dWL_End)
+											{
+												double dX = (m_sdGenerated_Spectrum.m_specResult[2].wl(uiI) - dWL_Start) * dWL_scale;
+												double dY = m_sdGenerated_Spectrum.m_specResult[2].flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+												glVertex2d(dX,dY);
+											}
+										}
+										glEnd();
+									}
 									glColor4d(0.0,0.0,1.0,1.0);
 									glBegin(GL_LINE_STRIP);
-									for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum.m_specResult.size(); uiI++)
+									for (unsigned int uiI = 0; uiI < m_sdGenerated_Spectrum.m_specResult[0].size(); uiI++)
 									{
-										if (m_sdGenerated_Spectrum.m_specResult.wl(uiI) >= dWL_Start && m_sdGenerated_Spectrum.m_specResult.wl(uiI) <= dWL_End)
+										if (m_sdGenerated_Spectrum.m_specResult[0].wl(uiI) >= dWL_Start && m_sdGenerated_Spectrum.m_specResult[0].wl(uiI) <= dWL_End)
 										{
-											double dX = (m_sdGenerated_Spectrum.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
-											double dY = m_sdGenerated_Spectrum.m_specResult.flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+											double dX = (m_sdGenerated_Spectrum.m_specResult[0].wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_sdGenerated_Spectrum.m_specResult[0].flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
 											glVertex2d(dX,dY);
 										}
 									}
@@ -777,12 +814,12 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 								{
 									glColor4d(0.0,1.0,0.0,1.0);
 									glBegin(GL_LINE_STRIP);
-									for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Curr.m_specResult.size(); uiI++)
+									for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Curr.m_specResult[0].size(); uiI++)
 									{
-										if (m_sdRefine_Spectrum_Curr.m_specResult.wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Curr.m_specResult.wl(uiI) <= dWL_End)
+										if (m_sdRefine_Spectrum_Curr.m_specResult[0].wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Curr.m_specResult[0].wl(uiI) <= dWL_End)
 										{
-											double dX = (m_sdRefine_Spectrum_Curr.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
-											double dY = m_sdRefine_Spectrum_Curr.m_specResult.flux(uiI) * m_dRefine_Spectrum_Norm * dFlux_Scale;
+											double dX = (m_sdRefine_Spectrum_Curr.m_specResult[0].wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_sdRefine_Spectrum_Curr.m_specResult[0].flux(uiI) * m_dRefine_Spectrum_Norm * dFlux_Scale;
 											glVertex2d(dX,dY);
 										}
 									}
@@ -790,17 +827,44 @@ void OSCIn_SuShI_main::gfx_display(pane_id i_idPane) // primary display routine
 								}
 								if (m_sdRefine_Spectrum_Best.m_bValid)
 								{
+									if (m_bDisplay_Components && !g_bRefine_In_Progress)
+									{
+										glColor4d(0.0,1.0,0.0,0.5);
+										glBegin(GL_LINE_STRIP);
+										for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Best.m_specResult[1].size(); uiI++)
+										{
+											if (m_sdRefine_Spectrum_Best.m_specResult[1].wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Best.m_specResult[1].wl(uiI) <= dWL_End)
+											{
+												double dX = (m_sdRefine_Spectrum_Best.m_specResult[1].wl(uiI) - dWL_Start) * dWL_scale;
+												double dY = m_sdRefine_Spectrum_Best.m_specResult[1].flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+												glVertex2d(dX,dY);
+											}
+										}
+										glEnd();
+										glColor4d(0.0,0.0,0.0,0.5);
+										glBegin(GL_LINE_STRIP);
+										for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Best.m_specResult[2].size(); uiI++)
+										{
+											if (m_sdRefine_Spectrum_Best.m_specResult[2].wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Best.m_specResult[2].wl(uiI) <= dWL_End)
+											{
+												double dX = (m_sdRefine_Spectrum_Best.m_specResult[2].wl(uiI) - dWL_Start) * dWL_scale;
+												double dY = m_sdRefine_Spectrum_Best.m_specResult[2].flux(uiI) * m_dGenerated_Spectrum_Norm * dFlux_Scale;
+												glVertex2d(dX,dY);
+											}
+										}
+										glEnd();
+									}
 									if (!g_bRefine_In_Progress)
 										glColor4d(0.0,1.0,0.0,1.0);
 									else
 										glColor4d(0.75,1.0,0.75,1.0);
 									glBegin(GL_LINE_STRIP);
-									for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Best.m_specResult.size(); uiI++)
+									for (unsigned int uiI = 0; uiI < m_sdRefine_Spectrum_Best.m_specResult[0].size(); uiI++)
 									{
-										if (m_sdRefine_Spectrum_Best.m_specResult.wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Best.m_specResult.wl(uiI) <= dWL_End)
+										if (m_sdRefine_Spectrum_Best.m_specResult[0].wl(uiI) >= dWL_Start && m_sdRefine_Spectrum_Best.m_specResult[0].wl(uiI) <= dWL_End)
 										{
-											double dX = (m_sdRefine_Spectrum_Best.m_specResult.wl(uiI) - dWL_Start) * dWL_scale;
-											double dY = m_sdRefine_Spectrum_Best.m_specResult.flux(uiI) * m_dRefine_Spectrum_Best_Norm * dFlux_Scale;
+											double dX = (m_sdRefine_Spectrum_Best.m_specResult[0].wl(uiI) - dWL_Start) * dWL_scale;
+											double dY = m_sdRefine_Spectrum_Best.m_specResult[0].flux(uiI) * m_dRefine_Spectrum_Best_Norm * dFlux_Scale;
 											glVertex2d(dX,dY);
 										}
 									}

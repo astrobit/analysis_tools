@@ -81,6 +81,7 @@ enum button_id
 	gauss_fit_gen_range_red_down,
 	flux_zoom_in,
 	flux_zoom_out,
+	toggle_component_display_request,
 	clear_request,
 	spectrum_display_area,
 	quit_request
@@ -109,7 +110,7 @@ public:
 	double			m_dQuality_of_Fit;
 
 
-	ES::Spectrum	m_specResult;
+	ES::Spectrum	m_specResult[3]; // 0 = combined, 1 = ejecta, 2 = shell
 
 	spectrum_data(void)
 	{
@@ -249,19 +250,21 @@ private:
 	gaussian_fit_data	m_cTarget_Gaussian_Fit;
 	gaussian_fit_data	m_cModel_Gaussian_Fit;
 
-	double			m_dDirect_Measure_pEW;
-	double			m_dGen_Direct_Measure_pEW;
-	double			m_dRefine_Direct_Measure_pEW;
+	double				m_dDirect_Measure_pEW;
+	double				m_dGen_Direct_Measure_pEW;
+	double				m_dRefine_Direct_Measure_pEW;
 
-	double			m_dDirect_Measure_Vel;
-	double			m_dGen_Direct_Measure_Vel;
-	double			m_dRefine_Direct_Measure_Vel;
+	double				m_dDirect_Measure_Vel;
+	double				m_dGen_Direct_Measure_Vel;
+	double				m_dRefine_Direct_Measure_Vel;
 
-	double		m_dTimer;
-	bool		m_bFlasher_1s_50p;
+	double				m_dTimer;
+	bool				m_bFlasher_1s_50p;
 	std::deque<button_id> m_qEvent_List;
 
 	std::map<unsigned int, model> m_mapModels;
+
+	bool				m_bDisplay_Components;
 
 	void Process_Selected_Spectrum(void);
 	void Normalize(void);
@@ -313,6 +316,7 @@ extern spectrum_data		g_sdRefine_Result;
 extern model *				g_lpmRefine_Model;
 extern spectrum_data		g_sdRefine_Result_Curr;
 extern spectrum_data		g_sdRefine_Result_Curr_Best;
+extern unsigned int		g_uiRefine_Max;
 
 extern bool				g_bFit_Process_Request;
 extern bool				g_bFit_In_Progress;
