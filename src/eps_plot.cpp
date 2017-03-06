@@ -2407,8 +2407,12 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						{
 							double dLog10 = log10(dVal);
 							double dPower = floor(dLog10);
-							double	dMantissa = dVal * pow(10.0,-dPower);
-							if (dMantissa != 1.0 && dPower != 0.0)
+							double	dMantissa = dVal * pow(10.0,-dPower);\
+							if (dVal == 0.0)
+							{
+								sprintf(lpszValue,"%.1f",dVal);
+							}
+							else if (dMantissa != 1.0 && dPower != 0.0)
 							{
 								sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
 							}
@@ -2510,7 +2514,11 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 									double dLog10 = log10(dVal);
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
-									if (dMantissa != 1.0 && dPower != 0.0)
+									if (dVal == 0.0)
+									{
+										sprintf(lpszValue,"%.1f",dVal);
+									}
+									else if (dMantissa != 1.0 && dPower != 0.0)
 									{
 										sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
 									}
@@ -2583,7 +2591,11 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 										double dLog10 = log10(dVal);
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
-										if (dPower != 0.0 && dMantissa != 1.0)
+										if (dVal == 0.0)
+										{
+											sprintf(lpszValue,"%.1f",dVal);
+										}
+										else if (dPower != 0.0 && dMantissa != 1.0)
 										{
 											sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
 										}
@@ -2685,7 +2697,11 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 							double dLog10 = log10(dVal);
 							double dPower = floor(dLog10);
 							double	dMantissa = dVal * pow(10.0,-dPower);
-							if (dMantissa != 1.0 && dPower != 0.0)
+							if (dVal == 0.0)
+							{
+								sprintf(lpszValue,"%.1f",dVal);
+							}
+							else if (dMantissa != 1.0 && dPower != 0.0)
 							{
 								sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
 							}
@@ -2789,7 +2805,11 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 									double dLog10 = log10(dVal);
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
-									if (dMantissa != 1.0 && dPower != 0.0)
+									if (dVal == 0.0)
+									{
+										sprintf(lpszValue,"%.1f",dVal);
+									}
+									else if (dMantissa != 1.0 && dPower != 0.0)
 									{
 										sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
 									}
@@ -2859,7 +2879,11 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 										double dLog10 = log10(dVal);
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
-										if (dMantissa != 1.0 && dPower != 0.0)
+										if (dVal == 0.0)
+										{
+											sprintf(lpszValue,"%.1f",dVal);
+										}
+										else if (dMantissa != 1.0 && dPower != 0.0)
 										{
 											sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
 										}
