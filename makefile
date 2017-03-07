@@ -1,4 +1,4 @@
-all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels  testeps genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib statepop velfntest libOSC
+all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels  testeps genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib linfit statepop velfntest libOSC
 # libcomp, multiion, sahatest excluded (need to fix compile errors due to changes to xastro library)
 #spectrafit excluded (obsolete)
 .PHONY: all
@@ -375,6 +375,10 @@ $(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/libsp.a $(
 velfntest: $(BINDIR)/velfntest
 $(BINDIR)/velfntest: $(SRCDIR)/velfntest.cpp $(XLIBSCHANGE) $(INCLUDEDIR)/velocity_function.h
 	$(CXX) $(CLFLAGS) $(SRCDIR)/velfntest.cpp -lxastro -lxmath -o $(BINDIR)/velfntest
+
+linfit: $(BINDIR)/linfit
+$(BINDIR)/linfit: $(SRCDIR)/linfit.cpp $(XLIBSCHANGE)
+	$(CXX)	$(CLFLAGS) $(SRCDIR)/linfit.cpp -lxio -lxstdlib -lxmath -o $(BINDIR)/linfit
 
 clean:
 	-rm $(BINDIR)/*
