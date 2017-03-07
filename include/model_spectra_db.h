@@ -8,10 +8,10 @@ namespace msdb
 {
 	typedef time_t dbid;
 
-	enum	FEATURE	{CaNIR,CaHK,Si6355,O7773};
+	enum	FEATURE	{CaNIR,CaHK,Si6355,O7773, Generic};
 	enum	SPECTRUM_TYPE	{CONTINUUM, COMBINED, EJECTA_ONLY, SHELL_ONLY};
 
-	inline double	Get_Line_Reference_Energy(FEATURE i_eFeature)
+	inline double	Get_Line_Reference_Energy(FEATURE i_eFeature, unsigned int uiIon)
 	{
 		double	dRet = 0.0;
 		switch (i_eFeature)
@@ -26,7 +26,17 @@ namespace msdb
 			dRet = 8.1312284;
 			break;
 		case O7773:
-			dRet = 19.1460907;
+			dRet = 9.1460907;
+			break;
+		case Generic:
+			if (uiIon == 2001)
+				dRet = (1.692408 * 2.0 + 1.699932) / 3.0;
+			else if (uiIon == 800)
+				dRet = 9.1460907;
+			else if (uiIon == 1401)
+				dRet = 8.1312284;
+			else
+				std::cerr << "msdb: line reference energy unknown" << std::endl;
 			break;
 		}
 	}
@@ -36,6 +46,7 @@ namespace msdb
 		bRet = (i_eFeature == CaNIR || i_eFeature == CaHK) && i_uiIon == 2001;
 		bRet |= (i_eFeature == O7773) && i_uiIon == 800;
 		bRet |= (i_eFeature == Si6355) && i_uiIon == 1401;
+		bRet |= (i_eFeature == Generic) && i_uiIon != 801; // O II causes crash in syn++
 		return bRet;
 
 	}
@@ -121,7 +132,7 @@ namespace msdb
 			// Boltzmann constant from http://en.wikipedia.org/wiki/Boltzmann_constant, Ret. 27 May 2015, 17:40pm
 			// days after explosion adjustment is relative to 1.0 day
 			if (Test_Ion(i_eFeature, m_uiIon))
-				dRet = i_dLog_Scalar + i_dScalar_Power * log10(i_dDays_After_Explosion) - Get_Line_Reference_Energy(i_eFeature) * 5.03977864393654450859 * (1.0 / i_dEffective_Temperature_kK - 0.1); // effective temp relative to 10,000 K
+				dRet = i_dLog_Scalar + i_dScalar_Power * log10(i_dDays_After_Explosion) - Get_Line_Reference_Energy(i_eFeature,m_uiIon) * 5.03977864393654450859 * (1.0 / i_dEffective_Temperature_kK - 0.1); // effective temp relative to 10,000 K
 			return dRet;
 		}
 		void	Set_Ejecta_Effective_Scalar(const double	&i_dDays_After_Explosion, FEATURE i_eFeature, const double & i_dEffective_Temperature_kK, const double & i_dLog_Scalar, const double & i_dScalar_Power = -2.0)
