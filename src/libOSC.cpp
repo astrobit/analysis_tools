@@ -80,14 +80,14 @@ void OSCfile::Load(const std::string &i_sFilename)
 					}
 					m_dEBV_Mean = dEBV_Weighted_Sum / dEBV_Error_Sum;
 				}
-			}
-			else
-			{
-				Json::Value vValue = m_jvDatafile[szID]["ebv"].get("value",Json::Value());
-				if (vValue.isConvertibleTo(Json::realValue))
-					m_dEBV_Mean = vValue.asDouble();
 				else
-					m_dEBV_Mean = std::stod(std::string(vValue.asString()));
+				{
+					Json::Value vValue = m_jvDatafile[szID]["ebv"].get("value",Json::Value());
+					if (vValue.isConvertibleTo(Json::realValue))
+						m_dEBV_Mean = vValue.asDouble();
+					else
+						m_dEBV_Mean = std::stod(std::string(vValue.asString()));
+				}
 			}
 			if (m_jvDatafile[szID].isMember("spectra")) // confirm that there is at least one spectrum in this file
 			{
