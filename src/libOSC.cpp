@@ -74,6 +74,8 @@ void OSCfile::Load(const std::string &i_sFilename)
 							dError = vError.asDouble();
 						else
 							dError = std::stod(std::string(vError.asString()));
+						if (dError == 0.0)
+							dError = dValue * 0.001;
 						double dWeight = 1.0 / (dError * dError);
 						dEBV_Weighted_Sum += dValue * dWeight;
 						dEBV_Error_Sum += dWeight;
@@ -87,6 +89,45 @@ void OSCfile::Load(const std::string &i_sFilename)
 						m_dEBV_Mean = vValue.asDouble();
 					else
 						m_dEBV_Mean = std::stod(std::string(vValue.asString()));
+				}
+			}
+			if (m_jvDatafile[szID].isMember("redshift")) // confirm that there is at least one spectrum in this file
+			{
+				Json::Value jvEBV = m_jvDatafile[szID]["redshift"];
+				if (jvEBV.isArray())
+				{
+					double dEBV_Weighted_Sum = 0.0;
+					double dEBV_Error_Sum = 0.0;
+					std::vector<Json::ValueConstIterator> viterFound;
+					for (Json::ValueConstIterator iterI = jvEBV.begin(); iterI != jvEBV.end(); iterI++)
+					{
+						double	dValue;
+						Json::Value vValue = iterI->get("value",Json::Value());
+						if (vValue.isConvertibleTo(Json::realValue))
+							dValue = vValue.asDouble();
+						else
+							dValue = std::stod(std::string(vValue.asString()));
+						double dError = dValue;
+						Json::Value vError = iterI->get("error",Json::Value());
+						if (vError.isConvertibleTo(Json::realValue))
+							dError = vError.asDouble();
+						else
+							dError = std::stod(std::string(vError.asString()));
+						if (dError == 0.0)
+							dError = dValue * 0.001;
+						double dWeight = 1.0 / (dError * dError);
+						dEBV_Weighted_Sum += dValue * dWeight;
+						dEBV_Error_Sum += dWeight;
+					}
+					m_dRedshift_Weighted_Mean = dEBV_Weighted_Sum / dEBV_Error_Sum;
+				}
+				else
+				{
+					Json::Value vValue = m_jvDatafile[szID]["redshift"].get("value",Json::Value());
+					if (vValue.isConvertibleTo(Json::realValue))
+						m_dRedshift_Weighted_Mean = vValue.asDouble();
+					else
+						m_dRedshift_Weighted_Mean = std::stod(std::string(vValue.asString()));
 				}
 			}
 			if (m_jvDatafile[szID].isMember("spectra")) // confirm that there is at least one spectrum in this file
@@ -170,11 +211,38 @@ void OSCspectrum::Deredden(const double & i_dE_BmV)
 {
 	if (!std::isinf(i_dE_BmV) && !std::isnan(i_dE_BmV) && i_dE_BmV != 0.0 && !m_vSpectrum.empty())
 	{
-		for (std::vector <OSCspectrum_dp>::iterator iterI = m_vSpectrum.begin(); iterI != m_vSpectrum.end(); iterI++)
+		for (iterator iterI = m_vSpectrum.begin(); iterI != m_vSpectrum.end(); iterI++)
 		{
 			CCM_dered(iterI->m_dWavelength, iterI->m_dFlux, i_dE_BmV);
 		}
 	}
+}
+
+void OSCfile::Unredshift(void)
+{
+	if (m_dRedshift_Weighted_Mean != 0.0 && !isnan(m_dRedshift_Weighted_Mean) && !isinf(m_dRedshift_Weighted_Mean))
+	{
+		for(std::map<OSCspectra_id, OSCspectrum >::iterator iterI = m_mSpectra_List.begin(); iterI != m_mSpectra_List.end(); iterI++)
+		{
+			iterI->second.Unredshift(m_dRedshift_Weighted_Mean);
+		}
+	}
+}
+void OSCspectrum::Unredshift(const double & i_dRedshift)
+{
+	if (!std::isinf(i_dRedshift) && !std::isnan(i_dRedshift) && i_dRedshift != 0.0 && !m_vSpectrum.empty())
+	{
+		for (iterator iterI = m_vSpectrum.begin(); iterI != m_vSpectrum.end(); iterI++)
+		{
+			iterI->m_dWavelength /= (1.0 + i_dRedshift);
+		}
+	}
+}
+
+OSCfile::OSCfile(void)
+{
+	m_dEBV_Mean = nan("");
+	m_dRedshift_Weighted_Mean = nan("");
 }
 
 std::vector <std::tuple<double, double, double> > OSCspectrum::Get_Tuple_Vector(void) const

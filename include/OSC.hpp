@@ -87,6 +87,7 @@ public:
 	size_t size(void) const {return m_vSpectrum.size();}
 
 	void Deredden(const double & i_dE_BmV);
+	void Unredshift(const double & i_dRedshift);
 
 	typedef std::vector <OSCspectrum_dp>::iterator iterator;
 	typedef std::vector <OSCspectrum_dp>::const_iterator const_iterator;
@@ -115,6 +116,7 @@ class OSCfile
 {
 public:
 	double 			m_dEBV_Mean;
+	double			m_dRedshift_Weighted_Mean;
 	Json::Value 	m_jvDatafile;
 
 	std::string			m_szSupernova_ID;
@@ -125,5 +127,8 @@ public:
 
 	void Load(const std::string &i_sFilename);
 	void Deredden(void);
+	void Unredshift(void);
+
+	OSCfile(void);
 };
 
