@@ -175,19 +175,19 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	for (std::vector<std::string>::iterator iterI = vFile_List.begin(); iterI != vFile_List.end(); iterI++)
 	{
 		std::vector <specfit::fit> vfitFits;
-		std::map< unsigned int, specfit::model> mModel_Data;
+		std::map< unsigned int, model> mModel_Data;
 		std::map< std::string, std::vector<unsigned int> > mModel_Lists;
 		std::map< std::string, std::string > mDatafile_List;
-		std::map< std::string, Json::Value> mJson_Data;
-		std::map< std::string, std::vector<std::tuple<double,double,double> > > mNon_Json_Data;
+		std::map< std::string, OSCfile> mJson_Data;
+		std::map< std::string, OSCspectrum > mNon_Json_Data;
 		best_fit_results vResults;
 		std::vector < std::vector < std::pair< gauss_fit_results, gauss_fit_results > > > vGauss_Fits_Results;
 
-		Parse_XML( *iterI, vfitFits, mModel_Data, mModel_Lists, mDatafile_List, cNorm_Range, cFit_Range);
+		Parse_XML( *iterI, vfitFits, mModel_Lists, mDatafile_List, cNorm_Range, cFit_Range);
 		Load_Data_Files( mDatafile_List, mJson_Data, mNon_Json_Data);
 		Validate_JSON_Data( mJson_Data);
 		Load_Models( vfitFits, mModel_Lists, mModel_Data);
-		Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
+		//Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
 
 		// generate header lines for model specific fit results files
 		for (auto iterModels = mModel_Data.begin(); iterModels != mModel_Data.end(); iterModels++)
@@ -209,7 +209,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 
 		// Deredden spectra if requested
-		Deredden( vfitFits);
+		Deredden( vfitFits );
+		// unredshift spectra if requested
+		Unredshift( vfitFits );
 		// Done confirming and loading the data; begin the actual fitting
 		if (bSingle)
 			Perform_Fits( vfitFits, mModel_Lists, mModel_Data, vResults, bDebug, &cRef_Data_E, &cRef_Data_S, &bTry_Single_Fit);

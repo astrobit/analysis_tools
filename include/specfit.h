@@ -2,7 +2,6 @@
 #include <xio.h>
 #include <best_fit_data.h>
 #include <assert.h>
-#include <tuple>
 #include <opacity_profile_data.h>
 #include <xlinalg.h>
 #include <line_routines.h>
@@ -31,6 +30,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <eps_plot.h>
+
+#include <OSC.hpp>
 
 //#define FIT_BLUE_WL 4500.0
 //#define FIT_RED_WL 9000.0
@@ -95,7 +96,6 @@ namespace specfit
 		
 	};
 
-	typedef std::vector <std::tuple<double, double, double> > spectraldata;
 	class fit
 	{
 	public:
@@ -114,9 +114,10 @@ namespace specfit
 		params_range				m_cNorm_Range;
 		params_range				m_cFit_Range;
 		double						m_dE_BmV; // E (B-V) value to use for dereddening
+		double						m_dRedshift; // redshift value to use for conversion to rest frame wavelength
 		bool						m_bUse_JSON_ebv; // use the ebv data from the JSON datafile
 		bool						m_bUse_Two_Component_Fit; // set true to have a separate ejecta and shell photosphere and a mixing ratio
-		spectraldata m_vData;
+		OSCspectrum 				m_vData;
 		fit(void) : m_cSuggested_Param()
 		{
 			m_dMJD = nan("");
@@ -130,18 +131,6 @@ namespace specfit
 			m_bUse_Two_Component_Fit = false;
 		}
 	};
-
-	class model
-	{
-	public:
-		unsigned int m_uiModel_ID;
-		xdataset	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
-		xdataset	m_dsShell;
-		OPACITY_PROFILE_DATA	m_opdOp_Profile_Data;
-		xdataset	m_dsPhotosphere;
-		xdataset	m_dsEjecta_Photosphere;
-	};
-
 
 	class feature_parameters
 	{
@@ -202,11 +191,11 @@ namespace specfit
 		std::string 							m_szSource;
 		unsigned int							m_uiModel;
 
-		std::vector< std::pair<double,double> > m_vpdSpectrum_Synthetic;
-		std::vector< std::pair<double,double> > m_vpdSpectrum_Synthetic_Ejecta_Only;
-		std::vector< std::pair<double,double> > m_vpdSpectrum_Synthetic_Shell_Only;
-		std::vector< std::pair<double,double> > m_vpdSpectrum_Synthetic_Continuum;
-		std::vector< std::pair<double,double> > m_vpdSpectrum_Target;
+		OSCspectrum 							m_vpdSpectrum_Synthetic;
+		OSCspectrum 							m_vpdSpectrum_Synthetic_Ejecta_Only;
+		OSCspectrum 							m_vpdSpectrum_Synthetic_Shell_Only;
+		OSCspectrum 							m_vpdSpectrum_Synthetic_Continuum;
+		OSCspectrum 							m_vpdSpectrum_Target;
 
 		std::vector<double> 					m_vdRaw_Moments;
 		std::vector<double> 					m_vdCentral_Moments;
@@ -257,18 +246,16 @@ namespace specfit
 	void Output_Results(std::ofstream & io_fsBest_Fits, const best_fit_results & i_vResults);
 	void Parse_XML(const std::string &i_szFilename,
 		std::vector <fit> &o_vfitFits ,
-		std::map< unsigned int, model> &o_mModel_Data,
 		std::map< std::string, std::vector<unsigned int> > &o_mModel_Lists,
 		std::map< std::string, std::string > &o_mDatafile_List,
 		const params_range & i_cNorm_Range,
 		const params_range & i_cFit_Range
 		);
 	void Load_Data_Files(const std::map< std::string, std::string > &i_mDatafile_List,
-		std::map< std::string, Json::Value> &o_mJson_Data,
-		std::map< std::string, std::vector<std::tuple<double,double,double> > > &o_mNon_Json_Data
+		std::map< std::string, OSCfile> &o_mJson_Data,
+		std::map< std::string, OSCspectrum > &o_mNon_Json_Data
 		);
-	void Validate_JSON_Data(const std::map< std::string, Json::Value> &i_mJson_Data);
-	void Add_Model_To_List(std::map< unsigned int, model> &io_o_mModel_Data, unsigned int i_uiModel);
+	void Validate_JSON_Data(const std::map< std::string, OSCfile> &i_mJson_Data);
 	void Load_Models(
 		std::vector <fit> &i_vfitFits,
 		std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists,
@@ -276,9 +263,10 @@ namespace specfit
 		);
 	void Load_Data(
 		std::vector <fit> &io_vfitFits,
-		std::map< std::string, Json::Value> &i_mJson_Data,
-		std::map< std::string, std::vector<std::tuple<double,double,double> > > &i_mNon_Json_Data);
+		std::map< std::string, OSCfile> &i_mJson_Data,
+		std::map< std::string, OSCspectrum > &i_mNon_Json_Data);
 	void Deredden(std::vector <fit> &io_vfitFits);
+	void Unredshift(std::vector <fit> &io_vfitFits);
 	void Output_Result_Header(std::ofstream & io_ofsFile); // located in sf_write_fit.cpp
 	void Write_Fit(std::ofstream & io_ofsFile, const fit_result & i_cResult);
 	void Output_Target_Result_Header(std::ofstream & io_ofsFile); // located in sf_write_target_fit.cpp

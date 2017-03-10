@@ -166,12 +166,12 @@ void specfit::Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & 
 	{
 		for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size(); uiI++)
 		{
-			ofsSpectra << std::setprecision(10) << i_cResult.m_vpdSpectrum_Target[uiI].first;
-			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Target[uiI].second;
-			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic[uiI].second;
-			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Continuum[uiI].second;
-			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Ejecta_Only[uiI].second;
-			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Shell_Only[uiI].second;
+			ofsSpectra << std::setprecision(10) << i_cResult.m_vpdSpectrum_Target[uiI].wl();
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Target[uiI].flux();
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic[uiI].flux();
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Continuum[uiI].flux();
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Ejecta_Only[uiI].flux();
+			ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Synthetic_Shell_Only[uiI].flux();
 			ofsSpectra << std::endl;
 		}
 		ofsSpectra.close();
@@ -214,9 +214,9 @@ void specfit::Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & 
 	unsigned int uiRed_Idx = -1;
 	for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size() && (uiBlue_Idx == -1 || uiRed_Idx == -1); uiI++)
 	{
-		if (i_cResult.m_cSynthetic_Observables.m_dGaussian_Ref_WL_Blue == i_cResult.m_vpdSpectrum_Synthetic[uiI].first)
+		if (i_cResult.m_cSynthetic_Observables.m_dGaussian_Ref_WL_Blue == i_cResult.m_vpdSpectrum_Synthetic[uiI].wl())
 			uiBlue_Idx = uiI;
-		if (i_cResult.m_cSynthetic_Observables.m_dGaussian_Ref_WL_Red == i_cResult.m_vpdSpectrum_Synthetic[uiI].first)
+		if (i_cResult.m_cSynthetic_Observables.m_dGaussian_Ref_WL_Red == i_cResult.m_vpdSpectrum_Synthetic[uiI].wl())
 			uiRed_Idx = uiI;
 	}
 
@@ -225,17 +225,17 @@ void specfit::Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & 
 	double dFlux_Ref = 0.0;
 	if (uiBlue_Idx != -1 && uiRed_Idx != -1)
 	{
-		dSlope = (i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].second - i_cResult.m_vpdSpectrum_Synthetic[uiRed_Idx].second) / (i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].first - i_cResult.m_vpdSpectrum_Synthetic[uiRed_Idx].first);
-		dWL_Ref = i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].first;
-		dFlux_Ref = i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].second;
+		dSlope = (i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].flux() - i_cResult.m_vpdSpectrum_Synthetic[uiRed_Idx].flux()) / (i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].wl() - i_cResult.m_vpdSpectrum_Synthetic[uiRed_Idx].wl());
+		dWL_Ref = i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].wl();
+		dFlux_Ref = i_cResult.m_vpdSpectrum_Synthetic[uiBlue_Idx].flux();
 	}
 	for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size(); uiI++)
 	{
-		double dWL = i_cResult.m_vpdSpectrum_Target[uiI].first;
+		double dWL = i_cResult.m_vpdSpectrum_Target[uiI].wl();
 		vX.push_back(dWL);
-		vY_Tgt.push_back(i_cResult.m_vpdSpectrum_Target[uiI].second);
-		vY_Synth.push_back(i_cResult.m_vpdSpectrum_Synthetic[uiI].second);
-		XVECTOR vZ = Multi_Gaussian(i_cResult.m_vpdSpectrum_Target[uiI].first,i_cResult.m_cTarget_Observables.m_xvGaussian_Fit,lpgfpGF_Param);
+		vY_Tgt.push_back(i_cResult.m_vpdSpectrum_Target[uiI].flux());
+		vY_Synth.push_back(i_cResult.m_vpdSpectrum_Synthetic[uiI].flux());
+		XVECTOR vZ = Multi_Gaussian(i_cResult.m_vpdSpectrum_Target[uiI].wl(),i_cResult.m_cTarget_Observables.m_xvGaussian_Fit,lpgfpGF_Param);
 		double dY = vZ[0];
 		double dY_cont = (dWL - dWL_Ref) * dSlope + dFlux_Ref;
 		vY_Synth_GF.push_back((1.0 - dY) * dY_cont);

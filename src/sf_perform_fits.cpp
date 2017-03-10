@@ -32,7 +32,7 @@
 //
 //
 //------------------------------------------------------------------------------
-void specfit::Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, specfit::model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug, const specfit::param_set * i_lppsEjecta, const specfit::param_set * i_lppsShell, const bool * i_lpbPerform_Single_Fit)
+void specfit::Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists, std::map< unsigned int, model> &i_mModel_Data, best_fit_results & o_vResults, bool i_bDebug, const specfit::param_set * i_lppsEjecta, const specfit::param_set * i_lppsShell, const bool * i_lpbPerform_Single_Fit)
 {
 	bool bTarget_Data_Written = false;
 	for (std::vector <specfit::fit>::iterator iterFit = i_vfitFits.begin(); iterFit != i_vfitFits.end(); iterFit++)

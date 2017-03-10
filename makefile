@@ -302,12 +302,12 @@ $(BINDIR)/1dfm: $(SRCDIR)/1dFlashMovie.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.
 
 ifdef JSONCPP
 sf: $(BINDIR)/sf
-$(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(INCLUDEDIR)/specfit.h
+$(LIBDIR)/libsf.a: $(OBJS_SF) $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(INCLUDEDIR)/specfit.h $(INCLUDEDIR)/OSC.hpp
 	-rm $(LIBDIR)/libsf.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libsf.a $(OBJS_SF)
 
-$(BINDIR)/sf: $(SRCDIR)/sf.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(LIBDIR)/libsf.a $(INCLUDEDIR)/eps_plot.h  $(INCLUDEDIR)/specfit.h $(LIBDIR)/libplotutil.a
-	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf.cpp $(JSONCPP) $(ESFLAGS) -lsf $(ESLIBS) $(PLOTUTILLIB) -llinerout -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
+$(BINDIR)/sf: $(SRCDIR)/sf.cpp  $(XLIBSCHANGE) $(LIBDIR)/liblinerout.a $(LIBDIR)/libmsdb.a $(LIBDIR)/libsf.a $(INCLUDEDIR)/eps_plot.h  $(INCLUDEDIR)/specfit.h $(LIBDIR)/libplotutil.a $(LIBDIR)/libOSC.a
+	$(CXX) $(CLFLAGS) $(XMLINCLUDE) $(SRCDIR)/sf.cpp $(JSONCPP) $(ESFLAGS) -lsf $(ESLIBS) $(PLOTUTILLIB) -lOSC -llinerout -lxml2 -lxmath -lxastro  -lxio -lxstdlib -lmsdb -o $(BINDIR)/sf
 
 genjsonfit: $(BINDIR)/genjsonfit
 $(BINDIR)/genjsonfit: $(SRCDIR)/gen_json_fit_list.cpp  $(XLIBSCHANGE)

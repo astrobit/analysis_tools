@@ -134,9 +134,9 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 	unsigned int uiRed_Idx = -1;
 	for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size() && (uiBlue_Idx == -1 || uiRed_Idx == -1); uiI++)
 	{
-		if (i_cResult.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue == i_cResult.m_vpdSpectrum_Target[uiI].first)
+		if (i_cResult.m_cTarget_Observables.m_dGaussian_Ref_WL_Blue == i_cResult.m_vpdSpectrum_Target[uiI].wl())
 			uiBlue_Idx = uiI;
-		if (i_cResult.m_cTarget_Observables.m_dGaussian_Ref_WL_Red == i_cResult.m_vpdSpectrum_Target[uiI].first)
+		if (i_cResult.m_cTarget_Observables.m_dGaussian_Ref_WL_Red == i_cResult.m_vpdSpectrum_Target[uiI].wl())
 			uiRed_Idx = uiI;
 	}
 
@@ -147,9 +147,9 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 		epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
 		epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
 
-		double dSlope = (i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].second - i_cResult.m_vpdSpectrum_Target[uiRed_Idx].second) / (i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].first - i_cResult.m_vpdSpectrum_Target[uiRed_Idx].first);
-		double dWL_Ref = i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].first;
-		double dFlux_Ref = i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].second;
+		double dSlope = (i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].flux() - i_cResult.m_vpdSpectrum_Target[uiRed_Idx].flux()) / (i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].wl() - i_cResult.m_vpdSpectrum_Target[uiRed_Idx].wl());
+		double dWL_Ref = i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].wl();
+		double dFlux_Ref = i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].flux();
 
 
 		cX_Axis_Parameters.Set_Title("Wavelength [A]");
@@ -177,10 +177,10 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 
 		for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size(); uiI++)
 		{
-			double dWL = i_cResult.m_vpdSpectrum_Target[uiI].first;
-			vX.push_back(i_cResult.m_vpdSpectrum_Target[uiI].first);
-			vY_Tgt.push_back(i_cResult.m_vpdSpectrum_Target[uiI].second);
-			XVECTOR vZ = Multi_Gaussian(i_cResult.m_vpdSpectrum_Target[uiI].first,i_cResult.m_cTarget_Observables.m_xvGaussian_Fit,lpgfpGF_Param);
+			double dWL = i_cResult.m_vpdSpectrum_Target[uiI].wl();
+			vX.push_back(i_cResult.m_vpdSpectrum_Target[uiI].wl());
+			vY_Tgt.push_back(i_cResult.m_vpdSpectrum_Target[uiI].flux());
+			XVECTOR vZ = Multi_Gaussian(i_cResult.m_vpdSpectrum_Target[uiI].wl(),i_cResult.m_cTarget_Observables.m_xvGaussian_Fit,lpgfpGF_Param);
 			double dY = vZ[0];
 			double dY_cont = (dWL - dWL_Ref) * dSlope + dFlux_Ref;
 			vY_Fit.push_back((1.0 - dY) * dY_cont);
@@ -208,9 +208,9 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 		{
 			for (unsigned int uiI = uiBlue_Idx; uiI <= uiRed_Idx; uiI++)
 			{
-				double dWL = i_cResult.m_vpdSpectrum_Target[uiI].first;
+				double dWL = i_cResult.m_vpdSpectrum_Target[uiI].wl();
 				ofsSpectra << std::setprecision(10) << dWL;
-				ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Target[uiI].second;
+				ofsSpectra << "," << std::setprecision(17) << i_cResult.m_vpdSpectrum_Target[uiI].flux();
 				XVECTOR vZ = Multi_Gaussian(dWL,i_cResult.m_cTarget_Observables.m_xvGaussian_Fit,lpgfpGF_Param);
 				double dY = vZ[0];
 				double dY_cont = (dWL - dWL_Ref) * dSlope + dFlux_Ref;

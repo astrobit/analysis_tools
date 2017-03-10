@@ -48,14 +48,14 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			unsigned int uiO_Idx = -1;
 			unsigned int uiCaII_Idx = -1;
 			// between about 7500 and 8000 A is the O feature. Look for it's P cygni peak and only perform fit redward of that point
-			for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end() && !bQuit; iterI++)
+			for (auto iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.cend() && !bQuit; iterI++)
 			{
-				double dWL = std::get<0>(*iterI);
+				double dWL = iterI->wl();
 				if (dWL > 8000.0)
 					bQuit = true;
 				else if (dWL > 7500.0)
 				{
-					double dFlux = std::get<1>(*iterI);
+					double dFlux = iterI->flux();
 					if (dFlux > dFlux_Max)
 					{
 						uiO_Idx = uiIdx;
@@ -71,14 +71,14 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			uiIdx = 0;
 			bQuit = false;
 			dFlux_Max = -1.0;
-			for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end() && !bQuit; iterI++)
+			for (auto iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.cend() && !bQuit; iterI++)
 			{
-				double dWL = std::get<0>(*iterI);
+				double dWL = iterI->wl();
 				if (dWL > 8900.0)
 					bQuit = true;
 				else if (dWL > 8400.0)
 				{
-					double dFlux = std::get<1>(*iterI);
+					double dFlux = iterI->flux();
 					if (dFlux > dFlux_Max)
 					{
 						uiCaII_Idx = uiIdx;
@@ -101,18 +101,18 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			vY.Set_Size(uiNum_Points);
 			vX.Set_Size(uiNum_Points);
 			vW.Set_Size(uiNum_Points);
-			double dFlux_O_Peak = std::get<1>(i_cFit.m_vData[uiO_Idx]);
-			double dWL_O_Peak = std::get<0>(i_cFit.m_vData[uiO_Idx]);
-			double dFlux_Ca_Peak = std::get<1>(i_cFit.m_vData[uiCaII_Idx]);
-			double dWL_Ca_Peak = std::get<0>(i_cFit.m_vData[uiCaII_Idx]);
+			double dFlux_O_Peak = i_cFit.m_vData[uiO_Idx].flux();
+			double dWL_O_Peak = i_cFit.m_vData[uiO_Idx].wl();
+			double dFlux_Ca_Peak = i_cFit.m_vData[uiCaII_Idx].flux();
+			double dWL_Ca_Peak = i_cFit.m_vData[uiCaII_Idx].wl();
 			double	dSlope = (dFlux_Ca_Peak - dFlux_O_Peak) / (dWL_Ca_Peak - dWL_O_Peak);
 			
-			double dDel_WL_Ang = (std::get<0>(i_cFit.m_vData[uiO_Idx + 1]) - std::get<0>(i_cFit.m_vData[uiO_Idx]));
+			double dDel_WL_Ang = (i_cFit.m_vData[uiO_Idx + 1].wl() - i_cFit.m_vData[uiO_Idx].wl());
 			o_cFit.m_cTarget_Observables.m_fpParameters.Reset();
 			for (unsigned int uiJ = 0; uiJ < uiNum_Points; uiJ++)
 			{
-				double dWL = std::get<0>(i_cFit.m_vData[uiJ + uiO_Idx]);
-				double dFlux = std::get<1>(i_cFit.m_vData[uiJ + uiO_Idx]);
+				double dWL = i_cFit.m_vData[uiJ + uiO_Idx].wl();
+				double dFlux = i_cFit.m_vData[uiJ + uiO_Idx].flux();
 				double dContinuum_Flux = (dWL - dWL_O_Peak) * dSlope + dFlux_O_Peak;
 				double dFlux_Eff = dContinuum_Flux - dFlux;
 				vX.Set(uiJ,dWL);
@@ -208,11 +208,11 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	if (!i_cFit.m_vData.empty())
 	{
 		unsigned int uiCount =  0;
-		spectraldata vSpec_Subset;
+		OSCspectrum vSpec_Subset;
 		double dWL_Min = DBL_MAX, dWL_Max =-DBL_MAX;
-		for (specfit::spectraldata::const_iterator iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.end(); iterI++)
+		for (auto iterI = i_cFit.m_vData.cbegin(); iterI != i_cFit.m_vData.cend(); iterI++)
 		{
-			double dWL = std::get<0>(*iterI);
+			double dWL = iterI->wl();
 			if (dWL >= cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang &&
 				dWL <= cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang)
 			{
@@ -226,8 +226,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = dWL_Min;
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = dWL_Max;
-		cTarget = ES::Spectrum::create_copy_from_vector(vSpec_Subset);
-		cFull_Target = ES::Spectrum::create_copy_from_vector(i_cFit.m_vData);
+		cTarget = ES::Spectrum::create_copy_from_vector(vSpec_Subset.Get_Tuple_Vector());
+		cFull_Target = ES::Spectrum::create_copy_from_vector(i_cFit.m_vData.Get_Tuple_Vector());
 	}
 	double dTemp_Low = 10000.0;
 	double	dTemp_Hi = 25000.0;
@@ -677,8 +677,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			csResult.flux(uiI) = csResult_EO.flux(uiI) * (1.0 - vStarting_Point[6]) + csResult_SO.flux(uiI) * vStarting_Point[6];
 		}
 
-		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = std::get<0>(*(i_cFit.m_vData.begin()));
-		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = std::get<0>(*(i_cFit.m_vData.rbegin()));
+		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = i_cFit.m_vData.cbegin()->wl();
+		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = i_cFit.m_vData.crbegin()->wl();
 		cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
 		cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
 		cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
@@ -710,8 +710,8 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
 		msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cTarget, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csResult);
 
-		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = std::get<0>(*(i_cFit.m_vData.begin()));
-		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = std::get<0>(*(i_cFit.m_vData.rbegin()));
+		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = i_cFit.m_vData.cbegin()->wl();
+		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = i_cFit.m_vData.crbegin()->wl();
 		msdb_load_generate(cCall_Data.m_cParam, msdb::CONTINUUM, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, cContinuum);
 		msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csFull_Result);
 		msdb_load_generate(cCall_Data.m_cParam, msdb::EJECTA_ONLY, cFull_Target, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, cFull_Result_EO);
@@ -727,11 +727,11 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	double	dNorm = dTarget_Flux  / dGenerated_Flux;
 	for (unsigned int uiI = 0; uiI < cFull_Target.size(); uiI++)
 	{
-		o_cFit.m_vpdSpectrum_Target.push_back(std::pair<double,double>(cFull_Target.wl(uiI),cFull_Target.flux(uiI)));
-		o_cFit.m_vpdSpectrum_Synthetic_Ejecta_Only.push_back(std::pair<double,double>(cFull_Result_EO.wl(uiI),cFull_Result_EO.flux(uiI) * dNorm));
-		o_cFit.m_vpdSpectrum_Synthetic_Shell_Only.push_back(std::pair<double,double>(cFull_Result_SO.wl(uiI),cFull_Result_SO.flux(uiI) * dNorm));
-		o_cFit.m_vpdSpectrum_Synthetic_Continuum.push_back(std::pair<double,double>(cContinuum.wl(uiI),cContinuum.flux(uiI) * dNorm));
-		o_cFit.m_vpdSpectrum_Synthetic.push_back(std::pair<double,double>(csFull_Result.wl(uiI),csFull_Result.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Target.push_back(OSCspectrum_dp(cFull_Target.wl(uiI),cFull_Target.flux(uiI)));
+		o_cFit.m_vpdSpectrum_Synthetic_Ejecta_Only.push_back(OSCspectrum_dp(cFull_Result_EO.wl(uiI),cFull_Result_EO.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic_Shell_Only.push_back(OSCspectrum_dp(cFull_Result_SO.wl(uiI),cFull_Result_SO.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic_Continuum.push_back(OSCspectrum_dp(cContinuum.wl(uiI),cContinuum.flux(uiI) * dNorm));
+		o_cFit.m_vpdSpectrum_Synthetic.push_back(OSCspectrum_dp(csFull_Result.wl(uiI),csFull_Result.flux(uiI) * dNorm));
 	}
 	//feature_parameters cfpModel,cfpCont_Model;
 

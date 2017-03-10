@@ -117,7 +117,6 @@ bool Attr_Get_Bool(const xmlAttr * i_lpAttr, bool i_bDefault)
 
 void specfit::Parse_XML(const std::string &i_szFilename,
 	std::vector <specfit::fit> &o_vfitFits ,
-	std::map< unsigned int, specfit::model> &o_mModel_Data,
 	std::map< std::string, std::vector<unsigned int> > &o_mModel_Lists,
 	std::map< std::string, std::string > &o_mDatafile_List,
 	const params_range & i_cNorm_Range,

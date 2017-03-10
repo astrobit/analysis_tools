@@ -33,8 +33,8 @@
 //
 //------------------------------------------------------------------------------
 void specfit::Load_Data_Files(const std::map< std::string, std::string > &i_mDatafile_List,
-	std::map< std::string, Json::Value> &o_mJson_Data,
-	std::map< std::string, std::vector<std::tuple<double,double,double> > > &o_mNon_Json_Data
+	std::map< std::string, OSCfile> &o_mJson_Data,
+	std::map< std::string, OSCspectrum > &o_mNon_Json_Data
 	)
 {
 	// Parse the list of datafiles, 
@@ -43,17 +43,9 @@ void specfit::Load_Data_Files(const std::map< std::string, std::string > &i_mDat
 	{
 		if (iterFiles->second.find(".json") != std::string::npos)
 		{
-			Json::Value jsonRoot;   // starts as "null"; will contain the root value after parsing
-			std::ifstream fsData_File;
-			fsData_File.open(iterFiles->second.c_str(), std::ifstream::binary);
-			if (fsData_File.is_open())
-			{
-				fsData_File >> jsonRoot;
-				o_mJson_Data[iterFiles->first] = jsonRoot;
-				fsData_File.close();
-			}
-			else 
-				std::cerr << xconsole::bold << xconsole::foreground_red << "Error: " << xconsole::reset << "Failed to open " << iterFiles->second << std::endl;
+			OSCfile jsonFile;   // starts as "null"; will contain the root value after parsing
+			jsonFile.Load(iterFiles->second.c_str());
+			o_mJson_Data[iterFiles->first] = jsonFile;
 		}
 		else // if (iterFiles->second.find(".json") != std::string::npos)
 		{ //Non-json data file.  

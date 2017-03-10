@@ -35,19 +35,16 @@
 void specfit::Load_Models(
 	std::vector <specfit::fit> &i_vfitFits,
 	std::map< std::string, std::vector<unsigned int> > &i_mModel_Lists,
-	std::map< unsigned int, specfit::model> &o_mModel_Data
+	std::map< unsigned int, model> &o_mModel_Data
 	)
 {
 	// process model lists
-	const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
-	if (!lpszLA_Data_Path)
-		std::cerr << xconsole::bold << xconsole::foreground_yellow << "Warning: " << xconsole::reset << "LINE_ANALYSIS_DATA_PATH not specified. Probably won't find model data." << std::endl;
 
 	for (std::map< std::string, std::vector<unsigned int> >::iterator iterML = i_mModel_Lists.begin(); iterML != i_mModel_Lists.end(); iterML++)
 	{
 		for (std::vector<unsigned int>::iterator iterMod = iterML->second.begin(); iterMod != iterML->second.end(); iterMod++)
 		{
-			Add_Model_To_List(o_mModel_Data,*iterMod);
+			o_mModel_Data[*iterMod] = model(*iterMod);
 		} // for (std::vector<unsigned int>::iterator iterMod = iterML->second.begin(); ...
 	} // for (std::map< std::string, std::vector<unsigned int> >::iterator iterML = mModel_Lists.begin(); ...
 
@@ -57,7 +54,7 @@ void specfit::Load_Models(
 		// process individual models
 		for (std::vector <unsigned int>::iterator 	iterMod = iterFit->m_vuiModels.begin(); iterMod != iterFit->m_vuiModels.end(); iterMod++)
 		{
-			Add_Model_To_List(o_mModel_Data,*iterMod);
+			o_mModel_Data[*iterMod] = model(*iterMod);
 		} // for (std::vector <unsigned int>::iterator 	iterMod = iterFit->m_vuiModels.begin(); ...
 	}
 }
