@@ -41,7 +41,7 @@ void specfit::Validate_JSON_Data(const std::map< std::string, OSCfile> &i_mJson_
 		{
 			std::cout << iterRef->m_szAlias;
 			std::cout << ": " << iterRef->m_szReference;
-			std::cout << " [" << iterRef->m_szName << "]";
+			std::cout << " [" << iterRef->m_szName << "]" << std::endl;
 
 		}
 
