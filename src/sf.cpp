@@ -187,7 +187,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		Load_Data_Files( mDatafile_List, mJson_Data, mNon_Json_Data);
 		Validate_JSON_Data( mJson_Data);
 		Load_Models( vfitFits, mModel_Lists, mModel_Data);
-		//Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
+		Load_Data( vfitFits, mJson_Data, mNon_Json_Data);
 
 		// generate header lines for model specific fit results files
 		for (auto iterModels = mModel_Data.begin(); iterModels != mModel_Data.end(); iterModels++)
