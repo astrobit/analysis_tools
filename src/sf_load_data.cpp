@@ -49,7 +49,7 @@ void specfit::Load_Data(
 			{
 				iterFit->m_dE_BmV = jvData.m_dEBV_Mean;
 			}
-
+			iterFit->m_dRedshift = jvData.m_dRedshift_Weighted_Mean;
 			OSCspectra_id odcidID;
 			odcidID.m_dDate_MJD = iterFit->m_dMJD;
 			odcidID.m_szInstrument = iterFit->m_szInstrument;
