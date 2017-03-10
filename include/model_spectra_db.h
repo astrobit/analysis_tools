@@ -36,7 +36,7 @@ namespace msdb
 			else if (uiIon == 1401)
 				dRet = 8.1312284;
 			else
-				std::cerr << "msdb: line reference energy unknown" << std::endl;
+				std::cerr << "msdb: line reference energy unknown for ion " << uiIon << std::endl;
 			break;
 		}
 	}

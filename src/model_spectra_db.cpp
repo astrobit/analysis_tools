@@ -171,6 +171,7 @@ dbid	DATABASE::Get_Spectrum(const PARAMETERS & i_cParameters, SPECTRUM_TYPE i_eS
 {
 	
 	dbid dbidID = Get_DB_ID(Generate_Corrected_Parameters(i_cParameters,i_eSpectrum_Type));
+//	printf("%i %i\n",i_cParameters.m_uiIon,dbidID);
 	Get_Spectrum(dbidID, i_eSpectrum_Type, o_cSpectrum);
 	return dbidID;
 }
