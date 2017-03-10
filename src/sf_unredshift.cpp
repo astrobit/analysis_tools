@@ -39,7 +39,7 @@ void specfit::Unredshift(std::vector <specfit::fit> &io_vfitFits)
 	{
 		if (!std::isnan(iterFit->m_dE_BmV) && iterFit->m_dE_BmV != 0.0 && !iterFit->m_vData.empty())
 		{
-			std::cout << "Computng rest frame wavelength for " << std::setprecision(7) << iterFit->m_dMJD << " from " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << " with z = " << iterFit->m_dRedshift << std::endl;
+			std::cout << "Computng rest frame wavelength for " << std::setprecision(7) << iterFit->m_dMJD << " from " << iterFit->m_szSource << " using " << iterFit->m_szInstrument << " with z = " << std::scientific << std::setprecision(4) << iterFit->m_dRedshift << std::endl;
 			iterFit->m_vData.Unredshift(iterFit->m_dRedshift);
 		}
 	}
