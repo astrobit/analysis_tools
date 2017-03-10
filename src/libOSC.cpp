@@ -209,9 +209,9 @@ void OSCfile::Deredden(void)
 
 void OSCspectrum::Deredden(const double & i_dE_BmV)
 {
-	if (!std::isinf(i_dE_BmV) && !std::isnan(i_dE_BmV) && i_dE_BmV != 0.0 && !m_vSpectrum.empty())
+	if (!std::isinf(i_dE_BmV) && !std::isnan(i_dE_BmV) && i_dE_BmV != 0.0 && !empty())
 	{
-		for (iterator iterI = m_vSpectrum.begin(); iterI != m_vSpectrum.end(); iterI++)
+		for (iterator iterI = begin(); iterI != end(); iterI++)
 		{
 			CCM_dered(iterI->m_dWavelength, iterI->m_dFlux, i_dE_BmV);
 		}
@@ -230,9 +230,9 @@ void OSCfile::Unredshift(void)
 }
 void OSCspectrum::Unredshift(const double & i_dRedshift)
 {
-	if (!std::isinf(i_dRedshift) && !std::isnan(i_dRedshift) && i_dRedshift != 0.0 && !m_vSpectrum.empty())
+	if (!std::isinf(i_dRedshift) && !std::isnan(i_dRedshift) && i_dRedshift != 0.0 && !empty())
 	{
-		for (iterator iterI = m_vSpectrum.begin(); iterI != m_vSpectrum.end(); iterI++)
+		for (iterator iterI = begin(); iterI != end(); iterI++)
 		{
 			iterI->m_dWavelength /= (1.0 + i_dRedshift);
 		}
@@ -248,7 +248,7 @@ OSCfile::OSCfile(void)
 std::vector <std::tuple<double, double, double> > OSCspectrum::Get_Tuple_Vector(void) const
 {
 	std::vector <std::tuple<double, double, double> > vtRes;
-	for(auto iterI = m_vSpectrum.cbegin(); iterI != m_vSpectrum.cend(); iterI++)
+	for(auto iterI = cbegin(); iterI != cend(); iterI++)
 		vtRes.push_back(std::tuple<double, double, double> ( iterI->m_dWavelength, iterI->m_dFlux, iterI->m_dFlux_Error));
 	return vtRes;
 }

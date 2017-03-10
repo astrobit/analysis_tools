@@ -50,6 +50,10 @@ public:
 	double	m_dFlux;
 	double	m_dFlux_Error;
 
+	double wl(void) const { return m_dWavelength;}
+	double flux(void) const { return m_dFlux;}
+	double flux_error(void) const { return m_dFlux_Error;}
+
 	OSCspectrum_dp(void)
 	{
 		m_dWavelength = m_dFlux = m_dFlux_Error = nan("");
@@ -61,37 +65,42 @@ public:
 		m_dFlux_Error = i_dFlux_Error;
 	}
 };
-class OSCspectrum
+class OSCspectrum : public std::vector <OSCspectrum_dp>
 {
 public:
-	std::vector <OSCspectrum_dp> m_vSpectrum;
+	//std::vector <OSCspectrum_dp> m_vSpectrum;
 
-	double wl(unsigned int i_uiIdx) const { double dRet = nan(""); if (m_vSpectrum.size() > i_uiIdx) dRet = m_vSpectrum[i_uiIdx].m_dWavelength; return dRet;}
-	double flux(unsigned int i_uiIdx) const { double dRet = nan(""); if (m_vSpectrum.size() > i_uiIdx) dRet = m_vSpectrum[i_uiIdx].m_dFlux; return dRet;}
-	double flux_error(unsigned int i_uiIdx) const { double dRet = nan(""); if (m_vSpectrum.size() > i_uiIdx) dRet = m_vSpectrum[i_uiIdx].m_dFlux_Error; return dRet;}
+	double wl(unsigned int i_uiIdx) const { double dRet = nan(""); if (size() > i_uiIdx) dRet = (*this)[i_uiIdx].m_dWavelength; return dRet;}
+	double flux(unsigned int i_uiIdx) const { double dRet = nan(""); if (size() > i_uiIdx) dRet = (*this)[i_uiIdx].m_dFlux; return dRet;}
+	double flux_error(unsigned int i_uiIdx) const { double dRet = nan(""); if (size() > i_uiIdx) dRet = (*this)[i_uiIdx].m_dFlux_Error; return dRet;}
 
-	OSCspectrum_dp operator [] (unsigned int i_uiIdx) const {OSCspectrum_dp cRet; if (m_vSpectrum.size() > i_uiIdx) cRet = m_vSpectrum[i_uiIdx]; return cRet;}
+//	OSCspectrum_dp operator [] (unsigned int i_uiIdx) const {OSCspectrum_dp cRet; if (m_vSpectrum.size() > i_uiIdx) cRet = m_vSpectrum[i_uiIdx]; return cRet;}
 
-	void push_back(const OSCspectrum_dp & i_cNew) { m_vSpectrum.push_back(i_cNew);}
-	void clear(void) {m_vSpectrum.clear();}
+//	void push_back(const OSCspectrum_dp & i_cNew) { m_vSpectrum.push_back(i_cNew);}
+//	void clear(void) {m_vSpectrum.clear();}
 
-	std::vector <OSCspectrum_dp>::iterator begin(void) { return m_vSpectrum.begin();}
-	std::vector <OSCspectrum_dp>::iterator end(void) { return m_vSpectrum.end();}
-	std::vector <OSCspectrum_dp>::const_iterator cbegin(void) const { return m_vSpectrum.cbegin();}
-	std::vector <OSCspectrum_dp>::const_iterator cend(void) const { return m_vSpectrum.cend();}
-	std::vector <OSCspectrum_dp>::reverse_iterator rbegin(void) { return m_vSpectrum.rbegin();}
-	std::vector <OSCspectrum_dp>::reverse_iterator rend(void) { return m_vSpectrum.rend();}
+//	std::vector <OSCspectrum_dp>::iterator begin(void) { return m_vSpectrum.begin();}
+//	std::vector <OSCspectrum_dp>::iterator end(void) { return m_vSpectrum.end();}
+//	std::vector <OSCspectrum_dp>::const_iterator cbegin(void) const { return m_vSpectrum.cbegin();}
+//	std::vector <OSCspectrum_dp>::const_iterator cend(void) const { return m_vSpectrum.cend();}
+//	std::vector <OSCspectrum_dp>::reverse_iterator rbegin(void) { return m_vSpectrum.rbegin();}
+//	std::vector <OSCspectrum_dp>::reverse_iterator rend(void) { return m_vSpectrum.rend();}
+//	std::vector <OSCspectrum_dp>::const_reverse_iterator crbegin(void) const { return m_vSpectrum.crbegin();}
+//	std::vector <OSCspectrum_dp>::const_reverse_iterator crend(void) const { return m_vSpectrum.crend();}
+	
 
 	std::vector <std::tuple<double, double, double> > Get_Tuple_Vector(void) const;
 
-	size_t size(void) const {return m_vSpectrum.size();}
+//	size_t size(void) const {return m_vSpectrum.size();}
+//	bool empty(void) const {return m_vSpectrum.empty();}
 
 	void Deredden(const double & i_dE_BmV);
 	void Unredshift(const double & i_dRedshift);
 
-	typedef std::vector <OSCspectrum_dp>::iterator iterator;
-	typedef std::vector <OSCspectrum_dp>::const_iterator const_iterator;
-	typedef std::vector <OSCspectrum_dp>::reverse_iterator reverse_iterator;
+//	typedef std::vector <OSCspectrum_dp>::iterator iterator;
+//	typedef std::vector <OSCspectrum_dp>::const_iterator const_iterator;
+//	typedef std::vector <OSCspectrum_dp>::reverse_iterator reverse_iterator;
+//	typedef std::vector <OSCspectrum_dp>::const_reverse_iterator const_reverse_iterator;
 
 };
 class OSCreference
