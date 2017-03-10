@@ -7,6 +7,7 @@
 #include <vector>
 #include <radiation.h>
 #include <model_spectra_db.h>
+#include <opacity_profile_data.h>
 
 double	Equivalent_Width(const XDATASET & i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
 double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
@@ -389,4 +390,77 @@ double Line_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvD
 double Line_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
 
 double Get_Element_Number(const char * i_lpszNuclide);
+
+
+class spectrum_data
+{
+public:
+	bool			m_bValid;
+	double			m_dPS_Temp;
+	double			m_dPS_Velocity;
+	double			m_dEjecta_Scalar;
+	double			m_dShell_Scalar;
+	unsigned int	m_uiIon;
+	double			m_dExc_Temp;
+
+	double			m_dFit_WL_Blue;
+	double			m_dFit_WL_Red;
+
+	double			m_dNorm_WL_Blue;
+	double			m_dNorm_WL_Red;
+
+	double			m_dQuality_of_Fit;
+
+
+	ES::Spectrum	m_specResult[3]; // 0 = combined, 1 = ejecta, 2 = shell
+
+	spectrum_data(void)
+	{
+		m_bValid = false;
+	}
+};
+class model
+{
+public:
+	unsigned int m_uiModel_ID;
+	xdataset	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
+	xdataset	m_dsShell;
+	OPACITY_PROFILE_DATA	m_opdOp_Profile_Data;
+	xdataset	m_dsPhotosphere;
+	xdataset	m_dsEjecta_Photosphere;
+
+
+	void Load_Model(unsigned int i_uiModel);
+
+	model(void){m_uiModel_ID = -1;}
+	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
+};
+
+void Set_Grid_Refine_Level(unsigned int i_uiRefine_Level_Max);
+void Set_Grid_Refine_Size(const xvector & i_vVector);
+enum grid_refine_parameter {grp_ps_temp,grp_ps_vel,grp_Ss,grp_Se};
+void Set_Grid_Refine_Parameter(grid_refine_parameter i_eParameter, const double & i_dValue);
+void Grid_Refine_Fit(
+	unsigned int		&o_uiRefine_Result_ID,
+	spectrum_data		&io_sdRefine_Result,
+	const model *				i_lpmRefine_Model,
+	spectrum_data		&o_sdRefine_Result_Curr,
+	spectrum_data		&o_sdRefine_Result_Curr_Best,
+	unsigned int		&o_uiRefine_Max,
+	bool				&i_bAbort_Request);
+void Refine_Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum & o_cTarget, msdb::USER_PARAMETERS &o_cUser_Param, opacity_profile_data::group & o_eModel_Group, bool & o_bIon_Valid);
+double Get_Norm_Const(const ES::Spectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
+
+double Set_Grad_Des_Convergence_Threshold(const double & i_dValue);
+double Get_Grad_Des_Convergence_Threshold(void);
+void Grad_Des_Refine_Fit(
+	unsigned int		&o_uiRefine_Result_ID,
+	spectrum_data		&io_sdRefine_Result,
+	const model *				i_lpmRefine_Model,
+	spectrum_data		&o_sdRefine_Result_Curr,
+	spectrum_data		&o_sdRefine_Result_Curr_Best,
+	const double				&i_dStep_Size,
+	bool				&i_bAbort_Request);
+
+
 
