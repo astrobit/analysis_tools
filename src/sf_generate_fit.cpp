@@ -510,100 +510,44 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 	else
 	{
-		unsigned int uiRefines = 0;
-		unsigned int uiRefines_Max = 4;
-		unsigned int uiGrid_Size = 4;
-		if ((i_lppsEjecta != nullptr || i_lppsShell != nullptr) && i_lpbPerform_Single_Fit[0]) // the user has specified an exact set of parameters to use.
-		{
-			//uiRefines_Max = 4;
-			uiGrid_Size = 2;
-		}
+		spectrum_data cResult;
+		spectrum_data cCurr_Result;
+		spectrum_data cBest_Result;
+		unsigned int uiMax_Refine;
+		bool bAbort = false;
+		unsigned int uiResult_ID;
 
-		do
-		{
-			std::vector<xvector> vxvGrid;
-			unsigned int *lpuiIndices = new unsigned int[vLower_Bounds.size() - 1];
-			memset(lpuiIndices,0,sizeof(unsigned int) * vLower_Bounds.size() - 1);
-			xvector vDelta = vUpper_Bounds - vLower_Bounds;
-			double dGrid_Side = 1.0 / uiGrid_Size;
-	
-			bool bDone = false;
-			do
-			{
 
-				xvector vX(vDelta.size());
-				vX.Set(0,0.0);
-				for (unsigned int uiN = 1; uiN < vLower_Bounds.size(); uiN++)
-				{
-					vX.Set(uiN,vDelta.Get(uiN) * dGrid_Side * lpuiIndices[uiN - 1]);
-				}
-				vX += vLower_Bounds;
-				vxvGrid.push_back(vX);
-				Inc_Index(lpuiIndices,vLower_Bounds.size() - 1, uiGrid_Size + 1);
-				// test for completion of grid: if all indeces have wrapped back to 0, quit
-				bDone = true;
-				for (unsigned int uiN = 0; uiN < vLower_Bounds.size() - 1 && bDone; uiN++)
-				{
-					bDone = lpuiIndices[uiN] == 0;
-				}
-			} while (!bDone);
-			double dBest_Fit_Grid = DBL_MAX;
-			xvector vStart_Point_Best;
-			std::string szInst_File_Friendly = i_cFit.m_szInstrument;
-			for (std::string::iterator iterI = szInst_File_Friendly.begin(); iterI != szInst_File_Friendly.end(); iterI++)
-			{
-				if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
-					*iterI = '_';
-			}
-			std::string szSource_File_Friendly = i_cFit.m_szSource;
-			for (std::string::iterator iterI = szSource_File_Friendly.begin(); iterI != szSource_File_Friendly.end(); iterI++)
-			{
-				if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
-					*iterI = '_';
-			}
+		cResult.m_bValid = true;
+		cResult.m_dPS_Temp = vStarting_Point.Get(0);
+		cResult.m_dPS_Velocity = vStarting_Point.Get(1);
+		cResult.m_dEjecta_Scalar = vStarting_Point.Get(2);
+		cResult.m_dShell_Scalar = vStarting_Point.Get(3);
+		cResult.m_uiIon = cCall_Data.m_cParam.m_uiIon;
 
-			std::ostringstream ossGrid_Filename; 
-			ossGrid_Filename << "Results/grid_fit_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model_" << i_cModel.m_uiModel_ID << ".csv";
+		cResult.m_dExc_Temp = 10.0;
 
-			FILE * fileGridFitInfo = fopen(ossGrid_Filename.str().c_str(),"wt");
-			for (std::vector<xvector>::iterator iterI = vxvGrid.begin(); iterI != vxvGrid.end(); iterI++)
-			{
-				for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
-				{
-					printf("%.2f, ",iterI->Get(uiK));
-				}
-				double dFit = Fit_Function(*iterI, &cCall_Data);
-				printf("%.2e\n",dFit);
-				if (dFit < dBest_Fit_Grid)
-				{
-					vStart_Point_Best = *iterI;
-					dBest_Fit_Grid = dFit;
-				}
-				if (fileGridFitInfo)
-				{
-					for (unsigned int uiK = 0; uiK < iterI->size(); uiK++)
-					{
-						fprintf(fileGridFitInfo,"%.2f, ",iterI->Get(uiK));
-					}
-					fprintf(fileGridFitInfo,"%.2e, %.2e, %.2e\n",dFit,cCall_Data.m_fpResult_Feature_Parameters.m_d_pEW,cCall_Data.m_fpResult_Feature_Parameters.m_dVmin);
-				}
-			}
-			if (fileGridFitInfo)
-			{
-				fclose(fileGridFitInfo);
-			}
-			vStarting_Point = vStart_Point_Best;
+		cResult.m_dFit_WL_Blue = i_cFit.m_cFit_Range.m_dBlue_WL;
+		cResult.m_dFit_WL_Red = i_cFit.m_cFit_Range.m_dRed_WL;
 
-			vDelta *= 0.5 * dGrid_Side;
-			vUpper_Bounds = vStarting_Point + 0.5 * vDelta;
-			vLower_Bounds = vStarting_Point - 0.5 * vDelta;
-			uiRefines++;
-		} while (uiRefines < uiRefines_Max);
-		//XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
-		Fit_Function(vStarting_Point, &cCall_Data);
-//		XFIT_Simplex(vStarting_Point, vVariations, vEpsilon, Fit_Function, &cCall_Data, false, &vLower_Bounds, &vLower_Bounds_Valid, &vUpper_Bounds, &vUpper_Bounds_Valid);
+		cResult.m_dNorm_WL_Blue = i_cFit.m_cNorm_Range.m_dRed_WL;
+		cResult.m_dNorm_WL_Red = i_cFit.m_cNorm_Range.m_dRed_WL;
+		cResult.m_specResult[0] = cTarget;
+
+		Grid_Refine_Fit(
+			uiResult_ID,
+			cResult,
+			&i_cModel,
+			cCurr_Result,
+			cBest_Result,
+			uiMax_Refine,
+			bAbort);
+		vStarting_Point.Set(0,cResult.m_dPS_Temp);
+		vStarting_Point.Set(1,cResult.m_dPS_Velocity);
+		vStarting_Point.Set(2,cResult.m_dEjecta_Scalar);
+		vStarting_Point.Set(2,cResult.m_dShell_Scalar);
+
 	}
-//	xPerform_Fit_Bound_Simplex(cBounds[0],cBounds[1],cThreshold,Fit_Function,cResult,&cCall_Data,szCache.c_str());
 
 //	printf("Generating\n");
 
