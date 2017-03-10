@@ -11,7 +11,7 @@ void OSCIn_SuShI_main::Process_Selected_Spectrum(void)
 	m_idSelected_ID = m_iterSelected_ID->first;
 	m_specSelected_Spectrum = m_iterSelected_ID->second;
 	memset(m_dSelected_Flux_Max,0,sizeof(m_dSelected_Flux_Max));
-	for (auto iterI = m_specSelected_Spectrum.begin(); iterI != m_specSelected_Spectrum.end(); iterI++)
+	for (OSCspectrum::iterator iterI = m_specSelected_Spectrum.begin(); iterI != m_specSelected_Spectrum.end(); iterI++)
 	{
 		if (iterI->m_dWavelength >= 3000.0 && iterI->m_dWavelength <= 5000.0)
 		{
@@ -45,17 +45,6 @@ double Get_Norm_Const(const OSCspectrum & i_cTarget, const double & i_dNorm_Blue
 	}
 	return dTgt_Norm;
 }
-double Get_Norm_Const(const ES::Spectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red)
-{
-	double dTgt_Norm = 0.0;
-	for (unsigned int uiI = 0; uiI < i_cTarget.size(); uiI++)
-	{
-		if (i_cTarget.wl(uiI) >= i_dNorm_Blue && i_cTarget.wl(uiI) <= i_dNorm_Red)
-			dTgt_Norm += i_cTarget.flux(uiI);
-	}
-	return dTgt_Norm;
-}
-
 
 void OSCIn_SuShI_main::Normalize(void)
 {
@@ -165,7 +154,7 @@ void Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum
 {
 	o_cUser_Param.m_uiModel_ID = i_uiModel_ID;
 	o_cUser_Param.m_uiIon = i_cData.m_uiIon;
-	o_cUser_Param.m_eFeature = msdb::CaNIR;
+
 	o_cUser_Param.m_dTime_After_Explosion = 1.0;
 	o_cUser_Param.m_dPhotosphere_Velocity_kkms = i_cData.m_dPS_Velocity;
 	o_cUser_Param.m_dPhotosphere_Temp_kK = i_cData.m_dPS_Temp;
@@ -188,7 +177,7 @@ void Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum
 		o_bIon_Valid = true;
 		break;
 	case 8:
-		o_eModel_Group = opacity_profile_data::magnesium;
+		o_eModel_Group = opacity_profile_data::oxygen;
 		o_bIon_Valid = true;
 		break;
 	case 9:
@@ -223,7 +212,8 @@ void Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum
 		o_bIon_Valid = true;
 		break;
 	}
-
+	o_cUser_Param.m_eFeature = msdb::Generic;
+		
 
 	o_cTarget = i_cData.m_specResult[0];
 }
@@ -250,21 +240,31 @@ void Process_Generate_Requests(void)
 			if (bValid_Ion)
 			{
 				unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
+				//printf("Ion %i\n",cParam.m_uiIon);
 				msdb_load_generate(cParam, msdb::COMBINED, cTarget, &g_lpmGen_Model->m_dsEjecta[uiIdx], &g_lpmGen_Model->m_dsShell, g_sdGen_Spectrum_Result.m_specResult[0]);
 				double dNorm_Target = Get_Norm_Const(cTarget,g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
 				double dNorm_Gen = Get_Norm_Const(g_sdGen_Spectrum_Result.m_specResult[0],g_sdGen_Spectrum_Result.m_dNorm_WL_Blue,g_sdGen_Spectrum_Result.m_dNorm_WL_Red);
-				double dNorm = dNorm_Target / dNorm_Gen;
 				double dSum_Err_2 = 0.0;
 				unsigned int uiErr_Data_Count = 0;
+				double dNorm = 0.0;
 				for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult[0].size(); uiI++)
 				{
 					if (g_sdGen_Spectrum_Result.m_specResult[0].wl(uiI) >= g_sdGen_Spectrum_Result.m_dFit_WL_Blue && g_sdGen_Spectrum_Result.m_specResult[0].wl(uiI) <= g_sdGen_Spectrum_Result.m_dFit_WL_Red)
 					{
-						double dErr = g_sdGen_Spectrum_Result.m_specResult[0].flux(uiI) * dNorm - cTarget.flux(uiI);
+						if ((cTarget.flux(uiI) / dNorm_Target) > dNorm)
+							dNorm = cTarget.flux(uiI) / dNorm_Target;
+					}
+				}
+				for (unsigned int uiI = 0; uiI < g_sdGen_Spectrum_Result.m_specResult[0].size(); uiI++)
+				{
+					if (g_sdGen_Spectrum_Result.m_specResult[0].wl(uiI) >= g_sdGen_Spectrum_Result.m_dFit_WL_Blue && g_sdGen_Spectrum_Result.m_specResult[0].wl(uiI) <= g_sdGen_Spectrum_Result.m_dFit_WL_Red)
+					{
+						double dErr = (g_sdGen_Spectrum_Result.m_specResult[0].flux(uiI) / dNorm_Gen - cTarget.flux(uiI) / dNorm_Target) / dNorm;
 						dSum_Err_2 += dErr * dErr;
 						uiErr_Data_Count++;
 					}
 				}
+				dSum_Err_2 *= 0.5;
 				dSum_Err_2 /= uiErr_Data_Count;
 
 				g_sdGen_Spectrum_Result.m_dQuality_of_Fit = dSum_Err_2;
@@ -313,233 +313,31 @@ void Process_Refine_Requests(void)
 			g_bRefine_In_Progress = true;
 			g_bRefine_Process_Request = false;
 			g_uiRefine_Result_ID = 0;
+			Grad_Des_Refine_Fit(
+				g_uiRefine_Result_ID,
+				g_sdRefine_Result,
+				g_lpmRefine_Model,
+				g_sdRefine_Result_Curr,
+				g_sdRefine_Result_Curr_Best,
+				1.0,
+				g_bAbort_Request);
+//			Grid_Refine_Fit(
+//				g_uiRefine_Result_ID,
+//				g_sdRefine_Result,
+//				g_lpmRefine_Model,
+//				g_sdRefine_Result_Curr,
+//				g_sdRefine_Result_Curr_Best,
+//				g_uiRefine_Max,
+//				g_bAbort_Request);
 			
-			xvector xvRefine_Params(4);
-			xvRefine_Params.Set(0,5.0);
-			xvRefine_Params.Set(1,2.5);
-			xvRefine_Params.Set(2,0.4);
-			xvRefine_Params.Set(3,0.4);
-			
-			Prep(g_sdRefine_Result,g_lpmGen_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
-			double dNorm_Target = Get_Norm_Const(cTarget,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
-			g_sdRefine_Result_Curr = g_sdRefine_Result;
-			g_sdRefine_Result_Curr_Best = g_sdRefine_Result;
-
-			unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
-			if (bValid_Ion)
-			{
-				if (cParam.m_dPhotosphere_Temp_kK < xvRefine_Params.Get(0))
-					cParam.m_dPhotosphere_Temp_kK = xvRefine_Params.Get(0);
-
-				/*
-				unsigned int uiIdx = (unsigned int) (eModel_Group - opacity_profile_data::carbon);
-				double dQuality_Ref = 0.0;
-				double dQuality_Last = 0.0;
-				double dDeriv[4] = {0.0,0.0,0.0,0.0};
-				double dSum_Deriv = 0.0;
-				do
-				{
-					ES::Spectrum esResult;
-					msdb_load_generate(cParam, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
-					double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
-					double dNorm = dNorm_Target / dNorm_Gen;
-					double dSum_Err_2 = 0.0;
-					unsigned int uiErr_Data_Count = 0;
-					for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
-					{
-						if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
-						{
-							double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
-							dSum_Err_2 += dErr * dErr;
-							uiErr_Data_Count++;
-						}
-					}
-					g_sdRefine_Result_Curr_Best.m_dPS_Temp = cParam.m_dPhotosphere_Temp_kK;
-					g_sdRefine_Result_Curr_Best.m_dPS_Velocity = cParam.m_dPhotosphere_Velocity_kkms;
-					g_sdRefine_Result_Curr_Best.m_dEjecta_Scalar = cParam.m_dEjecta_Log_Scalar;
-					g_sdRefine_Result_Curr_Best.m_dShell_Scalar = cParam.m_dShell_Log_Scalar;
-					g_sdRefine_Result_Curr_Best.m_specResult[0] = esResult;
-					g_sdRefine_Result_Curr_Best.m_dQuality_of_Fit = dSum_Err_2;
-					g_sdRefine_Result_Curr = g_sdRefine_Result_Curr_Best;
-
-					g_uiRefine_Result_ID++;
-					dQuality_Ref = dSum_Err_2;
-
-					for (unsigned int uiMode = 0; uiMode < 8 && !g_bAbort_Request; uiMode++)
-					{
-						cParam_Curr = cParam;
-						switch (uiMode)
-						{
-						case 0:
-							cParam_Curr.m_dPhotosphere_Temp_kK -= 0.01;
-							break;
-						case 1:
-							cParam_Curr.m_dPhotosphere_Temp_kK += 0.01;
-							break;
-						case 2:
-							cParam_Curr.m_dPhotosphere_Velocity_kkms -= 0.01;
-							break;
-						case 3:
-							cParam_Curr.m_dPhotosphere_Velocity_kkms += 0.01;
-							break;
-						case 4:
-							cParam_Curr.m_dEjecta_Log_Scalar -= 0.01;
-							break;
-						case 5:
-							cParam_Curr.m_dEjecta_Log_Scalar += 0.01;
-							break;
-						case 6:
-							cParam_Curr.m_dShell_Log_Scalar -= 0.01;
-							break;
-						case 7:
-							cParam_Curr.m_dShell_Log_Scalar += 0.01;
-							break;
-						}
-
-						msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
-						double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
-						double dNorm = dNorm_Target / dNorm_Gen;
-						double dSum_Err_2 = 0.0;
-						unsigned int uiErr_Data_Count = 0;
-						for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
-						{
-							if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
-							{
-								double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
-								dSum_Err_2 += dErr * dErr;
-								uiErr_Data_Count++;
-							}
-						}
-						g_sdRefine_Result_Curr.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
-						g_sdRefine_Result_Curr.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
-						g_sdRefine_Result_Curr.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
-						g_sdRefine_Result_Curr.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
-						g_sdRefine_Result_Curr.m_specResult[0] = esResult;
-						g_sdRefine_Result_Curr.m_dQuality_of_Fit = dSum_Err_2;
-
-						g_uiRefine_Result_ID++;
-		//									std::cout << g_uiRefine_Result_ID << std::endl;
-						sleep(1); // just in case the generate is already done, to give user a chance to see it.
-
-						switch (uiMode)
-						{
-						case 0:
-						case 2:
-						case 4:
-						case 6:
-							dQuality_Last = dSum_Err_2;
-							break;
-						case 1:
-						case 3:
-							dDeriv[(uiMode - 1) / 2] = (dSum_Err_2 - dQuality_Last) / 0.02;
-							break;
-						case 5:
-						case 7:
-							dDeriv[(uiMode - 1) / 2] = (dSum_Err_2 - dQuality_Last) / 0.02;
-							break;
-						}
-					}
-					if (!g_bAbort_Request)
-					{
-						double dDels[4] = {dDeriv[0] / dQuality_Ref,dDeriv[0] / dQuality_Ref,dDeriv[0] / dQuality_Ref,dDeriv[0] / dQuality_Ref};
-						dSum_Deriv = dDels[0] + dDels[1] + dDels[2] + dDels[3];
-						if (fabs(dDels[0]) > 0.03)
-							cParam.m_dPhotosphere_Temp_kK -= 1.0 / dDels[0] * 0.1;
-						else
-							cParam.m_dPhotosphere_Temp_kK -= dDels[0] / 0.03;
-						if (fabs(dDels[1]) > 0.03)
-							cParam.m_dPhotosphere_Velocity_kkms -= 1.0 / dDels[1] * 0.1;
-						else
-							cParam.m_dPhotosphere_Velocity_kkms -= dDels[1] / 0.03;
-
-						if (fabs(dDels[2]) > 3.0)
-							cParam.m_dEjecta_Log_Scalar -= 1.0 / dDels[2];// * 0.1;
-						else
-							cParam.m_dEjecta_Log_Scalar -= dDels[2] / 3.0 * 0.3;// * 0.1;
-
-						if (fabs(dDels[3]) > 3.0)
-							cParam.m_dShell_Log_Scalar -= 1.0 / dDels[3];// * 0.1;
-						else
-							cParam.m_dShell_Log_Scalar -= dDels[3] / 3.0 * 0.3;// * 0.1;
-					}
-				} while (fabs(dSum_Deriv) > 0.001 && !g_bAbort_Request);
-				*/
-				for (unsigned int uiRef_Level = 0; uiRef_Level < uiRef_Level_Max && !g_bAbort_Request; uiRef_Level++)
-				{
-					for (int iTemp = -1; iTemp < 2 && !g_bAbort_Request; iTemp++)
-						for (int iVel = -1; iVel < 2 && !g_bAbort_Request; iVel++)
-							for (int iSs = -1; iSs < 2 && !g_bAbort_Request; iSs++)
-								for (int iSe = -1; iSe < 2 && !g_bAbort_Request; iSe++)
-								{
-									cParam_Curr = cParam;
-									ES::Spectrum esResult;
-									cParam_Curr.m_dPhotosphere_Temp_kK += iTemp * xvRefine_Params.Get(0);
-									cParam_Curr.m_dPhotosphere_Velocity_kkms += iVel * xvRefine_Params.Get(1);
-									cParam_Curr.m_dEjecta_Log_Scalar += iSs * xvRefine_Params.Get(2);
-									cParam_Curr.m_dShell_Log_Scalar += iSe * xvRefine_Params.Get(3);
-									msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
-									double dNorm_Gen = Get_Norm_Const(esResult,g_sdRefine_Result.m_dNorm_WL_Blue,g_sdRefine_Result.m_dNorm_WL_Red);
-									double dNorm = dNorm_Target / dNorm_Gen;
-									double dSum_Err_2 = 0.0;
-									unsigned int uiErr_Data_Count = 0;
-									for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
-									{
-										if (esResult.wl(uiI) >= g_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= g_sdRefine_Result.m_dFit_WL_Red)
-										{
-											double dErr = esResult.flux(uiI) * dNorm - cTarget.flux(uiI);
-											dSum_Err_2 += dErr * dErr;
-											uiErr_Data_Count++;
-										}
-									}
-									dSum_Err_2 /= uiErr_Data_Count;
-									if (dSum_Err_2 < dQuality_Save)
-									{
-										dQuality_Save = dSum_Err_2;
-										cParam_Save = cParam_Curr;
-										g_sdRefine_Result_Curr_Best.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
-										g_sdRefine_Result_Curr_Best.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
-										g_sdRefine_Result_Curr_Best.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
-										g_sdRefine_Result_Curr_Best.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
-										g_sdRefine_Result_Curr_Best.m_specResult[0] = esResult;
-										g_sdRefine_Result_Curr_Best.m_dQuality_of_Fit = dSum_Err_2;
-									}
-									g_sdRefine_Result_Curr.m_dPS_Temp = cParam_Curr.m_dPhotosphere_Temp_kK;
-									g_sdRefine_Result_Curr.m_dPS_Velocity = cParam_Curr.m_dPhotosphere_Velocity_kkms;
-									g_sdRefine_Result_Curr.m_dEjecta_Scalar = cParam_Curr.m_dEjecta_Log_Scalar;
-									g_sdRefine_Result_Curr.m_dShell_Scalar = cParam_Curr.m_dShell_Log_Scalar;
-									g_sdRefine_Result_Curr.m_specResult[0] = esResult;
-									g_sdRefine_Result_Curr.m_dQuality_of_Fit = dSum_Err_2;
-
-									g_uiRefine_Result_ID++;
-//									std::cout << g_uiRefine_Result_ID << std::endl;
-									sleep(1); // just in case the generate is already done, to give user a chance to see it.
-									
-								}
-					cParam = cParam_Save;
-					xvRefine_Params *= 0.5;
-				}
-			}
 			
 			if (!g_bAbort_Request)
 			{
-				if (bValid_Ion)
-				{
-					ES::Spectrum esResult;
-					msdb_load_generate(cParam_Save, msdb::EJECTA_ONLY, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
-					g_sdRefine_Result_Curr_Best.m_specResult[1] = esResult;
-					msdb_load_generate(cParam_Save, msdb::SHELL_ONLY, cTarget, &g_lpmRefine_Model->m_dsEjecta[uiIdx], &g_lpmRefine_Model->m_dsShell, esResult);
-					g_sdRefine_Result_Curr_Best.m_specResult[2] = esResult;
-					g_sdRefine_Result = g_sdRefine_Result_Curr_Best;
-				}
-
 				g_bRefine_Done = true;
 				g_bRefine_In_Progress = false;
 			}
 			else
 			{
-				g_sdRefine_Result.m_bValid  = false;
-				g_sdRefine_Result_Curr.m_bValid  = false;
-				g_sdRefine_Result_Curr_Best.m_bValid  = false;
 				g_bRefine_Done = false;
 				g_bRefine_In_Progress = false;
 

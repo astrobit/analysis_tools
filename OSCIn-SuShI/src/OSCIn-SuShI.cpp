@@ -15,11 +15,15 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 
 		m_OSCfile.Load(m_vszCommand_Line_Parameters[0]);
 		m_OSCfile.Deredden();
-
+		printf("Redshift: %.2e\n",m_OSCfile.m_dRedshift_Weighted_Mean);
+		m_OSCfile.Unredshift();
+		printf("Window name\n");
 		Set_Window_Name(std::string("Open Supernova Catalog Interactive Viewer for Supernova - Shell Interaction (OSCIn-SuShI) --- ") + m_OSCfile.m_szSupernova_ID);
 
+		printf("Selected spectrum\n");
 		m_iterSelected_ID = m_OSCfile.m_mSpectra_List.begin();
 
+		printf("Top/Bottom iterators\n");
 		std::map<OSCspectra_id, OSCspectrum >::iterator iterFindLast = m_OSCfile.m_mSpectra_List.begin();
 		while (iterFindLast != m_OSCfile.m_mSpectra_List.end())
 		{
@@ -48,6 +52,7 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 		m_dRefine_Blue = 7700.0;
 		m_dRefine_Red = 8600.0;
 
+		printf("Model loading\n");
 		m_mapModels[17] = model(17);
 		m_mapModels[41] = model(41);
 		m_mapModels[45] = model(45);
@@ -65,6 +70,7 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 
 		m_bDisplay_Components = false;
 
+		printf("Process selected spectrum\n");
 		Process_Selected_Spectrum();
 
 	}

@@ -82,6 +82,8 @@ enum button_id
 	flux_zoom_in,
 	flux_zoom_out,
 	toggle_component_display_request,
+	toggle_refine_display_request,
+	toggle_generated_display_request,
 	clear_request,
 	spectrum_display_area,
 	quit_request
@@ -90,33 +92,6 @@ enum button_id
 
 enum feature_select {fs_start,fs_full,fs_CaHK,fs_Si6355,fs_CaNIR,fs_end};
 
-class spectrum_data
-{
-public:
-	bool			m_bValid;
-	double			m_dPS_Temp;
-	double			m_dPS_Velocity;
-	double			m_dEjecta_Scalar;
-	double			m_dShell_Scalar;
-	unsigned int	m_uiIon;
-	double			m_dExc_Temp;
-
-	double			m_dFit_WL_Blue;
-	double			m_dFit_WL_Red;
-
-	double			m_dNorm_WL_Blue;
-	double			m_dNorm_WL_Red;
-
-	double			m_dQuality_of_Fit;
-
-
-	ES::Spectrum	m_specResult[3]; // 0 = combined, 1 = ejecta, 2 = shell
-
-	spectrum_data(void)
-	{
-		m_bValid = false;
-	}
-};
 class gaussian_fit_data
 {
 public:
@@ -140,22 +115,6 @@ public:
 	{
 		m_bValid = false;
 	}
-};
-class model
-{
-public:
-	unsigned int m_uiModel_ID;
-	xdataset	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
-	xdataset	m_dsShell;
-	OPACITY_PROFILE_DATA	m_opdOp_Profile_Data;
-	xdataset	m_dsPhotosphere;
-	xdataset	m_dsEjecta_Photosphere;
-
-
-	void Load_Model(unsigned int i_uiModel);
-
-	model(void){m_uiModel_ID = -1;}
-	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
 };
 
 void Process_Generate_Requests(void);

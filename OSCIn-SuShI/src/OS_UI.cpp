@@ -247,8 +247,8 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 			break;
 		case velocity_select_big_down:
 			m_dPS_Velocity -= 5.0;
-			if (m_dPS_Velocity < 5.0)
-				m_dPS_Velocity = 5.0;
+			if (m_dPS_Velocity < 2.0)
+				m_dPS_Velocity = 2.0;
 			Request_Refresh();
 			break;
 		case velocity_select_up:
@@ -257,7 +257,7 @@ void OSCIn_SuShI_main::on_timer(unsigned int i_uiTimer_ID, const double & i_dDel
 			Request_Refresh();
 			break;
 		case velocity_select_down:
-			if (m_dPS_Velocity > 5.0)
+			if (m_dPS_Velocity > 2.0)
 				m_dPS_Velocity -= 0.5;
 			Request_Refresh();
 			break;
