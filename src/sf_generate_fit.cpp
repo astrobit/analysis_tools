@@ -229,10 +229,10 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cTarget = ES::Spectrum::create_copy_from_vector(vSpec_Subset.Get_Tuple_Vector());
 		cFull_Target = ES::Spectrum::create_copy_from_vector(i_cFit.m_vData.Get_Tuple_Vector());
 	}
-	double dTemp_Low = 10000.0;
+	double dTemp_Low = 6000.0;
 	double	dTemp_Hi = 25000.0;
 	double dVar = Bracket_Temperature(dTemp_Low,dTemp_Hi,cFull_Target);
-	printf("%.2e : (%.0f - %.0f)\n",dVar,dTemp_Low,dTemp_Hi);
+//	printf("%.2e : (%.0f - %.0f)\n",dVar,dTemp_Low,dTemp_Hi);
 	// debug: set temps to 5000
 	//dTemp_Low = dTemp_Hi = 5000.0;
 
@@ -454,7 +454,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	//vUpper_Bounds += vStarting_Point;
 	//vLower_Bounds += vStarting_Point;
 
-	cCall_Data.m_cContinuum_Band_Param = cCall_Data.m_cParam;
+/*	cCall_Data.m_cContinuum_Band_Param = cCall_Data.m_cParam;
 	switch (i_cFit.m_eFeature)
 	{
 	case specfit::CaNIR:
@@ -474,7 +474,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang = 6500.0;
 		break;
 	}
-	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();
+	cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Delta_Ang = fabs(cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Upper_Ang - cCall_Data.m_cContinuum_Band_Param.m_dWavelength_Range_Lower_Ang) / cTarget.size();*/
 	if (i_lpbPerform_Single_Fit != nullptr && i_lpbPerform_Single_Fit[0])
 	{
 		vStarting_Point.Set(0,i_lppsEjecta->m_dPS_Temp);
@@ -494,6 +494,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 
 
+	spectrum_data cResult;
 	if (vStarting_Point.is_nan())
 	{
 		std::cerr << "Error: starting point contains nan." << std::endl;
@@ -507,16 +508,15 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		vStarting_Point.Set(3,i_lppsShell->m_dLog_S);
 
 		Fit_Function(vStarting_Point, &cCall_Data);
+
 	}
 	else
 	{
-		spectrum_data cResult;
 		spectrum_data cCurr_Result;
 		spectrum_data cBest_Result;
 		unsigned int uiMax_Refine;
 		bool bAbort = false;
 		unsigned int uiResult_ID;
-
 
 		cResult.m_bValid = true;
 		cResult.m_dPS_Temp = vStarting_Point.Get(0);
@@ -530,10 +530,10 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cResult.m_dFit_WL_Blue = i_cFit.m_cFit_Range.m_dBlue_WL;
 		cResult.m_dFit_WL_Red = i_cFit.m_cFit_Range.m_dRed_WL;
 
-		cResult.m_dNorm_WL_Blue = i_cFit.m_cNorm_Range.m_dRed_WL;
+		cResult.m_dNorm_WL_Blue = i_cFit.m_cNorm_Range.m_dBlue_WL;
 		cResult.m_dNorm_WL_Red = i_cFit.m_cNorm_Range.m_dRed_WL;
 		cResult.m_specResult[0] = cTarget;
-
+		refine_options cOpt(false,true); // do not pause at each step - saves several minutes of processing; do display to console at each step
 		Grid_Refine_Fit(
 			uiResult_ID,
 			cResult,
@@ -541,35 +541,36 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			cCurr_Result,
 			cBest_Result,
 			uiMax_Refine,
-			bAbort);
+			bAbort,
+			&cOpt); 
 		vStarting_Point.Set(0,cResult.m_dPS_Temp);
 		vStarting_Point.Set(1,cResult.m_dPS_Velocity);
 		vStarting_Point.Set(2,cResult.m_dEjecta_Scalar);
-		vStarting_Point.Set(2,cResult.m_dShell_Scalar);
+		vStarting_Point.Set(3,cResult.m_dShell_Scalar);
 
 	}
 
 //	printf("Generating\n");
 
-	o_cFit.m_cParams[specfit::comp_ejecta].m_dPS_Vel = vStarting_Point[1];
 	o_cFit.m_cParams[specfit::comp_ejecta].m_dPS_Temp = vStarting_Point[0];
+	o_cFit.m_cParams[specfit::comp_ejecta].m_dPS_Vel = vStarting_Point[1];
 	o_cFit.m_cParams[specfit::comp_ejecta].m_dLog_S = vStarting_Point[2];
-	o_cFit.m_cParams[specfit::comp_ejecta].m_dExcitation_Temp = 10000.0;
+	o_cFit.m_cParams[specfit::comp_ejecta].m_dExcitation_Temp = 10.0;
 
 	if (uiParameters == 7)
 	{
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Vel = vStarting_Point[3];
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Temp = vStarting_Point[4];
 		o_cFit.m_cParams[specfit::comp_shell].m_dLog_S = vStarting_Point[5];
-		o_cFit.m_cParams[specfit::comp_shell].m_dExcitation_Temp = 10000.0;
+		o_cFit.m_cParams[specfit::comp_shell].m_dExcitation_Temp = 10.0;
 		o_cFit.m_cParams.m_dMixing_Fraction = vStarting_Point[6];
 	}
 	else if (uiParameters == 4)
 	{
-		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Vel = vStarting_Point[1];
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Temp = vStarting_Point[0];
+		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Vel = vStarting_Point[1];
 		o_cFit.m_cParams[specfit::comp_shell].m_dLog_S = vStarting_Point[3];
-		o_cFit.m_cParams[specfit::comp_shell].m_dExcitation_Temp = 10000.0;
+		o_cFit.m_cParams[specfit::comp_shell].m_dExcitation_Temp = 10.0;
 	}
 
 	o_cFit.m_dMJD = i_cFit.m_dMJD;
@@ -648,11 +649,17 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 	else
 	{
-		cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
-		cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
-		cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
-		cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
-		msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cTarget, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csResult);
+
+		bool bIon_Valid;
+		opacity_profile_data::group eGroup = opacity_profile_data::silicon; //@@TODO refer to correct group
+		Refine_Prep(cResult, i_cModel.m_uiModel_ID, cFull_Target, cCall_Data.m_cParam, eGroup, bIon_Valid);
+
+//		cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
+//		cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
+//		cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
+//		cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
+		//msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cTarget, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csResult);
+//		csResult = cResult.m_specResult[0];
 
 		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = i_cFit.m_vData.cbegin()->wl();
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = i_cFit.m_vData.crbegin()->wl();
@@ -667,7 +674,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 	double dTarget_Flux, dGenerated_Flux;
 	Get_Normalization_Fluxes(cFull_Target, csFull_Result, i_cFit.m_cNorm_Range, dTarget_Flux, dGenerated_Flux);
-
+	printf("%.3e, %.3e\n",dTarget_Flux  , dGenerated_Flux);
 	double	dNorm = dTarget_Flux  / dGenerated_Flux;
 	for (unsigned int uiI = 0; uiI < cFull_Target.size(); uiI++)
 	{
@@ -683,8 +690,10 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 	std::vector<double> vError;
 	for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
-		vError.push_back(cTarget.flux(uiI) - csResult.flux(uiI) * dNorm);
-	
+	{
+		if (cTarget.wl(uiI) >= i_cFit.m_cFit_Range.m_dBlue_WL && cTarget.wl(uiI) <= i_cFit.m_cFit_Range.m_dRed_WL)
+			vError.push_back(cTarget.flux(uiI) - csResult.flux(uiI) * dNorm);
+	}
 	Get_Raw_Moments(vError,6,o_cFit.m_vdRaw_Moments);
 	Get_Central_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdCentral_Moments);
 	Get_Standardized_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdStandardized_Moments);
