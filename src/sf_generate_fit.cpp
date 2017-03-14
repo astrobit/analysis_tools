@@ -652,14 +652,14 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 		bool bIon_Valid;
 		opacity_profile_data::group eGroup = opacity_profile_data::silicon; //@@TODO refer to correct group
-		Refine_Prep(cResult, i_cModel.m_uiModel_ID, cFull_Target, cCall_Data.m_cParam, eGroup, bIon_Valid);
+		//Refine_Prep(cResult, i_cModel.m_uiModel_ID, cFull_Target, cCall_Data.m_cParam, eGroup, bIon_Valid);
 
-//		cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
-//		cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
-//		cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
-//		cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
+		cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
+		cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
+		cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
+		cCall_Data.m_cParam.m_dShell_Log_Scalar = vStarting_Point[3];
 		//msdb_load_generate(cCall_Data.m_cParam, msdb::COMBINED, cTarget, cCall_Data.m_lpcOpacity_Map_A, cCall_Data.m_lpcOpacity_Map_B, csResult);
-//		csResult = cResult.m_specResult[0];
+		csResult = cResult.m_specResult[0];
 
 		cCall_Data.m_cParam.m_dWavelength_Range_Lower_Ang = i_cFit.m_vData.cbegin()->wl();
 		cCall_Data.m_cParam.m_dWavelength_Range_Upper_Ang = i_cFit.m_vData.crbegin()->wl();
