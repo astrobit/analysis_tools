@@ -20,7 +20,8 @@ void Grad_Des_Refine_Fit(
 	spectrum_data		&o_sdRefine_Result_Curr,
 	spectrum_data		&o_sdRefine_Result_Curr_Best,
 	const double				&i_dStep_Size,
-	bool				&i_bAbort_Request)
+	bool				&i_bAbort_Request,
+	refine_options		*i_lpRefine_Options)
 {
 	ES::Spectrum cTarget;
 	msdb::USER_PARAMETERS cParam;
@@ -29,6 +30,9 @@ void Grad_Des_Refine_Fit(
 	double dQuality_Save = DBL_MAX;
 	opacity_profile_data::group eModel_Group = opacity_profile_data::carbon;
 	bool bValid_Ion = false;
+	refine_options		cRefine_Options;
+	if (i_lpRefine_Options != nullptr)
+		cRefine_Options = *i_lpRefine_Options;
 
 	o_uiRefine_Result_ID = 0;
 	
@@ -55,9 +59,9 @@ void Grad_Des_Refine_Fit(
 			double dSum_Err_2 = 0.0;
 			unsigned int uiErr_Data_Count = 0;
 			double dNorm = 0.0;
-			for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
+			for (unsigned int uiI = 0; uiI < cTarget.size(); uiI++)
 			{
-				if (esResult.wl(uiI) >= io_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= io_sdRefine_Result.m_dFit_WL_Red)
+				if (cTarget.wl(uiI) >= io_sdRefine_Result.m_dFit_WL_Blue && cTarget.wl(uiI) <= io_sdRefine_Result.m_dFit_WL_Red)
 				{
 					if ((cTarget.flux(uiI) / dNorm_Target) > dNorm)
 						dNorm = cTarget.flux(uiI) / dNorm_Target;
@@ -151,7 +155,8 @@ void Grad_Des_Refine_Fit(
 
 				o_uiRefine_Result_ID++;
 	//									std::cout << g_uiRefine_Result_ID << std::endl;
-				sleep(1); // just in case the generate is already done, to give user a chance to see it.
+				if (cRefine_Options.m_bSleep_Each_Step)
+					sleep(1); // just in case the generate is already done, to give user a chance to see it.
 
 				switch (uiMode)
 				{

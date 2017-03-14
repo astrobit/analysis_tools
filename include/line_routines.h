@@ -436,6 +436,21 @@ public:
 	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
 };
 
+class refine_options
+{
+public:
+	bool m_bSleep_Each_Step;
+	bool m_bReport_To_Console;
+
+	refine_options( bool i_bSleep_Each_Step = true,
+		bool i_bReport_To_Console = false
+)
+	{
+		m_bSleep_Each_Step = i_bSleep_Each_Step;
+		m_bReport_To_Console = i_bReport_To_Console;
+	}
+};
+
 void Set_Grid_Refine_Level(unsigned int i_uiRefine_Level_Max);
 void Set_Grid_Refine_Size(const xvector & i_vVector);
 enum grid_refine_parameter {grp_ps_temp,grp_ps_vel,grp_Ss,grp_Se};
@@ -447,7 +462,8 @@ void Grid_Refine_Fit(
 	spectrum_data		&o_sdRefine_Result_Curr,
 	spectrum_data		&o_sdRefine_Result_Curr_Best,
 	unsigned int		&o_uiRefine_Max,
-	bool				&i_bAbort_Request);
+	bool				&i_bAbort_Request,
+	refine_options		*i_lpRefine_Options = nullptr);
 void Refine_Prep(const spectrum_data & i_cData, unsigned int i_uiModel_ID, ES::Spectrum & o_cTarget, msdb::USER_PARAMETERS &o_cUser_Param, opacity_profile_data::group & o_eModel_Group, bool & o_bIon_Valid);
 double Get_Norm_Const(const ES::Spectrum & i_cTarget, const double & i_dNorm_Blue, const double & i_dNorm_Red);
 
@@ -460,7 +476,8 @@ void Grad_Des_Refine_Fit(
 	spectrum_data		&o_sdRefine_Result_Curr,
 	spectrum_data		&o_sdRefine_Result_Curr_Best,
 	const double				&i_dStep_Size,
-	bool				&i_bAbort_Request);
+	bool				&i_bAbort_Request,
+	refine_options		*i_lpRefine_Options = nullptr);
 
 
 
