@@ -371,6 +371,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fsOut_File << "<!DOCTYPE SPECFIT SYSTEM \"" << szLA_Data_Path << "/specfit.dtd\">" << std::endl;
 		fsOut_File << "<SPECFIT>" << std::endl;
 		fsOut_File << "<MODELLIST id=\"mass\">" << std::endl;
+		fsOut_File << "\t<MODEL id=\"17\"/>" << std::endl;
 		fsOut_File << "\t<MODEL id=\"61\"/>" << std::endl;
 		fsOut_File << "\t<MODEL id=\"57\"/>" << std::endl;
 		fsOut_File << "\t<MODEL id=\"41\"/>" << std::endl;
