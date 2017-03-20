@@ -862,6 +862,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				const char * lpszColor = NULL;
 				const char * lpszStyle = NULL;
 				const char * lpszSymbol = NULL;
+				const char * lpszFilled = NULL;
 				double dWidth = 2.0;
 				double dX_Offset = 0.0;
 				double dY_Offset = 0.0;
@@ -897,6 +898,10 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						else if (strcmp(lpCurr_Attr->name,"symbolsize") == 0)
 						{
 							dSymbol_Size = Attr_Get_Double(lpCurr_Attr,1.0);
+						}
+						else if (strcmp(lpCurr_Attr->name,"symbolfilled") == 0)
+						{
+							lpszFilled = Attr_Get_String(lpCurr_Attr);
 						}
 						else if (strcmp(lpCurr_Attr->name,"xoffset") == 0)
 						{
@@ -954,6 +959,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				bool bDefault_Symbol = (lpszSymbol && strcmp(lpszSymbol,"default") == 0);
 				bool bDefault_Style = (!lpszStyle || strcmp(lpszStyle,"default") == 0);
 				bool bDefault_Color = (!lpszColor || strcmp(lpszColor,"default") == 0);
+				bool bFilled_Symbol = (!lpszFilled || strcmp(lpszFilled,"true") == 0);
 				bool bNo_Symbol = (!lpszSymbol || strcmp(lpszSymbol,"none") == 0);
 				bool bNo_Line = (lpszStyle && strcmp(lpszStyle,"none") == 0);
 				if (!bFault)
@@ -993,6 +999,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					}
 					else if (!bNo_Symbol)
 						cSymbol_Parameters.m_eType = cSymbol_Map[std::string(lpszSymbol)];
+					cSymbol_Parameters.m_bFilled = bFilled_Symbol;
 
 					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
 					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
