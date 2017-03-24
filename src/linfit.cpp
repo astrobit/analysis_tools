@@ -102,11 +102,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		XSQUARE_MATRIX cCovariance_Matrix(2);
 		double dSmin;
-		printf("Starting fit\n");
+		printf("Starting fit for %s (Xcol = %i,Ycol = %i)\n",i_lpszArg_Values[uiFile_Idx],uiX_Col,uiY_Col);
 
 		if (GeneralFit(xvX, xvY,xvW, Linear_Function, vA, cCovariance_Matrix, dSmin, NULL))
 		{
-			printf("m = %.17e +/- %.3e\nb=%.17e +/- %.3e\nS=%.3e\n",vA[1],sqrt(cCovariance_Matrix.Get(0,0)),vA[0],sqrt(cCovariance_Matrix.Get(1,1)),dSmin);
+			printf("m = %.17e +/- %.3e\nb=%.17e +/- %.3e\nS=%.3e\n",vA[1],sqrt(cCovariance_Matrix.Get(1,1)),vA[0],sqrt(cCovariance_Matrix.Get(0,0)),dSmin);
 		}
 		else
 			printf("Convergence failed\n");
