@@ -174,6 +174,7 @@ EPSFILE::EPSFILE(const char * i_lpszFormat)
 	strcpy(m_lpszSetRGBColor,"%.3f %.3f %.3f srgb\n");
 
 	// generate symbol mapping from symbols the user will use to those used by postscript
+	// a useful and perhaps comprehensive list of the postscript commands can be found at http://www.jdawiseman.com/papers/trivia/character-entities.html
 	m_mSymbol_Map["Ang"] = "Aring";
 	m_mSymbol_Map["Aring"] = "Aring";
 	m_mSymbol_Map["Alpha"] = "Alpha";
@@ -227,6 +228,10 @@ EPSFILE::EPSFILE(const char * i_lpszFormat)
 	m_mSymbol_Map["vartheta"] = "thetasymbolgreek";
 	m_mSymbol_Map["varUpsilon"] = "Upsilonhooksymbol";
 	m_mSymbol_Map["varpi"] = "pisymbolgreek";
+	m_mSymbol_Map["prod"] = glyphsymbol("product",true);
+	m_mSymbol_Map["sum"] = "Sigma";
+	m_mSymbol_Map["oplus"] = glyphsymbol("circleplus",true);
+	m_mSymbol_Map["earth"] = glyphsymbol("circleplus",true);
 
 }
 EPSFILE::~EPSFILE(void)
@@ -390,7 +395,14 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 			if (m_mSymbol_Map.count(cI->m_szData) == 1)
 			{
 				std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
+				if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+					fprintf(m_lpFileOut,"/Symbol findfont\n");
+
 				fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+
+				if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+					fprintf(m_lpFileOut,szFont.c_str());
+
 			}
 			break;
 		case text_entity::superscript:
@@ -407,10 +419,15 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 					fprintf(m_lpFileOut,"(%s) show\n",cI->m_szData.c_str());
 					cI++;
 				}
-				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol && m_mSymbol_Map.count(cI->m_szData) == 1)
 				{
-					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
-					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,"/Symbol findfont\n");
+
+					fprintf(m_lpFileOut,"/%s glyphshow\n",m_mSymbol_Map.at(cI->m_szData).c_str());
+
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,szFont.c_str());
 					cI++;
 				}
 				if (cI != vText_Stream.end() && cI->m_eType != text_entity::rightbrace)
@@ -426,10 +443,13 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 					cI->m_szData = lpszText;
 					cI++;
 				}
-				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol && m_mSymbol_Map.count(cI->m_szData) == 1)
 				{
-					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
-					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,"/Symbol findfont\n");
+					fprintf(m_lpFileOut,"/%s glyphshow\n",m_mSymbol_Map.at(cI->m_szData).c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,szFont.c_str());
 					cI++;
 				}
 			}
@@ -449,10 +469,13 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 					fprintf(m_lpFileOut,"(%s) show\n",cI->m_szData.c_str());
 					cI++;
 				}
-				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol && m_mSymbol_Map.count(cI->m_szData) == 1)
 				{
-					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
-					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,"/Symbol findfont\n");
+					fprintf(m_lpFileOut,"/%s glyphshow\n",m_mSymbol_Map.at(cI->m_szData).c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,szFont.c_str());
 					cI++;
 				}
 				if (cI != vText_Stream.end() && cI->m_eType != text_entity::rightbrace)
@@ -468,10 +491,13 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 					cI->m_szData = lpszText;
 					cI++;
 				}
-				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol)
+				else if (cI != vText_Stream.end() && cI->m_eType == text_entity::symbol && m_mSymbol_Map.count(cI->m_szData) == 1)
 				{
-					std::string szSymb = m_mSymbol_Map.at(cI->m_szData);
-					fprintf(m_lpFileOut,"/%s glyphshow\n",szSymb.c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,"/Symbol findfont\n");
+					fprintf(m_lpFileOut,"/%s glyphshow\n",m_mSymbol_Map.at(cI->m_szData).c_str());
+					if (m_mSymbol_Map.at(cI->m_szData).requires_symbol())
+						fprintf(m_lpFileOut,szFont.c_str());
 					cI++;
 				}
 			}

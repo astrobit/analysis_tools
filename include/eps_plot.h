@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdio>
 #include <map>
+#include <string>
 
 namespace	epsplot
 {
@@ -248,8 +249,20 @@ namespace	epsplot
 
 		char	* m_lpszFilename;
 		FILE	* m_lpFileOut;
+		class glyphsymbol : public std::string
+		{
+		private:
+			bool m_bRequires_Symbol_Font;
+		public:
+			glyphsymbol(void){m_bRequires_Symbol_Font = false;}
+			glyphsymbol(const glyphsymbol & i_cRHO) : std::string(i_cRHO) {m_bRequires_Symbol_Font = i_cRHO.m_bRequires_Symbol_Font;}
+			glyphsymbol(const std::string & i_szName, bool i_bRequires_Symbol_Font = false)  : std::string(i_szName) {m_bRequires_Symbol_Font = i_bRequires_Symbol_Font;}
+			glyphsymbol(const char * i_szName, bool i_bRequires_Symbol_Font = false)  : std::string(i_szName)  {m_bRequires_Symbol_Font = i_bRequires_Symbol_Font;}
 
-		std::map<std::string, std::string> m_mSymbol_Map;
+			bool requires_symbol(void)const{return m_bRequires_Symbol_Font;}
+		};
+//		std::map<std::string, std::string> m_mSymbol_Map;
+		std::map<std::string, glyphsymbol> m_mSymbol_Map;
 //		std::map<std::string, std::string> m_mSymbol_Equiv_Map;
 		std::vector< text_entity > Parse_String(const std::string & i_szString) const;
 
