@@ -1758,6 +1758,7 @@ void DATA::Draw_Symbol(EPSFILE & io_cEPS, const double & i_dX, const double & i_
 	}
 	if (vSymbol)
 	{
+			
 		for (unsigned int uiI = 0; uiI < vSymbol->size(); uiI++)
 		{
 			if (uiI == 0)
@@ -2172,6 +2173,13 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					char lpszText[32];
 					sprintf(lpszText,"Symbol %i\n",uiI);
 					cEPS.Comment(lpszText);
+					if (eCurr_Stipple != SOLID)
+					{
+						unsigned int uiStipple_Size;
+						const double * i_lpdStipple = Get_Stipple(SOLID,uiStipple_Size);
+						cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+					}
+
 					for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 					{
 						double dX = lpX_Axis->Scale(lpcSymbol->m_lppData[uiJ].m_dX);
@@ -2181,6 +2189,12 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						{
 							Draw_Symbol(cEPS,dX,dY,lpcSymbol->m_cPlot_Symbol_Info);
 						}
+					}
+					if (eCurr_Stipple != SOLID)
+					{
+						unsigned int uiStipple_Size;
+						const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+						cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
 					}
 				}
 
