@@ -190,14 +190,78 @@ XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, con
 	double dVariance_Max = 0;//DBL_MAX;
 	unsigned int uiVar_Max_Idx;
 	std::vector<double> vdErr;
+	std::vector<double> vd_dErr;
+	std::vector<double> vd_dErr_Smooth;
 	std::vector<unsigned int> vuiCrossings;
 	std::vector<double> vdAmplitudes;
 	std::vector<unsigned int> vuiAmplitude_Max;
+	int iSign_First = sign(i_vA[0]);
+//	printf("estimate second %f %f %f\n",i_vA[0],i_vA[1],i_vA[2]);
 
+/*	FILE * fileOut = fopen("err.csv","rt");
+	if (fileOut == nullptr)
+		fileOut = fopen("err.csv","wt");
+	else
+	{
+		fclose(fileOut);
+		fileOut = nullptr;
+	}
+*/
+	for (unsigned int uiI = 0; uiI < i_vY.Get_Size(); uiI++)
+	{
+		vdErr.push_back(i_vY[uiI] - Gaussian(i_vX[uiI],i_vA,(void*)i_lpgfpParamters).Get(0));
+//		if (fileOut != nullptr)
+//			fprintf(fileOut,"%.2f, %.17e, %.17e, %.17e\n",i_vX[uiI],vdErr.back(),i_vY[uiI],Gaussian(i_vX[uiI],i_vA,(void*)i_lpgfpParamters).Get(0));
+	}
+//	if (fileOut != nullptr)
+//		fclose(fileOut);
+	// first attempt: look for minima / maxima in err
+/*	fileOut = fopen("derr.csv","rt");
+	if (fileOut == nullptr)
+		fileOut = fopen("derr.csv","wt");
+	else
+	{
+		fclose(fileOut);
+		fileOut = nullptr;
+	}*/
+	for (unsigned int tI = 1; tI < vdErr.size() - 1; tI++)
+	{
+		vd_dErr.push_back(vdErr[tI + 1] - vdErr[tI - 1]);
+//		if (fileOut != nullptr)
+//			fprintf(fileOut,"%.2f, %.17e\n",i_vX[tI],vd_dErr.back());
+	}
+//	if (fileOut != nullptr)
+//		fclose(fileOut);
+	// smooth derivative over a range
+	for (size_t tI = 2; tI < vd_dErr.size() - 2; tI++)
+	{
+		vd_dErr_Smooth.push_back(0.2 * (vd_dErr[tI + 2] + vd_dErr[tI + 1] + vd_dErr[tI] + vd_dErr[tI - 1] + vd_dErr[tI - 2]));
+	}
+	// look for minima / maxima
+	dVariance_Max = 0;
+	for (unsigned int tI = 1; tI < vd_dErr_Smooth.size(); tI++)
+	{
+		if (sign(vd_dErr_Smooth[tI]) != sign(vd_dErr_Smooth[tI - 1]))
+		{
+//			printf("%f %e\n",i_vX[tI + 3],vdErr[tI + 3]);
+			if (iSign_First == sign(vdErr[tI + 3]))
+			{
 
+				double dCurr = fabs(vdErr[tI + 3]);
+				double dVar = fabs(dVariance_Max);
+//				printf("testing %f %e %e %e\n",i_vX[tI + 3],vdErr[tI + 3],fabs(vdErr[tI + 3]),fabs(dVariance_Max));
+				if (dVar < dCurr)
+				{
+//					printf("accepted %f %e\n",i_vX[tI + 3],vdErr[tI + 3]);
+					dVariance_Max = vdErr[tI + 3];
+					uiVar_Max_Idx = tI + 3;
+				}
+//				printf("current %f %e %e %e\n",i_vX[tI + 3],vdErr[tI + 3],fabs(vdErr[tI + 3]),fabs(dVariance_Max));
+			}
+		}
+	}
+/*
 	// first identify all places where the uncertainty transitions from negative to positive
-	double dR_Last = i_vY[0] - Gaussian(i_vX[0],i_vA,(void*)i_lpgfpParamters).Get(0);
-	vdErr.push_back(dR_Last);
 	double dAmplitude_Curr = 0.0;
 	unsigned int uiAmplitude_Curr_Idx;
 	for (unsigned int uiI = 1; uiI < i_vY.Get_Size(); uiI++)
@@ -226,7 +290,7 @@ XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, con
 		dVariance_Max = 0.0;
 		for (unsigned int uiI = 0; uiI < vdErr.size(); uiI++)
 		{
-			if (fabs(vdErr[uiI]) > dVariance_Max)
+			if (fabs(vdErr[uiI]) > fabs(dVariance_Max))
 			{
 				dVariance_Max = vdErr[uiI];
 				uiVar_Max_Idx = uiI;
@@ -235,17 +299,18 @@ XVECTOR Estimate_Second_Gaussian(const XVECTOR & i_vA, const XVECTOR & i_vX, con
 	}
 	else
 	{
+		printf("using crossings\n");
 		dVariance_Max = 0.0;
 		for (unsigned int uiI = 0; uiI < vdAmplitudes.size(); uiI++)
 		{
-			if (vdAmplitudes[uiI] > dVariance_Max)
+			if (fabs(vdAmplitudes[uiI]) > fabs(dVariance_Max))
 			{
 				uiVar_Max_Idx = vuiAmplitude_Max[uiI];
 				dVariance_Max = vdAmplitudes[uiI];
 			}
 		}
 		dVariance_Max = vdErr[uiVar_Max_Idx];
-	}
+	}*/
 	dDbl_Center = i_vX[uiVar_Max_Idx];
 	dDbl_Amplitude = dVariance_Max;
 	while (uiVar_Max_Idx > 0 && fabs(i_vY[uiVar_Max_Idx] - Gaussian(i_vX[uiVar_Max_Idx],i_vA,(void*)i_lpgfpParamters).Get(0)) > fabs(0.5 * dDbl_Amplitude))
@@ -274,6 +339,7 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	//std::vector<unsigned int> vuiMinima;
 	XVECTOR vSmoothed_Data;
 
+//	printf("smoothing\n");
 	vSmoothed_Data.Set_Size(i_vY.Get_Size());
 	int iSmooth_Size = 15;
 	double dSmooth_Coeff = 1.0 / (2 * iSmooth_Size + 1);
@@ -318,7 +384,7 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	unsigned int uiXcenter = uiXmax;
 	if (fabs(dYmax) < fabs(dYmin))
 	{
-///		printf("fitting minimum %i\n",uiXcenter);
+//		printf("fitting minimum %i\n",uiXcenter);
 		dAmplitude *= -1;
 		dCenter = dXmin;
 		uiXcenter = uiXmin;
@@ -362,7 +428,7 @@ XVECTOR Estimate_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const 
 	vA.Set(1,dHWHM);
 	vA.Set(2,dCenter);
 	vA2 = Estimate_Second_Gaussian(vA,i_vX,vSmoothed_Data,i_lpgfpParamters);
-	//printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,vA2[0],vA2[1],vA2[2]);
+//	printf("PGd: %f %f %f - %f %f %f\n",dAmplitude,dHWHM,dCenter,vA2[0],vA2[1],vA2[2]);
 
 	vA.Set_Size(6);
 	if (dCenter > vA2[2] || (vA[0] < 0.1 * dAmplitude) || (sign(dAmplitude) != sign(vA[0])))
@@ -409,11 +475,11 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	unsigned int uiCount = 0;
 	while (dSmin == 0.0 && vA[2] >= i_vX[0] && vA[2] <= i_vX[i_vX.Get_Size() - 1])
 	{
-		//printf("PGs: %e %e %e\n",vA[0],vA[1],vA[2]);
+//		printf("PGs: %e %e %e\n",vA[0],vA[1],vA[2]);
 		mCovariance_Matrix.Zero();
 		if (GeneralFit(i_vX, i_vY ,i_vW, Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,1024,-20,NULL,&vAest))
 		{
-			//printf("PGs-r: %e %e %e\n",vA[0],vA[1],vA[2]);
+//			printf("PGs-r: %e %e %e\n",vA[0],vA[1],vA[2]);
 		    vA_Single = vA;
 		    dSmin_Single = dSmin;
 		    mCovariance_Matrix_Single = mCovariance_Matrix;
@@ -426,7 +492,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
 		else
 		{
-			//printf("PGs-e: %e %e %e\n",vAest[0],vAest[1],vAest[2]);
+//			printf("PGs-e: %e %e %e\n",vAest[0],vAest[1],vAest[2]);
 			if (dPerturb < 0)
 				dPerturb *= -2;
 			else
@@ -440,11 +506,11 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 	while (dSmin == 0.0 && vA[2] >= i_vX[0] && vA[2] <= i_vX[i_vX.Get_Size() - 1])
 	{
 		mCovariance_Matrix.Zero();
-		//printf("PGd-s: %e %e %e - %e %e %e\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
+//		printf("PGd-s: %e %e %e - %e %e %e\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5]);
 		if (GeneralFit(i_vX, i_vY ,i_vW, Multi_Gaussian, vA, mCovariance_Matrix, dSmin, (void *)i_lpgfpParamters,512,-30,NULL,&vAest))
 		{
 			double dDel_S = fabs(dSmin - dSmin_Single);
-			//printf("PGd-r: %e %e %e - %e %e %e - %e %e %e\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5],dSmin,dSmin_Single,dDel_S);
+//			printf("PGd-r: %e %e %e - %e %e %e - %e %e %e\n",vA[0],vA[1],vA[2],vA[3],vA[4],vA[5],dSmin,dSmin_Single,dDel_S);
 			if (io_lpDouble_Fit)
 			{
 				io_lpDouble_Fit->m_vA = vA;
@@ -486,7 +552,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 		}
 		else
 		{
-			//printf("PGd-e: %e %e %e - %e %e %e\n",vAest[0],vAest[1],vAest[2],vAest[3],vAest[4],vAest[5]);
+//			printf("PGd-e: %e %e %e - %e %e %e\n",vAest[0],vAest[1],vAest[2],vAest[3],vAest[4],vAest[5]);
 			if (dPerturb < 0)
 				dPerturb *= -2;
 			else
@@ -505,6 +571,7 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
 
 		}
 	}
+	//printf("post processing\n");
 	if (dSmin == 0.0)
 	{
         // if the double guassian fit fails, use single gaussian results
