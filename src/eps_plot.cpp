@@ -2411,7 +2411,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			double	dStart = XRoundNearest(cX_Axis_Default.m_dStart,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
-			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : 8.0;
+			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : (cX_Axis_Default.m_cParameters.m_dMajor_Label_Size * 0.5);//8.0;
 			for (double dVal = dStart; dVal <= cX_Axis_Default.m_dEnd; dVal += dMinor_Ticks)
 			{
 				if (dVal >= cX_Axis_Default.m_dLower_Limit && dVal <= cX_Axis_Default.m_dUpper_Limit) // just to make sure
@@ -2468,7 +2468,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 						{
 							sprintf(lpszValue,lpszFormat,dVal);
 						}
-						cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
+						cEPS.Text(TIMES,false,false,dSize,CENTER,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
 					}
 				}
 			}
@@ -2512,7 +2512,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : 8.0;
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);//8.0;
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
 						dStart =  XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
@@ -2575,7 +2575,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 								{
 									sprintf(lpszValue,lpszFormat,dVal);
 								}
-								cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
+								cEPS.Text(TIMES,false,false,dSize,CENTER,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
 							}
 				
 						}
@@ -2586,7 +2586,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				{
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 1.1);
+					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
 					if (!std::isnan(dRange_Lower) && !std::isnan(dRange_Upper))
