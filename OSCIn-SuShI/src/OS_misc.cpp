@@ -245,22 +245,22 @@ void Process_Refine_Requests(void)
 			g_bRefine_In_Progress = true;
 			g_bRefine_Process_Request = false;
 			g_uiRefine_Result_ID = 0;
-			Grad_Des_Refine_Fit(
-				g_uiRefine_Result_ID,
-				g_sdRefine_Result,
-				g_lpmRefine_Model,
-				g_sdRefine_Result_Curr,
-				g_sdRefine_Result_Curr_Best,
-				1.0,
-				g_bAbort_Request);
-//			Grid_Refine_Fit(
+//			Grad_Des_Refine_Fit(
 //				g_uiRefine_Result_ID,
 //				g_sdRefine_Result,
 //				g_lpmRefine_Model,
 //				g_sdRefine_Result_Curr,
 //				g_sdRefine_Result_Curr_Best,
-//				g_uiRefine_Max,
+//				1.0,
 //				g_bAbort_Request);
+			Grid_Refine_Fit(
+				g_uiRefine_Result_ID,
+				g_sdRefine_Result,
+				g_lpmRefine_Model,
+				g_sdRefine_Result_Curr,
+				g_sdRefine_Result_Curr_Best,
+				g_uiRefine_Max,
+				g_bAbort_Request);
 			
 			
 			if (!g_bAbort_Request)
