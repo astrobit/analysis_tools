@@ -131,8 +131,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"HELP") ||
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
-		(dN == -1.0 && dLog_Ne == -9999) ||
-		(dNe == -1.0 && dLog_Ne == -9999) ||
+		(dN == -1.0 && dLog_Ne == -9999 && dNe == -1.0 && dLog_Ne == -9999) ||
 		(dLog_N != -9999 && dN != -1) ||
 		(dLog_Ne != -9999 && dNe != -1) ||
 		uiElement_Z == -1 ||
@@ -147,6 +146,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		std::cout << "--log-ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --ne." << std::endl << std::endl;
 		std::cout << "--n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --log-n." << std::endl << std::endl;
 		std::cout << "--log-n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --n. " << std::endl << std::endl;
+		std::cout << "\t If only one of --ne, --n, --log-ne, --log-n is specified, the value will be used for both ion and electron density. " << std::endl << std::endl;
 		std::cout << "--rad-temp=<float> : for blackbody radiation field, the blackbody temperature in K." << std::endl << "\tDefault is 10,000 K" << std::endl;
 		std::cout << "--e-temp=<float> : Kinetic temperature to use for electron velocity field." << std::endl << "\tDefault value is the photosphere (radiation) temperature." << std::endl << std::endl;
 		std::cout << "--ps-vel=<float> : Velocity of photosphere in km/s." << std::endl << "    Default = 10,000 km/s" << std::endl << std::endl;
@@ -172,6 +172,16 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		dN = pow(10.0,dLog_N);
 	if (dLog_Ne != -9999)
 		dNe = pow(10.0,dLog_Ne);
+	if (dN == -1 && dNe != -1)
+	{
+		std::cout << "Using electron density for ion density." << std::endl;
+		dN = dNe;
+	}
+	if (dNe == -1 && dN != -1)
+	{
+		std::cout << "Using ion density for electro density." << std::endl;
+		dNe = dN;
+	}
 
 	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
 	// generate radiation field
