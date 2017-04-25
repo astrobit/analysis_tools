@@ -113,6 +113,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 	double	dN = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--n", -1.0);
 	double	dLog_N = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--log-n", -9999.0);
+	double	dNe = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ne", -1.0);
+	double	dLog_Ne = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--log-ne", -9999.0);
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
 	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
 	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", -1);//20);
@@ -129,8 +131,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"HELP") ||
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
-		(dN == -1.0 && dLog-N == -9999) ||
+		(dN == -1.0 && dLog_Ne == -9999) ||
+		(dNe == -1.0 && dLog_Ne == -9999) ||
 		(dLog_N != -9999 && dN != -1) ||
+		(dLog_Ne != -9999 && dNe != -1) ||
 		uiElement_Z == -1 ||
 		(uiElement_Max_Ion_Species != -1 && uiElement_Max_Ion_Species > uiElement_Z)
 		)
@@ -139,8 +143,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		std::cout << "Usage:" << std::endl;
 		std::cout << i_lpszArg_Values[0] << " <options>" << std::endl;
 		std::cout << "Options / Parameters:" << std::endl;
-		std::cout << "--n=<float> : assumed (electron) density to use for recombination component, in cm^{-3}." << std::endl << std::endl;
-		std::cout << "--log-n=<float> : assumed (electron) density to use for recombination component, in cm^{-3}." << std::endl << std::endl;
+		std::cout << "--ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --log-ne." << std::endl << std::endl;
+		std::cout << "--log-ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --ne." << std::endl << std::endl;
+		std::cout << "--n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --log-n." << std::endl << std::endl;
+		std::cout << "--log-n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --n. " << std::endl << std::endl;
 		std::cout << "--rad-temp=<float> : for blackbody radiation field, the blackbody temperature in K." << std::endl << "\tDefault is 10,000 K" << std::endl;
 		std::cout << "--e-temp=<float> : Kinetic temperature to use for electron velocity field." << std::endl << "\tDefault value is the photosphere (radiation) temperature." << std::endl << std::endl;
 		std::cout << "--ps-vel=<float> : Velocity of photosphere in km/s." << std::endl << "    Default = 10,000 km/s" << std::endl << std::endl;
@@ -154,12 +160,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		{
 			std::cerr << "--log-n and --n were both specified in the call. These are mutually exclusive." << std::endl;
 		}
+		if (dLog_Ne != -9999 && dNe != -1)
+		{
+			std::cerr << "--log-ne and --ne were both specified in the call. These are mutually exclusive." << std::endl;
+		}
 		return 1;
 	}
 
 
 	if (dLog_N != -9999)
 		dN = pow(10.0,dLog_N);
+	if (dLog_Ne != -9999)
+		dNe = pow(10.0,dLog_Ne);
 
 	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
 	// generate radiation field
@@ -491,7 +503,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 														opacity_project_state stOP_State = opElement.Find_State(mCorrelation[tI].m_opld_Main_State);
 														double dState_E_Ryd = fabs(stOP_State.m_dEnergy_Ry);
 														double dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
-														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dTrue_Ion_Thresh,vfMaxwell) * dN;
+														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dTrue_Ion_Thresh,vfMaxwell) * dNe;
 														//printf("Recomb %i,%i: %.2e\n",tIdx_J,tIdx_I,dH);fflush(stdout);
 														mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 													}
