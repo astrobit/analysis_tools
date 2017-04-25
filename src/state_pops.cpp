@@ -112,6 +112,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	////////////////////////////////////////////////////////////////////////////////////////
 
 	double	dN = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--n", -1.0);
+	double	dLog_N = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--log-n", -9999.0);
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
 	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
 	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", -1);//20);
@@ -128,7 +129,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"HELP") ||
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
 		xParse_Command_Line_Exists(i_iArg_Count, i_lpszArg_Values,"--help") ||
-		dN == -1.0 ||
+		(dN == -1.0 && dLog-N == -9999) ||
+		(dLog_N != -9999 && dN != -1) ||
 		uiElement_Z == -1 ||
 		(uiElement_Max_Ion_Species != -1 && uiElement_Max_Ion_Species > uiElement_Z)
 		)
@@ -138,17 +140,26 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		std::cout << i_lpszArg_Values[0] << " <options>" << std::endl;
 		std::cout << "Options / Parameters:" << std::endl;
 		std::cout << "--n=<float> : assumed (electron) density to use for recombination component, in cm^{-3}." << std::endl << std::endl;
+		std::cout << "--log-n=<float> : assumed (electron) density to use for recombination component, in cm^{-3}." << std::endl << std::endl;
 		std::cout << "--rad-temp=<float> : for blackbody radiation field, the blackbody temperature in K." << std::endl << "\tDefault is 10,000 K" << std::endl;
 		std::cout << "--e-temp=<float> : Kinetic temperature to use for electron velocity field." << std::endl << "\tDefault value is the photosphere (radiation) temperature." << std::endl << std::endl;
 		std::cout << "--ps-vel=<float> : Velocity of photosphere in km/s." << std::endl << "    Default = 10,000 km/s" << std::endl << std::endl;
 		std::cout << "--mat-vel=<float> : Velocity of material of interest in km/s." << std::endl << "    Default is 25,000 km/s" << std::endl << std::endl;
 		std::cout << "--elem=<integer> : Atomic number of element of interest (e.g. Hydrogen = 1)." << std::endl << std::endl;
-		std::cout << "--max-ion=<integer> : Maximum ionization state to consider; 0 is neutral," << std::endl << "\tmaximum values is atomic number of element." << std::endl << "    Default is the maximum value." << std::endl << std::endl;
-		std::cout << "--min-ion=<integer> : Minimum ionization state to consider; 0 is neutral," << std::endl << "    maximum values is atomic number of element." << std::endl << "    Default is 0." << std::endl << std::endl;
-		std::cout << "--only-ion=<integer> : Single ionization state to consider; 0 is neutral," << std::endl << "    maximum values is atomic number of element." << std::endl << "    Equivalent to setting --max-ion and --min-ion to the same value." << std::endl;
+		std::cout << "--max-ion=<integer> : Maximum ionization state to consider; 0 is neutral," << std::endl << "\tmaximum value is atomic number of element." << std::endl << "    Default is the maximum value." << std::endl << std::endl;
+		std::cout << "--min-ion=<integer> : Minimum ionization state to consider; 0 is neutral," << std::endl << "    maximum value is atomic number of element." << std::endl << "    Default is 0." << std::endl << std::endl;
+		std::cout << "--only-ion=<integer> : Single ionization state to consider; 0 is neutral," << std::endl << "    maximum value is atomic number of element." << std::endl << "    Equivalent to setting --max-ion and --min-ion to the same value." << std::endl;
+
+		if (dLog_N != -9999 && dN != -1)
+		{
+			std::cerr << "--log-n and --n were both specified in the call. These are mutually exclusive." << std::endl;
+		}
 		return 1;
 	}
 
+
+	if (dLog_N != -9999)
+		dN = pow(10.0,dLog_N);
 
 	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
 	// generate radiation field
@@ -168,6 +179,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	{
 		std::cerr << "--only-ion and --min-ion both specified. --min-ion ignored." << std::endl;
 	}
+
 
 	unsigned int uiMin_Ion = 0;
 	if (uiElement_Min_Ion_Species != -1)
@@ -724,7 +736,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 			}
 			if (fileOut)
+			{
 				fclose(fileOut);
+				std::cout << "Eigenvalue has been output to eigv.csv" << std::endl;
+			}
 
 
 			FILE * fileTrx = fopen("trxs.csv","wt");
