@@ -142,18 +142,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		std::cout << "Usage:" << std::endl;
 		std::cout << i_lpszArg_Values[0] << " <options>" << std::endl;
 		std::cout << "Options / Parameters:" << std::endl;
-		std::cout << "--ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --log-ne." << std::endl << std::endl;
-		std::cout << "--log-ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --ne." << std::endl << std::endl;
-		std::cout << "--n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --log-n." << std::endl << std::endl;
-		std::cout << "--log-n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --n. " << std::endl << std::endl;
-		std::cout << "\t If only one of --ne, --n, --log-ne, --log-n is specified, the value will be used for both ion and electron density. " << std::endl << std::endl;
+		std::cout << "--ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --log-ne." << std::endl;
+		std::cout << "--log-ne=<float> : assumed electron density to use for recombination component, in cm^{-3}. Mutually exclusive with --ne." << std::endl;
+		std::cout << "--n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --log-n." << std::endl;
+		std::cout << "--log-n=<float> : assumed total ion density, in cm^{-3}. Mutually exclusive with --n. " << std::endl;
+		std::cout << "\t If only one of --ne, --n, --log-ne, --log-n is specified, the value will be used for both ion and electron density. " << std::endl;
 		std::cout << "--rad-temp=<float> : for blackbody radiation field, the blackbody temperature in K." << std::endl << "\tDefault is 10,000 K" << std::endl;
-		std::cout << "--e-temp=<float> : Kinetic temperature to use for electron velocity field." << std::endl << "\tDefault value is the photosphere (radiation) temperature." << std::endl << std::endl;
-		std::cout << "--ps-vel=<float> : Velocity of photosphere in km/s." << std::endl << "    Default = 10,000 km/s" << std::endl << std::endl;
-		std::cout << "--mat-vel=<float> : Velocity of material of interest in km/s." << std::endl << "    Default is 25,000 km/s" << std::endl << std::endl;
-		std::cout << "--elem=<integer> : Atomic number of element of interest (e.g. Hydrogen = 1)." << std::endl << std::endl;
-		std::cout << "--max-ion=<integer> : Maximum ionization state to consider; 0 is neutral," << std::endl << "\tmaximum value is atomic number of element." << std::endl << "    Default is the maximum value." << std::endl << std::endl;
-		std::cout << "--min-ion=<integer> : Minimum ionization state to consider; 0 is neutral," << std::endl << "    maximum value is atomic number of element." << std::endl << "    Default is 0." << std::endl << std::endl;
+		std::cout << "--e-temp=<float> : Kinetic temperature to use for electron velocity field." << std::endl << "\tDefault value is the photosphere (radiation) temperature." << std::endl;
+		std::cout << "--ps-vel=<float> : Velocity of photosphere in km/s." << std::endl << "    Default = 10,000 km/s" << std::endl;
+		std::cout << "--mat-vel=<float> : Velocity of material of interest in km/s." << std::endl << "    Default is 25,000 km/s" << std::endl;
+		std::cout << "--elem=<integer> : Atomic number of element of interest (e.g. Hydrogen = 1)." << std::endl;
+		std::cout << "--max-ion=<integer> : Maximum ionization state to consider; 0 is neutral," << std::endl << "\tmaximum value is atomic number of element." << std::endl << "    Default is the maximum value." << std::endl;
+		std::cout << "--min-ion=<integer> : Minimum ionization state to consider; 0 is neutral," << std::endl << "    maximum value is atomic number of element." << std::endl << "    Default is 0." << std::endl;
 		std::cout << "--only-ion=<integer> : Single ionization state to consider; 0 is neutral," << std::endl << "    maximum value is atomic number of element." << std::endl << "    Equivalent to setting --max-ion and --min-ion to the same value." << std::endl;
 
 		if (dLog_N != -9999 && dN != -1)
@@ -830,6 +830,54 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		else
 			std::cerr << "Failed to generate an eigenvector." << std::endl;
+
+
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Compute Saha ion populations
+		//
+		////////////////////////////////////////////////////////////////////////
+		FILE * fileSaha = fopen("saha.csv","wt");
+		if (fileSaha)
+		{
+			double dInv_Kb_T = 1.0 / (g_XASTRO.k_dKb * dElectron_Velocity_Temperature);
+			double dLog_e = log10(exp(1.0));
+			fprintf(fileSaha,"Ion, E_{ion} [Ryd] , log n_i / n_i-1\n");
+			for (size_t uiState = 0; uiState < vdOP_Ground_State.size(); uiState++)
+			{
+				double dLambda = g_XASTRO.k_dh * g_XASTRO.k_dh / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dme) * dInv_Kb_T;
+				//printf("ground state %.2e\n",vdOP_Ground_State[uiState]);
+				double dExponential_Term = -dInv_Kb_T * fabs(vdOP_Ground_State[uiState] * g_XASTRO.k_dRy);
+				double dLog_Rel_Pop = log10(2.0 / (dLambda * sqrt(dLambda))) + dExponential_Term * dLog_e - log10(dNe);
+				fprintf(fileSaha,"%i, %.2e, %.3e\n",uiState + uiMin_Ion,vdOP_Ground_State[uiState],dLog_Rel_Pop);
+			}
+		}
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Compute Boltzman state populations
+		//
+		////////////////////////////////////////////////////////////////////////
+		FILE * fileBoltzmann = fopen("boltzmann.csv","wt");
+		size_t tLevel_ID = 0;
+		if (fileBoltzmann)
+		{
+			double dInv_Kb_T = 1.0 / (g_XASTRO.k_dKb * dElectron_Velocity_Temperature);
+			double dLog_e = log10(exp(1.0));
+			for (size_t tIdx_Ion_I = 0; tIdx_Ion_I < kddData.m_vmklvdLevel_Data.size(); tIdx_Ion_I++)
+			{
+				imklvd iterJ = kddData.m_vmklvdLevel_Data[tIdx_Ion_I].begin();
+				imklvd iterJlast = iterJ;
+				if (iterJ != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end())
+					iterJ++;
+				for (; iterJ != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end(); iterJ++)
+				{ // do all pops relative to ground state
+					double dRel_Pop = log10(iterJ->second.klvdLevel_Data.m_dStat_Weight / iterJlast->second.klvdLevel_Data.m_dStat_Weight) + (iterJlast->second.klvdLevel_Data.m_dEnergy_Level_Ryd - iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd) * g_XASTRO.k_dRy * dInv_Kb_T * dLog_e;
+					fprintf(fileBoltzmann,"%i, %.3e\n",tLevel_ID,dRel_Pop);
+//					iterJlast = iterJ;
+					tLevel_ID++;
+				}
+			}
+		}
 	}
 	return 0;
 }
