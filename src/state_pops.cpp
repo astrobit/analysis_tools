@@ -222,11 +222,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	if (fileParameters != nullptr)
 	{
 		fprintf(fileParameters,"log Electron density: %.3f [cm^{-3}]\n",log10(dNe));
-		fprintf(fileParameters,"log Ion density: %.3f\n [cm^{-3}]",log10(dN));
+		fprintf(fileParameters,"log Ion density: %.3f [cm^{-3}]\n",log10(dN));
 		fprintf(fileParameters,"Radiation temperature: %.0f K\n",dRadiation_Temperature_K);
 		fprintf(fileParameters,"Electron temperature: %.0f K\n",dElectron_Velocity_Temperature);
 		fprintf(fileParameters,"Photosphere velocity: %.0f km / sec\n",dPhotosphere_Velocity_km_s);
 		fprintf(fileParameters,"Material velocity: %.0f km / sec\n",dMaterial_Velocity_km_s);
+		fprintf(fileParameters,"Redshift: %.2e \n",dRedshift);
 		fprintf(fileParameters,"Element: Z = %i\n",uiElement_Z);
 		if (uiMin_Ion == uiElement_Max_Ion_Species)
 			fprintf(fileParameters,"Ion: %i\n",uiMin_Ion);
