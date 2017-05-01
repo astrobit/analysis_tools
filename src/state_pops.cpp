@@ -116,13 +116,13 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	double	dNe = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ne", -1.0);
 	double	dLog_Ne = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--log-ne", -9999.0);
 	double	dRadiation_Temperature_K = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--rad-temp", 10000.0);
-	double	dPhotosphere_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
+	double	dPhotosphere_Velocity_km_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--ps-vel", 10000.0);
 	unsigned int uiElement_Z = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--elem", -1);//20);
 	unsigned int uiElement_Max_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--max-ion", -1);//4);
 	unsigned int uiElement_Min_Ion_Species = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--min-ion", -1);//4);
 	unsigned int uiIon_Species_Only = xParse_Command_Line_UInt(i_iArg_Count, i_lpszArg_Values, "--only-ion", -1);//4);
 
-	double	dMaterial_Velocity_kkm_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--mat-vel", 25000.0);
+	double	dMaterial_Velocity_km_s = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--mat-vel", 25000.0);
 	double	dElectron_Velocity_Temperature = xParse_Command_Line_Dbl(i_iArg_Count, i_lpszArg_Values, "--e-temp", -1);
 
 	if (i_iArg_Count == 1 ||
@@ -183,7 +183,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		dNe = dN;
 	}
 
-	double	dRedshift = (dMaterial_Velocity_kkm_s - dPhotosphere_Velocity_kkm_s) * 1.0e5 / g_XASTRO.k_dc;
+	double	dRedshift = (dMaterial_Velocity_km_s - dPhotosphere_Velocity_km_s) * 1.0e5 / g_XASTRO.k_dc;
 	// generate radiation field
 	Planck_radiation_field rfPlanck(dRadiation_Temperature_K);
 	if (dElectron_Velocity_Temperature == -1)
@@ -211,6 +211,31 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		uiMin_Ion = uiIon_Species_Only;
 		uiElement_Max_Ion_Species = uiIon_Species_Only;
 	}
+
+	////////////////////////////////////////////////////////////////////////////
+	//
+	// Output run parameters
+	//
+	////////////////////////////////////////////////////////////////////////////
+	
+	FILE * fileParameters = fopen("parameters.txt","wt");
+	if (fileParameters != nullptr)
+	{
+		fprintf(fileParameters,"log Electron density: %.3f [cm^{-3}]\n",log10(dNe));
+		fprintf(fileParameters,"log Ion density: %.3f\n [cm^{-3}]",log10(dN));
+		fprintf(fileParameters,"Radiation temperature: %.0f K\n",dRadiation_Temperature_K);
+		fprintf(fileParameters,"Electron temperature: %.0f K\n",dElectron_Velocity_Temperature);
+		fprintf(fileParameters,"Photosphere velocity: %.0f km / sec\n",dPhotosphere_Velocity_km_s);
+		fprintf(fileParameters,"Material velocity: %.0f km / sec\n",dMaterial_Velocity_km_s);
+		fprintf(fileParameters,"Element: Z = %i\n",uiElement_Z);
+		if (uiMin_Ion == uiElement_Max_Ion_Species)
+			fprintf(fileParameters,"Ion: %i\n",uiMin_Ion);
+		else
+			fprintf(fileParameters,"Ions: %i -- %i\n",uiMin_Ion, uiElement_Max_Ion_Species);
+
+		fclose(fileParameters);
+	}
+
 	// load Kurucz data
 	kurucz_derived_data kddData(uiElement_Z,uiMin_Ion,uiElement_Max_Ion_Species,rfPlanck,dRedshift);
 
