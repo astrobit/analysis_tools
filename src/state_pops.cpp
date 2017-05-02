@@ -444,7 +444,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							{
 								double dH = 0.0;
 								bool bFound = false;
-								if (tIdx_I > tIdx_J)//iterSt_J->second.klvdLevel_Data < iterSt_I->second.klvdLevel_Data)
+								if (tIdx_I > tIdx_J)
 								{
 								// first find the transition in the list for j
 									for (ivivkld iterK = iterSt_J->second.vivkldAbsorption_Transition_Data.begin(); iterK != iterSt_J->second.vivkldAbsorption_Transition_Data.end() && !bFound; iterK++)
@@ -457,7 +457,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				
 									}
 								}
-								else //if (kddData.m_vmklvdLevel_Data[tIdx_Ion_J].klvdLevel_Data > kddData.m_vmklvdLevel_Data[tIdx_Ion_I].klvdLevel_Data)
+								else
 								{
 								// first find the transition in the list for j
 									for (ivivkld iterK = iterSt_J->second.vivkldEmission_Transition_Data.begin(); iterK != iterSt_J->second.vivkldEmission_Transition_Data.end() && !bFound; iterK++)
@@ -854,7 +854,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			for (size_t uiState = 0; uiState < vdOP_Ground_State.size(); uiState++)
 			{
 				double dLambda = g_XASTRO.k_dh * g_XASTRO.k_dh / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dme) * dInv_Kb_T;
-				//printf("ground state %.2e\n",vdOP_Ground_State[uiState]);
 				double dExponential_Term = -dInv_Kb_T * fabs(vdOP_Ground_State[uiState] * g_XASTRO.k_dRy);
 				double dLog_Rel_Pop = log10(2.0 / (dLambda * sqrt(dLambda))) + dExponential_Term * dLog_e - log10(dNe);
 				fprintf(fileSaha,"%i, %.2e, %.3e\n",uiState + uiMin_Ion,vdOP_Ground_State[uiState],dLog_Rel_Pop);
@@ -881,7 +880,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				{ // do all pops relative to ground state
 					double dRel_Pop = log10(iterJ->second.klvdLevel_Data.m_dStat_Weight / iterJlast->second.klvdLevel_Data.m_dStat_Weight) + (iterJlast->second.klvdLevel_Data.m_dEnergy_Level_Ryd - iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd) * g_XASTRO.k_dRy * dInv_Kb_T * dLog_e;
 					fprintf(fileBoltzmann,"%i, %.3e\n",tLevel_ID,dRel_Pop);
-//					iterJlast = iterJ;
 					tLevel_ID++;
 				}
 			}
