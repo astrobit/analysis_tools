@@ -433,10 +433,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			{
 				for (size_t tIdx_Ion_J = 0; tIdx_Ion_J < kddData.m_vmklvdLevel_Data.size(); tIdx_Ion_J++)
 				{
-					//for (size_t tIdx_State_J = 0; tIdx_State_J < kddData.m_vmklvdLevel_Data[tIdx_Ion_J].size(); tIdx_State_J++)
 					for (imklvd iterSt_J = kddData.m_vmklvdLevel_Data[tIdx_Ion_J].begin(); iterSt_J != kddData.m_vmklvdLevel_Data[tIdx_Ion_J].end(); iterSt_J++)
 					{
-//					for (size_t tIdx_State_I = 0; tIdx_State_I < kddData.m_vmklvdLevel_Data[tIdx_Ion_I].size(); tIdx_State_I++;)
 						// calculate Z (Eq 12) for Level i
 
 						// -- processing section
@@ -451,12 +449,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								// first find the transition in the list for j
 									for (ivivkld iterK = iterSt_J->second.vivkldAbsorption_Transition_Data.begin(); iterK != iterSt_J->second.vivkldAbsorption_Transition_Data.end() && !bFound; iterK++)
 									{
-//										if ((*iterK)->m_cLevel_Lower == iterSt_J->second.klvdLevel_Data &&
-//											(*iterK)->m_cLevel_Upper == iterSt_I->second.klvdLevel_Data)
 										if ((*iterK)->m_cLevel_Upper == iterSt_I->second.klvdLevel_Data || (*iterK)->m_cLevel_Lower == iterSt_I->second.klvdLevel_Data)
 										{
-											dH  = (*iterK)->m_dH_abs;//(*iterK)->m_dEinstein_B * (*iterK)->Calc_Exciting(dRadiation_Temperature_K,dRedshift);
-											//std::cout << tIdx_I << "<-" << tIdx_J << " (a) " << dH / iterSt_I->second.klvdLevel_Data.m_dZ << std::endl;
+											dH  = (*iterK)->m_dH_abs;
 											bFound = true;
 										}
 				
@@ -467,12 +462,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								// first find the transition in the list for j
 									for (ivivkld iterK = iterSt_J->second.vivkldEmission_Transition_Data.begin(); iterK != iterSt_J->second.vivkldEmission_Transition_Data.end() && !bFound; iterK++)
 									{
-//										if ((*iterK)->m_cLevel_Lower == iterSt_I->second.klvdLevel_Data &&
-//											(*iterK)->m_cLevel_Upper == iterSt_J->second.klvdLevel_Data)
 										if ((*iterK)->m_cLevel_Upper == iterSt_I->second.klvdLevel_Data || (*iterK)->m_cLevel_Lower == iterSt_I->second.klvdLevel_Data)
 										{
-											dH = (*iterK)->m_dH_em;//(*iterK)->m_dEinstein_A + (*iterK)->m_dEinstein_B_SE * (*iterK)->Calc_Exciting(dRadiation_Temperature_K,dRedshift);
-											//std::cout << tIdx_I << "<-" << tIdx_J << " (e) " << dH / iterSt_I->second.klvdLevel_Data.m_dZ << std::endl;
+											dH = (*iterK)->m_dH_em;
 											bFound = true;
 										}
 				
@@ -482,8 +474,6 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								{
 									mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 								}
-								//else
-								//	std::cout << tIdx_I << "<->" << tIdx_J << std::endl;
 							}
 							else if (tIdx_Ion_J == (tIdx_Ion_I - 1)) // potential photoionization term
 							{
@@ -505,10 +495,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 													opacity_project_state stOP_State = opElement.Find_State(mCorrelation[tJ].m_opld_Main_State);
 													double dState_E_Ryd = fabs(stOP_State.m_dEnergy_Ry);
 													double dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
-													//printf("RC Thresh %.2e %.2e %.2e %.2e\n",dIon_Thresh_Ryd,dGround_Ryd,dState_E_Ryd,dTrue_Ion_Thresh);
 							
 													double dH = opElement.Get_Ionization_Rate(mCorrelation[tJ].m_opld_Main_State,dTrue_Ion_Thresh,rfPlanck,dRedshift);
-													//("Ion %i,%i: %.2e\n",tIdx_J,tIdx_I,dH); fflush(stdout);
 													mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 												}
 											}
@@ -533,14 +521,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 													{
 														XASTRO_ATOMIC_IONIZATION_DATA xaiIon_Data = g_xAstro_Ionization_Energy_Data.Get_Ionization_Data(mCorrelation[tI].m_opld_Main_State.m_uiZ);
 														double dIon_Thresh_Ryd = xaiIon_Data.Get_Ion_State_Potential(mCorrelation[tI].m_opld_Main_State.m_uiZ - mCorrelation[tI].m_opld_Main_State.m_uiN) / g_XASTRO.k_dRy;
-														//printf("I Thresh %.2e\n",dIon_Thresh_Ryd);
 														bFound = true;
 														double dGround_Ryd = vdOP_Ground_State[mCorrelation[tI].m_opld_Main_State.m_uiN - 1];
 														opacity_project_state stOP_State = opElement.Find_State(mCorrelation[tI].m_opld_Main_State);
 														double dState_E_Ryd = fabs(stOP_State.m_dEnergy_Ry);
 														double dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
 														double dH = opElement.Get_Recombination_Rate(mCorrelation[tJ].m_opld_Main_State, mCorrelation[tI].m_opld_Main_State,dTrue_Ion_Thresh,vfMaxwell) * dNe;
-														//printf("Recomb %i,%i: %.2e\n",tIdx_J,tIdx_I,dH);fflush(stdout);
 														mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
 													}
 												}
@@ -613,16 +599,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		for (tIdx_J = 0; tIdx_J < tMatrix_Order; tIdx_J++)
 		{
-//			printf ("J = %i: ",tIdx_J);
-//			printf ("z = %.2e ",vdZ[tIdx_J]);
 			// now divide all items in row J by the computed Z; M&W Eq. 14 / 15 (B_{ij} = H_{ij}/Z_j, but here we use j and ii instead of i and j, so here it is B_{j,ii} = H_{j,ii}/Z_{j}
 			for (size_t tIdx_II = 0; tIdx_II < tMatrix_Order; tIdx_II++)
 			{
 				if (mpdSparse_Matrix.count(std::pair<size_t,size_t>(tIdx_II,tIdx_J)) > 0)
 				{
-//					printf (" H(%i,%i) = %.2e ",tIdx_II,tIdx_J,mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)]);
 					mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)] /= vdZ[tIdx_J];
-//					printf (" H(%i,%i) = %.2e\n",tIdx_II,tIdx_J,mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)]);
 					if (dMax_Val < mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)])
 						dMax_Val = mpdSparse_Matrix[std::pair<size_t,size_t>(tIdx_II,tIdx_J)];
 				}
@@ -632,7 +614,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
-	// Output matrix to matrixa.csv
+	// Output matrix to matrixb.csv
 	//
 	////////////////////////////////////////////////////////////////////////////////////////
 		FILE * fileMatB = fopen("matrixb.csv","wt");
