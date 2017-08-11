@@ -443,16 +443,22 @@ public:
 	bool m_bReport_To_Console;
 	bool m_bAppend_Report_To_File;
 	std::string m_sFilename;
+	bool m_bOutput_Intermediate_Spectra;
+	std::string m_sSpectra_File_Prefix;
 
 	void Copy( bool i_bSleep_Each_Step,
 		bool i_bReport_To_Console,
 		bool i_bAppend_Report_To_File,
-		std::string i_sFilename)
+		std::string i_sFilename,
+		bool i_bOutput_Intermediate_Spectra,
+		std::string i_sSpectra_File_Prefix)
 	{
 		m_bSleep_Each_Step = i_bSleep_Each_Step;
 		m_bReport_To_Console = i_bReport_To_Console;
 		m_bAppend_Report_To_File = i_bAppend_Report_To_File;
 		m_sFilename = i_sFilename;
+		m_bOutput_Intermediate_Spectra = i_bOutput_Intermediate_Spectra;
+		i_sSpectra_File_Prefix = i_sSpectra_File_Prefix;
 	}
 	
 	refine_options & operator =(const refine_options & i_cRHO)
@@ -460,27 +466,30 @@ public:
 		Copy( i_cRHO.m_bSleep_Each_Step,
 				i_cRHO.m_bReport_To_Console,
 				i_cRHO.m_bAppend_Report_To_File,
-				i_cRHO.m_sFilename);
+				i_cRHO.m_sFilename,
+				i_cRHO.m_bOutput_Intermediate_Spectra,
+				i_cRHO.m_sSpectra_File_Prefix);
 		return *this;
 	}
 
 	refine_options(const refine_options & i_cRHO)
 	{
-		Copy( i_cRHO.m_bSleep_Each_Step,
-				i_cRHO.m_bReport_To_Console,
-				i_cRHO.m_bAppend_Report_To_File,
-				i_cRHO.m_sFilename);
+		*this = i_cRHO;
 	}
 
 	refine_options( bool i_bSleep_Each_Step = true,
 		bool i_bReport_To_Console = false,
 		bool i_bAppend_Report_To_File = false,
-		std::string i_sFilename = "")
+		std::string i_sFilename = "",
+		bool i_bOutput_Intermediate_Spectra = false,
+		std::string i_sSpectra_File_Prefix = "")
 	{
 		Copy( i_bSleep_Each_Step,
 				i_bReport_To_Console,
 				i_bAppend_Report_To_File,
-				i_sFilename);
+				i_sFilename,
+				i_bOutput_Intermediate_Spectra,
+				i_sSpectra_File_Prefix);
 	}
 };
 

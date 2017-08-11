@@ -184,6 +184,16 @@ void Grid_Refine_Fit(
 								ofFile << ", " << std::scientific << std::setprecision(std::numeric_limits<double>::digits10 + 1) << o_sdRefine_Result_Curr.m_dQuality_of_Fit << std::endl;
 								ofFile.close();
 							}
+							if (cRefine_Options.m_bOutput_Intermediate_Spectra)
+							{
+								std::ostringstream ossFilename;
+								std::ofstream ofFile;
+								ossFilename << cRefine_Options.m_sSpectra_File_Prefix << "_" << o_uiRefine_Result_ID << ".csv";
+								ofFile.open(ossFilename.str().c_str(), std::ofstream::out);
+								for (size_t tIdx = 0; tIdx < esResult.size(); tIdx++)
+									ofFile << esResult.wl(tIdx) << ", " << esResult.flux(tIdx) << std::endl;
+								ofFile.close();
+							}
 //									std::cout << o_uiRefine_Result_ID << std::endl;
 							if (cRefine_Options.m_bSleep_Each_Step)
 								sleep(1); // just in case the generate is already done, to give user a chance to see it.
