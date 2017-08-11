@@ -1,6 +1,9 @@
 #include <line_routines.h>
 #include <cfloat>
 #include <unistd.h>
+#include <iomanip>
+#include <fstream>
+#include <limits>
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -74,6 +77,13 @@ void Grid_Refine_Fit(
 	
 
 	xvector xvRefine_Params = g_xvRefine_Params;
+	if (cRefine_Options.m_bAppend_Report_To_File)
+	{
+		std::ofstream ofFile;
+		ofFile.open(cRefine_Options.m_sFilename.c_str(), std::ofstream::out);
+		ofFile << "Step, Refine Level, Temp, Vel, Se, Ss, Q" << std::endl;
+		ofFile.close();
+	}
 
 	Refine_Prep(io_sdRefine_Result,i_lpmRefine_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
 	double dNorm_Target = Get_Norm_Const(cTarget,io_sdRefine_Result.m_dNorm_WL_Blue,io_sdRefine_Result.m_dNorm_WL_Red);
@@ -161,6 +171,18 @@ void Grid_Refine_Fit(
 								std::cout << " Se " << o_sdRefine_Result_Curr.m_dEjecta_Scalar;
 								std::cout << " Ss " << o_sdRefine_Result_Curr.m_dShell_Scalar;
 								std::cout << " Q " << o_sdRefine_Result_Curr.m_dQuality_of_Fit << std::endl;
+							}
+							if (cRefine_Options.m_bAppend_Report_To_File)
+							{
+								std::ofstream ofFile;
+								ofFile.open(cRefine_Options.m_sFilename.c_str(), std::ofstream::out | std::ofstream::app);
+								ofFile << o_uiRefine_Result_ID << ", " << uiRef_Level;
+								ofFile << ",  " << o_sdRefine_Result_Curr.m_dPS_Temp;
+								ofFile << ", " << o_sdRefine_Result_Curr.m_dPS_Velocity;
+								ofFile << ", " << o_sdRefine_Result_Curr.m_dEjecta_Scalar;
+								ofFile << ", " << o_sdRefine_Result_Curr.m_dShell_Scalar;
+								ofFile << ", " << std::scientific << std::setprecision(std::numeric_limits<double>::digits10 + 1) << o_sdRefine_Result_Curr.m_dQuality_of_Fit << std::endl;
+								ofFile.close();
 							}
 //									std::cout << o_uiRefine_Result_ID << std::endl;
 							if (cRefine_Options.m_bSleep_Each_Step)

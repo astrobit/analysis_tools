@@ -441,13 +441,46 @@ class refine_options
 public:
 	bool m_bSleep_Each_Step;
 	bool m_bReport_To_Console;
+	bool m_bAppend_Report_To_File;
+	std::string m_sFilename;
 
-	refine_options( bool i_bSleep_Each_Step = true,
-		bool i_bReport_To_Console = false
-)
+	void Copy( bool i_bSleep_Each_Step,
+		bool i_bReport_To_Console,
+		bool i_bAppend_Report_To_File,
+		std::string i_sFilename)
 	{
 		m_bSleep_Each_Step = i_bSleep_Each_Step;
 		m_bReport_To_Console = i_bReport_To_Console;
+		m_bAppend_Report_To_File = i_bAppend_Report_To_File;
+		m_sFilename = i_sFilename;
+	}
+	
+	refine_options & operator =(const refine_options & i_cRHO)
+	{
+		Copy( i_cRHO.m_bSleep_Each_Step,
+				i_cRHO.m_bReport_To_Console,
+				i_cRHO.m_bAppend_Report_To_File,
+				i_cRHO.m_sFilename);
+		return *this;
+	}
+
+	refine_options(const refine_options & i_cRHO)
+	{
+		Copy( i_cRHO.m_bSleep_Each_Step,
+				i_cRHO.m_bReport_To_Console,
+				i_cRHO.m_bAppend_Report_To_File,
+				i_cRHO.m_sFilename);
+	}
+
+	refine_options( bool i_bSleep_Each_Step = true,
+		bool i_bReport_To_Console = false,
+		bool i_bAppend_Report_To_File = false,
+		std::string i_sFilename = "")
+	{
+		Copy( i_bSleep_Each_Step,
+				i_bReport_To_Console,
+				i_bAppend_Report_To_File,
+				i_sFilename);
 	}
 };
 
