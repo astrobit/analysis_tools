@@ -458,7 +458,7 @@ public:
 		m_bAppend_Report_To_File = i_bAppend_Report_To_File;
 		m_sFilename = i_sFilename;
 		m_bOutput_Intermediate_Spectra = i_bOutput_Intermediate_Spectra;
-		i_sSpectra_File_Prefix = i_sSpectra_File_Prefix;
+		m_sSpectra_File_Prefix = i_sSpectra_File_Prefix;
 	}
 	
 	refine_options & operator =(const refine_options & i_cRHO)

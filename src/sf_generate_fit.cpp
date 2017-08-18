@@ -533,7 +533,32 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		cResult.m_dNorm_WL_Blue = i_cFit.m_cNorm_Range.m_dBlue_WL;
 		cResult.m_dNorm_WL_Red = i_cFit.m_cNorm_Range.m_dRed_WL;
 		cResult.m_specResult[0] = cTarget;
-		refine_options cOpt(false,true); // do not pause at each step - saves several minutes of processing; do display to console at each step
+
+		std::ostringstream ossIntermediate_File_Prefix;
+		std::ostringstream ossSpectra_Data_File;
+		std::string szInst_File_Friendly = i_cFit.m_szInstrument;
+		for (std::string::iterator iterI = szInst_File_Friendly.begin(); iterI != szInst_File_Friendly.end(); iterI++)
+		{
+			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
+				*iterI = '_';
+		}
+		std::string szSource_File_Friendly = i_cFit.m_szSource;
+		for (std::string::iterator iterI = szSource_File_Friendly.begin(); iterI != szSource_File_Friendly.end(); iterI++)
+		{
+			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
+				*iterI = '_';
+		}
+		ossIntermediate_File_Prefix << "Results/Intermediate/spectra_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cModel.m_uiModel_ID;
+
+		std::ostringstream ossGrid_Fit_Data_File; 
+		ossGrid_Fit_Data_File << ossIntermediate_File_Prefix.str() << "_grid.csv";
+		ossGrid_Fit_Data_File << "Results/Intermediate/grid_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cModel.m_uiModel_ID << ".csv";
+		std::ofstream osFile;
+		osFile.open(ossGrid_Fit_Data_File.str().c_str(),std::ostream::out);
+		osFile << "Result ID, Refine level, PS Temp, PS Vel, Ejecta Scalar, Shell Scalar, Fit" << std::endl;
+		osFile.close();
+
+		refine_options cOpt(false,true,true,ossGrid_Fit_Data_File.str(),true,ossIntermediate_File_Prefix.str()); // do not pause at each step - saves several minutes of processing; do display to console at each step
 		Grid_Refine_Fit(
 			uiResult_ID,
 			cResult,

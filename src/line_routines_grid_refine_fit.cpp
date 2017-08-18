@@ -191,7 +191,7 @@ void Grid_Refine_Fit(
 								ossFilename << cRefine_Options.m_sSpectra_File_Prefix << "_" << o_uiRefine_Result_ID << ".csv";
 								ofFile.open(ossFilename.str().c_str(), std::ofstream::out);
 								for (size_t tIdx = 0; tIdx < esResult.size(); tIdx++)
-									ofFile << esResult.wl(tIdx) << ", " << esResult.flux(tIdx) << std::endl;
+									ofFile << esResult.wl(tIdx) << ", " << (esResult.flux(tIdx) / (dNorm_Gen * dNorm)) << ", " << (cTarget.flux(tIdx) / (dNorm_Target * dNorm)) << std::endl;
 								ofFile.close();
 							}
 //									std::cout << o_uiRefine_Result_ID << std::endl;
