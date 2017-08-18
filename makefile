@@ -370,7 +370,7 @@ statepoplib: $(LIBDIR)/libsp.a
 
 statepop: $(BINDIR)/statepop
 $(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/libsp.a $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h  $(INCLUDEDIR)/velocity_function.h
-	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lsp -llinerout -lxastro -lxmath -lxio -lxstdlib -larpack -lsuperlu -lblas -llapack -o $(BINDIR)/statepop
+	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lsp -llinerout -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/statepop
 
 velfntest: $(BINDIR)/velfntest
 $(BINDIR)/velfntest: $(SRCDIR)/velfntest.cpp $(XLIBSCHANGE) $(INCLUDEDIR)/velocity_function.h

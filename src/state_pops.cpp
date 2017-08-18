@@ -10,8 +10,8 @@
 #include <xastro.h>
 #include <xmath.h>
 #include <xstdlib.h>
-#include <arlnsmat.h>
-#include <arlsnsym.h>
+//#include <arlnsmat.h>
+//#include <arlsnsym.h>
 #include <radiation.h>
 #include <line_routines.h>
 #include <kurucz_data.h>
