@@ -109,7 +109,8 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 	io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_xvGaussian_Fit[0];
 	io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_xvGaussian_Fit[1];
 	io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_xvGaussian_Fit[2];
-	if (i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit.size() > 3)
+	//std::cout << "so size" << i_cResult.m_cSynthetic_Observables.m_xvGaussian_Fit.size() << std::endl;
+	if (i_cResult.m_cTarget_Observables.m_xvGaussian_Fit.size() > 3)
 	{
 		io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_xvGaussian_Fit[3];
 		io_ofsFile << ", " << i_cResult.m_cTarget_Observables.m_xvGaussian_Fit[4];
@@ -130,6 +131,7 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 //	io_ofsFile << std::defaultfloat 
 	io_ofsFile << std::endl;
 
+	//std::cout << "sides" << std::endl;
 	unsigned int uiBlue_Idx = -1;
 	unsigned int uiRed_Idx = -1;
 	for (unsigned int uiI = 0; uiI < i_cResult.m_vpdSpectrum_Target.size() && (uiBlue_Idx == -1 || uiRed_Idx == -1); uiI++)
@@ -185,6 +187,7 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 			double dY_cont = (dWL - dWL_Ref) * dSlope + dFlux_Ref;
 			vY_Fit.push_back((1.0 - dY) * dY_cont);
 		}
+	//std::cout << "plot" << std::endl;
 		cLine_Parameters.m_eColor = epsplot::BLACK;
 		cLine_Parameters.m_eStipple = epsplot::SOLID;
 		cPlot.Set_Plot_Data(vX, vY_Tgt, cLine_Parameters, uiX_Axis, uiY_Axis);
@@ -198,6 +201,7 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 		cPlot.Set_Plot_Filename(ossSpectra_Data_Plot_File.str().c_str());
 
 		cPlot.Plot(cPlot_Parameters);
+	//std::cout << "plot done" << std::endl;
 
 		std::ostringstream ossSpectra_Data_File;
 		ossSpectra_Data_File << "Results/spectra_target_Gauss_fit_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << ".csv";
@@ -219,6 +223,7 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 			}
 			ofsSpectra.close();
 		}
+	//std::cout << "gaussian done" << std::endl;
 	}
 	else
 		std::cerr << "Failed to find red or blue index. " << uiBlue_Idx << " " << uiRed_Idx << std::endl;

@@ -584,6 +584,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 
 	if (uiParameters == 7)
 	{
+		//std::cout << "seven param" << std::endl;
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Vel = vStarting_Point[3];
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Temp = vStarting_Point[4];
 		o_cFit.m_cParams[specfit::comp_shell].m_dLog_S = vStarting_Point[5];
@@ -592,6 +593,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 	else if (uiParameters == 4)
 	{
+		//std::cout << "four param" << std::endl;
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Temp = vStarting_Point[0];
 		o_cFit.m_cParams[specfit::comp_shell].m_dPS_Vel = vStarting_Point[1];
 		o_cFit.m_cParams[specfit::comp_shell].m_dLog_S = vStarting_Point[3];
@@ -630,6 +632,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	
 	if (uiParameters == 7)
 	{
+		//std::cout << "seven param" << std::endl;
 		cCall_Data.m_cParam.m_dPhotosphere_Temp_kK = vStarting_Point[0];
 		cCall_Data.m_cParam.m_dPhotosphere_Velocity_kkms = vStarting_Point[1];
 		cCall_Data.m_cParam.m_dEjecta_Log_Scalar = vStarting_Point[2];
@@ -674,6 +677,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 	}
 	else
 	{
+		//std::cout << "four param" << std::endl;
 
 		bool bIon_Valid;
 		opacity_profile_data::group eGroup = opacity_profile_data::silicon; //@@TODO refer to correct group
@@ -719,9 +723,11 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 		if (cTarget.wl(uiI) >= i_cFit.m_cFit_Range.m_dBlue_WL && cTarget.wl(uiI) <= i_cFit.m_cFit_Range.m_dRed_WL)
 			vError.push_back(cTarget.flux(uiI) - csResult.flux(uiI) * dNorm);
 	}
+		//std::cout << "stats" << std::endl;
 	Get_Raw_Moments(vError,6,o_cFit.m_vdRaw_Moments);
 	Get_Central_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdCentral_Moments);
 	Get_Standardized_Moments(o_cFit.m_vdRaw_Moments,o_cFit.m_vdStandardized_Moments);
+		//std::cout << "done" << std::endl;
 
 
 	return o_cFit.m_vdRaw_Moments[1];

@@ -70,8 +70,12 @@ void specfit::Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::ma
 					double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell,i_lpbPerform_Single_Fit);
 					if (dFit >= 0.0 && dFit < m_dBest_Fit)
 					{
+								//std::cout << "save best fit" << std::endl;
+								//std::cout.flush();
 						cBest_Fit_Result = cFit_Result;
 						m_dBest_Fit = dFit;
+								//std::cout << "save best fit done" << std::endl;
+								//std::cout.flush();
 					}
 					std::ofstream ofsIndividual_Fit_File;
 					if (i_lppsEjecta != nullptr || i_lppsShell != nullptr)
@@ -81,21 +85,24 @@ void specfit::Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::ma
 					Write_Fit(ofsIndividual_Fit_File,cFit_Result);
 					ofsIndividual_Fit_File.close();
 
+					//std::cout << "model fit data start" << std::endl;
 					std::ofstream ofsModel_Fit_File;
 					std::ostringstream ossModel_Fit_File;
 					ossModel_Fit_File << "Results/model_fit_data_" << cFit_Result.m_uiModel << ".csv";
 					ofsModel_Fit_File.open(ossModel_Fit_File.str().c_str(),std::ios_base::app);
 					Write_Fit(ofsModel_Fit_File,cFit_Result);
 					ofsModel_Fit_File.close();
-
+					//std::cout << "model fit data done" << std::endl;
 					if (!bTarget_Data_Written)
 					{
+					//std::cout << "target fit data start" << std::endl;
 						std::ofstream ofsTarget_Data_File;
 						ofsTarget_Data_File.open("Results/target_fit_data.csv",std::ios_base::app);
 						Write_Target_Fit(ofsTarget_Data_File,cFit_Result);
 						ofsTarget_Data_File.close();
 						bTarget_Data_Written = true;
 					}
+					//std::cout << "target fit data done" << std::endl;
 				}
 			}
 			// process model lists
@@ -113,8 +120,12 @@ void specfit::Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::ma
 							double dFit = GenerateFit(*iterFit, i_mModel_Data[*iterMod], cFit_Result, i_bDebug,i_lppsEjecta,i_lppsShell,i_lpbPerform_Single_Fit);
 							if (dFit >= 0.0 && dFit < m_dBest_Fit)
 							{
+								//std::cout << "save best fit" << std::endl;
+								//std::cout.flush();
 								cBest_Fit_Result = cFit_Result;
 								m_dBest_Fit = dFit;
+								//std::cout << "save best fit done" << std::endl;
+								//std::cout.flush();
 							}
 							std::ofstream ofsIndividual_Fit_File;
 							if (i_lppsEjecta != nullptr || i_lppsShell != nullptr)
@@ -124,21 +135,25 @@ void specfit::Perform_Fits(std::vector <specfit::fit> &i_vfitFits, const std::ma
 							Write_Fit(ofsIndividual_Fit_File,cFit_Result);
 							ofsIndividual_Fit_File.close();
 
+					//std::cout << "model fit data start" << std::endl;
 							std::ofstream ofsModel_Fit_File;
 							std::ostringstream ossModel_Fit_File;
 							ossModel_Fit_File << "Results/model_fit_data_" << cFit_Result.m_uiModel << ".csv";
 							ofsModel_Fit_File.open(ossModel_Fit_File.str().c_str(),std::ios_base::app);
 							Write_Fit(ofsModel_Fit_File,cFit_Result);
 							ofsModel_Fit_File.close();
+					//std::cout << "model fit data done" << std::endl;
 
 							if (!bTarget_Data_Written)
 							{
+					//std::cout << "target fit data start" << std::endl;
 								std::ofstream ofsTarget_Data_File;
 								ofsTarget_Data_File.open("Results/target_fit_data.csv",std::ios_base::app);
 								Write_Target_Fit(ofsTarget_Data_File,cFit_Result);
 								ofsTarget_Data_File.close();
 								bTarget_Data_Written = true;
 							}
+					//std::cout << "target fit data done" << std::endl;
 						}
 					}
 				}
