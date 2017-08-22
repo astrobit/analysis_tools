@@ -548,7 +548,7 @@ double specfit::GenerateFit(const fit & i_cFit, const model & i_cModel, fit_resu
 			if (*iterI == ' ' || *iterI == '\t' || *iterI == ',')
 				*iterI = '_';
 		}
-		ossIntermediate_File_Prefix << "Results/Intermediate/spectra_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cModel.m_uiModel_ID;
+		ossIntermediate_File_Prefix << "Results/Intermediate/Spectra/" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cModel.m_uiModel_ID;
 
 		std::ostringstream ossGrid_Fit_Data_File; 
 		ossGrid_Fit_Data_File << "Results/Intermediate/grid_" << std::setprecision(7) << i_cFit.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cModel.m_uiModel_ID << ".csv";
