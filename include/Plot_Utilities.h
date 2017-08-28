@@ -96,8 +96,8 @@ public:
 	}
 };
 
-unsigned int	Set_Plot_Data(epsplot::DATA & i_cPlot, const ES::Spectrum & i_cSpectrum, const double & i_dMin_WL, const double & i_dMax_WL, const double & i_dNormalization_WL, const double & i_dVelocity_Reference_WL, const epsplot::LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
+unsigned int	Set_Plot_Data(epsplot::data & i_cPlot, const ES::Spectrum & i_cSpectrum, const double & i_dMin_WL, const double & i_dMax_WL, const double & i_dNormalization_WL, const double & i_dVelocity_Reference_WL, const epsplot::line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
 
 
-void Plot_EPS_Grid(const epsplot::PAGE_PARAMETERS & i_cGrid, const EPS_SPECTRA_PLOT_DATA & i_cData);
+void Plot_EPS_Grid(const epsplot::page_parameters & i_cGrid, const EPS_SPECTRA_PLOT_DATA & i_cData);
 

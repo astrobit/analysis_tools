@@ -11,17 +11,17 @@
 
 using namespace epsplot;
 
-const COLOR_TRIPLET	g_cColor_Std_Black(0.0,0.0,0.0);
-const COLOR_TRIPLET	g_cColor_Std_Red(1.0,0.0,0.0);
-const COLOR_TRIPLET	g_cColor_Std_Green(0.0,1.0,0.0);
-const COLOR_TRIPLET	g_cColor_Std_Blue(0.0,0.0,1.0);
-const COLOR_TRIPLET	g_cColor_Std_Cyan(0.0,1.0,1.0);
-const COLOR_TRIPLET	g_cColor_Std_Magenta(1.0,0.0,1.0);
-const COLOR_TRIPLET	g_cColor_Std_Yellow(1.0,1.0,0.0);
-const COLOR_TRIPLET	g_cColor_Std_Grey_25(0.25,0.25,0.25);
-const COLOR_TRIPLET	g_cColor_Std_Grey_50(0.50,0.50,0.50);
-const COLOR_TRIPLET	g_cColor_Std_Grey_75(0.75,0.75,0.75);
-const COLOR_TRIPLET	g_cColor_Std_White(1.0,1.0,1.0);
+const color_triplet	g_cColor_Std_Black(0.0,0.0,0.0);
+const color_triplet	g_cColor_Std_Red(1.0,0.0,0.0);
+const color_triplet	g_cColor_Std_Green(0.0,1.0,0.0);
+const color_triplet	g_cColor_Std_Blue(0.0,0.0,1.0);
+const color_triplet	g_cColor_Std_Cyan(0.0,1.0,1.0);
+const color_triplet	g_cColor_Std_Magenta(1.0,0.0,1.0);
+const color_triplet	g_cColor_Std_Yellow(1.0,1.0,0.0);
+const color_triplet	g_cColor_Std_Grey_25(0.25,0.25,0.25);
+const color_triplet	g_cColor_Std_Grey_50(0.50,0.50,0.50);
+const color_triplet	g_cColor_Std_Grey_75(0.75,0.75,0.75);
+const color_triplet	g_cColor_Std_White(1.0,1.0,1.0);
 
 #define LDASHLEN 16
 const double		g_dStipple_Std_Short_Dash[] = {LDASHLEN >> 1,LDASHLEN >> 1};
@@ -153,7 +153,7 @@ public:
 SYMBOL_CONTAINER	g_cSymbol_Containers;
 
 
-EPSFILE::EPSFILE(const char * i_lpszFormat)
+epsfile::epsfile(const char * i_lpszFormat)
 {
 	strcpy(m_lpszFormat,i_lpszFormat);
 	m_lpFileOut = NULL;
@@ -235,14 +235,14 @@ EPSFILE::EPSFILE(const char * i_lpszFormat)
 	m_mSymbol_Map["earth"] = glyphsymbol("circleplus",true);
 
 }
-EPSFILE::~EPSFILE(void)
+epsfile::~epsfile(void)
 {
 	Close_File();
 	if (m_lpszFilename)
 		delete [] m_lpszFilename;
 	m_lpszFilename = NULL;
 }
-void	EPSFILE::Close_File(void)
+void	epsfile::Close_File(void)
 {
 	if (m_lpFileOut)
 	{
@@ -253,7 +253,7 @@ void	EPSFILE::Close_File(void)
 	}
 	m_lpFileOut = NULL;
 }
-void EPSFILE::Open_File(const char * i_lpszFilename, const char * i_lpszDocument_Title, const double & i_dWidth_Inches, const double & i_dHeight_Inches)
+void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument_Title, const double & i_dWidth_Inches, const double & i_dHeight_Inches)
 {
 	struct tm * timeinfo;
 	time_t rawtime;
@@ -295,7 +295,7 @@ void EPSFILE::Open_File(const char * i_lpszFilename, const char * i_lpszDocument
 	if (i_dHeight_Inches < i_dWidth_Inches) // rotate to landscape mode
 		fprintf(m_lpFileOut,"90 rotate 0 -%.2f translate\n",i_dHeight_Inches * 72.0);
 }
-void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const COLOR_TRIPLET & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation, const double & i_dLine_Width) const
+void epsfile::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const color_triplet & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation, const double & i_dLine_Width) const
 {
 	std::string szFont;
 	fprintf(m_lpFileOut,m_lpszGsave);
@@ -509,44 +509,44 @@ void EPSFILE::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Si
 	fprintf(m_lpFileOut,m_lpszGrestore);
 }
 
-void EPSFILE::Rect_Clip(const double & i_dX, const double & i_dY, const double & i_dWidth, const double & i_dHeight) const
+void epsfile::Rect_Clip(const double & i_dX, const double & i_dY, const double & i_dWidth, const double & i_dHeight) const
 {
 	fprintf(m_lpFileOut,m_lpszRectClip, i_dX,i_dY,i_dWidth,i_dHeight);
 }
-void EPSFILE::Move_To(const double & i_dX, const double & i_dY) const
+void epsfile::Move_To(const double & i_dX, const double & i_dY) const
 {
 	if (!std::isnan(i_dX) && !std::isnan(i_dY) && !std::isinf(i_dX) && !std::isinf(i_dY))
 		fprintf(m_lpFileOut,m_lpszMoveto, i_dX,i_dY);
 }
-void EPSFILE::Line_To(const double & i_dX, const double & i_dY) const
+void epsfile::Line_To(const double & i_dX, const double & i_dY) const
 {
 	if (!std::isnan(i_dX) && !std::isnan(i_dY) && !std::isinf(i_dX) && !std::isinf(i_dY))
 		fprintf(m_lpFileOut,m_lpszLineto, i_dX,i_dY);
 }
-void EPSFILE::Translate(const double & i_dX, const double & i_dY) const
+void epsfile::Translate(const double & i_dX, const double & i_dY) const
 {
 	if (!std::isnan(i_dX) && !std::isnan(i_dY) && !std::isinf(i_dX) && !std::isinf(i_dY))
 		fprintf(m_lpFileOut,m_lpszTranslate, i_dX,i_dY);
 }
-void EPSFILE::State_Push(void) const
+void epsfile::State_Push(void) const
 {
 	fprintf(m_lpFileOut,m_lpszGsave);
 }
-void EPSFILE::State_Pop(void) const
+void epsfile::State_Pop(void) const
 {
 	fprintf(m_lpFileOut,m_lpszGrestore);
 }
-void EPSFILE::Set_Line_Width(const double &i_dLine_Width) const
+void epsfile::Set_Line_Width(const double &i_dLine_Width) const
 {
 	fprintf(m_lpFileOut,m_lpszSetLineWidth, i_dLine_Width);
 }
-void EPSFILE::Set_RGB_Color(const COLOR_TRIPLET & i_cColor) const
+void epsfile::Set_RGB_Color(const color_triplet & i_cColor) const
 {
 	fprintf(m_lpFileOut,m_lpszSetRGBColor, i_cColor.m_dRed, i_cColor.m_dGreen, i_cColor.m_dBlue);
 }
-void EPSFILE::Set_RGB_Color(PS_STANDARD_COLORS i_eColor) const
+void epsfile::Set_RGB_Color(PS_STANDARD_COLORS i_eColor) const
 {
-	COLOR_TRIPLET cColor;
+	color_triplet cColor;
 	switch (i_eColor)
 	{
 	case STD_BLACK:
@@ -577,23 +577,23 @@ void EPSFILE::Set_RGB_Color(PS_STANDARD_COLORS i_eColor) const
 	}
 	Set_RGB_Color(cColor);
 }
-void EPSFILE::Stroke(void) const
+void epsfile::Stroke(void) const
 {
 	fprintf(m_lpFileOut,m_lpszStroke);
 }
-void EPSFILE::Fill(void) const
+void epsfile::Fill(void) const
 {
 	fprintf(m_lpFileOut,m_lpszFill);
 }
-void EPSFILE::Close_Path(void) const
+void epsfile::Close_Path(void) const
 {
 	fprintf(m_lpFileOut,m_lpszClosepath);
 }
-void EPSFILE::Comment(const char * i_lpszComment) const
+void epsfile::Comment(const char * i_lpszComment) const
 {
 	fprintf(m_lpFileOut,"%% %s\n",i_lpszComment);
 }
-void EPSFILE::Set_Dash(const double * i_lpdPattern, unsigned int i_uiNum_Pattern_Elements, const double & i_dSpace) const
+void epsfile::Set_Dash(const double * i_lpdPattern, unsigned int i_uiNum_Pattern_Elements, const double & i_dSpace) const
 {
 	fprintf(m_lpFileOut,"[");
 	if (i_lpdPattern)
@@ -611,7 +611,7 @@ void EPSFILE::Set_Dash(const double * i_lpdPattern, unsigned int i_uiNum_Pattern
 	fprintf(m_lpFileOut,m_lpszSetDash);
 }
 
-void EPSFILE::Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const COLOR_TRIPLET & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation, const double & i_dLine_Width) const
+void epsfile::Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const color_triplet & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation, const double & i_dLine_Width) const
 {
 	fprintf(m_lpFileOut,m_lpszGsave);
 	fprintf(m_lpFileOut,m_lpszSetLineWidth,i_dLine_Width);
@@ -663,7 +663,7 @@ void EPSFILE::Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, i
 	fprintf(m_lpFileOut,m_lpszGrestore);
 }
 
-std::vector< text_entity > EPSFILE::Parse_String(const std::string & i_szString) const
+std::vector< text_entity > epsfile::Parse_String(const std::string & i_szString) const
 {
 	std::vector <text_entity> veEntities;
 	std::ostringstream ossCurr_Entity;
@@ -815,7 +815,7 @@ std::vector< text_entity > EPSFILE::Parse_String(const std::string & i_szString)
 
 //----------------------------------------------------------------------------
 //
-// DATA class members
+// data class members
 //
 //----------------------------------------------------------------------------
 
@@ -825,9 +825,9 @@ std::vector< text_entity > EPSFILE::Parse_String(const std::string & i_szString)
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-unsigned int	DATA::Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, COLOR i_eColor, STIPPLE i_eStipple, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type, const double & i_dLine_Width)
+unsigned int	data::Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, COLOR i_eColor, STIPPLE i_eStipple, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type, const double & i_dLine_Width)
 {
-	LINE_PARAMETERS	cLine_Param;
+	line_parameters	cLine_Param;
 
 	cLine_Param.m_eColor = i_eColor;
 	cLine_Param.m_dWidth = i_dLine_Width;
@@ -835,11 +835,11 @@ unsigned int	DATA::Set_Plot_Data(const double * i_lpdX_Values, const double * i_
 	return Set_Plot_Data(i_lpdX_Values,i_lpdY_Values,i_uiNum_Points, cLine_Param, i_uiX_Axis_Type, i_uiY_Axis_Type);
 }
 
-unsigned int	DATA::Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	data::Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 
 {
 	unsigned int uiRet = -1;
-	LINE_ITEM * lpLine_Data = new LINE_ITEM;
+	line_item * lpLine_Data = new line_item;
 
 	if (lpLine_Data)
 	{
@@ -870,15 +870,15 @@ unsigned int	DATA::Set_Plot_Data(const double * i_lpdX_Values, const double * i_
 	return uiRet;
 }
 
-unsigned int	DATA::Set_Plot_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	data::Set_Plot_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 
 {
 	unsigned int uiRet = -1;
-	LINE_ITEM * lpLine_Data = new LINE_ITEM;
+	line_item * lpLine_Data = new line_item;
 
 	if (i_vdX_Values.size() != i_vdY_Values.size())
 	{
-		fprintf(stderr,"epsplot::DATA Error! Set_Plot_Data called using std::vector, but X and Y vectors differ in size.\n");
+		fprintf(stderr,"epsplot::data Error! Set_Plot_Data called using std::vector, but X and Y vectors differ in size.\n");
 	}
 	if (lpLine_Data && i_vdX_Values.size() == i_vdY_Values.size() && i_vdX_Values.size() > 0)
 	{
@@ -909,11 +909,11 @@ unsigned int	DATA::Set_Plot_Data(const std::vector<double> &i_vdX_Values, const 
 	}
 	return uiRet;
 }
-unsigned int	DATA::Set_Plot_Data(const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	data::Set_Plot_Data(const std::vector<eps_pair> &i_vpValues, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 
 {
 	unsigned int uiRet = -1;
-	LINE_ITEM * lpLine_Data = new LINE_ITEM;
+	line_item * lpLine_Data = new line_item;
 
 	if (lpLine_Data && i_vpValues.size() > 0)
 	{
@@ -943,13 +943,13 @@ unsigned int	DATA::Set_Plot_Data(const std::vector<eps_pair> &i_vpValues, const 
 	}
 	return uiRet;
 }
-unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 
 {
 	unsigned int uiRet = -1;
 	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
 	{
-		LINE_ITEM * lpLine_Data = (LINE_ITEM *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
+		line_item * lpLine_Data = (line_item *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
 		if (lpLine_Data)
 		{
 			uiRet = i_uiPlot_Data_ID;
@@ -982,18 +982,18 @@ unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double 
 	}
 	return uiRet;
 }
-unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 
 {
 	unsigned int uiRet = -1;
 	if (i_vdX_Values.size() != i_vdY_Values.size())
 	{
-		fprintf(stderr,"epsplot::DATA Error! Modify_Plot_Data called using std::vector, but X and Y vectors differ in size.\n");
+		fprintf(stderr,"epsplot::data Error! Modify_Plot_Data called using std::vector, but X and Y vectors differ in size.\n");
 	}
 
 	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
 	{
-		LINE_ITEM * lpLine_Data = (LINE_ITEM *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
+		line_item * lpLine_Data = (line_item *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
 		if (lpLine_Data)
 		{
 			uiRet = i_uiPlot_Data_ID;
@@ -1028,13 +1028,13 @@ unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::ve
 	}
 	return uiRet;
 }
-unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 
 {
 	unsigned int uiRet = -1;
 	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
 	{
-		LINE_ITEM * lpLine_Data = (LINE_ITEM *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
+		line_item * lpLine_Data = (line_item *)m_vcPlot_Item_List[i_uiPlot_Data_ID];
 		if (lpLine_Data)
 		{
 			uiRet = i_uiPlot_Data_ID;
@@ -1075,18 +1075,18 @@ unsigned int	DATA::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::ve
 // Errorbars
 //
 ///////////////////////////////////////////////////////////////////////////////
-unsigned int	DATA::Set_Errorbar_Data(const ERRORBAR_PARAMETERS & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const LINE_PARAMETERS & i_cLine_Parameters)
+unsigned int	data::Set_Errorbar_Data(const errorbar_parameters & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const line_parameters & i_cLine_Parameters)
 {
 	unsigned int uiRet = -1;
 	if (i_cErrorbar_Parameters.m_uiAssociated_Plot < m_vcPlot_Item_List.size() && i_vdValues.size() > 0)
 	{
-		PLOT_ITEM * lpPlot = m_vcPlot_Item_List[i_cErrorbar_Parameters.m_uiAssociated_Plot];
-		LINE_ITEM * lpLine = (LINE_ITEM *) lpPlot;
-		SYMBOL_ITEM * lpSymbol = (SYMBOL_ITEM *) lpPlot;
+		plot_item * lpPlot = m_vcPlot_Item_List[i_cErrorbar_Parameters.m_uiAssociated_Plot];
+		line_item * lpLine = (line_item *) lpPlot;
+		symbol_item * lpSymbol = (symbol_item *) lpPlot;
 
 		if (lpPlot && (lpPlot->m_eType == TYPE_LINE || lpPlot->m_eType == TYPE_SYMBOL))
 		{
-			ERRORBAR_ITEM * lpItem = new ERRORBAR_ITEM;
+			errorbar_item * lpItem = new errorbar_item;
 			if (lpItem)
 			{
 				lpItem->m_uiPlot_Axes_To_Use[0] = lpPlot->m_uiPlot_Axes_To_Use[0];
@@ -1112,12 +1112,12 @@ unsigned int	DATA::Set_Errorbar_Data(const ERRORBAR_PARAMETERS & i_cErrorbar_Par
 // Symbols
 //
 ///////////////////////////////////////////////////////////////////////////////
-unsigned int	DATA::Set_Symbol_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Set_Symbol_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 {
 	unsigned int uiRet = -1;
 	if (i_lpdX_Values && i_lpdY_Values && i_uiNum_Points > 0)
 	{
-		SYMBOL_ITEM * lpItem = new SYMBOL_ITEM;
+		symbol_item * lpItem = new symbol_item;
 
 		if (lpItem)
 		{
@@ -1143,16 +1143,16 @@ unsigned int	DATA::Set_Symbol_Data(const double * i_lpdX_Values, const double * 
 	}
 	return uiRet;
 }
-unsigned int	DATA::Set_Symbol_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Set_Symbol_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 {
 	unsigned int uiRet = -1;
 	if (i_vdX_Values.size() != i_vdY_Values.size())
 	{
-		fprintf(stderr,"epsplot::DATA Error! Set_Symbol_Data called using std::vector, but X and Y vectors differ in size.\n");
+		fprintf(stderr,"epsplot::data Error! Set_Symbol_Data called using std::vector, but X and Y vectors differ in size.\n");
 	}
 	else if (i_vdX_Values.size() > 0)
 	{
-		SYMBOL_ITEM * lpItem = new SYMBOL_ITEM;
+		symbol_item * lpItem = new symbol_item;
 		if (lpItem)
 		{
 			lpItem->m_uiNum_Points = i_vdX_Values.size();
@@ -1180,12 +1180,12 @@ unsigned int	DATA::Set_Symbol_Data(const std::vector<double> &i_vdX_Values, cons
 	}
 	return uiRet;
 }
-unsigned int	DATA::Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 {
 	unsigned int uiRet = -1;
 	if (i_vpValues.size() > 0)
 	{
-		SYMBOL_ITEM * lpItem = new SYMBOL_ITEM;
+		symbol_item * lpItem = new symbol_item;
 		if (lpItem)
 		{
 			lpItem->m_uiNum_Points = i_vpValues.size();
@@ -1208,26 +1208,26 @@ unsigned int	DATA::Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, cons
 
 				uiRet = m_vcPlot_Item_List.size();
 				m_vcPlot_Item_List.push_back(lpItem);
-				//printf("#pts %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_uiNum_Points);
-				//printf("xaxis%i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_uiPlot_Axes_To_Use[0]);
-				//printf("yaxis %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_uiPlot_Axes_To_Use[1]);
-				//printf("size %f\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_dSize);
-				//printf("fill %c\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_bFilled ? 't' : 'f');
-				//printf("color %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_eColor);
-				//printf("trype %i\n",((SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_eType);
+				//printf("#pts %i\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_uiNum_Points);
+				//printf("xaxis%i\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_uiPlot_Axes_To_Use[0]);
+				//printf("yaxis %i\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_uiPlot_Axes_To_Use[1]);
+				//printf("size %f\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_dSize);
+				//printf("fill %c\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_bFilled ? 't' : 'f');
+				//printf("color %i\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_eColor);
+				//printf("trype %i\n",((symbol_item *)m_vcPlot_Item_List[uiRet])->m_cPlot_Symbol_Info.m_eType);
 			}
 		}
 	}
 	return uiRet;
 }
 
-unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 {
 	unsigned int uiRet = -1;
 	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
 	{
 		uiRet = i_uiPlot_Data_ID;
-		SYMBOL_ITEM * lpItem = (SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet];
+		symbol_item * lpItem = (symbol_item *)m_vcPlot_Item_List[uiRet];
 		if (lpItem)
 		{
 			if (i_lpdX_Values && i_lpdY_Values && i_uiNum_Points > 0)
@@ -1266,13 +1266,13 @@ unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const doubl
 	}
 	return uiRet;
 }
-unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 {
 	unsigned int uiRet = -1;
 	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
 	{
 		uiRet = i_uiPlot_Data_ID;
-		SYMBOL_ITEM * lpItem = (SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet];
+		symbol_item * lpItem = (symbol_item *)m_vcPlot_Item_List[uiRet];
 		if (lpItem)
 		{
 			if (i_vdX_Values.size() > 0 && i_vdY_Values.size() == i_vdX_Values.size())
@@ -1310,13 +1310,13 @@ unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::
 	}
 	return uiRet;
 }
-unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const SYMBOL_PARAMETERS & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
+unsigned int	data::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID)
 {
 	unsigned int uiRet = -1;
 	if (i_uiPlot_Data_ID < m_vcPlot_Item_List.size())
 	{
 		uiRet = i_uiPlot_Data_ID;
-		SYMBOL_ITEM * lpItem = (SYMBOL_ITEM *)m_vcPlot_Item_List[uiRet];
+		symbol_item * lpItem = (symbol_item *)m_vcPlot_Item_List[uiRet];
 		if (lpItem)
 		{
 			if (i_vpValues.size() > 0)
@@ -1366,10 +1366,10 @@ unsigned int	DATA::Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-unsigned int	DATA::Set_Rectangle_Data(const RECTANGLE & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	data::Set_Rectangle_Data(const rectangle & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 {
 	unsigned int uiRet = -1;
-	RECTANGLE_ITEM * lpItem = new RECTANGLE_ITEM;
+	rectangle_item * lpItem = new rectangle_item;
 	if (lpItem)
 	{
 		uiRet = m_vcPlot_Item_List.size();
@@ -1392,10 +1392,10 @@ unsigned int	DATA::Set_Rectangle_Data(const RECTANGLE & i_cArea, bool i_bFill, C
 	return uiRet;
 }
 
-unsigned int	DATA::Set_Text_Data(const double & i_dX, const double & i_dY, const char * i_lpszText, const LINE_PARAMETERS & i_cLine_Parameters, const TEXT_PARAMETERS & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	data::Set_Text_Data(const double & i_dX, const double & i_dY, const char * i_lpszText, const line_parameters & i_cLine_Parameters, const text_parameters & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 {
 	unsigned int uiRet = -1;
-	TEXT_ITEM * lpItem = new TEXT_ITEM;
+	text_item * lpItem = new text_item;
 	if (lpItem)
 	{
 		uiRet = m_vcPlot_Item_List.size();
@@ -1413,15 +1413,15 @@ unsigned int	DATA::Set_Text_Data(const double & i_dX, const double & i_dY, const
 	return uiRet;
 }
 
-unsigned int	DATA::Modify_Text_Data(unsigned int i_uiText_Data_ID, const double & i_dX, const double & i_dY, const char * i_lpszText, const LINE_PARAMETERS & i_cLine_Parameters, const TEXT_PARAMETERS & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	data::Modify_Text_Data(unsigned int i_uiText_Data_ID, const double & i_dX, const double & i_dY, const char * i_lpszText, const line_parameters & i_cLine_Parameters, const text_parameters & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 {
 	unsigned int uiRet = -1;
-	PLOT_ITEM * lpPlot_Item = NULL;
-	TEXT_ITEM * lpItem = NULL;
+	plot_item * lpPlot_Item = NULL;
+	text_item * lpItem = NULL;
 	if (i_uiText_Data_ID < m_vcPlot_Item_List.size())
 		lpPlot_Item = m_vcPlot_Item_List[i_uiText_Data_ID];
 	if (lpPlot_Item && lpPlot_Item->m_eType == TYPE_TEXT)
-		lpItem = (TEXT_ITEM *)lpPlot_Item;
+		lpItem = (text_item *)lpPlot_Item;
 	if (lpItem)
 	{
 		lpItem->Set_Text(i_lpszText);
@@ -1434,9 +1434,9 @@ unsigned int	DATA::Modify_Text_Data(unsigned int i_uiText_Data_ID, const double 
 	}
 }
 
-std::vector<AXIS_METADATA> * DATA::Get_Axis_Metedata_Vector_Ptr(AXIS i_eAxis)
+std::vector<axis_metadata> * data::Get_Axis_Metedata_Vector_Ptr(AXIS i_eAxis)
 {
-	std::vector<AXIS_METADATA> * lpvcAxis_Data;
+	std::vector<axis_metadata> * lpvcAxis_Data;
 	switch (i_eAxis)
 	{
 	case X_AXIS:
@@ -1452,10 +1452,10 @@ std::vector<AXIS_METADATA> * DATA::Get_Axis_Metedata_Vector_Ptr(AXIS i_eAxis)
 	}
 	return lpvcAxis_Data;
 }
-unsigned int	DATA::Set_Axis_Parameters(AXIS i_eAxis, const AXIS_PARAMETERS & i_cAxis_Parameters)
+unsigned int	data::Set_Axis_Parameters(AXIS i_eAxis, const axis_parameters & i_cAxis_Parameters)
 {
-	AXIS_METADATA	cMeta_Data;
-	std::vector<AXIS_METADATA> * lpvcAxis_Data = Get_Axis_Metedata_Vector_Ptr(i_eAxis);
+	axis_metadata	cMeta_Data;
+	std::vector<axis_metadata> * lpvcAxis_Data = Get_Axis_Metedata_Vector_Ptr(i_eAxis);
 	if(lpvcAxis_Data)
 	{
 		cMeta_Data.m_uiIdentifier = lpvcAxis_Data->size();
@@ -1466,28 +1466,28 @@ unsigned int	DATA::Set_Axis_Parameters(AXIS i_eAxis, const AXIS_PARAMETERS & i_c
 	return cMeta_Data.m_uiIdentifier;
 }
 
-unsigned int	DATA::Set_X_Axis_Parameters(const AXIS_PARAMETERS & i_cAxis_Parameters)
+unsigned int	data::Set_X_Axis_Parameters(const axis_parameters & i_cAxis_Parameters)
 {
 	return Set_Axis_Parameters(X_AXIS,i_cAxis_Parameters);
 }
-unsigned int	DATA::Set_Y_Axis_Parameters(const AXIS_PARAMETERS & i_cAxis_Parameters)
+unsigned int	data::Set_Y_Axis_Parameters(const axis_parameters & i_cAxis_Parameters)
 {
 	return Set_Axis_Parameters(Y_AXIS,i_cAxis_Parameters);
 }
-unsigned int	DATA::Set_X_Axis_Parameters(const char * i_lpszAxis_Description, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax)
+unsigned int	data::Set_X_Axis_Parameters(const char * i_lpszAxis_Description, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax)
 {
-	AXIS_PARAMETERS	cAxis_Parameters(i_lpszAxis_Description, i_bLog_Axis, i_bInvert_Axis, i_bSet_Min, i_dMin, i_bSet_Max, i_dMax);
+	axis_parameters	cAxis_Parameters(i_lpszAxis_Description, i_bLog_Axis, i_bInvert_Axis, i_bSet_Min, i_dMin, i_bSet_Max, i_dMax);
 	return Set_Axis_Parameters(X_AXIS,cAxis_Parameters);
 }
-unsigned int	DATA::Set_Y_Axis_Parameters(const char * i_lpszAxis_Description, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax)
+unsigned int	data::Set_Y_Axis_Parameters(const char * i_lpszAxis_Description, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax)
 {
-	AXIS_PARAMETERS	cAxis_Parameters(i_lpszAxis_Description, i_bLog_Axis, i_bInvert_Axis, i_bSet_Min, i_dMin, i_bSet_Max, i_dMax);
+	axis_parameters	cAxis_Parameters(i_lpszAxis_Description, i_bLog_Axis, i_bInvert_Axis, i_bSet_Min, i_dMin, i_bSet_Max, i_dMax);
 	return Set_Axis_Parameters(Y_AXIS,cAxis_Parameters);
 }
-unsigned int	DATA::Modify_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich, const AXIS_PARAMETERS & i_cAxis_Parameters)
+unsigned int	data::Modify_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters)
 {
 	unsigned int uiRet = -1;
-	std::vector<AXIS_METADATA> * lpvcAxis_Data = Get_Axis_Metedata_Vector_Ptr(i_eAxis);
+	std::vector<axis_metadata> * lpvcAxis_Data = Get_Axis_Metedata_Vector_Ptr(i_eAxis);
 	if (lpvcAxis_Data && i_uiWhich < lpvcAxis_Data->size())
 	{
 		lpvcAxis_Data[0][i_uiWhich].m_cParameters = i_cAxis_Parameters;
@@ -1495,18 +1495,18 @@ unsigned int	DATA::Modify_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich, 
 	}
 	return uiRet;
 }
-unsigned int	DATA::Modify_X_Axis_Parameters(unsigned int i_uiWhich, const AXIS_PARAMETERS & i_cAxis_Parameters)
+unsigned int	data::Modify_X_Axis_Parameters(unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters)
 {
 	Modify_Axis_Parameters(X_AXIS,i_uiWhich,i_cAxis_Parameters);
 }
-unsigned int	DATA::Modify_Y_Axis_Parameters(unsigned int i_uiWhich, const AXIS_PARAMETERS & i_cAxis_Parameters)
+unsigned int	data::Modify_Y_Axis_Parameters(unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters)
 {
 	Modify_Axis_Parameters(Y_AXIS,i_uiWhich,i_cAxis_Parameters);
 }
-AXIS_PARAMETERS	DATA::Get_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich)
+axis_parameters	data::Get_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich)
 {
-	AXIS_PARAMETERS	cRet;
-	std::vector<AXIS_METADATA> * lpvcAxis_Data = Get_Axis_Metedata_Vector_Ptr(i_eAxis);
+	axis_parameters	cRet;
+	std::vector<axis_metadata> * lpvcAxis_Data = Get_Axis_Metedata_Vector_Ptr(i_eAxis);
 	if (lpvcAxis_Data && i_uiWhich < lpvcAxis_Data->size())
 	{
 		cRet = lpvcAxis_Data[0][i_uiWhich].m_cParameters;
@@ -1514,26 +1514,26 @@ AXIS_PARAMETERS	DATA::Get_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich)
 	return cRet;
 }
 
-AXIS_PARAMETERS	DATA::Get_X_Axis_Parameters(unsigned int i_uiWhich)
+axis_parameters	data::Get_X_Axis_Parameters(unsigned int i_uiWhich)
 {
 	return Get_Axis_Parameters(X_AXIS, i_uiWhich);
 }
-AXIS_PARAMETERS	DATA::Get_Y_Axis_Parameters(unsigned int i_uiWhich)
+axis_parameters	data::Get_Y_Axis_Parameters(unsigned int i_uiWhich)
 {
 	return Get_Axis_Parameters(Y_AXIS, i_uiWhich);
 }
 
 
-void	DATA::Define_Custom_Color(COLOR i_eColor, const COLOR_TRIPLET & i_cColor)
+void	data::Define_Custom_Color(COLOR i_eColor, const color_triplet & i_cColor)
 {
 	if (i_eColor >= CLR_CUSTOM_1 && i_eColor <= CLR_CUSTOM_16)
 	{
 		m_cCustom_Colors[i_eColor - CLR_CUSTOM_1] = i_cColor;
 	}
 }
-COLOR_TRIPLET DATA::Get_Color(COLOR i_eColor) const
+color_triplet data::Get_Color(COLOR i_eColor) const
 {
-	COLOR_TRIPLET cRet(-1.0,-1.0,-1.0); // invalid color
+	color_triplet cRet(-1.0,-1.0,-1.0); // invalid color
 	switch (i_eColor)
 	{
 	case CLR_CUSTOM_1:
@@ -1597,7 +1597,7 @@ COLOR_TRIPLET DATA::Get_Color(COLOR i_eColor) const
 }
 
 
-void	DATA::Define_Custom_Stipple(STIPPLE i_eStipple, const double * i_lpdStipple, unsigned int i_uiStipple_Length)
+void	data::Define_Custom_Stipple(STIPPLE i_eStipple, const double * i_lpdStipple, unsigned int i_uiStipple_Length)
 {
 	if (i_eStipple >= STPL_CUSTOM_1 && i_eStipple <= STPL_CUSTOM_16)
 	{
@@ -1614,7 +1614,7 @@ void	DATA::Define_Custom_Stipple(STIPPLE i_eStipple, const double * i_lpdStipple
 	}
 }
 
-const double *	DATA::Get_Stipple(STIPPLE i_eStipple, unsigned int & o_uiStipple_Length) const
+const double *	data::Get_Stipple(STIPPLE i_eStipple, unsigned int & o_uiStipple_Length) const
 {
 	const double * lpdRet = NULL;
 	o_uiStipple_Length = 0;
@@ -1683,7 +1683,7 @@ const double *	DATA::Get_Stipple(STIPPLE i_eStipple, unsigned int & o_uiStipple_
 }
 
 
-void DATA::Draw_Symbol(EPSFILE & io_cEPS, const double & i_dX, const double & i_dY, const SYMBOL_PARAMETERS & i_cSymbol_Param)
+void data::Draw_Symbol(epsfile & io_cEPS, const double & i_dX, const double & i_dY, const symbol_parameters & i_cSymbol_Param)
 {
 	double dSize = i_cSymbol_Param.m_dSize;
 	std::vector<eps_pair> *vSymbol;
@@ -1776,17 +1776,17 @@ void DATA::Draw_Symbol(EPSFILE & io_cEPS, const double & i_dX, const double & i_
 	}
 }
 
-void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
+void	data::Plot(const page_parameters & i_cGrid)
 {
-	COLOR_TRIPLET	cBlue(0.0,0.0,1.0);
+	color_triplet	cBlue(0.0,0.0,1.0);
 	char	lpszText[32];
 	double ** lpdMinima_WL = NULL, ** lpdMinima_Flux = NULL;
 	double ** lpdEW = NULL;
 	double lpdDash_Style[2] = {2,2};
 	double lpdLong_Short_Dash_Style[4] = {4,2,2,2};
-	EPSFILE	cEPS("%.3f");// it seems this resolution is sufficient.  For higher resolution, use %.6f
-	AXIS_METADATA cX_Axis_Default;
-	AXIS_METADATA cY_Axis_Default;
+	epsfile	cEPS("%.3f");// it seems this resolution is sufficient.  For higher resolution, use %.6f
+	axis_metadata cX_Axis_Default;
+	axis_metadata cY_Axis_Default;
 	if (m_lpszFilename != NULL && m_lpszFilename[0] != 0)
 	{
 		cEPS.Open_File(m_lpszFilename, m_lpszTitle, i_cGrid.m_dWidth_Inches, i_cGrid.m_dHeight_Inches);
@@ -1815,25 +1815,25 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 		//double	dSingle_Plot_Space_X = dGraph_Space_X / i_cGrid.m_uiNum_Columns;
 		//double	dSingle_Plot_Space_Y = dGraph_Space_Y / i_cGrid.m_uiNum_Rows;
 
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Reset_Limits();
 		}
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Reset_Limits();
 		}
 
-		for (std::vector<PLOT_ITEM *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
+		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
-			PLOT_ITEM * lpCurr = *cPlot_Item_Iter;
-			LINE_ITEM * lpcLine = NULL;
-			SYMBOL_ITEM * lpcSymbol = NULL;
-			RECTANGLE_ITEM * lpcRectangle = NULL;
-			TEXT_ITEM * lpcText = NULL;
+			plot_item * lpCurr = *cPlot_Item_Iter;
+			line_item * lpcLine = NULL;
+			symbol_item * lpcSymbol = NULL;
+			rectangle_item * lpcRectangle = NULL;
+			text_item * lpcText = NULL;
 
 //			double	dXminLcl = DBL_MAX, dXmaxLcl = -DBL_MAX;
-			AXIS_METADATA * lpX_Axis;
+			axis_metadata * lpX_Axis;
 
 			if (m_cX_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[0] >= m_cX_Axis_Parameters.size())
 				lpX_Axis = &cX_Axis_Default;
@@ -1843,47 +1843,47 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			switch (lpCurr->m_eType)
 			{
 			case TYPE_LINE:
-				lpcLine = (LINE_ITEM *) lpCurr;
+				lpcLine = (line_item *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
 				{
 					lpX_Axis->Adjust_Limits(lpcLine->m_lppData[uiJ].m_dX);
 				}
 				break;
 			case TYPE_SYMBOL:
-				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
+				lpcSymbol = (symbol_item *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 				{
 					lpX_Axis->Adjust_Limits(lpcSymbol->m_lppData[uiJ].m_dX);
 				}
 				break;
-			case TYPE_RECTANGLE:
-				lpcRectangle = (RECTANGLE_ITEM *) lpCurr;
+			case TYPE_rectangle:
+				lpcRectangle = (rectangle_item *) lpCurr;
 				lpX_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min);
 				lpX_Axis->Adjust_Limits(lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max);
 				break;
 			case TYPE_TEXT:
-//				lpcText = (TEXT_ITEM *) lpCurr;
+//				lpcText = (text_item *) lpCurr;
 				//Do not adjust axis limits to accomodate text.
 				break;
 			}
 		}
 		cX_Axis_Default.Finalize_Limit(dGraph_Space_X);
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Finalize_Limit(dGraph_Space_X);
 		}
 
-		for (std::vector<PLOT_ITEM *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
+		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
-			PLOT_ITEM * lpCurr = *cPlot_Item_Iter;
-			LINE_ITEM * lpcLine = NULL;
-			SYMBOL_ITEM * lpcSymbol = NULL;
-			RECTANGLE_ITEM * lpcRectangle = NULL;
-			TEXT_ITEM * lpcText = NULL;
+			plot_item * lpCurr = *cPlot_Item_Iter;
+			line_item * lpcLine = NULL;
+			symbol_item * lpcSymbol = NULL;
+			rectangle_item * lpcRectangle = NULL;
+			text_item * lpcText = NULL;
 
 //			double	dYminLcl = DBL_MAX, dYmaxLcl = -DBL_MAX;
-			AXIS_METADATA * lpX_Axis;
-			AXIS_METADATA * lpY_Axis;
+			axis_metadata * lpX_Axis;
+			axis_metadata * lpY_Axis;
 
 			if (m_cX_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[0] >= m_cX_Axis_Parameters.size())
 				lpX_Axis = &cX_Axis_Default;
@@ -1897,7 +1897,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			switch (lpCurr->m_eType)
 			{
 			case TYPE_LINE:
-				lpcLine = (LINE_ITEM *) lpCurr;
+				lpcLine = (line_item *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcLine->m_uiNum_Points; uiJ++)
 				{
 					if (lpcLine->m_lppData[uiJ].m_dX >= lpX_Axis->m_dLower_Limit && lpcLine->m_lppData[uiJ].m_dX <= lpX_Axis->m_dUpper_Limit)
@@ -1905,15 +1905,15 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				}
 				break;
 			case TYPE_SYMBOL:
-				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
+				lpcSymbol = (symbol_item *) lpCurr;
 				for (unsigned int uiJ = 0; uiJ < lpcSymbol->m_uiNum_Points; uiJ++)
 				{
 					if (lpcSymbol->m_lppData[uiJ].m_dX >= lpX_Axis->m_dLower_Limit && lpcSymbol->m_lppData[uiJ].m_dX <= lpX_Axis->m_dUpper_Limit)
 						lpY_Axis->Adjust_Limits(lpcSymbol->m_lppData[uiJ].m_dY);
 				}
 				break;
-			case TYPE_RECTANGLE:
-				lpcRectangle = (RECTANGLE_ITEM *) lpCurr;
+			case TYPE_rectangle:
+				lpcRectangle = (rectangle_item *) lpCurr;
 					if ((lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min >= lpX_Axis->m_dLower_Limit && lpcRectangle->m_cPlot_Rectangle_Info.m_dX_min <= lpX_Axis->m_dUpper_Limit) ||
 (lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max >= lpX_Axis->m_dLower_Limit && lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max <= lpX_Axis->m_dUpper_Limit) ||
 (lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max < lpX_Axis->m_dLower_Limit && lpcRectangle->m_cPlot_Rectangle_Info.m_dX_max > lpX_Axis->m_dUpper_Limit))
@@ -1923,14 +1923,14 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				}
 				break;
 			case TYPE_TEXT:
-//				lpcText = (TEXT_ITEM *) lpCurr;
+//				lpcText = (text_item *) lpCurr;
 				//Do not adjust axis limits to accomodate text.
 				break;
 			}
 		}
 		cY_Axis_Default.Finalize_Limit(dGraph_Space_Y);
 
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Finalize_Limit(dGraph_Space_Y);
 		}
@@ -1990,17 +1990,17 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			fprintf(stderr,"No data to graph\n");
 			fflush(stderr);
 		}
-		for (std::vector<PLOT_ITEM *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
+		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
-			PLOT_ITEM * lpCurr = *cPlot_Item_Iter;
+			plot_item * lpCurr = *cPlot_Item_Iter;
 			uiI++;
-			LINE_ITEM * lpcLine = NULL;
-			SYMBOL_ITEM * lpcSymbol = NULL;
-			RECTANGLE_ITEM * lpcRectangle = NULL;
-			TEXT_ITEM * lpcText = NULL;
-			ERRORBAR_ITEM * lpcErrorbar = NULL;
-			AXIS_METADATA * lpX_Axis;
-			AXIS_METADATA * lpY_Axis;
+			line_item * lpcLine = NULL;
+			symbol_item * lpcSymbol = NULL;
+			rectangle_item * lpcRectangle = NULL;
+			text_item * lpcText = NULL;
+			errorbar_item * lpcErrorbar = NULL;
+			axis_metadata * lpX_Axis;
+			axis_metadata * lpY_Axis;
 
 			if (m_cX_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[0] >= m_cX_Axis_Parameters.size())
 				lpX_Axis = &cX_Axis_Default;
@@ -2014,7 +2014,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			switch (lpCurr->m_eType)
 			{
 			case TYPE_LINE:
-				lpcLine = (LINE_ITEM *) lpCurr;
+				lpcLine = (line_item *) lpCurr;
 				if (lpcLine->m_uiNum_Points >= 2)
 				{
 					if (lpcLine->m_cPlot_Line_Info.m_eColor != eCurr_Color)
@@ -2059,8 +2059,8 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					}
 				}
 				break;
-			case TYPE_RECTANGLE:
-				lpcRectangle = (RECTANGLE_ITEM *) lpCurr;
+			case TYPE_rectangle:
+				lpcRectangle = (rectangle_item *) lpCurr;
 
 				if (lpcRectangle->m_bArea_Fill)
 				{
@@ -2137,7 +2137,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				}
 				break;
 			case TYPE_TEXT:
-				lpcText = (TEXT_ITEM *) lpCurr;
+				lpcText = (text_item *) lpCurr;
 				if (lpcText->m_cLine_Parameters.m_eColor != eCurr_Color)
 				{
 					eCurr_Color = lpcText->m_cLine_Parameters.m_eColor;
@@ -2163,7 +2163,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 				}
 				break;
 			case TYPE_SYMBOL:
-				lpcSymbol = (SYMBOL_ITEM *) lpCurr;
+				lpcSymbol = (symbol_item *) lpCurr;
 				if (lpcSymbol->m_cPlot_Symbol_Info.m_eColor != eCurr_Color)
 				{
 					eCurr_Color = lpcSymbol->m_cPlot_Symbol_Info.m_eColor;
@@ -2200,7 +2200,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 
 				break;
 			case TYPE_ERRORBAR:
-				lpcErrorbar = (ERRORBAR_ITEM *) lpCurr;
+				lpcErrorbar = (errorbar_item *) lpCurr;
 				if (lpcErrorbar->m_cPlot_Line_Info.m_eColor != eCurr_Color)
 				{
 					eCurr_Color = lpcErrorbar->m_cPlot_Line_Info.m_eColor;
@@ -2220,13 +2220,13 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 					unsigned int uiNum_Points = 0;
 					if (m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot]->m_eType ==  TYPE_SYMBOL)
 					{
-						lpcSymbol = (SYMBOL_ITEM *)m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot];
+						lpcSymbol = (symbol_item *)m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot];
 						uiNum_Points = lpcSymbol->m_uiNum_Points;
 						lpPair_List = lpcSymbol->m_lppData;
 					}
 					else if (m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot]->m_eType ==  TYPE_LINE)
 					{
-						lpcLine = (LINE_ITEM *)m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot];
+						lpcLine = (line_item *)m_vcPlot_Item_List[lpcErrorbar->m_cErrorbar_Info.m_uiAssociated_Plot];
 						uiNum_Points = lpcLine->m_uiNum_Points;
 						lpPair_List = lpcLine->m_lppData;
 					}
@@ -2349,7 +2349,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 		// write axis data
 		cEPS.State_Push();
 		uiI = 0;
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			double dX,dY;
 			dX = (i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_X * 0.5;
@@ -2362,7 +2362,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 			uiI++;
 		}
 		uiI = 0;
-		for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			double	dX,dY;
 			dY = (i_cGrid.m_dBottom_Axis_Margin * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_Y * 0.5;
@@ -2475,7 +2475,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 		}
 		else
 		{
-			for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+			for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 			{
 				// round minimum axis value to nearest major tick
 				if (!(*cAxis_Iter).m_cParameters.m_bLog)
@@ -2763,7 +2763,7 @@ void	DATA::Plot(const PAGE_PARAMETERS & i_cGrid)
 		}
 		else
 		{
-			for (std::vector<AXIS_METADATA>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
+			for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 			{
 				// round minimum axis value to nearest major tick
 				if (!(*cAxis_Iter).m_cParameters.m_bLog)

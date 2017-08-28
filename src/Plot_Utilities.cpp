@@ -105,9 +105,9 @@ void Plot(const XDATASET & i_cDataset, const char * i_lpszSourceFile, const char
 		delete [] lpuiBins;
 	}
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;
@@ -167,9 +167,9 @@ void PlotSingle(ES::Spectrum & i_cSpectrum, const char * i_lpszOutput_Filename, 
 			dMax_Flux = lpdFit_Flux[uiI];
 	}
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;
@@ -454,9 +454,9 @@ void PlotSeries(ES::Spectrum * i_lpcSpectra, const double * i_lpdDay, epsplot::C
 
 
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;
@@ -757,9 +757,9 @@ void Plot(ES::Spectrum & i_cTarget, ES::Spectrum & i_cFit, const char * i_lpszOu
 	}
 
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;
@@ -807,9 +807,9 @@ void Plot_Spectrum(const char * i_lpszFilename,const double & i_dMin_WL, const d
 		}
 	}
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;
@@ -854,12 +854,12 @@ void Plot_Spectrum(const char * i_lpszFilename,const double & i_dMin_WL, const d
 			lpdSpectra_Flux[uiJ] = i_cTarget.flux(uiI + uiJ);
 		}
 
-		epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-		epsplot::DATA cPlot;
-		epsplot::LINE_PARAMETERS	cLine_Parameters;
+		epsplot::page_parameters	cPlot_Parameters;
+		epsplot::data cPlot;
+		epsplot::line_parameters	cLine_Parameters;
 
-		epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-		epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+		epsplot::axis_parameters	cX_Axis_Parameters;
+		epsplot::axis_parameters	cY_Axis_Parameters;
 
 		cPlot_Parameters.m_uiNum_Columns = 1;
 		cPlot_Parameters.m_uiNum_Rows = 1;
@@ -888,9 +888,9 @@ void Plot_Spectrum(const char * i_lpszFilename,const double & i_dMin_WL, const d
 }
 
 
-void Plot_EPS_Grid(const epsplot::PAGE_PARAMETERS & i_cGrid, const EPS_SPECTRA_PLOT_DATA & i_cData)
+void Plot_EPS_Grid(const epsplot::page_parameters & i_cGrid, const EPS_SPECTRA_PLOT_DATA & i_cData)
 {
-	epsplot::COLOR_TRIPLET	cBlue(0.0,0.0,1.0);
+	epsplot::color_triplet	cBlue(0.0,0.0,1.0);
 	char	lpszText[32];
 	double ** lpdMinima_WL = NULL, ** lpdMinima_Flux = NULL;
 	double ** lpdEW = NULL;
@@ -1359,7 +1359,7 @@ void Plot_EPS_Grid(const epsplot::PAGE_PARAMETERS & i_cGrid, const EPS_SPECTRA_P
 
 
 
-unsigned int	Set_Plot_Data(epsplot::DATA & i_cPlot, const ES::Spectrum & i_cSpectrum, const double & i_dMin_WL, const double & i_dMax_WL, const double & i_dNormalization_WL, const double & i_dVelocity_Reference_WL, const epsplot::LINE_PARAMETERS & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
+unsigned int	Set_Plot_Data(epsplot::data & i_cPlot, const ES::Spectrum & i_cSpectrum, const double & i_dMin_WL, const double & i_dMax_WL, const double & i_dNormalization_WL, const double & i_dVelocity_Reference_WL, const epsplot::line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type)
 {
 	unsigned int uiRet = 0;
 	unsigned int uiNum_Points = 0;
