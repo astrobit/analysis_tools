@@ -59,7 +59,7 @@ void Plot(epsplot::page_parameters	& i_cPlot_Parameters, epsplot::data &i_cPlot,
 
 		if (!std::isnan(i_dIF_Min) && !std::isnan(i_dIF_Max) && i_dIF_Min > 0 && i_dIF_Max > 0)
 		{
-			epsplot::RECTANGLE cRect;
+			epsplot::rectangle cRect;
 			cRect.m_dX_min = i_dIF_Min;
 			cRect.m_dX_max = i_dIF_Max;
 

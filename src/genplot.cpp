@@ -595,7 +595,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					if (lpCurr_Node->properties)
 					{
 						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
-						epsplot::COLOR_TRIPLET	cColor;
+						epsplot::color_triplet	cColor;
 						const char * lpszID = NULL;
 						while (lpCurr_Attr)
 						{
@@ -1007,7 +1007,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					cSymbol_Parameters.m_eColor = cLine_Parameters.m_eColor;
 					std::vector < epsplot::eps_pair> cData;
 					std::vector <double> cErrorbar_Data[4]; // 0 = x left, 1 = x right, 2 = y up, 3 = y down
-					epsplot::ERRORBAR_PARAMETERS cErrorbar_Parameters[4];
+					epsplot::errorbar_parameters cErrorbar_Parameters[4];
 					epsplot::line_parameters 	cErrorbar_Line_Parameters[4];
 
 					cData.clear();

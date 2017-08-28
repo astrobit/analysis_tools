@@ -100,7 +100,6 @@ namespace	epsplot
 			m_dBlue = i_dBlue;
 		}
 	};
-	typedef color_triplet COLOR_TRIPLET;
 	
 	class page_parameters
 	{
@@ -135,7 +134,6 @@ namespace	epsplot
 
 		}
 	};
-	typedef page_parameters PAGE_PARAMETERS;
 
 
 	class axis_parameters
@@ -254,7 +252,6 @@ namespace	epsplot
 		{
 		}
 	};
-	typedef axis_parameters AXIS_PARAMETERS;
 
 	class axis_parameters_Z : public axis_parameters
 	{
@@ -383,7 +380,6 @@ namespace	epsplot
 		void Set_Dash(const double * i_lpdPattern, unsigned int i_uiNum_Pattern_Elements, const double & i_dSpace) const;
 		void Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const color_triplet & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation = 0.0, const double & i_dLine_Width = 1.0) const;
 	};
-	typedef epsfile EPSFILE;
 
 
 	class rectangle
@@ -399,7 +395,6 @@ namespace	epsplot
 			m_dX_min = m_dX_max = m_dY_min = m_dY_max = 0.0;
 		}
 	};
-	typedef rectangle RECTANGLE;
 	class line_parameters
 	{
 	public:
@@ -414,7 +409,6 @@ namespace	epsplot
 			m_eStipple = SOLID;
 		}
 	};
-	typedef line_parameters LINE_PARAMETERS;
 	
 	class symbol_parameters
 	{
@@ -431,7 +425,6 @@ namespace	epsplot
 			m_bFilled = true;
 		}
 	};
-	typedef symbol_parameters SYMBOL_PARAMETERS;
 
 	class text_parameters
 	{
@@ -455,7 +448,6 @@ namespace	epsplot
 			m_eVertical_Justification = TOP;
 		}
 	};
-	typedef text_parameters TEXT_PARAMETERS;
 
 	class errorbar_parameters
 	{
@@ -473,7 +465,6 @@ namespace	epsplot
 			m_uiAssociated_Plot = -1;
 		}
 	};
-	typedef errorbar_parameters ERRORBAR_PARAMETERS;
 
 	enum ITEM_TYPE {TYPE_LINE,TYPE_SYMBOL,TYPE_rectangle,TYPE_TEXT,TYPE_ERRORBAR,TYPE_3D};
 	class	plot_item
@@ -495,7 +486,6 @@ namespace	epsplot
 			m_uiPlot_Axes_To_Use[2] = -1;
 		}
 	};
-	typedef plot_item PLOT_ITEM;
 
 	class plot_item_3d : public plot_item
 	{
@@ -538,7 +528,6 @@ namespace	epsplot
 			m_uiNum_Points = 0;
 		}
 	};
-	typedef line_item LINE_ITEM;
 
 	class symbol_item : public plot_item
 	{
@@ -560,7 +549,6 @@ namespace	epsplot
 			m_uiNum_Points = 0;
 		}
 	};
-	typedef symbol_item SYMBOL_ITEM;
 
 	class rectangle_item : public plot_item
 	{
@@ -578,7 +566,6 @@ namespace	epsplot
 			m_ePlot_Area_Fill_Color = BLACK;
 		}
 	};
-	typedef rectangle_item RECTANGLE_ITEM;
 
 	class text_item : public plot_item
 	{
@@ -620,7 +607,6 @@ namespace	epsplot
 		}
 		const char * Get_Text(void) const {return m_lpszText;}
 	};
-	typedef text_item TEXT_ITEM;
 
 	class errorbar_item : public plot_item
 	{
@@ -643,7 +629,6 @@ namespace	epsplot
 			m_uiNum_Points = 0;
 		}
 	};
-	typedef errorbar_item ERRORBAR_ITEM;
 
 
 	class axis_metadata
@@ -743,7 +728,6 @@ namespace	epsplot
 		}
 
 	};
-	typedef axis_metadata AXIS_METADATA;
 
 	class axis_metadata_Z : public axis_metadata
 	{
@@ -849,7 +833,7 @@ namespace	epsplot
 		std::vector<axis_metadata>	m_cY_Axis_Parameters;
 		std::vector<axis_metadata_Z> m_cZ_Axis_Parameters;
 
-		void Draw_Symbol(EPSFILE & io_cEPS, const double & i_dX, const double & i_dY, const symbol_parameters & i_cSymbol_Param);
+		void Draw_Symbol(epsfile & io_cEPS, const double & i_dX, const double & i_dY, const symbol_parameters & i_cSymbol_Param);
 		void	Deallocate_Plot_Data(void)
 		{
 			for (std::vector<plot_item *>::iterator	cIterator = m_vcPlot_Item_List.begin(); cIterator != m_vcPlot_Item_List.end(); cIterator++)
@@ -1037,7 +1021,6 @@ namespace	epsplot
 
 			Null_Pointers();
 		}
-		typedef data DATA;
 	};
 };
 

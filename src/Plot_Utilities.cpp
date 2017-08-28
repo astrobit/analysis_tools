@@ -896,7 +896,7 @@ void Plot_EPS_Grid(const epsplot::page_parameters & i_cGrid, const EPS_SPECTRA_P
 	double ** lpdEW = NULL;
 	double lpdDash_Style[2] = {2,2};
 	double lpdLong_Short_Dash_Style[4] = {4,2,2,2};
-	epsplot::EPSFILE	cEPS("%.3f");// it seems this resolution is sufficient.  For higher resolution, use %.6f
+	epsplot::epsfile	cEPS("%.3f");// it seems this resolution is sufficient.  For higher resolution, use %.6f
 	cEPS.Open_File(i_cData.m_lpszFilename, i_cData.m_lpszTitle, i_cGrid.m_dWidth_Inches, i_cGrid.m_dHeight_Inches);
 
 	double	dGraph_Space_X = i_cGrid.m_dWidth_Inches * 72.0 * (1.0 - i_cGrid.m_dLeft_Axis_Margin - i_cGrid.m_dRight_Axis_Margin) - 2.0;

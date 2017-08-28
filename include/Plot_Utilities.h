@@ -56,8 +56,8 @@ public:
 	double			m_dLine_Width_Graph;
 	double		m_dLine_Width_Axis;
 
-	epsplot::COLOR_TRIPLET	m_cSpectrum_Color;
-	epsplot::COLOR_TRIPLET	m_cAxis_Color;
+	epsplot::color_triplet	m_cSpectrum_Color;
+	epsplot::color_triplet	m_cAxis_Color;
 
 
 	EPS_SPECTRA_PLOT_DATA(void)
