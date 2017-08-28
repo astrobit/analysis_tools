@@ -16,7 +16,7 @@
 #include <line_routines.h>
 #include <xfit.h>
 
-void Plot(epsplot::PAGE_PARAMETERS	& i_cPlot_Parameters, epsplot::DATA &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cTarget, const ES::Spectrum & i_cFit, const ES::Spectrum & i_cFit_noPS, const ES::Spectrum & i_cFit_noHVF, const double & i_dTarget_Normalization_Flux, const double & i_dFit_Normalization_Flux,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL,bool i_bNo_Shell, const double & i_dIF_Min, const double & i_dIF_Max, unsigned int i_uiX_Axis, unsigned int i_uiY_Axis)
+void Plot(epsplot::page_parameters	& i_cPlot_Parameters, epsplot::data &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cTarget, const ES::Spectrum & i_cFit, const ES::Spectrum & i_cFit_noPS, const ES::Spectrum & i_cFit_noHVF, const double & i_dTarget_Normalization_Flux, const double & i_dFit_Normalization_Flux,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL,bool i_bNo_Shell, const double & i_dIF_Min, const double & i_dIF_Max, unsigned int i_uiX_Axis, unsigned int i_uiY_Axis)
 {
 	// Make sure that both spectra are within the desired plot range, otherwise don't bother plotting.
 	if (((i_cTarget.wl(0) >= i_dPlot_Min_WL && i_cTarget.wl(0) <= i_dPlot_Max_WL) ||
@@ -43,7 +43,7 @@ void Plot(epsplot::PAGE_PARAMETERS	& i_cPlot_Parameters, epsplot::DATA &i_cPlot,
 		Normalize(lpdTarget_Flux, uiNum_Points_Target,i_dTarget_Normalization_Flux);
 		Normalize(lpdFit_Flux, uiNum_Points_Fit, i_dFit_Normalization_Flux);
 
-		epsplot::LINE_PARAMETERS	cLP;
+		epsplot::line_parameters	cLP;
 
 		i_cPlot.Clear_Plots();
 
@@ -366,8 +366,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		{
 			Get_Normalization_Fluxes(cTarget,cFit_Info.cBest_Fit_Spectrum, FIT_BLUE_WL, FIT_RED_WL, g_dTarget_Normalization_Flux, g_dGenerated_Normalization_Flux);
 
-			epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-			epsplot::DATA cPlot;
+			epsplot::page_parameters	cPlot_Parameters;
+			epsplot::data cPlot;
 
 			cPlot_Parameters.m_uiNum_Columns = 1;
 			cPlot_Parameters.m_uiNum_Rows = 1;
@@ -396,8 +396,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			Plot(cPlot_Parameters, cPlot, "%s.user.full.eps", lpszOutput_File_Prefix, cTarget, cFit_Info.cBest_Fit_Spectrum,  cFit_Info.cBest_Fit_Spectrum_No_PS, cFit_Info.cBest_Fit_Spectrum_No_HVF, g_dTarget_Normalization_Flux, g_dGenerated_Normalization_Flux, cTarget.wl(0), cTarget.wl(cTarget.size()- 1),bNo_Shell,dIF_Min,dIF_Max, uiX_Axis, uiY_Axis);
 
 			printf("Plot Ca NIR\n");
-			epsplot::AXIS_PARAMETERS cAxis_Param_Save = cPlot.Get_Y_Axis_Parameters(uiY_Axis);
-			epsplot::AXIS_PARAMETERS cAxis_Param_Mod = cAxis_Param_Save;
+			epsplot::axis_parameters cAxis_Param_Save = cPlot.Get_Y_Axis_Parameters(uiY_Axis);
+			epsplot::axis_parameters cAxis_Param_Mod = cAxis_Param_Save;
 			cAxis_Param_Mod.m_dLower_Limit = 0.2;
 			cAxis_Param_Mod.m_dUpper_Limit = 2.0;
 

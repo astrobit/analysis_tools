@@ -229,11 +229,11 @@ void Process(fGet_Parameters * Get_Parameters,
 		bool bDebug
 	)
 {
-	epsplot::DATA cPlot;
+	epsplot::data cPlot;
 
     ES::Spectrum * cSpectra[8];
 	char lpszOutput_Filename[256];
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
 	// photosphere variation
 	printf("type (num): day Vps Tps Cpsf Tpsf Chvf Thvf\n");
 	for (unsigned int uiJ = 0; uiJ < 8; uiJ++)

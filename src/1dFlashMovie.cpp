@@ -189,12 +189,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 			}
 
-			epsplot::DATA cPlot;
-			epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+			epsplot::data cPlot;
+			epsplot::page_parameters	cPlot_Parameters;
 			char lpszPlotName[128];
 			sprintf(lpszPlotName,"/tmp/%06i.eps",szPlot_List.size());
-			epsplot::AXIS_PARAMETERS	cX_Axis;
-			epsplot::AXIS_PARAMETERS	cY_Axis;
+			epsplot::axis_parameters	cX_Axis;
+			epsplot::axis_parameters	cY_Axis;
 			cY_Axis.m_bLog = true;
 			cY_Axis.Set_Title("Density [g/cm^3]");
 			cX_Axis.Set_Title("Radius [cm]");
@@ -208,15 +208,15 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			szTime.setf( std::ios::fixed, std:: ios::floatfield ); // floatfield set to fixed
 			szTime << cFlash_File.m_dTime;
 			szTime << " s";
-			epsplot::TEXT_PARAMETERS cText_Parameters;
+			epsplot::text_parameters cText_Parameters;
 			cText_Parameters.m_iFont_Size = 16;
 //			printf("%s\n",szTime.str().c_str());
 
 
 			szPlot_List.insert(std::pair<double,std::string>(cFlash_File.m_dTime,lpszPlotName));
 			// plot data
-			epsplot::LINE_PARAMETERS 	cLine_Parameters_Ej;
-			epsplot::LINE_PARAMETERS 	cLine_Parameters_Sh;
+			epsplot::line_parameters 	cLine_Parameters_Ej;
+			epsplot::line_parameters 	cLine_Parameters_Sh;
 			unsigned int uiX_Axis = cPlot.Set_X_Axis_Parameters( cX_Axis);
 			unsigned int uiY_Axis = cPlot.Set_Y_Axis_Parameters( cY_Axis);
 			cPlot.Set_Plot_Filename(lpszPlotName);

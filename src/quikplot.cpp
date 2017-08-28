@@ -183,9 +183,9 @@ void Plot_vs_r(XDATASET & cDataset, const char * lpszFilename)
 	double fLgnd_Width,fLgnd_Height;
 
 	cBounds.DetermineBounds(cDataset);
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;
@@ -234,9 +234,9 @@ void Plot_rho_vs_v(XDATASET & cDataset, const char * lpszFilename)
 	BOUNDS cBounds;				
 	cBounds.DetermineBounds(cDataset);
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;

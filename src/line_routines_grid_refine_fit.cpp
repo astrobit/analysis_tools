@@ -82,12 +82,13 @@ void Grid_Refine_Fit(
 	{
 		std::ofstream ofFile;
 		ofFile.open(cRefine_Options.m_sFilename.c_str(), std::ofstream::out);
-		ofFile << "Step, Refine Level, Temp, Vel, Se, Ss, Q" << std::endl;
+		ofFile << "Step, Refine Level, Temp, Vel, Se, Ss, <e^2>, <Q>" << std::endl;
 		ofFile.close();
 	}
 
 	Refine_Prep(io_sdRefine_Result,i_lpmRefine_Model->m_uiModel_ID,cTarget,cParam,eModel_Group,bValid_Ion);
 	double dNorm_Target = Get_Norm_Const(cTarget,io_sdRefine_Result.m_dNorm_WL_Blue,io_sdRefine_Result.m_dNorm_WL_Red);
+	double dInv_Norm_Target = 1.0 / dNorm_Target;
 	o_sdRefine_Result_Curr = io_sdRefine_Result;
 	o_sdRefine_Result_Curr_Best = io_sdRefine_Result;
 
@@ -114,6 +115,7 @@ void Grid_Refine_Fit(
 							cParam_Curr.m_dShell_Log_Scalar += iSe * xvRefine_Params.Get(3);
 							msdb_load_generate(cParam_Curr, msdb::COMBINED, cTarget, &i_lpmRefine_Model->m_dsEjecta[uiIdx], &i_lpmRefine_Model->m_dsShell, esResult);
 							double dNorm_Gen = Get_Norm_Const(esResult,io_sdRefine_Result.m_dNorm_WL_Blue,io_sdRefine_Result.m_dNorm_WL_Red);
+							double dInv_Norm_Gen = 1.0 / dNorm_Gen;
 							double dSum_Err_2 = 0.0;
 							unsigned int uiErr_Data_Count = 0;
 							double dNorm = 0.0;
@@ -125,16 +127,20 @@ void Grid_Refine_Fit(
 									if (cTarget.wl(uiI) >= io_sdRefine_Result.m_dFit_WL_Blue && cTarget.wl(uiI) <= io_sdRefine_Result.m_dFit_WL_Red)
 									{
 										if ((cTarget.flux(uiI) / dNorm_Target) > dNorm)
-											dNorm = cTarget.flux(uiI) / dNorm_Target;
+											dNorm = cTarget.flux(uiI) * dInv_Norm_Target;
 									}
 								}
 							}
+							double dInv_Norm = 1.0 / dNorm;
+							double dVariance = 0.0;
 							for (unsigned int uiI = 0; uiI < esResult.size(); uiI++)
 							{
 								if (esResult.wl(uiI) >= io_sdRefine_Result.m_dFit_WL_Blue && esResult.wl(uiI) <= io_sdRefine_Result.m_dFit_WL_Red)
 								{
-									double dErr = (esResult.flux(uiI) / dNorm_Gen - cTarget.flux(uiI) / dNorm_Target) / dNorm;
+									double dErr = (esResult.flux(uiI) * dInv_Norm_Gen - cTarget.flux(uiI) * dInv_Norm_Target) * dInv_Norm;
+									double dVar = esResult.flux(uiI) * dInv_Norm_Gen * dNorm_Target - cTarget.flux(uiI);
 									dSum_Err_2 += dErr * dErr;
+									dVariance += dVar * dVar;
 									uiErr_Data_Count++;
 								}
 							}
@@ -142,6 +148,7 @@ void Grid_Refine_Fit(
 							{
 								dSum_Err_2 *= 0.5;
 								dSum_Err_2 /= uiErr_Data_Count;
+								dVariance /= uiErr_Data_Count;
 							}
 							else
 								std::cerr << "No quality data" << std::endl;
@@ -182,7 +189,8 @@ void Grid_Refine_Fit(
 								ofFile << ", " << o_sdRefine_Result_Curr.m_dPS_Velocity;
 								ofFile << ", " << o_sdRefine_Result_Curr.m_dEjecta_Scalar;
 								ofFile << ", " << o_sdRefine_Result_Curr.m_dShell_Scalar;
-								ofFile << ", " << std::scientific << std::setprecision(std::numeric_limits<double>::digits10 + 1) << o_sdRefine_Result_Curr.m_dQuality_of_Fit << std::endl;
+								ofFile << ", " << std::scientific << std::setprecision(std::numeric_limits<double>::digits10 + 1) << dVariance;
+								ofFile << ", " << o_sdRefine_Result_Curr.m_dQuality_of_Fit << std::endl;
 								ofFile.close();
 							}
 							if (cRefine_Options.m_bOutput_Intermediate_Spectra)
@@ -192,7 +200,7 @@ void Grid_Refine_Fit(
 								ossFilename << cRefine_Options.m_sSpectra_File_Prefix << "_" << o_uiRefine_Result_ID << ".csv";
 								ofFile.open(ossFilename.str().c_str(), std::ofstream::out);
 								for (size_t tIdx = 0; tIdx < esResult.size(); tIdx++)
-									ofFile << esResult.wl(tIdx) << ", " << (esResult.flux(tIdx) / (dNorm_Gen * dNorm)) << ", " << (cTarget.flux(tIdx) / (dNorm_Target * dNorm)) << std::endl;
+									ofFile << esResult.wl(tIdx) << ", " << (esResult.flux(tIdx) * dInv_Norm_Gen * dInv_Norm) << ", " << (cTarget.flux(tIdx) * dInv_Norm_Target * dInv_Norm) << std::endl;
 								ofFile.close();
 							}
 //									std::cout << o_uiRefine_Result_ID << std::endl;

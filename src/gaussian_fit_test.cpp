@@ -420,10 +420,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 
 //		printf("here 2\n");
-		epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-		epsplot::DATA cPlot;
-		epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-		epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+		epsplot::page_parameters	cPlot_Parameters;
+		epsplot::data cPlot;
+		epsplot::axis_parameters	cX_Axis_Parameters;
+		epsplot::axis_parameters	cY_Axis_Parameters;
 
 
 		cPlot_Parameters.m_uiNum_Columns = 1;
@@ -452,7 +452,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		unsigned int  uiSpectra_Count, uiContinuum_Count, uiSpectra_Count_EO, uiSpectra_Count_SO;
 		int iColor = (int)epsplot::BLACK;
 		int iStipple = (int)epsplot::SOLID;
-		epsplot::LINE_PARAMETERS cLine_Parameters;
+		epsplot::line_parameters cLine_Parameters;
 
 		// Get spectral data in the desired range
 		cLine_Parameters.m_dWidth = 1.0;

@@ -47,7 +47,7 @@ int Get_Day_Of_Year(int i_iYear, int i_iMonth, int i_iDay)
 	return iDay;
 }
 
-void Plot(epsplot::PAGE_PARAMETERS	& i_cPlot_Parameters, epsplot::DATA &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cTarget, const ES::Spectrum & i_cFit, const double & i_dTarget_Normalization_Flux, const double & i_dFit_Normalization_Flux,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL, unsigned int uiX_Axis, unsigned int uiY_Axis)
+void Plot(epsplot::page_parameters	& i_cPlot_Parameters, epsplot::data &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cTarget, const ES::Spectrum & i_cFit, const double & i_dTarget_Normalization_Flux, const double & i_dFit_Normalization_Flux,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL, unsigned int uiX_Axis, unsigned int uiY_Axis)
 {
 	// Make sure that both spectra are within the desired plot range, otherwise don't bother plotting.
 	if (((i_cTarget.wl(0) >= i_dPlot_Min_WL && i_cTarget.wl(0) <= i_dPlot_Max_WL) ||
@@ -254,8 +254,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					fprintf(fileOut,", %.17e, %.17e, %.17e",lpdRaw_Moments[uiJ], lpdCentral_Moments[uiJ], lpdStandardized_Moments[uiJ]);
 				fprintf(fileOut,"\n");
 
-			epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-			epsplot::DATA cPlot;
+			epsplot::page_parameters	cPlot_Parameters;
+			epsplot::data cPlot;
 
 			cPlot_Parameters.m_uiNum_Columns = 1;
 			cPlot_Parameters.m_uiNum_Rows = 1;

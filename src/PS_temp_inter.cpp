@@ -170,7 +170,7 @@ void CompareFits(const ES::Spectrum &i_cTarget, ES::Spectrum &o_cOutput, double 
 }
 */
 
-void Plot(epsplot::PAGE_PARAMETERS	& i_cPlot_Parameters, epsplot::DATA &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cTarget, const ES::Spectrum & i_cFit, const double & i_dTarget_Normalization_Flux, const double & i_dFit_Normalization_Flux,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL, unsigned int i_uiX_Axis, unsigned int i_uiY_Axis)
+void Plot(epsplot::page_parameters	& i_cPlot_Parameters, epsplot::data &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cTarget, const ES::Spectrum & i_cFit, const double & i_dTarget_Normalization_Flux, const double & i_dFit_Normalization_Flux,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL, unsigned int i_uiX_Axis, unsigned int i_uiY_Axis)
 {
 	// Make sure that both spectra are within the desired plot range, otherwise don't bother plotting.
 	if (((i_cTarget.wl(0) >= i_dPlot_Min_WL && i_cTarget.wl(0) <= i_dPlot_Max_WL) ||
@@ -293,8 +293,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 
 			Generate_Synow_Spectra_Exp(cTarget,2001,cResult,cGenerated); // ion irrelevant for this 
 	
-			epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-			epsplot::DATA cPlot;
+			epsplot::page_parameters	cPlot_Parameters;
+			epsplot::data cPlot;
 
 			sprintf(lpszTitle,"Tps %.3f\n",dTemp);
 

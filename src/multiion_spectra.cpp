@@ -1001,7 +1001,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 	lpdSpectra_Vel = new double[uiSpectra_Count];
 
-	epsplot::LINE_PARAMETERS cLine_Parameters;
+	epsplot::line_parameters cLine_Parameters;
 	cLine_Parameters.m_dWidth = 1.0;
 	cLine_Parameters.m_eColor = epsplot::BLACK;
 	cLine_Parameters.m_eStipple = epsplot::SOLID;
@@ -1026,11 +1026,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	fprintf(fileCaption," $T_{ps} = %.0f,000\\K$, $\\log C_S = %.2f$, $\\log C_E = %.2f$.}\n",dPS_Temp,dShell_Scalar,dEjecta_Scalar);
 	fclose(fileCaption);
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
-	epsplot::TEXT_PARAMETERS	cText_Paramters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::axis_parameters	cX_Axis_Parameters;
+	epsplot::axis_parameters	cY_Axis_Parameters;
+	epsplot::text_parameters	cText_Paramters;
 
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
@@ -1085,7 +1085,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	unsigned int uiIon = vLine_IDs[0].m_uiIon;
 	cLine_Parameters.m_eColor = epsplot::BLACK;
 
-	epsplot::LINE_PARAMETERS	cLP_Temp;
+	epsplot::line_parameters	cLP_Temp;
 	cLP_Temp = cLine_Parameters;
 	epsplot::COLOR eFill_Color = epsplot::CLR_CUSTOM_7;
 	unsigned int uiIon_Ctr = 0;

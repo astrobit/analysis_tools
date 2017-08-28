@@ -268,8 +268,8 @@ class CAPTION_INFO
 {
 public:
 	char *				m_lpszCaption_Text;
-	epsplot::LINE_PARAMETERS		m_cLine_Parameters;
-	epsplot::SYMBOL_PARAMETERS	m_cSymbol_Parameters;
+	epsplot::line_parameters		m_cLine_Parameters;
+	epsplot::symbol_parameters	m_cSymbol_Parameters;
 	CAPTION_INFO(void)
 	{
 		m_lpszCaption_Text = NULL;
@@ -376,8 +376,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 	const char * lpszCaption_Prefix = NULL;
 	const char * lpszCaption_Postfix = NULL;
 	const char * lpszFigure_Label = NULL;
-	epsplot::DATA cPlot;
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::page_parameters	cPlot_Parameters;
 	epsplot::COLOR eDefault_Color = epsplot::BLACK;
 	epsplot::STIPPLE eDefault_Stipple = epsplot::SOLID;
 	epsplot::SYMBOL_TYPE eDefault_Symbol = epsplot::SQUARE;
@@ -645,7 +645,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					if (lpCurr_Node->properties)
 					{
 						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
-						epsplot::AXIS_PARAMETERS	cAxis;
+						epsplot::axis_parameters	cAxis;
 						const char * lpszID = NULL;
 						char chDirection;
 						while (lpCurr_Attr)
@@ -804,8 +804,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				if (!bFault)
 				{
 
-					epsplot::TEXT_PARAMETERS	cText_Paramters;
-					epsplot::LINE_PARAMETERS 	cLine_Parameters;
+					epsplot::text_parameters	cText_Paramters;
+					epsplot::line_parameters 	cLine_Parameters;
 					cLine_Parameters.m_dWidth = dWidth;
 				
 					if (bDefault_Color)
@@ -965,9 +965,9 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				if (!bFault)
 				{
 
-					epsplot::TEXT_PARAMETERS	cText_Paramters;
-					epsplot::LINE_PARAMETERS 	cLine_Parameters;
-					epsplot::SYMBOL_PARAMETERS 	cSymbol_Parameters;
+					epsplot::text_parameters	cText_Paramters;
+					epsplot::line_parameters 	cLine_Parameters;
+					epsplot::symbol_parameters 	cSymbol_Parameters;
 					cLine_Parameters.m_dWidth = dWidth;
 				
 					if (bDefault_Color)
@@ -1008,7 +1008,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					std::vector < epsplot::eps_pair> cData;
 					std::vector <double> cErrorbar_Data[4]; // 0 = x left, 1 = x right, 2 = y up, 3 = y down
 					epsplot::ERRORBAR_PARAMETERS cErrorbar_Parameters[4];
-					epsplot::LINE_PARAMETERS 	cErrorbar_Line_Parameters[4];
+					epsplot::line_parameters 	cErrorbar_Line_Parameters[4];
 
 					cData.clear();
 					for (unsigned int uiI = 0; uiI < 4; uiI++)

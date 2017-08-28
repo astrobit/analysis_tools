@@ -181,10 +181,10 @@ void specfit::Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & 
 	ossSpectra_Data_Plot_File_Full << "Results/Plots/spectra_full_" << std::setprecision(7) << i_cResult.m_dMJD << "_" << szInst_File_Friendly << "_source" << szSource_File_Friendly << "_model" << i_cResult.m_uiModel << ".eps";
 	
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::axis_parameters	cX_Axis_Parameters;
+	epsplot::axis_parameters	cY_Axis_Parameters;
 
 
 	cX_Axis_Parameters.Set_Title("Wavelength [A]");
@@ -203,7 +203,7 @@ void specfit::Write_Fit(std::ofstream & io_ofsFile, const specfit::fit_result & 
 
 	cPlot.Set_Plot_Filename(ossSpectra_Data_Plot_File_Full.str().c_str());
 
-	epsplot::LINE_PARAMETERS cLine_Parameters;
+	epsplot::line_parameters cLine_Parameters;
 
 	std::vector<double> vX;
 	std::vector<double> vY_Tgt;

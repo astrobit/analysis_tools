@@ -27,8 +27,8 @@ int main(void)
 	bool			bLinear_Scale;
 	SERIESLISTNODE			* lpcSeriesListHead = NULL;
 	SERIESLISTNODE			* lpcSeriesListTail = NULL;
-	epsplot::DATA cPlot;
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::page_parameters	cPlot_Parameters;
 	unsigned int uiCurr_Idx = 0;
 	FILE * fileIn = fopen("serieslist.csv","rt");
 	if (fileIn)

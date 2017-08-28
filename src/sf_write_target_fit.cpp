@@ -144,10 +144,10 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 
 	if (uiBlue_Idx != -1 && uiRed_Idx != -1)
 	{
-		epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-		epsplot::DATA cPlot;
-		epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-		epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
+		epsplot::page_parameters	cPlot_Parameters;
+		epsplot::data cPlot;
+		epsplot::axis_parameters	cX_Axis_Parameters;
+		epsplot::axis_parameters	cY_Axis_Parameters;
 
 		double dSlope = (i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].flux() - i_cResult.m_vpdSpectrum_Target[uiRed_Idx].flux()) / (i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].wl() - i_cResult.m_vpdSpectrum_Target[uiRed_Idx].wl());
 		double dWL_Ref = i_cResult.m_vpdSpectrum_Target[uiBlue_Idx].wl();
@@ -171,7 +171,7 @@ void specfit::Write_Target_Fit(std::ofstream & io_ofsFile, const specfit::fit_re
 		cPlot_Parameters.m_dWidth_Inches = 11.0;
 		cPlot_Parameters.m_dHeight_Inches = 8.5;
 
-		epsplot::LINE_PARAMETERS cLine_Parameters;
+		epsplot::line_parameters cLine_Parameters;
 
 		std::vector<double> vX;
 		std::vector<double> vY_Tgt;

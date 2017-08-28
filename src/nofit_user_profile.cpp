@@ -16,7 +16,7 @@
 #include <line_routines.h>
 #include <xfit.h>
 
-void Plot(epsplot::PAGE_PARAMETERS	& i_cPlot_Parameters, epsplot::DATA &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cFit, const ES::Spectrum & i_cFit_noPS, const ES::Spectrum & i_cFit_noHVF ,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL,bool i_bNo_Shell, unsigned int i_uiX_Axis, unsigned int i_uiY_Axis)
+void Plot(epsplot::page_parameters	& i_cPlot_Parameters, epsplot::data &i_cPlot, const char * i_lpszFilename_Format, const char * i_lpszOutput_File_Prefix, const ES::Spectrum & i_cFit, const ES::Spectrum & i_cFit_noPS, const ES::Spectrum & i_cFit_noHVF ,const double &i_dPlot_Min_WL, const double & i_dPlot_Max_WL,bool i_bNo_Shell, unsigned int i_uiX_Axis, unsigned int i_uiY_Axis)
 {
 	// Make sure that both spectra are within the desired plot range, otherwise don't bother plotting.
 	if (((i_cFit.wl(0) >= i_dPlot_Min_WL && i_cFit.wl(0) <= i_dPlot_Max_WL) ||
@@ -314,8 +314,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		double dHVF_Velocity = (dZ_p1_sqr - 1) / (dZ_p1_sqr + 1) * -300.0;
 
 
-		epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-		epsplot::DATA cPlot;
+		epsplot::page_parameters	cPlot_Parameters;
+		epsplot::data cPlot;
 
 		cPlot_Parameters.m_uiNum_Columns = 1;
 		cPlot_Parameters.m_uiNum_Rows = 1;

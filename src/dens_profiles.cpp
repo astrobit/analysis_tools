@@ -233,9 +233,9 @@ FIT_RESULTS ProcessFile(FILE * io_fileOut,const char * i_lpszPrefix, unsigned in
 	
 		sprintf(lpszFilename,"density_%s_%04i.eps",i_lpszPrefix,i_uiNumber);
 
-		epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-		epsplot::DATA cPlot;
-		epsplot::LINE_PARAMETERS	cLine_Parameters;
+		epsplot::page_parameters	cPlot_Parameters;
+		epsplot::data cPlot;
+		epsplot::line_parameters	cLine_Parameters;
 
 		cPlot_Parameters.m_uiNum_Columns = 1;
 		cPlot_Parameters.m_uiNum_Rows = 1;
@@ -464,9 +464,9 @@ void Velocity_Evolution_Theoretical(const FIT_RESULTS &i_cEjecta, const FIT_RESU
 	sprintf(lpszFilename,"velocity_evolution_theoretical_%04i.eps",i_uiNumber);
 
 
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::line_parameters	cLine_Parameters;
 
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;

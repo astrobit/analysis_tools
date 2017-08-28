@@ -4,10 +4,10 @@ int main(void)
 {
 	using namespace epsplot;
 
-	AXIS_PARAMETERS	cX_Axis;
-	AXIS_PARAMETERS	cY_Axis;
-	DATA	cPlot;
-	PAGE_PARAMETERS	cPage;
+	axis_parameters	cX_Axis;
+	axis_parameters	cY_Axis;
+	data	cPlot;
+	page_parameters	cPage;
 
 	cX_Axis.Set_Title("X");
 	cX_Axis.m_dLower_Limit = -1.0;
@@ -35,7 +35,7 @@ int main(void)
 	cPage.m_dHeight_Inches = 8.5;
 
 	cPlot.Set_Plot_Filename("test.eps");
-	cPlot.Set_Plot_Data(lpdX_Values, lpdY_Values, 256, LINE_PARAMETERS(), uiX_Axis_ID, uiY_Axis_ID);
+	cPlot.Set_Plot_Data(lpdX_Values, lpdY_Values, 256, line_parameters(), uiX_Axis_ID, uiY_Axis_ID);
 	cPlot.Plot(cPage);
 
 	cX_Axis.m_bInvert = true;
