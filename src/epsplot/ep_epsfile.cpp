@@ -442,12 +442,14 @@ void epsfile::ColorImage(const double & i_dX, const double & i_dY, const double 
 		i_vctImage_Data.size() != 0 && (i_vctImage_Data.size() % i_nRow_Length) == 0)
 	{
 		size_t tCols = i_vctImage_Data.size() / i_nRow_Length;
-		fprintf(m_lpFileOut,m_lpszTranslate, i_dX,i_dY);
+		fprintf(m_lpFileOut,m_lpszGsave);
+		fprintf(m_lpFileOut,"0 0 moveto\n");
 		fprintf(m_lpFileOut,m_lpszFormat, i_dWidth);
 		fprintf(m_lpFileOut," ");
 		fprintf(m_lpFileOut,m_lpszFormat, i_dHeight);
 		fprintf(m_lpFileOut," scale\n");
-		fprintf(m_lpFileOut,"%i %i %i [%i 0 0 -%i 0 %i]\n", tCols,i_nRow_Length,i_iColor_Depth,tCols,i_nRow_Length,i_nRow_Length);
+		fprintf(m_lpFileOut,"0 -1 translate\n");
+		fprintf(m_lpFileOut,"%i %i %i [%i 0 0 %i 0 -%i]\n", i_nRow_Length,tCols,i_iColor_Depth,i_nRow_Length,tCols,tCols);
 		size_t tColor_Ref = 1;
 		tColor_Ref <<= i_iColor_Depth;
 		tColor_Ref -= 1; // 0... (2^n -1)
@@ -467,10 +469,11 @@ void epsfile::ColorImage(const double & i_dX, const double & i_dY, const double 
 		else
 			strcpy(szFormat,"%01x%01x%01x");
 		fprintf(m_lpFileOut,"{<\n");
+		size_t tCol = 0;
 		for (auto iterI = i_vctImage_Data.cbegin(); iterI != i_vctImage_Data.cend(); iterI++)
 		{
 			tLine_Size += tFmt_Length;
-			if (tLine_Size > 255)
+			if (tLine_Size >= 255)
 			{
 				fprintf(m_lpFileOut,"\n");
 				tLine_Size = 0;
@@ -479,9 +482,17 @@ void epsfile::ColorImage(const double & i_dX, const double & i_dY, const double 
 			unsigned short sGreen = iterI->m_dGreen * tColor_Ref;
 			unsigned short sBlue = iterI->m_dBlue * tColor_Ref;
 			fprintf(m_lpFileOut,szFormat,sRed,sGreen,sBlue);
+			tCol++;
+			if (tCol == tCols)
+			{
+				fprintf(m_lpFileOut,"\n");
+				tCol = 0;
+				tLine_Size = 0;
+			}
 		}
-		fprintf(m_lpFileOut,"\n>}");
+		fprintf(m_lpFileOut,">}");
 		fprintf(m_lpFileOut," false 3 colorimage\n"); // 3 indicates color triplet (RGB)
+		fprintf(m_lpFileOut,m_lpszGrestore);
 	}
 }
 

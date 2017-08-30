@@ -22,7 +22,7 @@ namespace	epsplot
 	enum ERRORBAR_TIP_TYPE {ERRORBAR_TIP_LINE, ERRORBAR_TIP_ARROW, ERRORBAR_TIP_LINE_AND_ARROW};
 	enum	AXIS {X_AXIS,Y_AXIS,Z_AXIS};
 	enum z_axis_scheme {rainbow,inverse_rainbow,dark_to_light,light_to_dark,two_color_transition};
-	enum z_axis_iterpolation_scheme {nearest,weighted_linear};
+	enum z_axis_iterpolation_scheme {nearest,inverse_distance_weight_1,inverse_distance_weight_2,inverse_distance_weight_3,inverse_distance_weight_4,inverse_distance_weight_5,inverse_distance_weight_6,inverse_distance_weight_7,inverse_distance_weight_8,inverse_distance_weight_9,inverse_distance_weight_10,inverse_distance_weight_11,inverse_distance_weight_12,inverse_distance_weight_13,inverse_distance_weight_14,inverse_distance_weight_15,inverse_distance_weight_16};
 
 	class eps_pair
 	{
@@ -654,6 +654,14 @@ namespace	epsplot
 			dX *= m_dScale;
 			return dX;
 		}
+		double Reverse_Scale(const double &i_dX) const
+		{
+			double dX = i_dX / m_dScale;
+			dX += m_dStart;
+			if (m_cParameters.m_bLog)
+				dX = std::pow(10.0,dX);
+			return dX;
+		}
 
 
 		color_triplet	Get_Color(const double & i_dX) // only relevant for Z axis
@@ -668,6 +676,7 @@ namespace	epsplot
 				dVal = 0.0;
 			else if (dVal > 1.0)
 				dVal = 1.0;
+			//printf("%f %f %f %f ",i_dX,m_dStart, m_dEnd, dVal);
 			switch (m_cParameters.m_eScheme)
 			{
 			case inverse_rainbow:
@@ -709,11 +718,13 @@ namespace	epsplot
 					m_cParameters.m_ctColor_Upper = color_triplet(1.0,0.5,0.0);
 				}
 				dVal /= 0.166666666666666667;
+				//printf("%f (%f %f %f) - (%f %f %f)\n",dVal,m_cParameters.m_ctColor_Lower.m_dRed,m_cParameters.m_ctColor_Lower.m_dGreen,m_cParameters.m_ctColor_Lower.m_dBlue,m_cParameters.m_ctColor_Upper.m_dRed,m_cParameters.m_ctColor_Upper.m_dGreen,m_cParameters.m_ctColor_Upper.m_dBlue);
 				break;
 			}
 			cRet.m_dRed = m_cParameters.m_ctColor_Lower.m_dRed + (m_cParameters.m_ctColor_Upper.m_dRed * dVal - m_cParameters.m_ctColor_Lower.m_dRed * dVal);
 			cRet.m_dGreen = m_cParameters.m_ctColor_Lower.m_dGreen + (m_cParameters.m_ctColor_Upper.m_dGreen * dVal - m_cParameters.m_ctColor_Lower.m_dGreen * dVal);
 			cRet.m_dBlue = m_cParameters.m_ctColor_Lower.m_dBlue + (m_cParameters.m_ctColor_Upper.m_dBlue * dVal - m_cParameters.m_ctColor_Lower.m_dBlue * dVal);
+			//printf("(%f %f %f)\n",cRet.m_dRed,cRet.m_dGreen,cRet.m_dBlue);
 			return cRet;
 		}
 	};
@@ -753,10 +764,15 @@ namespace	epsplot
 				symbol_item * lpcSymbol = nullptr;
 				rectangle_item * lpcRectangle = nullptr;
 				text_item * lpcText = nullptr;
+				plot_3d_item * lpcPlot_3d = nullptr;
+				errorbar_item * lpcErrorbar = nullptr;
 				plot_item * lpCurr = *cIterator;
 
 				switch (lpCurr->m_eType)
 				{
+				case type_3d:
+					lpcPlot_3d = (plot_3d_item *) lpCurr;
+					break;
 				case type_line:
 					lpcLine = (line_item *) lpCurr;
 					break;
@@ -769,6 +785,9 @@ namespace	epsplot
 				case type_text:
 					lpcText = (text_item *) lpCurr;
 					break;
+				case type_errorbar:
+					lpcErrorbar = (errorbar_item *) lpCurr;
+					break;
 				}
 				if (lpcLine)
 					delete lpcLine;
@@ -778,6 +797,10 @@ namespace	epsplot
 					delete lpcRectangle;
 				else if (lpcText)
 					delete lpcText;
+				else if (lpcPlot_3d)
+					delete lpcPlot_3d;
+				else if (lpcErrorbar)
+					delete lpcErrorbar;
 			}
 			m_vcPlot_Item_List.clear();
 		}

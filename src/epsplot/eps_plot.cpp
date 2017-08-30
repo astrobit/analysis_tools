@@ -417,6 +417,13 @@ void	data::Plot(const page_parameters & i_cGrid)
 			(*cAxis_Iter).Finalize_Limit(dGraph_Space_Y);
 		}
 
+		cZ_Axis_Default.Finalize_Limit(1.0);
+
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cZ_Axis_Parameters.begin(); cAxis_Iter != m_cZ_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Finalize_Limit(1.0);
+		}
+
 		COLOR eCurr_Color = BLACK;
 		STIPPLE eCurr_Stipple = SOLID;
 		double	dCurr_Line_Width = 1.0;
@@ -480,21 +487,127 @@ void	data::Plot(const page_parameters & i_cGrid)
 			symbol_item * lpcSymbol = nullptr;
 			rectangle_item * lpcRectangle = nullptr;
 			text_item * lpcText = nullptr;
+			plot_3d_item * lpcPlot_3d = nullptr;
 			errorbar_item * lpcErrorbar = nullptr;
 			axis_metadata * lpX_Axis;
 			axis_metadata * lpY_Axis;
+			axis_metadata * lpZ_Axis;
 
 			if (m_cX_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[0] >= m_cX_Axis_Parameters.size())
 				lpX_Axis = &cX_Axis_Default;
 			else
 				lpX_Axis = &m_cX_Axis_Parameters[lpCurr->m_uiPlot_Axes_To_Use[0]];
-			if (m_cY_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[0] >= m_cY_Axis_Parameters.size())
+			if (m_cY_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[1] >= m_cY_Axis_Parameters.size())
 				lpY_Axis = &cY_Axis_Default;
 			else
 				lpY_Axis = &m_cY_Axis_Parameters[lpCurr->m_uiPlot_Axes_To_Use[1]];
+			if (m_cZ_Axis_Parameters.size() == 0 || lpCurr->m_uiPlot_Axes_To_Use[2] >= m_cZ_Axis_Parameters.size())
+				lpZ_Axis = &cZ_Axis_Default;
+			else
+				lpZ_Axis = &m_cZ_Axis_Parameters[lpCurr->m_uiPlot_Axes_To_Use[2]];
 
 			switch (lpCurr->m_eType)
 			{
+			case type_3d:
+				{
+					lpcPlot_3d = (plot_3d_item *) lpCurr;
+					size_t tRows = 0, tCols = 0;
+					std::vector<color_triplet> vctColor_Data;
+					//for (size_t tI = 0; tI < dGraph_Space_Y; tI++)
+					//{
+					//		double dY = lpY_Axis->Reverse_Scale(tI);
+					//		printf(",%f",dY);
+					//}
+					//printf("\n");
+					//printf("%f %f\n",lpZ_Axis->m_dStart,lpZ_Axis->m_dEnd);
+					for (size_t tI = 0; tI < dGraph_Space_X + 1; tI++)
+					{
+						tCols++;
+						double dX = lpX_Axis->Reverse_Scale(tI + 0.5);
+						//printf("%f",dX);
+						for (size_t tJ = 0; tJ < dGraph_Space_Y; tJ++)
+						{
+							tRows++;
+							double dY = lpY_Axis->Reverse_Scale(tJ + 0.5);
+							color_triplet ctCurr_Color;
+							double dNearest_Range = DBL_MAX;
+							double dSum_Weights[16] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+							double dSum_Weight_Val[16] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+							bool bExact = false;
+							eps_triplet etNearest;
+							for (size_t tK = 0; tK < lpcPlot_3d->m_uiNum_Points; tK++)
+							{
+								double dDel_X = dX - lpcPlot_3d->m_lppData[tK].m_dX;
+								double dDel_Y = dY - lpcPlot_3d->m_lppData[tK].m_dY;
+								double dRange = dDel_X * dDel_X + dDel_Y * dDel_Y;
+								if (dRange == 0.0)
+								{
+									bExact = true;
+									for (size_t tL = 0; tL < 16; tL++)
+									{
+										dSum_Weight_Val[tL] = lpcPlot_3d->m_lppData[tK].m_dZ;
+										dSum_Weights[tL] = 1.0;
+									}
+								}
+								if (!bExact)
+								{
+									double dInv_Sqrt_Range = 1.0 / sqrt(dRange);
+									double dWeight = 1.0;
+
+									for (size_t tL = 0; tL < 16; tL++)
+									{
+										dWeight *= dInv_Sqrt_Range;
+										dSum_Weights[tL] += dWeight;
+										dSum_Weight_Val[tL] += dWeight * lpcPlot_3d->m_lppData[tK].m_dZ;
+									}
+								}
+								if (dRange < dNearest_Range)
+								{	
+									dNearest_Range = dRange;
+									etNearest = lpcPlot_3d->m_lppData[tK];
+								}
+							}
+							//printf(", %f",etNearest.m_dZ);
+							switch (lpcPlot_3d->m_eInterpolation_Scheme)
+							{
+							case nearest:
+								ctCurr_Color = lpZ_Axis->Get_Color(etNearest.m_dZ);
+								//printf("%f %f %f\n",dX,dY,etNearest.m_dZ);
+								break;
+							case inverse_distance_weight_1:
+							case inverse_distance_weight_2:
+							case inverse_distance_weight_3:
+							case inverse_distance_weight_4:
+							case inverse_distance_weight_5:
+							case inverse_distance_weight_6:
+							case inverse_distance_weight_7:
+							case inverse_distance_weight_8:
+							case inverse_distance_weight_9:
+							case inverse_distance_weight_10:
+							case inverse_distance_weight_11:
+							case inverse_distance_weight_12:
+							case inverse_distance_weight_13:
+							case inverse_distance_weight_14:
+							case inverse_distance_weight_15:
+							case inverse_distance_weight_16:
+								{
+									size_t tIdx = (lpcPlot_3d->m_eInterpolation_Scheme - inverse_distance_weight_1);
+									ctCurr_Color = lpZ_Axis->Get_Color(dSum_Weight_Val[tIdx] / dSum_Weights[tIdx]);
+								}
+								break;
+							}
+							vctColor_Data.push_back(ctCurr_Color);
+
+						}
+					//printf("\n");
+
+					}
+					tRows /= tCols;
+					//printf("%i %i\n",tRows,tCols);
+					cEPS.ColorImage(dGraph_Offset_X, dGraph_Offset_Y, dGraph_Space_X, dGraph_Space_Y, 8, vctColor_Data, tRows);
+					
+				}
+				break;
 			case type_line:
 				lpcLine = (line_item *) lpCurr;
 				if (lpcLine->m_uiNum_Points >= 2)
