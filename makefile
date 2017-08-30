@@ -160,8 +160,8 @@ $(BINDIR)/gatherfits: $(SRCDIR)/gather_best_fit_data.cpp $(INCLUDEDIR)/best_fit_
 	$(CXX) $(CLFLAGS) $(SRCDIR)/gather_best_fit_data.cpp $(ESFLAGS)  $(ESLIBS) -lxstdlib -o $(BINDIR)/gatherfits
 
 genfitmom: $(BINDIR)/genfitmom
-$(BINDIR)/genfitmom: $(SRCDIR)/generate_fit_moments.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE)
-	$(CXX) $(CLFLAGS) $(SRCDIR)/generate_fit_moments.cpp $(ESFLAGS) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/genfitmom
+$(BINDIR)/genfitmom: $(SRCDIR)/generate_fit_moments.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
+	$(CXX) $(CLFLAGS) $(SRCDIR)/generate_fit_moments.cpp $(ESFLAGS) $(ESLIBS) $(PLOTUTILLIB) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/genfitmom
 
 modfits: $(BINDIR)/modfits
 $(BINDIR)/modfits: $(SRCDIR)/mod_best_fit_file.cpp $(XLIBSCHANGE)
@@ -386,5 +386,6 @@ $(BINDIR)/linfit: $(SRCDIR)/linfit.cpp $(XLIBSCHANGE)
 clean:
 	-rm $(BINDIR)/*
 	-rm $(TMPDIR)/*.*
+	-rm $(TMPDIR)/epsplot/*.*
 	-rm $(LIBDIR)/*.a
 
