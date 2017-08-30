@@ -22,6 +22,7 @@ namespace	epsplot
 	enum ERRORBAR_TIP_TYPE {ERRORBAR_TIP_LINE, ERRORBAR_TIP_ARROW, ERRORBAR_TIP_LINE_AND_ARROW};
 	enum	AXIS {X_AXIS,Y_AXIS,Z_AXIS};
 	enum z_axis_scheme {rainbow,inverse_rainbow,dark_to_light,light_to_dark,two_color_transition};
+	enum z_axis_iterpolation_scheme {nearest,weighted_linear};
 
 	class eps_pair
 	{
@@ -140,32 +141,7 @@ namespace	epsplot
 	{
 	protected:
 		std::string	m_sTitle;
-		void	Copy(const axis_parameters & i_cRHO)
-		{
-			m_sTitle = i_cRHO.m_sTitle;
-			m_bLog = i_cRHO.m_bLog;
-			m_bInvert = i_cRHO.m_bInvert;
-			m_dLower_Limit = i_cRHO.m_dLower_Limit;
-			m_dUpper_Limit = i_cRHO.m_dUpper_Limit;
-			m_dLine_Width = i_cRHO.m_dLine_Width;
-			m_dMajor_Tick_Width = i_cRHO.m_dMajor_Tick_Width;
-			m_dMinor_Tick_Width = i_cRHO.m_dMinor_Tick_Width;
-			m_eColor = i_cRHO.m_eColor;
-			m_eTitle_Color = i_cRHO.m_eTitle_Color;
-			m_eMajor_Label_Color = i_cRHO.m_eMajor_Label_Color;
-			m_eMinor_Label_Color = i_cRHO.m_eMinor_Label_Color;
-			m_eMajor_Tick_Color = i_cRHO.m_eMajor_Tick_Color;
-			m_eMinor_Tick_Color = i_cRHO.m_eMinor_Tick_Color;
-			m_dMajor_Label_Size = i_cRHO.m_dMajor_Label_Size;
-			m_dMinor_Label_Size = i_cRHO.m_dMinor_Label_Size;
-			m_dTitle_Size = i_cRHO.m_dTitle_Size;
-			m_dMajor_Tick_Length = i_cRHO.m_dMajor_Tick_Length;
-			m_dMinor_Tick_Length = i_cRHO.m_dMinor_Tick_Length;
-			m_bLabel_Major_Indices = i_cRHO.m_bLabel_Major_Indices;
-			m_bLabel_Minor_Indices = i_cRHO.m_bLabel_Minor_Indices;
-			m_sMajor_Index_Format = i_cRHO.m_sMajor_Index_Format;
-			m_sMinor_Index_Format = i_cRHO.m_sMajor_Index_Format;
-		}
+
 		void	Set_Defaults(void)
 		{
 			m_sTitle = "";
@@ -190,6 +166,10 @@ namespace	epsplot
 			m_bLabel_Minor_Indices = false;
 			m_sMajor_Index_Format = "m";
 			m_sMinor_Index_Format = "";
+			m_eScheme = rainbow;
+			m_ctColor_Upper = color_triplet(1.,1.,1.);
+			m_ctColor_Lower = color_triplet(0.,0.,0.);
+
 		}
 	public:
 		double	m_dLine_Width; // Points
@@ -214,20 +194,20 @@ namespace	epsplot
 		double	m_dUpper_Limit; // note: use nan to indicate no limit
 		bool	m_bLabel_Major_Indices;
 		bool	m_bLabel_Minor_Indices; //@@TODO not implemented
+		color_triplet	m_ctColor_Upper; // only used for Z axis
+		color_triplet	m_ctColor_Lower; // only used for Z axis
+		z_axis_scheme	m_eScheme; // only used for Z axis
+
+
 		void	Set_Title(const char * i_lpszTitle)
 		{
-			m_sTitle = i_lpszTitle;
+			if (i_lpszTitle == nullptr)
+				m_sTitle = i_lpszTitle;
+			else
+				m_sTitle = "";
 		}
 		const char * Get_Title(void) const {return m_sTitle.c_str();}
-		axis_parameters(const axis_parameters & i_cRHO)
-		{
-			Copy(i_cRHO);
-		}
-		axis_parameters & operator =(const axis_parameters & i_cRHO)
-		{
-			Copy(i_cRHO);
-			return *this;
-		}
+		std::string Get_Title_String(void) const {return m_sTitle;}
 		axis_parameters(void)
 		{
 			Set_Defaults();
@@ -248,63 +228,7 @@ namespace	epsplot
 			if (i_bSet_Max)
 				m_dUpper_Limit = i_dMax;
 		}
-		~axis_parameters(void)
-		{
-		}
 	};
-
-	class axis_parameters_Z : public axis_parameters
-	{
-	public:
-		color_triplet	m_ctColor_Upper;
-		color_triplet	m_ctColor_Lower;
-		z_axis_scheme	m_eScheme;
-
-		axis_parameters_Z(const axis_parameters_Z & i_cRHO)
-		{
-			Copy(i_cRHO);
-			m_ctColor_Upper = i_cRHO.m_ctColor_Upper;
-			m_ctColor_Lower = i_cRHO.m_ctColor_Lower;
-			m_eScheme = i_cRHO.m_eScheme;
-		}
-		axis_parameters_Z & operator =(const axis_parameters_Z & i_cRHO)
-		{
-			Copy(i_cRHO);
-			m_ctColor_Upper = i_cRHO.m_ctColor_Upper;
-			m_ctColor_Lower = i_cRHO.m_ctColor_Lower;
-			m_eScheme = i_cRHO.m_eScheme;
-			return *this;
-		}
-		axis_parameters_Z(void)
-		{
-			Set_Defaults();
-			m_eScheme = rainbow;
-		}
-		axis_parameters_Z(const char * i_lpszAxis_Description)
-		{ // simplify code by allowing a constructor with the only a title
-			Set_Defaults();
-			m_eScheme = rainbow;
-			Set_Title(i_lpszAxis_Description);
-		}
-		axis_parameters_Z(const char * i_lpszAxis_Description, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax, z_axis_scheme i_eScheme = rainbow, const color_triplet	&i_ctColor_Upper = color_triplet(1.,1.,1.), const color_triplet	&i_ctColor_Lower = color_triplet(0.,0.,0.))
-		{ // simplify code by allowing a constructor with the most common parameters
-			Set_Defaults();
-			m_eScheme = i_eScheme;
-			m_ctColor_Upper = i_ctColor_Upper;
-			m_ctColor_Lower = i_ctColor_Lower;
-			Set_Title(i_lpszAxis_Description);
-			m_bLog = i_bLog_Axis;
-			m_bInvert = i_bInvert_Axis;
-			if (i_bSet_Min)
-				m_dLower_Limit = i_dMin;
-			if (i_bSet_Max)
-				m_dUpper_Limit = i_dMax;
-		}
-		~axis_parameters_Z(void)
-		{
-		}
-	};
-
 
 	class text_entity
 	{
@@ -379,6 +303,7 @@ namespace	epsplot
 		void Comment(const char * i_lpszComment) const;
 		void Set_Dash(const double * i_lpdPattern, unsigned int i_uiNum_Pattern_Elements, const double & i_dSpace) const;
 		void Text_Bounding_Box(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const color_triplet & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation = 0.0, const double & i_dLine_Width = 1.0) const;
+		void ColorImage(const double & i_dX, const double & i_dY, const double & i_dWidth, const double & i_dHeight, int i_iColor_Depth, const std::vector<color_triplet> & i_vctImage_Data, size_t i_nRow_Length) const;
 	};
 
 
@@ -466,45 +391,48 @@ namespace	epsplot
 		}
 	};
 
-	enum ITEM_TYPE {TYPE_LINE,TYPE_SYMBOL,TYPE_rectangle,TYPE_TEXT,TYPE_ERRORBAR,TYPE_3D};
+	enum item_type {type_line,type_symbol,type_rectangle,type_text,type_errorbar,type_3d};
 	class	plot_item
 	{
 	public:
-		ITEM_TYPE m_eType;
+		item_type m_eType;
 
 //		plot_item	*	m_lpPrev_Item;
 //		plot_item	*	m_lpNext_Item;
 		unsigned int 	m_uiPlot_Axes_To_Use[3];
 
-		plot_item(ITEM_TYPE i_eType)
+		plot_item(item_type i_eType)
 		{
 			m_eType = i_eType;
-//			m_lpPrev_Item = NULL;
-//			m_lpNext_Item = NULL;
+//			m_lpPrev_Item = nullptr;
+//			m_lpNext_Item = nullptr;
 			m_uiPlot_Axes_To_Use[0] = 0;
 			m_uiPlot_Axes_To_Use[1] = 0;
 			m_uiPlot_Axes_To_Use[2] = -1;
 		}
 	};
 
-	class plot_item_3d : public plot_item
+	class plot_3d_item : public plot_item
 	{
 	public:
 
 		eps_triplet * m_lppData;
 		unsigned int m_uiNum_Points;
+		z_axis_iterpolation_scheme	m_eInterpolation_Scheme;
 
-		plot_item_3d(void) : plot_item(TYPE_3D)
+		plot_3d_item(void) : plot_item(type_3d)
 		{
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
+			m_eInterpolation_Scheme = nearest;
 		}
-		~plot_item_3d(void)
+		~plot_3d_item(void)
 		{
 			if (m_lppData)
 				delete [] m_lppData;
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
+			m_eInterpolation_Scheme = nearest;
 		}
 	};
 	class line_item : public plot_item
@@ -515,16 +443,16 @@ namespace	epsplot
 		unsigned int m_uiNum_Points;
 		line_parameters	m_cPlot_Line_Info;
 
-		line_item(void) : plot_item(TYPE_LINE), m_cPlot_Line_Info()
+		line_item(void) : plot_item(type_line), m_cPlot_Line_Info()
 		{
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
 		}
 		~line_item(void)
 		{
 			if (m_lppData)
 				delete [] m_lppData;
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
 		}
 	};
@@ -536,16 +464,16 @@ namespace	epsplot
 		unsigned int m_uiNum_Points;
 		symbol_parameters	m_cPlot_Symbol_Info;
 
-		symbol_item(void) : plot_item(TYPE_SYMBOL), m_cPlot_Symbol_Info()
+		symbol_item(void) : plot_item(type_symbol), m_cPlot_Symbol_Info()
 		{
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
 		}
 		~symbol_item(void)
 		{
 			if (m_lppData)
 				delete [] m_lppData;
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
 		}
 	};
@@ -559,7 +487,7 @@ namespace	epsplot
 		bool		m_bDraw_Border;
 		line_parameters	m_cPlot_Border_Info;
 
-		rectangle_item(void) : plot_item(TYPE_rectangle), m_cPlot_Rectangle_Info(), m_cPlot_Border_Info()
+		rectangle_item(void) : plot_item(type_rectangle), m_cPlot_Rectangle_Info(), m_cPlot_Border_Info()
 		{
 			m_bArea_Fill = false;
 			m_bDraw_Border = false;
@@ -578,18 +506,18 @@ namespace	epsplot
 		double m_dX;
 		double m_dY;
 
-		text_item(void) : plot_item(TYPE_TEXT), m_cText_Parameters(), m_cLine_Parameters()
+		text_item(void) : plot_item(type_text), m_cText_Parameters(), m_cLine_Parameters()
 		{
 			m_dX = 0.0;
 			m_dY = 0.0;
-			m_lpszText = NULL;
+			m_lpszText = nullptr;
 			m_uiText_Alloc_Len = 0;
 		}
 		~text_item(void)
 		{
 			if (m_lpszText)
 				delete [] m_lpszText;
-			m_lpszText = NULL;
+			m_lpszText = nullptr;
 			m_uiText_Alloc_Len = 0;
 		}
 		void Set_Text(const char * i_lpszText)
@@ -616,16 +544,16 @@ namespace	epsplot
 		unsigned int m_uiNum_Points;
 		line_parameters	m_cPlot_Line_Info;
 
-		errorbar_item(void) : plot_item(TYPE_ERRORBAR), m_cPlot_Line_Info(), m_cErrorbar_Info()
+		errorbar_item(void) : plot_item(type_errorbar), m_cPlot_Line_Info(), m_cErrorbar_Info()
 		{
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
 		}
 		~errorbar_item(void)
 		{
 			if (m_lppData)
 				delete [] m_lppData;
-			m_lppData = NULL;
+			m_lppData = nullptr;
 			m_uiNum_Points = 0;
 		}
 	};
@@ -727,30 +655,8 @@ namespace	epsplot
 			return dX;
 		}
 
-	};
 
-	class axis_metadata_Z : public axis_metadata
-	{
-	public:
-		color_triplet	m_ctColor_Upper;
-		color_triplet	m_ctColor_Lower;
-		z_axis_scheme	m_eScheme;
-
-		axis_metadata_Z(void)
-		{
-			m_bEnabled = true;
-			m_uiIdentifier = -1;
-			Reset_Limits();
-		}
-		axis_metadata_Z(const axis_parameters_Z & i_cAxis_Parameters) : axis_metadata(i_cAxis_Parameters)
-		{
-			//m_cParameters = i_cAxis_Parameters;
-			m_bEnabled = true;
-			m_uiIdentifier = -1;
-			Reset_Limits();
-		}
-
-		color_triplet	Get_Color(const double & i_dX)
+		color_triplet	Get_Color(const double & i_dX) // only relevant for Z axis
 		{
 			color_triplet	cRet;
 			double dVal = i_dX;
@@ -762,55 +668,53 @@ namespace	epsplot
 				dVal = 0.0;
 			else if (dVal > 1.0)
 				dVal = 1.0;
-			switch (m_eScheme)
+			switch (m_cParameters.m_eScheme)
 			{
 			case inverse_rainbow:
 				dVal = 1.0 - dVal;
 			case rainbow:
 				if (dVal > 0.833333333333333333)
 				{
-					m_ctColor_Lower = color_triplet(0.0,1.0,1.0);
-					m_ctColor_Upper = color_triplet(0.2,0.0,1.0);
+					m_cParameters.m_ctColor_Lower = color_triplet(0.0,1.0,1.0);
+					m_cParameters.m_ctColor_Upper = color_triplet(0.2,0.0,1.0);
 					dVal -= 0.833333333333333333;
 				}
 				else if (dVal > 0.6666666666666666666)
 				{
-					m_ctColor_Lower = color_triplet(0.0,0.0,1.0);
-					m_ctColor_Upper = color_triplet(0.0,1.0,1.0);
+					m_cParameters.m_ctColor_Lower = color_triplet(0.0,0.0,1.0);
+					m_cParameters.m_ctColor_Upper = color_triplet(0.0,1.0,1.0);
 					dVal -= 0.66666666666666666;
 				}
 				else if (dVal > 0.5)
 				{
-					m_ctColor_Lower = color_triplet(0.0,1.0,0.0);
-					m_ctColor_Upper = color_triplet(0.0,0.0,1.0);
+					m_cParameters.m_ctColor_Lower = color_triplet(0.0,1.0,0.0);
+					m_cParameters.m_ctColor_Upper = color_triplet(0.0,0.0,1.0);
 					dVal -= 0.5;
 				}
 				else if (dVal > 0.3333333333333333333)
 				{
-					m_ctColor_Lower = color_triplet(1.0,1.0,0.0);
-					m_ctColor_Upper = color_triplet(0.0,1.0,0.0);
+					m_cParameters.m_ctColor_Lower = color_triplet(1.0,1.0,0.0);
+					m_cParameters.m_ctColor_Upper = color_triplet(0.0,1.0,0.0);
 					dVal -= 0.3333333333333333333;
 				}
 				else if (dVal > 0.1666666666666666666)
 				{
-					m_ctColor_Lower = color_triplet(1.0,0.5,0.0);
-					m_ctColor_Upper = color_triplet(1.0,1.0,0.0);
+					m_cParameters.m_ctColor_Lower = color_triplet(1.0,0.5,0.0);
+					m_cParameters.m_ctColor_Upper = color_triplet(1.0,1.0,0.0);
 					dVal -= 0.1666666666666666666;
 				}
 				else
 				{
-					m_ctColor_Lower = color_triplet(1.0,0.0,0.0);
-					m_ctColor_Upper = color_triplet(1.0,0.5,0.0);
+					m_cParameters.m_ctColor_Lower = color_triplet(1.0,0.0,0.0);
+					m_cParameters.m_ctColor_Upper = color_triplet(1.0,0.5,0.0);
 				}
 				dVal /= 0.166666666666666667;
-			case dark_to_light:
-			case light_to_dark:
-			case two_color_transition:
-				cRet.m_dRed = m_ctColor_Lower.m_dRed + (m_ctColor_Upper.m_dRed * dVal - m_ctColor_Lower.m_dRed * dVal);
-				cRet.m_dGreen = m_ctColor_Lower.m_dGreen + (m_ctColor_Upper.m_dGreen * dVal - m_ctColor_Lower.m_dGreen * dVal);
-				cRet.m_dBlue = m_ctColor_Lower.m_dBlue + (m_ctColor_Upper.m_dBlue * dVal - m_ctColor_Lower.m_dBlue * dVal);
 				break;
 			}
+			cRet.m_dRed = m_cParameters.m_ctColor_Lower.m_dRed + (m_cParameters.m_ctColor_Upper.m_dRed * dVal - m_cParameters.m_ctColor_Lower.m_dRed * dVal);
+			cRet.m_dGreen = m_cParameters.m_ctColor_Lower.m_dGreen + (m_cParameters.m_ctColor_Upper.m_dGreen * dVal - m_cParameters.m_ctColor_Lower.m_dGreen * dVal);
+			cRet.m_dBlue = m_cParameters.m_ctColor_Lower.m_dBlue + (m_cParameters.m_ctColor_Upper.m_dBlue * dVal - m_cParameters.m_ctColor_Lower.m_dBlue * dVal);
+			return cRet;
 		}
 	};
 		
@@ -825,37 +729,44 @@ namespace	epsplot
 
 		std::vector<plot_item *> m_vcPlot_Item_List;
 
+		inline plot_item * Get_Plot_Item(unsigned int i_uiID) const
+		{
+			plot_item * plRet = nullptr;
+			if (i_uiID < m_vcPlot_Item_List.size())
+				plRet = m_vcPlot_Item_List[i_uiID];
+		}
+
 		color_triplet	m_cCustom_Colors[16];
 		double	* m_lpdCustom_Stipple[16];
 		unsigned int m_uiStipple_Length[16];
 
 		std::vector<axis_metadata>	m_cX_Axis_Parameters;
 		std::vector<axis_metadata>	m_cY_Axis_Parameters;
-		std::vector<axis_metadata_Z> m_cZ_Axis_Parameters;
+		std::vector<axis_metadata>	m_cZ_Axis_Parameters;
 
 		void Draw_Symbol(epsfile & io_cEPS, const double & i_dX, const double & i_dY, const symbol_parameters & i_cSymbol_Param);
 		void	Deallocate_Plot_Data(void)
 		{
 			for (std::vector<plot_item *>::iterator	cIterator = m_vcPlot_Item_List.begin(); cIterator != m_vcPlot_Item_List.end(); cIterator++)
 			{
-				line_item * lpcLine = NULL;
-				symbol_item * lpcSymbol = NULL;
-				rectangle_item * lpcRectangle = NULL;
-				text_item * lpcText = NULL;
+				line_item * lpcLine = nullptr;
+				symbol_item * lpcSymbol = nullptr;
+				rectangle_item * lpcRectangle = nullptr;
+				text_item * lpcText = nullptr;
 				plot_item * lpCurr = *cIterator;
 
 				switch (lpCurr->m_eType)
 				{
-				case TYPE_LINE:
+				case type_line:
 					lpcLine = (line_item *) lpCurr;
 					break;
-				case TYPE_SYMBOL:
+				case type_symbol:
 					lpcSymbol = (symbol_item *) lpCurr;
 					break;
-				case TYPE_rectangle:
+				case type_rectangle:
 					lpcRectangle = (rectangle_item *) lpCurr;
 					break;
-				case TYPE_TEXT:
+				case type_text:
 					lpcText = (text_item *) lpCurr;
 					break;
 				}
@@ -891,60 +802,85 @@ namespace	epsplot
 		void	Null_Pointers(void)
 		{
 			m_vcPlot_Item_List.clear();
-			m_lpszTitle = NULL;
-			m_lpszFilename = NULL;
+			m_lpszTitle = nullptr;
+			m_lpszFilename = nullptr;
 
 			for (unsigned int uiI = 0; uiI < 16; uiI++)
 			{
-				m_lpdCustom_Stipple[uiI] = NULL;
+				m_lpdCustom_Stipple[uiI] = nullptr;
 				m_uiStipple_Length[uiI] = 0;
 			}
 		}
 		std::vector<axis_metadata> * Get_Axis_Metedata_Vector_Ptr(AXIS i_eAxis);
+		const std::vector<axis_metadata> * Get_Axis_Metedata_Vector_Ptr_Const(AXIS i_eAxis) const;
 
 	public:
 	// Methods for the title
-		void	Set_Plot_Title(const char * i_lpszTitle, const double & i_dSize = 36.0, COLOR i_eColor = BLACK) { if(m_lpszTitle) delete [] m_lpszTitle; if (i_lpszTitle && i_lpszTitle[0] != 0) {m_lpszTitle = new char[strlen(i_lpszTitle) + 1]; strcpy(m_lpszTitle,i_lpszTitle);} else m_lpszTitle = NULL;m_dTitle_Size = i_dSize;m_eTitle_Color = i_eColor;}
+		void	Set_Plot_Title(const char * i_lpszTitle, const double & i_dSize = 36.0, COLOR i_eColor = BLACK) { if(m_lpszTitle) delete [] m_lpszTitle; if (i_lpszTitle && i_lpszTitle[0] != 0) {m_lpszTitle = new char[strlen(i_lpszTitle) + 1]; strcpy(m_lpszTitle,i_lpszTitle);} else m_lpszTitle = nullptr;m_dTitle_Size = i_dSize;m_eTitle_Color = i_eColor;}
 		const char *	Get_Plot_Title(void) const { return m_lpszTitle;}
 
 	// Methods for the destination file
-		void	Set_Plot_Filename(const char * i_lpszFilename) { if(m_lpszFilename) delete [] m_lpszFilename; if (i_lpszFilename && i_lpszFilename[0] != 0) {m_lpszFilename = new char[strlen(i_lpszFilename) + 1]; strcpy(m_lpszFilename,i_lpszFilename);} else m_lpszFilename = NULL;}
+		void	Set_Plot_Filename(const char * i_lpszFilename) { if(m_lpszFilename) delete [] m_lpszFilename; if (i_lpszFilename && i_lpszFilename[0] != 0) {m_lpszFilename = new char[strlen(i_lpszFilename) + 1]; strcpy(m_lpszFilename,i_lpszFilename);} else m_lpszFilename = nullptr;}
 		const char *	Get_Plot_Filename(void) const { return m_lpszFilename;}
 
 
 	// Methods for setting data to be plotted
+		///////////////////// Plots //////////////////////////////
+		     ////////////////// Set //////////////////
 		unsigned int	Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, COLOR i_eColor, STIPPLE i_eStipple, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, const double & i_dLine_Width);
 		unsigned int	Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Set_Plot_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Set_Plot_Data(const std::vector<eps_pair> &i_vpValues, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		     //////////////// Modify /////////////////
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 
-		unsigned int	Set_Errorbar_Data(const errorbar_parameters & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const line_parameters & i_cLine_Parameters);
 
+		///////////////////// 3d Plots //////////////////////////////
+		     ////////////////// Set //////////////////
+		unsigned int	Set_Plot_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, const double * i_lpdZ_Values, unsigned int i_uiNum_Points, z_axis_iterpolation_scheme i_eInterpolation_Scheme, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, unsigned int i_uiZ_Axis_ID);
+		unsigned int	Set_Plot_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const std::vector<double> &i_vdZ_Values, z_axis_iterpolation_scheme i_eInterpolation_Scheme, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, unsigned int i_uiZ_Axis_ID);
+		unsigned int	Set_Plot_Data(const std::vector<eps_triplet> &i_vpValues, z_axis_iterpolation_scheme i_eInterpolation_Scheme, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, unsigned int i_uiZ_Axis_ID);
+		     //////////////// Modify /////////////////
+		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, const double * i_lpdZ_Values, unsigned int i_uiNum_Points, z_axis_iterpolation_scheme i_eInterpolation_Scheme, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, unsigned int i_uiZ_Axis_ID);
+		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const std::vector<double> &i_vdZ_Values, z_axis_iterpolation_scheme i_eInterpolation_Scheme, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, unsigned int i_uiZ_Axis_ID);
+		unsigned int	Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_triplet> &i_vpValues, z_axis_iterpolation_scheme i_eInterpolation_Scheme, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID, unsigned int i_uiZ_Axis_ID);
+
+		///////////////////// Errorbars //////////////////////////////
+		     ////////////////// Set //////////////////
+		unsigned int	Set_Errorbar_Data(const errorbar_parameters & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const line_parameters & i_cLine_Parameters);
+		unsigned int	Modify_Errorbar_Data(unsigned int i_uiPlot_Data_ID, const errorbar_parameters & i_cErrorbar_Parameters, const std::vector<double> &i_vdValues, const line_parameters & i_cLine_Parameters);
+
+		///////////////////// Symbols //////////////////////////////
+		     ////////////////// Set //////////////////
 		unsigned int	Set_Symbol_Data(const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Set_Symbol_Data(const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Set_Symbol_Data(const std::vector<eps_pair> &i_vpValues, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
+		     //////////////// Modify /////////////////
 		unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const double * i_lpdX_Values, const double * i_lpdY_Values, unsigned int i_uiNum_Points, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<double> &i_vdX_Values, const std::vector<double> &i_vdY_Values, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 		unsigned int	Modify_Symbol_Data(unsigned int i_uiPlot_Data_ID, const std::vector<eps_pair> &i_vpValues, const symbol_parameters & i_cSymbol_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 
 	// Methods for controlling axes
+		///////////////////// Axis control //////////////////////////////
+		     ////////////////// Set //////////////////
 		unsigned int	Set_X_Axis_Parameters(const char * i_lpszAxis_Title, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax);
 		unsigned int	Set_Y_Axis_Parameters(const char * i_lpszAxis_Title, bool i_bLog_Axis, bool i_bInvert_Axis, bool i_bSet_Min, const double & i_dMin, bool i_bSet_Max, const double & i_dMax);
 		unsigned int	Set_Axis_Parameters(AXIS i_eAxis, const axis_parameters & i_cAxis_Parameters);
-		unsigned int	Set_Z_Axis_Parameters(const axis_parameters_Z & i_cAxis_Parameters);
+		unsigned int	Set_Z_Axis_Parameters(const axis_parameters & i_cAxis_Parameters);
 		unsigned int	Set_X_Axis_Parameters(const axis_parameters & i_cAxis_Parameters);
 		unsigned int	Set_Y_Axis_Parameters(const axis_parameters & i_cAxis_Parameters);
+		     //////////////// Modify /////////////////
 		unsigned int	Modify_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters);
 		unsigned int	Modify_X_Axis_Parameters(unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters);
 		unsigned int	Modify_Y_Axis_Parameters(unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters);
-		unsigned int	Modify_Z_Axis_Parameters(unsigned int i_uiWhich, const axis_parameters_Z & i_cAxis_Parameters);
-		axis_parameters	Get_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich);
-		axis_parameters	Get_X_Axis_Parameters(unsigned int i_uiWhich);
-		axis_parameters	Get_Y_Axis_Parameters(unsigned int i_uiWhich);
-		axis_parameters_Z	Get_Z_Axis_Parameters(unsigned int i_uiWhich);
+		unsigned int	Modify_Z_Axis_Parameters(unsigned int i_uiWhich, const axis_parameters & i_cAxis_Parameters);
+		     ////////////////// Get //////////////////
+		axis_parameters	Get_Axis_Parameters(AXIS i_eAxis, unsigned int i_uiWhich)  const;
+		axis_parameters	Get_X_Axis_Parameters(unsigned int i_uiWhich)  const;
+		axis_parameters	Get_Y_Axis_Parameters(unsigned int i_uiWhich)  const;
+		axis_parameters	Get_Z_Axis_Parameters(unsigned int i_uiWhich)  const;
 		unsigned int	Get_Num_Axes(AXIS i_eAxis) const
 		{
 			unsigned int uiRet = 0;
@@ -975,7 +911,7 @@ namespace	epsplot
 
 	// Methods for rectangles
 		unsigned int	Set_Rectangle_Data(const rectangle & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
-		unsigned int	Modify_Rectangle_Data(unsigned int i_uiPlot_Data_ID, const rectangle & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
+		unsigned int	Modify_Rectangle_Data(unsigned int i_uiPlot_Data_ID, const rectangle & i_cArea, bool i_bFill, COLOR i_eFill_Color, bool i_bBorder, const line_parameters & i_cLine_Parameters, unsigned int i_uiX_Axis_ID, unsigned int i_uiY_Axis_ID);
 
 	// Methods for text
 		unsigned int	Set_Text_Data(const double & i_dX, const double & i_dY, const char * i_lpszText, const line_parameters & i_cLine_Parameters, const text_parameters & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
@@ -983,7 +919,6 @@ namespace	epsplot
 
 	// Methods for plotting
 		void	Plot(const page_parameters & i_cGrid);
-		void	Plot_3d(const page_parameters & i_cGrid); // uses z-axis data to produce 2d map with color data depicting the 3rd axis
 
 
 	// Methods for emptying the plot
@@ -1022,6 +957,20 @@ namespace	epsplot
 			Null_Pointers();
 		}
 	};
+
+
+	extern const color_triplet	g_cColor_Std_Black;
+	extern const color_triplet	g_cColor_Std_Red;
+	extern const color_triplet	g_cColor_Std_Green;
+	extern const color_triplet	g_cColor_Std_Blue;
+	extern const color_triplet	g_cColor_Std_Cyan;
+	extern const color_triplet	g_cColor_Std_Magenta;
+	extern const color_triplet	g_cColor_Std_Yellow;
+	extern const color_triplet	g_cColor_Std_Grey_25;
+	extern const color_triplet	g_cColor_Std_Grey_50;
+	extern const color_triplet	g_cColor_Std_Grey_75;
+	extern const color_triplet	g_cColor_Std_White;
+
 };
 
 

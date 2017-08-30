@@ -27,18 +27,21 @@ SRC_SF := $(wildcard $(SRCDIR)/sf_*.cpp)
 OBJS_SF := $(subst $(SRCDIR),$(TMPDIR),$(patsubst %.cpp,%.o,$(SRC_SF)))
 SRC_LR := $(wildcard $(SRCDIR)/line_routines*.cpp)
 OBJS_LR := $(subst $(SRCDIR),$(TMPDIR),$(patsubst %.cpp,%.o,$(SRC_LR)))
+SRC_EPS := $(wildcard $(SRCDIR)/epsplot/*.cpp)
+OBJS_EPS := $(subst $(SRCDIR),$(TMPDIR),$(patsubst %.cpp,%.o,$(SRC_EPS)))
 
 $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $< -o $@
 
-$(LIBDIR)/libplotutil.a: $(SRCDIR)/Plot_Utilities.cpp $(INCLUDEDIR)/Plot_Utilities.h $(XLIBSCHANGE) $(INCLUDEDIR)/eps_plot.h $(SRCDIR)/eps_plot.cpp
-	$(CXX) $(CXXFLAGS) $(SRCDIR)/Plot_Utilities.cpp -o $(TMPDIR)/Plot_Utilities.o
-	$(CXX) $(CXXFLAGS) $(SRCDIR)/eps_plot.cpp -o $(TMPDIR)/eps_plot.o
+$(TMPDIR)/epsplot/%.o: $(SRCDIR)/epsplot/%.cpp $(INCLUDEDIR)/eps_plot.h $(INCLUDEDIR)/Plot_Utilities.h
+	$(CXX) $(CXXFLAGS) $(XMLINCLUDE) $< -o $@
+
+$(LIBDIR)/libplotutil.a: $(INCLUDEDIR)/eps_plot.h $(INCLUDEDIR)/Plot_Utilities.h $(XLIBSCHANGE) $(OBJS_EPS)
 	-rm $(LIBDIR)/libplotutil.a
-	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libplotutil.a $(TMPDIR)/eps_plot.o $(TMPDIR)/Plot_Utilities.o 
+	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/libplotutil.a $(OBJS_EPS)
 Plot_Utilities: $(LIBDIR)/libplotutil.a
 
-$(LIBDIR)/liblinerout.a: $(OBJS_LR) $(XLIBSCHANGE)
+$(LIBDIR)/liblinerout.a: $(OBJS_LR) $(XLIBSCHANGE) $(INCLUDEDIR)/line_routines.h
 	-rm $(LIBDIR)/liblinerout.a
 	$(LIBCOMP) $(LIBCOMPFLAG) $(LIBDIR)/liblinerout.a $(OBJS_LR)
 line_routines: $(LIBDIR)/liblinerout.a
@@ -157,8 +160,8 @@ $(BINDIR)/gatherfits: $(SRCDIR)/gather_best_fit_data.cpp $(INCLUDEDIR)/best_fit_
 	$(CXX) $(CLFLAGS) $(SRCDIR)/gather_best_fit_data.cpp $(ESFLAGS)  $(ESLIBS) -lxstdlib -o $(BINDIR)/gatherfits
 
 genfitmom: $(BINDIR)/genfitmom
-$(BINDIR)/genfitmom: $(SRCDIR)/generate_fit_moments.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE) $(SRCDIR)/eps_plot.cpp
-	$(CXX) $(CLFLAGS) $(SRCDIR)/generate_fit_moments.cpp $(SRCDIR)/eps_plot.cpp $(ESFLAGS) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/genfitmom
+$(BINDIR)/genfitmom: $(SRCDIR)/generate_fit_moments.cpp $(LIBDIR)/liblinerout.a $(XLIBSCHANGE)
+	$(CXX) $(CLFLAGS) $(SRCDIR)/generate_fit_moments.cpp $(ESFLAGS) $(ESLIBS) -llinerout -lxmath -lxio -lxstdlib -o $(BINDIR)/genfitmom
 
 modfits: $(BINDIR)/modfits
 $(BINDIR)/modfits: $(SRCDIR)/mod_best_fit_file.cpp $(XLIBSCHANGE)
