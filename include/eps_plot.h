@@ -201,7 +201,7 @@ namespace	epsplot
 
 		void	Set_Title(const char * i_lpszTitle)
 		{
-			if (i_lpszTitle == nullptr)
+			if (i_lpszTitle != nullptr)
 				m_sTitle = i_lpszTitle;
 			else
 				m_sTitle = "";
