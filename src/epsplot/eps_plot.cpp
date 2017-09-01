@@ -244,6 +244,11 @@ void	data::Plot(const page_parameters & i_cGrid)
 	{
 		cEPS.Open_File(m_lpszFilename, m_lpszTitle, i_cGrid.m_dWidth_Inches, i_cGrid.m_dHeight_Inches);
 
+		bool bHas_3d_plots = false;
+		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end() && !bHas_3d_plots; cPlot_Item_Iter++)
+		{
+			bHas_3d_plots = ((*cPlot_Item_Iter)->m_eType == type_3d);
+		}
 		double	dGraph_Space_X;
 		double	dGraph_Space_Y;
 		double	dRight_Margin = i_cGrid.m_dRight_Axis_Margin;
@@ -251,6 +256,8 @@ void	data::Plot(const page_parameters & i_cGrid)
 		double	dTitle_Margin = i_cGrid.m_dTitle_Margin;
 		if (m_cY_Axis_Parameters.size() > 1 && dRight_Margin <= 0.0)
 			dRight_Margin = i_cGrid.m_dLeft_Axis_Margin;
+		if (bHas_3d_plots)
+			dRight_Margin += 0.1;
 		if (m_lpszTitle == nullptr || m_lpszTitle[0] == 0)
 			dTitle_Margin = 0.0;
 		if (m_cX_Axis_Parameters.size() <= 1)
@@ -1255,6 +1262,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 				uiI++; // indicates axis at top or bottom of graph
 			}
 		}
+		//////////////////////////////// y - axis ticks ////////////////////////////////////
 		uiI = 0;
 		if (m_cY_Axis_Parameters.size() == 0 && cY_Axis_Default.m_dRange != 0.0)
 		{
@@ -1543,6 +1551,89 @@ void	data::Plot(const page_parameters & i_cGrid)
 			}
 		}
 		cEPS.State_Pop();
+		//////////////////////////////////// z-axis label //////////////////////////////////////
+		if (bHas_3d_plots)
+		{
+			cEPS.Comment("Z Axis labels");
+			cEPS.State_Push();
+			cEPS.Translate(dGraph_Offset_X + dGraph_Space_X + i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin * 0.5 * 72.0, dGraph_Offset_Y);
+			for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cZ_Axis_Parameters.begin(); cAxis_Iter != m_cZ_Axis_Parameters.end(); cAxis_Iter++)
+			{
+				std::vector<color_triplet> vctColor_Data;
+				for (size_t tI = 0; tI < 256; tI++)
+				{
+					color_triplet ctCurr = cAxis_Iter->Get_Color(tI / 255.0 * (cAxis_Iter->m_dEnd - cAxis_Iter->m_dStart) + cAxis_Iter->m_dStart);
+					//printf("%.3f %.3f %.3f %.3f\n",tI/255.0,ctCurr.m_dRed,ctCurr.m_dGreen,ctCurr.m_dBlue);
+					vctColor_Data.push_back(ctCurr);
+				}
+				//cEPS.ColorImage(dGraph_Offset_X + dGraph_Space_X + i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin * 0.5 * 72.0, dGraph_Offset_Y, 16.0, dGraph_Space_Y, 8, vctColor_Data, 256);
+				cEPS.ColorImage(0.0, 0.0, 16.0, dGraph_Space_Y - 32.0, 8, vctColor_Data, 1);
+				double dVal = cAxis_Iter->m_dStart;
+				char lpszValue[64];
+				if (dVal == 0.0)
+					sprintf(lpszValue,"%.1f",dVal);
+				else if (dVal > -1.0 && dVal <= -0.01)
+					sprintf(lpszValue,"%.2f",dVal);
+				else if (dVal < 1.0 && dVal >= 0.01)
+					sprintf(lpszValue,"%.2f",dVal);
+				else if (dVal >=  -100.0 && dVal <= 100.0)
+					sprintf(lpszValue,"%.1f",dVal);
+				else if (dVal >=  -10000.0 && dVal <= 10000.0)
+					sprintf(lpszValue,"%.0f",dVal);
+				else
+				{
+					double dLog10 = log10(fabs(dVal));
+					double dPower = floor(dLog10);
+					double	dMantissa = dVal * pow(10.0,-dPower);
+					if (dMantissa != 1.0 && dPower != 0.0)
+					{
+						sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+					}
+					else if (dMantissa == 1.0 && dPower != 0.0)
+					{
+						sprintf(lpszValue,"10^{%.0f}",dPower);
+					}
+					else
+						sprintf(lpszValue,"%.1f",dMantissa);
+				}
+
+				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),8.0, -16.0, lpszValue, 0.0);
+
+				dVal = cAxis_Iter->m_dEnd;
+				if (dVal == 0.0)
+					sprintf(lpszValue,"%.1f",dVal);
+				else if (dVal > -1.0 && dVal <= -0.01)
+					sprintf(lpszValue,"%.2f",dVal);
+				else if (dVal < 1.0 && dVal >= 0.01)
+					sprintf(lpszValue,"%.2f",dVal);
+				else if (dVal >=  -100.0 && dVal <= 100.0)
+					sprintf(lpszValue,"%.1f",dVal);
+				else if (dVal >=  -10000.0 && dVal <= 10000.0)
+					sprintf(lpszValue,"%.0f",dVal);
+				else
+				{
+					double dLog10 = log10(fabs(dVal));
+					double dPower = floor(dLog10);
+					double	dMantissa = dVal * pow(10.0,-dPower);
+					if (dMantissa != 1.0 && dPower != 0.0)
+					{
+						sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+					}
+					else if (dMantissa == 1.0 && dPower != 0.0)
+					{
+						sprintf(lpszValue,"10^{%.0f}",dPower);
+					}
+					else
+						sprintf(lpszValue,"%.1f",dMantissa);
+				}
+
+				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),8.0, dGraph_Space_Y-16.0, lpszValue, 0.0);
+
+				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),8.0, dGraph_Space_Y+16.0, cAxis_Iter->m_cParameters.Get_Title(), 0.0);
+			}
+			
+			cEPS.State_Pop();
+		}
 
 		cEPS.Close_File();
 	}
