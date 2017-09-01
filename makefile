@@ -1,4 +1,4 @@
-all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels  testeps genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib linfit statepop velfntest libOSC
+all: Plot_Utilities msdb photosphere reverse rlamc yaml2csv shex densprof quikplot quikplotspec flashtime userprof userseries gaussianprof quikplotseries equivwidth line_routines bestfitcsv combinedensdata ionabddet paperplot seriesewvmin gatherfits genfitmom modfits psfit psfitinter genfs min max data2databin ungatherfits tempex velev regenfits fixfits replot modelvelev diffusion flash2snec mve_vels  testeps genplot gentardis gausstest gather_pEW_vels test_msdb Vega_filters gather_photometry gather_scalars opmaptest gather_pstables 1dfm sf genjsonfit genmsdb gensingle ionphotcalc getopdata ionphotcalc57 gathertransitions gathertransitionsall statepoplib linfit statepop velfntest libOSC plotgrid
 # libcomp, multiion, sahatest excluded (need to fix compile errors due to changes to xastro library)
 #spectrafit excluded (obsolete)
 .PHONY: all
@@ -373,7 +373,7 @@ statepoplib: $(LIBDIR)/libsp.a
 
 statepop: $(BINDIR)/statepop
 $(BINDIR)/statepop: $(SRCDIR)/state_pops.cpp $(XLIBSCHANGE) $(LIBDIR)/libsp.a $(LIBDIR)/liblinerout.a $(INCLUDEDIR)/kurucz_data.h $(INCLUDEDIR)/radiation.h $(INCLUDEDIR)/opacity_project_pp.h  $(INCLUDEDIR)/velocity_function.h
-	$(CXX) $(CLFLAGS) -I$(HOME)/arpack++/include $(SRCDIR)/state_pops.cpp -lsp -llinerout -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/statepop
+	$(CXX) $(CLFLAGS) $(SRCDIR)/state_pops.cpp -lsp -llinerout -lxastro -lxmath -lxio -lxstdlib -o $(BINDIR)/statepop
 
 velfntest: $(BINDIR)/velfntest
 $(BINDIR)/velfntest: $(SRCDIR)/velfntest.cpp $(XLIBSCHANGE) $(INCLUDEDIR)/velocity_function.h
@@ -382,6 +382,10 @@ $(BINDIR)/velfntest: $(SRCDIR)/velfntest.cpp $(XLIBSCHANGE) $(INCLUDEDIR)/veloci
 linfit: $(BINDIR)/linfit
 $(BINDIR)/linfit: $(SRCDIR)/linfit.cpp $(XLIBSCHANGE)
 	$(CXX)	$(CLFLAGS) $(SRCDIR)/linfit.cpp -lxio -lxstdlib -lxmath -o $(BINDIR)/linfit
+
+plotgrid: $(BINDIR)/plotgrid
+$(BINDIR)/plotgrid: $(SRCDIR)/plot_grid_quality.cpp $(XLIBSCHANGE) $(LIBDIR)/libplotutil.a
+	$(CXX)	$(CLFLAGS) $(SRCDIR)/plot_grid_quality.cpp -lxio -lxstdlib  $(PLOTUTILLIB) -o $(BINDIR)/plotgrid
 
 clean:
 	-rm $(BINDIR)/*
