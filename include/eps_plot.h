@@ -342,12 +342,14 @@ namespace	epsplot
 		double		m_dSize;
 		COLOR		m_eColor;
 		bool		m_bFilled;
+		double		m_dLine_Width;
 		symbol_parameters(void)
 		{
 			m_eColor = BLACK;
 			m_dSize = 12.0;
 			m_eType = SQUARE;
 			m_bFilled = true;
+			m_dLine_Width = -1.0;
 		}
 	};
 

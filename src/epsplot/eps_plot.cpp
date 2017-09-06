@@ -210,7 +210,10 @@ void data::Draw_Symbol(epsfile & io_cEPS, const double & i_dX, const double & i_
 	}
 	if (vSymbol != nullptr)
 	{
-			
+		if (!i_cSymbol_Param.m_bFilled && i_cSymbol_Param.m_dLine_Width != -1.0)
+		{
+			io_cEPS.Set_Line_Width(i_cSymbol_Param.m_dLine_Width);
+		}
 		for (unsigned int uiI = 0; uiI < vSymbol->size(); uiI++)
 		{
 			if (uiI == 0)
