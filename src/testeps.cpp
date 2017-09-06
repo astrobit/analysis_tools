@@ -1,5 +1,10 @@
 #include <eps_plot.h>
 
+epsplot::eps_triplet Fill_Triplet(const double & i_dX, const double & i_dY)
+{
+	return epsplot::eps_triplet(i_dX,i_dY,std::sqrt(i_dX * i_dX + i_dY * i_dY));
+}
+
 int main(void)
 {
 	using namespace epsplot;
@@ -16,12 +21,12 @@ int main(void)
 
 	cY_Axis.Set_Title("Y");
 	cY_Axis.m_dLower_Limit = -1.0;
-	cY_Axis.m_dUpper_Limit = 2.0;
+	cY_Axis.m_dUpper_Limit = 6.0;
 	
 	cZ_Axis.Set_Title("Z");
 	cZ_Axis.m_dLower_Limit = 0.0;
-	cZ_Axis.m_dUpper_Limit = 3.0;
-	cZ_Axis.m_eScheme = epsplot::rainbow;
+	cZ_Axis.m_dUpper_Limit = std::sqrt(4.0 + 36.0);
+	cZ_Axis.m_eScheme = epsplot::dark_to_light;//epsplot::rainbow;
 
 	double	lpdX_Values[256];
 	double	lpdY_Values[256];
@@ -46,41 +51,45 @@ int main(void)
 	cPlot.Plot(cPage);
 
 	cX_Axis.m_bInvert = true;
+	cX_Axis.Set_Title("invert X");
 	cPlot.Modify_X_Axis_Parameters(uiX_Axis_ID,cX_Axis);
 	cPlot.Set_Plot_Filename("test_inv_x.eps");
 	cPlot.Plot(cPage);
 
 	cX_Axis.m_bInvert = false;
+	cX_Axis.Set_Title("X");
 	cPlot.Modify_X_Axis_Parameters(uiX_Axis_ID,cX_Axis);
+	cY_Axis.Set_Title("invert Y");
 	cY_Axis.m_bInvert = true;
 	cPlot.Modify_Y_Axis_Parameters(uiY_Axis_ID,cY_Axis);
 	cPlot.Set_Plot_Filename("test_inv_y.eps");
 	cPlot.Plot(cPage);
 
+	cY_Axis.Set_Title("Y");
 	cY_Axis.m_bInvert = false;
 	cPlot.Modify_Y_Axis_Parameters(uiY_Axis_ID,cY_Axis);
 	cPlot.Clear_Plots();
 	std::vector<eps_triplet> vetData;
-	vetData.push_back(eps_triplet(-1,-1,0.0));
-	vetData.push_back(eps_triplet( 0,-1,0.5));
-	vetData.push_back(eps_triplet( 1,-1,1));
-	vetData.push_back(eps_triplet( 2,-1,1.5));
+	std::vector<eps_pair> vepData;
+	for (double dX = -1.0; dX <= 2.250; dX += 0.250)
+	{
+		for (double dY = -1.0; dY <= 6.250; dY += 0.250)
+		{
+			printf("%f %f\n",dX,dY);
+			vetData.push_back(Fill_Triplet(dX,dY));
+			vepData.push_back(eps_pair(dX,dY));
+		}
+	}
 
-	vetData.push_back(eps_triplet(-1, 0,0.5));
-	vetData.push_back(eps_triplet( 0, 0,1));
-	vetData.push_back(eps_triplet( 1, 0,1.5));
-	vetData.push_back(eps_triplet( 2, 0,2));
+	symbol_parameters cSymb;
 
-	vetData.push_back(eps_triplet(-1, 1,1));
-	vetData.push_back(eps_triplet( 0, 1,1.5));
-	vetData.push_back(eps_triplet( 1, 1,2));
-	vetData.push_back(eps_triplet( 2, 1,2.5));
+	cSymb.m_eColor = MAGENTA;
+	cSymb.m_bFilled = true;
+	cSymb.m_eType = SQUARE;
+	cSymb.m_dSize = 1.0;
 
-	vetData.push_back(eps_triplet(-1, 2,1.5));
-	vetData.push_back(eps_triplet( 0, 2,2));
-	vetData.push_back(eps_triplet( 1, 2,2.5));
-	vetData.push_back(eps_triplet( 2, 2,3.0));
-	cPlot.Set_Plot_Data(vetData,epsplot::inverse_distance_weight_2,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
+	cPlot.Set_Plot_Data(vetData,epsplot::nearest,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
+	cPlot.Set_Symbol_Data(vepData, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 	cPlot.Set_Plot_Filename("test_image.eps");
 	cPlot.Plot(cPage);
 	return 0;

@@ -83,6 +83,7 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 	vtRef_Points.push_back(tBest);
 
 	cZ_Axis.Set_Title("log(Quality)");
+	cZ_Axis.m_dTitle_Size = 12.0;
 	cZ_Axis.m_eScheme = epsplot::two_color_transition;
 	cZ_Axis.m_ctColor_Upper = color_triplet(0,0,0.25); // only used for Z axis
 	cZ_Axis.m_ctColor_Lower = color_triplet(0,0,1.0); // only used for Z axis
@@ -138,6 +139,7 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 
 
 			std::vector<eps_triplet> vetData;
+			std::vector<eps_pair> vepPoint_Data;
 			cPlot.Clear_Plots();
 			double dQ_Min = DBL_MAX;
 			double dQ_Max = 0.0;
@@ -162,14 +164,17 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 							case 3:
 								cElem = mQuality_Data[tRefine][tAxis_A][tAxis_B][tSe][tSs];
 								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dVel,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dVel));
 								break;
 							case 4:
 								cElem = mQuality_Data[tRefine][tAxis_A][tVel][tAxis_B][tSs];
 								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dSe,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSe));
 								break;
 							case 5:
 								cElem = mQuality_Data[tRefine][tAxis_A][tVel][tSe][tAxis_B];
 								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dSs,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSs));
 								break;
 							}
 							break;
@@ -179,10 +184,12 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 							case 4:
 								cElem = mQuality_Data[tRefine][tTemp][tAxis_A][tAxis_B][tSs];
 								vetData.push_back(eps_triplet(cElem.m_dVel,cElem.m_dSe,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSe));
 								break;
 							case 5:
 								cElem = mQuality_Data[tRefine][tTemp][tAxis_A][tSe][tAxis_B];
 								vetData.push_back(eps_triplet(cElem.m_dVel,cElem.m_dSs,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSs));
 								break;
 							}
 							break;
@@ -192,6 +199,7 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 							case 5:
 								cElem = mQuality_Data[tRefine][tTemp][tVel][tAxis_A][tAxis_B];
 								vetData.push_back(eps_triplet(cElem.m_dSe,cElem.m_dSs,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dSe,cElem.m_dSs));
 								break;
 							}
 							break;
@@ -287,6 +295,12 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			cSymb.m_eType = CIRCLE;
 			cSymb.m_dSize = 12.0;
 			cPlot.Set_Symbol_Data(vpBest_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
+
+			cSymb.m_eColor = MAGENTA;
+			cSymb.m_bFilled = true;
+			cSymb.m_eType = SQUARE;
+			cSymb.m_dSize = 1.0;
+			cPlot.Set_Symbol_Data(vepPoint_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 
 			cPlot.Set_Plot_Filename(szFilename.c_str());
 			cPlot.Plot(cPage);

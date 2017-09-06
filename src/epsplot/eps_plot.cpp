@@ -527,15 +527,15 @@ void	data::Plot(const page_parameters & i_cGrid)
 					//}
 					//printf("\n");
 					//printf("%f %f\n",lpZ_Axis->m_dStart,lpZ_Axis->m_dEnd);
-					for (size_t tI = 0; tI < dGraph_Space_X + 1; tI++)
+					for (size_t tJ = 0; tJ < dGraph_Space_Y; tJ++)
 					{
 						tCols++;
-						double dX = lpX_Axis->Reverse_Scale(tI + 0.5);
+						double dY = lpY_Axis->Reverse_Scale(tJ + 0.5);
 						//printf("%f",dX);
-						for (size_t tJ = 0; tJ < dGraph_Space_Y; tJ++)
+						for (size_t tI = 0; tI < dGraph_Space_X + 1; tI++)
 						{
 							tRows++;
-							double dY = lpY_Axis->Reverse_Scale(tJ + 0.5);
+							double dX = lpX_Axis->Reverse_Scale(tI + 0.5);
 							color_triplet ctCurr_Color;
 							double dNearest_Range = DBL_MAX;
 							double dSum_Weights[16] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
@@ -556,7 +556,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 										dSum_Weights[tL] = 1.0;
 									}
 								}
-								if (!bExact)
+								if (!bExact && lpcPlot_3d->m_eInterpolation_Scheme != nearest) // don't waste time with this for a nearest neighbor search
 								{
 									double dInv_Sqrt_Range = 1.0 / sqrt(dRange);
 									double dWeight = 1.0;
