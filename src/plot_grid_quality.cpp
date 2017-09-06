@@ -82,11 +82,13 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 	}
 	vtRef_Points.push_back(tBest);
 
-	cZ_Axis.Set_Title("log(Quality)");
+	cZ_Axis.Set_Title("log(J)");
 	cZ_Axis.m_dTitle_Size = 12.0;
 	cZ_Axis.m_eScheme = epsplot::two_color_transition;
-	cZ_Axis.m_ctColor_Upper = color_triplet(0,0,0.25); // only used for Z axis
-	cZ_Axis.m_ctColor_Lower = color_triplet(0,0,1.0); // only used for Z axis
+//	cZ_Axis.m_ctColor_Upper = color_triplet(0,0,0.25); // only used for Z axis
+//	cZ_Axis.m_ctColor_Lower = color_triplet(0,0,1.0); // only used for Z axis
+	cZ_Axis.m_ctColor_Upper = color_triplet(1,1,1); // only used for Z axis
+	cZ_Axis.m_ctColor_Lower = color_triplet(0,0,0.0); // only used for Z axis
 
 	unsigned int uiX_Axis_ID = cPlot.Set_X_Axis_Parameters(cX_Axis);
 	unsigned int uiY_Axis_ID = cPlot.Set_Y_Axis_Parameters(cY_Axis);
@@ -214,12 +216,40 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			cZ_Axis.m_dLower_Limit = std::log10(dQ_Min);
 			cZ_Axis.m_dUpper_Limit = std::log10(dQ_Max);
 			cPlot.Modify_Z_Axis_Parameters(uiZ_Axis_ID,cZ_Axis);
-			std::string szFilename_Data = i_lpszParams[1];
+			/*std::string szFilename_Data = i_lpszParams[1];
 			size_t tPos = szFilename_Data.find(".csv");
 			szFilename_Data[tPos + 0] = '_';
-			szFilename_Data[tPos + 1] = '0' + (tAxis_X - 2);
+			switch (tAxis_X)
+			{
+			case 2:
+				szFilename_Data[tPos + 1] = 'T';
+				break;
+			case 3:
+				szFilename_Data[tPos + 1] = 'v';
+				break;
+			case 4:
+				szFilename_Data[tPos + 1] = 'E';
+				break;
+			case 5:
+				szFilename_Data[tPos + 1] = 'S';
+				break;
+			}
 			szFilename_Data[tPos + 2] = '_';
-			szFilename_Data[tPos + 3] = '0' + (tAxis_Y - 2);
+			switch (tAxis_Y)
+			{
+			case 2:
+				szFilename_Data[tPos + 3] = 'T';
+				break;
+			case 3:
+				szFilename_Data[tPos + 3] = 'v';
+				break;
+			case 4:
+				szFilename_Data[tPos + 3] = 'E';
+				break;
+			case 5:
+				szFilename_Data[tPos + 3] = 'S';
+				break;
+			}
 			szFilename_Data.push_back('.');
 			szFilename_Data.push_back('c');
 			szFilename_Data.push_back('s');
@@ -232,16 +262,44 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 					fprintf(fileData,"%.4f, %.4f, %.17e\n",iterI->m_dX,iterI->m_dY,iterI->m_dZ);
 				}
 				fclose(fileData);
-			}				
+			}				*/
 
 
 			cPlot.Set_Plot_Data(vetData,nearest,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
 			std::string szFilename = i_lpszParams[1];
-			tPos = szFilename.find(".csv");
+			size_t tPos = szFilename.find(".csv");
 			szFilename[tPos + 0] = '_';
-			szFilename[tPos + 1] = '0' + (tAxis_X - 2);
+			switch (tAxis_X)
+			{
+			case 2:
+				szFilename[tPos + 1] = 'T';
+				break;
+			case 3:
+				szFilename[tPos + 1] = 'v';
+				break;
+			case 4:
+				szFilename[tPos + 1] = 'E';
+				break;
+			case 5:
+				szFilename[tPos + 1] = 'S';
+				break;
+			}
 			szFilename[tPos + 2] = '_';
-			szFilename[tPos + 3] = '0' + (tAxis_Y - 2);
+			switch (tAxis_Y)
+			{
+			case 2:
+				szFilename[tPos + 3] = 'T';
+				break;
+			case 3:
+				szFilename[tPos + 3] = 'v';
+				break;
+			case 4:
+				szFilename[tPos + 3] = 'E';
+				break;
+			case 5:
+				szFilename[tPos + 3] = 'S';
+				break;
+			}
 			szFilename.push_back('.');
 			szFilename.push_back('e');
 			szFilename.push_back('p');
@@ -290,17 +348,19 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 				break;
 			}
 			symbol_parameters cSymb;
-			cSymb.m_eColor = YELLOW;
-			cSymb.m_bFilled = false;
-			cSymb.m_eType = CIRCLE;
-			cSymb.m_dSize = 12.0;
-			cPlot.Set_Symbol_Data(vpBest_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 
 			cSymb.m_eColor = MAGENTA;
 			cSymb.m_bFilled = true;
 			cSymb.m_eType = SQUARE;
 			cSymb.m_dSize = 1.0;
 			cPlot.Set_Symbol_Data(vepPoint_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
+
+			cSymb.m_eColor = YELLOW;
+			cSymb.m_bFilled = false;
+			cSymb.m_eType = CIRCLE;
+			cSymb.m_dSize = 4.0;
+			cSymb.m_dLine_Width = 0.5;
+			cPlot.Set_Symbol_Data(vpBest_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 
 			cPlot.Set_Plot_Filename(szFilename.c_str());
 			cPlot.Plot(cPage);
