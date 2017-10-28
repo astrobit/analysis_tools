@@ -1,0 +1,26 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ =  7  NE =  5
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    1  0  0   0.00000E+00  2s2            
+   2    3  1  1   6.13657E-01  2s2p(3PO)      
+   3    1  1  1   1.20215E+00  2s2p(1PO)      
+   4    3  1  0   1.60631E+00  2p2(3PE)       
+   5    1  2  0   1.72761E+00  2p2(1DE)       
+   6    1  0  0   2.16476E+00  2p2(1SE)       
+ ===========================================
+ N+1 Configurations:
+   1 2s 2p2         
+   2 2p3            
+ Reference:
+ JA Fernley, A Hibbert, AE Kingston & MJ Seaton, to be published                 
+

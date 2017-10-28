@@ -19,7 +19,7 @@ op_config_reprocess_LDADD = -lopacity_project ${xastro_LIBS}
 pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 
 
-datasubc0dir = ${pkgdatadir}/Opacity-Project
+datasubc0dir = ${pkgdatadir}
 datasubc1dir = ${datasubc0dir}
 datasubc2dir = ${datasubc0dir}
 datasubcr0dir = ${datasub0dir}

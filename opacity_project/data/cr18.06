@@ -1,0 +1,29 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ = 18  NE =  6
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    2  1  1   0.00000E+00  2s2 2p         
+   2    4  1  0   1.88351E+00  2s2p2(4PE)     
+   3    2  2  0   3.44954E+00  2s2p2(2DE)     
+   4    2  0  0   4.45205E+00  2s2p2(2SE)     
+   5    2  1  0   4.71412E+00  2s2p2(2PE)     
+   6    4  0  1   6.08812E+00  2p3(4SO)       
+   7    2  2  1   6.97525E+00  2p3(2DO)       
+   8    2  1  1   7.89882E+00  2p3(2PO)       
+ ===========================================
+ N+1 Configurations:
+   1 2s2 2p2        
+   2 2s 2p3         
+   3 2p4            
+ Reference:
+ D Luo & AK Pradhan, 1989, J. Phys. B, 22, 3377 (ADOC-11)                        
+

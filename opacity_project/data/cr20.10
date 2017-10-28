@@ -1,0 +1,21 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ = 20  NE = 10
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    2  1  1   0.00000E+00  2p5            
+   2    2  0  0   6.19211E+00  2p6            
+ ===========================================
+ N+1 Configurations:
+   1 2s2 2p6        
+ Reference:
+ MP Scott, to be published                                                       
+

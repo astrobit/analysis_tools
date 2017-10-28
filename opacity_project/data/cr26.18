@@ -1,0 +1,39 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ = 26  NE = 18
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    2  1  1   0.00000E+00  3s2 3p5        
+   2    2  0  0   2.58822E+00  3s 3p6         
+   3    4  2  0   3.49961E+00  (3PE)3d(4DE)   
+   4    4  3  0   3.84589E+00  (3PE)3d(4FE)   
+   5    2  1  0   3.84589E+00  (1DE)3d(2PE)   
+   6    4  1  0   3.93784E+00  (3PE)3d(4PE)   
+   7    2  2  0   3.93784E+00  (1DE)3d(2DE)   
+   8    2  3  0   4.03868E+00  (3PE)3d(2FE)   
+   9    2  4  0   4.03868E+00  (1DE)3d(2GE)   
+  10    2  3  0   4.38101E+00  (1DE)3d(2FE)   
+  11    2  2  0   4.61627E+00  (1SE)3d(2DE)   
+  12    2  0  0   4.89038E+00  (1DE)3d(2SE)   
+  13    2  1  0   5.11134E+00  (3PE)3d(2PE)   
+  14    2  2  0   5.22200E+00  (3PE)3d(2DE)   
+ ===========================================
+ N+1 Configurations:
+   1 3s2 3p6        
+   2 3s2 3p4 3d2    
+   3 3s 3p5 3d2     
+   4 3p6 3d2        
+   5 3s2 3p3 3d3    
+   6 3s 3p4 3d3     
+   7 3p5 3d3        
+ Reference:
+ K Butler, C Mendoza & CJ Zeippen, to be published                               
+

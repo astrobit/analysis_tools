@@ -1,0 +1,27 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ = 18  NE = 18
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    2  1  1   0.00000E+00  3s2 3p5        
+   2    2  0  0   9.86400E-01  3s 3p6         
+ ===========================================
+ N+1 Configurations:
+   1 3s2 3p6        
+   2 3s2 3p4 3d2    
+   3 3s 3p5 3d2     
+   4 3p6 3d2        
+   5 3s2 3p3 3d3    
+   6 3s 3p4 3d3     
+   7 3p5 3d3        
+ Reference:
+ HE Saraph & PJ Storey, to be published                                          
+

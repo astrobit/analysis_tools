@@ -8,7 +8,7 @@ libepsplot_la_LDFLAGS = -version-info 0:0:0
 
 bin_PROGRAMS = testeps
 testeps_SOURCES = src/testeps.cpp
-testeps_LDADD = ${epsplot_LIBS} ${xio_LIBS} ${xstdlib_LIBS}
+testeps_LDADD = -lepsplot ${xio_LIBS} ${xstdlib_LIBS}
 
 include_HEADERS = include/eps_plot.h
 

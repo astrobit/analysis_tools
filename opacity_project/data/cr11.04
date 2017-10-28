@@ -1,0 +1,25 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ = 11  NE =  4
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    2  0  0   0.00000E+00  2s             
+   2    2  1  1   1.31331E+00  2p             
+   3    2  0  0   1.27891E+01  3s             
+   4    2  1  1   1.27891E+01  3p             
+   5    2  2  0   1.27891E+01  3d             
+ ===========================================
+ N+1 Configurations:
+   1 2s2            
+   2 2p2            
+ Reference:
+ JA Tully, MJ Seaton & KA Berrington, 1990, J. Phys. B, 23, 3811 (ADOC-14)       
+

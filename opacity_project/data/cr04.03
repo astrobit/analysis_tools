@@ -1,0 +1,21 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ =  4  NE =  3
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    1  0  0   0.00000E+00  1s2            
+   2    1  1  1   1.06732E+01  1s /2p(1/PO)   
+ ===========================================
+ N+1 Configurations:
+
+ Reference:
+ G Peach, HE Saraph & MJ Seaton, 1988, J. Phys. B, 21, 3669 (ADOC-9)             
+

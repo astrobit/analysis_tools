@@ -1,0 +1,21 @@
+ <html>
+ <head>
+ <title>
+ TOPbase: Table of Contents
+ </title>
+ </head>
+ <body>
+ <pre>
+NZ = 16  NE = 11
+ Target States:
+ ===========================================
+   i 2S+1  L  P   Energy(Ryd)  Configuration
+ ===========================================
+   1    1  0  0   0.00000E+00  2p6            
+   2    1  1  1   1.84416E+01  /3d(1/PO)      
+ ===========================================
+ N+1 Configurations:
+
+ Reference:
+ KT Taylor, to be published                                                      
+
