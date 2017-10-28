@@ -1,6 +1,6 @@
 #include <xio.h>
-#include <string.h>
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include "ES_Synow.hh"
 
 #include <ostream>
@@ -8,19 +8,14 @@
 
 //#include <plplot/plplot.h>
 //#include <plplot/plstream.h>
-#include <Plot_Utilities.h>
+#include <eps_plot.h>
 #include <sys/time.h>
 #include <xflash.h>
 #include <opacity_profile_data.h>
 #include <climits>
+#include <utility>
 double	g_dTime_Ref = 0.0;
 
-inline void Swap(double & io_dA, double & io_dB)
-{
-	double	dTemp = io_dA;
-	io_dA = io_dB;
-	io_dB = dTemp;
-}
 
 template <typename T> T** new2d(unsigned int i_uiA, unsigned int i_uiB)
 {
@@ -798,7 +793,7 @@ void Fill_Opacity_Map(double * o_lpdOpacity_Map, const XDATASET i_cData, unsigne
 			dVlower = 0.0;
 		
 		if (dVlower > dVupper)
-			Swap(dVlower,dVupper);
+			std::swap<double>(dVlower,dVupper);
 //			printf("%.2e %.2e %.2e %.2e\n",dVlower,dVupper,i_lpdVelocity_Range[0],i_dDelta_Vel_Bin);
 		unsigned int uiBin_Lower = (dVlower - (i_lpdVelocity_Range[0] - i_dDelta_Vel_Bin * 0.5)) / i_dDelta_Vel_Bin;
 		unsigned int uiBin_Upper = (dVupper - (i_lpdVelocity_Range[0] - i_dDelta_Vel_Bin * 0.5)) / i_dDelta_Vel_Bin;
