@@ -6,7 +6,7 @@ include_HEADERS = include/opacity_profile_data.h
 # PKG_INSTALLDIR in configure.ac.
 pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 
-lcldatadir = ${srcdir}/data/models
+lcldatadir = ${srcdir}/data
 datasubdir = ${pkgdatadir}/opacity_profile
 datasub10dir = ${datasubdir}
 datasub17dir = ${datasubdir}

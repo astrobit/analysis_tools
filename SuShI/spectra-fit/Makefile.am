@@ -15,5 +15,4 @@ pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 sf_SOURCES = src/sf.cpp
 sf_LDADD = -lsf ${es_LIBS} ${epsplot_LIBS} ${osc_LIBS} ${linerout_LIBS} ${xml2_LIBS}  ${xmath_LIBS} ${xastro_LIBS} ${xio_LIBS} ${xstdlib_LIBS} ${msdb_LIBS} ${jsoncpp_LIBS}  
 
-
-
+pkgdata_DATA = data/specfit.dtd data/specfit_example.xml
