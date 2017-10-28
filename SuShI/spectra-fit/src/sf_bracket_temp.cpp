@@ -1,11 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
+
 
 double specfit::Bracket_Temperature(double & io_dTemp_Low, double & io_dTemp_Hi, const ES::Spectrum & i_cFull_Target)
 {

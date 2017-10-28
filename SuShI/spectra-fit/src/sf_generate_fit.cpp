@@ -1,12 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
-#include <algorithm>
+
 
 double	specfit::g_dTarget_Normalization_Flux = -1;
 double	specfit::g_dGenerated_Normalization_Flux = -1;

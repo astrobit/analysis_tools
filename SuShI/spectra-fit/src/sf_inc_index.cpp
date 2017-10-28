@@ -1,11 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
+
 
 void specfit::Inc_Index(unsigned int * io_plIndices, unsigned int i_uiNum_Indices, unsigned int i_uiWrap_Value)
 {

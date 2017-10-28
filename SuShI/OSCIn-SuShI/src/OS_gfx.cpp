@@ -1,4 +1,4 @@
-#include <OSCIn-SuShI>
+#include <OSCIn-SuShI.hpp>
 #include <sstream>
 #include <line_routines.h>
 #include <iomanip>

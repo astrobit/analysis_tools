@@ -314,7 +314,7 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 						m_dFit_Velocity_PVF = dTemp;
 					}
 				}
-				XVECTOR	vX;
+				xvector	vX;
 				vX = m_vWavelength;
 				gauss_fit_parameters * lpgfpParamters = &g_cgfpCaNIR;
 				double dpEW_PVF, dpEW_HVF;
@@ -427,11 +427,11 @@ void FIT_VIZ_MAIN::Load_Display_Info(void)
 
 void FIT_VIZ_MAIN::Export_Graphic(void)
 {
-	epsplot::PAGE_PARAMETERS	cPlot_Parameters;
-	epsplot::DATA cPlot;
-	epsplot::AXIS_PARAMETERS	cX_Axis_Parameters;
-	epsplot::AXIS_PARAMETERS	cY_Axis_Parameters;
-	epsplot::LINE_PARAMETERS	cLine_Parameters;
+	epsplot::page_parameters	cPlot_Parameters;
+	epsplot::data cPlot;
+	epsplot::axis_parameters	cX_Axis_Parameters;
+	epsplot::axis_parameters	cY_Axis_Parameters;
+	epsplot::line_parameters	cLine_Parameters;
 	std::vector<epsplot::eps_pair>		vpdGaussian;
 	cPlot_Parameters.m_uiNum_Columns = 1;
 	cPlot_Parameters.m_uiNum_Rows = 1;

@@ -1,6 +1,5 @@
 #pragma once
 #include <xio.h>
-#include <best_fit_data.h>
 #include <assert.h>
 #include <opacity_profile_data.h>
 #include <xlinalg.h>
@@ -8,7 +7,7 @@
 #include <model_spectra_db.h>
 #include <iostream>
 #include <fstream>
-#include <json.h>
+#include <json/json.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <string>
@@ -32,6 +31,7 @@
 #include <eps_plot.h>
 
 #include <OSC.hpp>
+#include <cfloat>
 
 //#define FIT_BLUE_WL 4500.0
 //#define FIT_RED_WL 9000.0

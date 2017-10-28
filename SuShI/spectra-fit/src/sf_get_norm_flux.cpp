@@ -1,11 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
+
 
 
 void specfit::Get_Normalization_Fluxes(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const params_range &i_cNorm_Range, double & o_dTarget_Flux, double & o_dGenerated_Flux)

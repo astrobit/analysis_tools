@@ -1,10 +1,11 @@
-#include <OSCIn-SuShI>
+#include <OSCIn-SuShI.hpp>
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <cfloat>
+#include <sstream>
 
 void OSCIn_SuShI_main::Process_Selected_Spectrum(void)
 {

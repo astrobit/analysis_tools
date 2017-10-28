@@ -1,4 +1,4 @@
-#include <OSCIn-SuShI>
+#include <OSCIn-SuShI.hpp>
 #include <string>
 #include <vector>
 

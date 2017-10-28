@@ -1,11 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
+
 
 double specfit::Fit_Function(const XVECTOR & i_vX, void * i_lpvSpectra_Fit_Data)
 {

@@ -1,11 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
+
 
 void specfit::Calc_Observables(const ES::Spectrum &i_cGenerated,const ES::Spectrum &i_cContinuum, specfit::fit_result	&o_cModel_Data)
 {

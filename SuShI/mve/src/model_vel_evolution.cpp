@@ -11,9 +11,8 @@
 #include <xfit.h>
 #include "ES_Synow.hh"
 //#include "ES_Generic_Error.hh"
-#include <Plot_Utilities.h>
+#include <eps_plot.h>
 #include <float.h>
-#include <best_fit_data.h>
 #include <line_routines.h>
 #include <wordexp.h>
 #include <model_spectra_db.h>

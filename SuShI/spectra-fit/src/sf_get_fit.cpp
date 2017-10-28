@@ -1,11 +1,5 @@
 #include <specfit.h>
-#include <xlinalg.h>
-#include <xmath.h>
-#include <line_routines.h>
-#include <sstream>
-#include <xfit.h>
-#include <fstream>
-#include <iomanip>
+
 
 double	specfit::Get_Fit(const ES::Spectrum &i_cTarget, const ES::Spectrum &i_cGenerated, const specfit::params_range &i_cNorm_Range, const specfit::params_range &i_cFit_Range, unsigned int i_uiMoment, bool i_bRegenerate_Normalization)
 {

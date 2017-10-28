@@ -10,7 +10,7 @@
 #include <algorithm>
 //#include <plplot/plplot.h>
 //#include <plplot/plstream.h>
-#include <Plot_Utilities.h>
+#include <eps_plot.h>
 
 unsigned int  Find_Variable_Idx(const XFLASH_File & cFile, const char * i_lpszVar_Name)
 {
