@@ -1,15 +1,4 @@
 # Temp, bin, and library directories
-bin
-lib
-obj
-FitViz/bin
-FitViz/obj
-OSCIn-SuShI/bin
-OSCIn-SuShI/obj
-OSCIn-SuShI/results.csv
-MSDBmgr/bin
-MSDBmgr/obj
-
 # Log files
 *.log
 
@@ -52,4 +41,44 @@ opac_test_src.csv
 share/Opacity-Project/cr*.*
 share/Opacity-Project/quikread
 share/Opacity-Project/config_reprocess
+
+#package config files
+*.pc
+
+#modulefiles
+1.*.*
+
+#misc files
+*~
+*.tar.*
+
+#autotools files
+.deps
+.libs
+Makefile.in
+Makefile
+ar-lib
+configure
+m4/libtool.m4
+ltoptions.m4
+ltsugar.m4
+ltversion.m4
+libtool.m4
+lt~obsolete.m4
+missing
+stamp-h1
+aclocal.m4
+autom4te.cache/
+config.guess
+config.h
+config.h.in
+config.log
+config.status
+config.sub
+depcomp
+install-sh
+libtool
+ltmain.sh
+compile
+.dirstamp
 
