@@ -1,0 +1,20 @@
+#%Module1.0#####################################################################
+##
+## @PACKAGE_NAME@ modulefile
+##
+proc ModulesHelp { } {
+	global version
+
+	puts stderr "\tAdds @PACKAGE_NAME@ to your PATH and PKG_CONFIG_PATH environment variables"
+}
+
+module-whatis	"adds @PACKAGE_NAME@ to your PATH and PKG_CONFIG_PATH environment variables"
+
+# for Tcl script use only
+set	version		@PACKAGE_VERSION@
+set	apppath		@prefix@
+
+append-path	PATH	$apppath/bin
+append-path	PKG_CONFIG_PATH $apppath/lib/pkgconfig
+append-path     LD_LIBRARY_PATH $apppath/lib
+
