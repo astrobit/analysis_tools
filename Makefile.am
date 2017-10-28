@@ -1,0 +1,11 @@
+AUTOMAKE_OPTIONS = foreign subdir-objects
+
+SUBDIRS =  epsplot radiation velocityfield msdb linerout esplot kurucz_data opacity_project osc 1dFlashMovie compositions equivwidth es_gaussian genplot linfit max min plotspectrum  statepop Vega_filters yaml2csv SuShI 
+
+if INSTALLMOD
+if HAVEENVMOD
+modfile_DATA = ${PACKAGE_VERSION}
+else
+modfile_DATA = ${PACKAGE_VERSION}.lua
+endif
+endif
