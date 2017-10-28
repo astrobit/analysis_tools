@@ -4,10 +4,8 @@
 #include <math.h>
 #include <float.h>
 #include <xio.h>
-#include <Plot_Utilities.h>
 #include <line_routines.h>
 
-#define VERSION "0.1"
 void Usage(const char * i_lpszError_Text)
 {
 		fprintf(stderr,"equivwidth v%s\n",VERSION);

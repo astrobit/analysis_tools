@@ -10,6 +10,7 @@
 #include <xstdlib.h>
 #include "ES_Synow.hh"
 //#include "ES_Generic_Error.hh"
+#include <eps_plot.h>
 #include <Plot_Utilities.h>
 #include <float.h>
 #include <line_routines.h>

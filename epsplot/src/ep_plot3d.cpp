@@ -5,10 +5,9 @@
 #include <cfloat>
 #include <ctime>
 #include <unistd.h>
-#include <line_routines.h>
 #include <eps_plot.h>
 #include <sstream>
-
+#include <iostream>
 using namespace epsplot;
 
 ///////////////////////////////////////////////////////////////////////////////

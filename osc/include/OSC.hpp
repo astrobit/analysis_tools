@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <json.h>
+#include <json/json.h>
 #include <cmath>
 
 class OSCspectra_id

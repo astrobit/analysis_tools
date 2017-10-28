@@ -366,9 +366,6 @@ XVECTOR Perform_Gaussian_Fit(const XVECTOR & i_vX, const XVECTOR & i_vY, const X
                     const double & i_dWavelength_Delta_Ang, double & o_dpEW_PVF, double & o_dpEW_HVF, double & o_dV_PVF, double & o_dV_HVF, XVECTOR & o_vSigmas, double & o_dS, gauss_fit_results * io_lpSingle_Fit = NULL, gauss_fit_results * io_lpDouble_Fit = NULL);
 
 void CCM_dered(ES::Spectrum & i_cSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
-void CCM_dered(std::vector<std::pair<double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
-void CCM_dered(std::vector<std::tuple<double,double,double> > &io_vSpectrum, const double & i_dE_BmV, const double & i_dRv = 3.1);
-void CCM_dered(const double & i_dWavelength, double & io_dFlux, const double & i_dE_BmV, const double & i_dRv = 3.1);
 
 
 class lef_data

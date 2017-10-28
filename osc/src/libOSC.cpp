@@ -1,7 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <OSC.hpp>
-#include <line_routines.h>
+#include <xastro.h>
+#include <xstdlib.h>
+#include <cmath>
 
 void OSCfile::Load(const std::string &i_sFilename)
 {
@@ -197,7 +199,7 @@ void OSCfile::Load(const std::string &i_sFilename)
 
 void OSCfile::Deredden(void)
 {
-	if (m_dEBV_Mean != 0.0 && !isnan(m_dEBV_Mean) && !isinf(m_dEBV_Mean))
+	if (m_dEBV_Mean != 0.0 && !std::isnan(m_dEBV_Mean) && !std::isinf(m_dEBV_Mean))
 	{
 		for(std::map<OSCspectra_id, OSCspectrum >::iterator iterI = m_mSpectra_List.begin(); iterI != m_mSpectra_List.end(); iterI++)
 		{
@@ -213,14 +215,14 @@ void OSCspectrum::Deredden(const double & i_dE_BmV)
 	{
 		for (iterator iterI = begin(); iterI != end(); iterI++)
 		{
-			CCM_dered(iterI->m_dWavelength, iterI->m_dFlux, i_dE_BmV);
+			XA_CCM_dered(iterI->m_dWavelength, iterI->m_dFlux, i_dE_BmV);
 		}
 	}
 }
 
 void OSCfile::Unredshift(void)
 {
-	if (m_dRedshift_Weighted_Mean != 0.0 && !isnan(m_dRedshift_Weighted_Mean) && !isinf(m_dRedshift_Weighted_Mean))
+	if (m_dRedshift_Weighted_Mean != 0.0 && !std::isnan(m_dRedshift_Weighted_Mean) && !std::isinf(m_dRedshift_Weighted_Mean))
 	{
 		for(std::map<OSCspectra_id, OSCspectrum >::iterator iterI = m_mSpectra_List.begin(); iterI != m_mSpectra_List.end(); iterI++)
 		{
@@ -234,7 +236,7 @@ void OSCspectrum::Unredshift(const double & i_dRedshift)
 	{
 		for (iterator iterI = begin(); iterI != end(); iterI++)
 		{
-			iterI->m_dWavelength /= (1.0 + i_dRedshift);
+			iterI->m_dWavelength = XA_Rest_Frame_Wavelength(iterI->m_dWavelength,1.0 + i_dRedshift);
 		}
 	}
 }

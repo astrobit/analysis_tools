@@ -92,5 +92,72 @@ int main(void)
 	cPlot.Set_Symbol_Data(vepData, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 	cPlot.Set_Plot_Filename("test_image.eps");
 	cPlot.Plot(cPage);
+
+	cPlot.Clear_Plots();
+	cPlot.Set_Plot_Filename("test_image_2.eps");
+	vetData.clear();
+	vepData.clear();
+	for (unsigned int uiI = 0; uiI < 25; uiI++)
+	{
+		double dX = rand() * 3.25 / RAND_MAX - 1;
+		double dY = rand() * 7.25 / RAND_MAX - 1;
+		double dZ = rand() * std::sqrt(4.0 + 36.0) / RAND_MAX;
+
+		vetData.push_back(eps_triplet(dX,dY,dZ));
+		vepData.push_back(eps_pair(dX,dY));
+	}
+	cPlot.Set_Plot_Data(vetData,epsplot::nearest,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
+	cPlot.Set_Symbol_Data(vepData, cSymb, uiX_Axis_ID,uiY_Axis_ID);
+	cPlot.Plot(cPage);
+
+	cPlot.Clear_Plots();
+
+	cPage.m_dWidth_Inches = 8.5;
+	cX_Axis.m_dLower_Limit = -1.0;
+	cX_Axis.m_dUpper_Limit = 2.0;
+	cY_Axis.m_dLower_Limit = -1.0;
+	cY_Axis.m_dUpper_Limit = 2.0;
+	cZ_Axis.m_dLower_Limit = 0.0;
+	cZ_Axis.m_dUpper_Limit = 3.0;
+	cPlot.Modify_X_Axis_Parameters(uiX_Axis_ID,cX_Axis);
+	cPlot.Modify_Y_Axis_Parameters(uiY_Axis_ID,cY_Axis);
+	cPlot.Modify_Z_Axis_Parameters(uiZ_Axis_ID,cZ_Axis);
+	cPlot.Set_Plot_Filename("test_image_3.eps");
+	vetData.clear();
+	vepData.clear();
+	double dCoord_X[2] = {-0.5,1.5};
+	double dCoord_Y[2] = {-0.5,1.5};
+
+	for (unsigned int uiI = 0; uiI < 2; uiI++)
+		for (unsigned int uiJ = 0; uiJ < 2; uiJ++)
+		{
+			vetData.push_back(eps_triplet(dCoord_X[uiI],dCoord_Y[uiJ],uiI + uiJ * 2));
+			vepData.push_back(eps_pair(dCoord_X[uiI],dCoord_Y[uiJ]));
+		}
+	vetData[3].m_dX -= 0.5;
+	vetData[3].m_dY -= 0.5;
+	vepData[3].m_dX -= 0.5;
+	vepData[3].m_dY -= 0.5;
+
+	cPlot.Set_Plot_Data(vetData,epsplot::nearest,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
+	cPlot.Set_Symbol_Data(vepData, cSymb, uiX_Axis_ID,uiY_Axis_ID);
+	cPlot.Plot(cPage);
+
+	cPage.m_dWidth_Inches = 11.0;
+	cPlot.Set_Plot_Filename("test_image_3r.eps");
+	cPlot.Modify_X_Axis_Parameters(uiX_Axis_ID,cX_Axis);
+	cPlot.Modify_Y_Axis_Parameters(uiY_Axis_ID,cY_Axis);
+	cPlot.Modify_Z_Axis_Parameters(uiZ_Axis_ID,cZ_Axis);
+	cPlot.Clear_Plots();
+
+	cPlot.Set_Plot_Data(vetData,epsplot::nearest,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
+	cPlot.Set_Symbol_Data(vepData, cSymb, uiX_Axis_ID,uiY_Axis_ID);
+	cPlot.Plot(cPage);
+
 	return 0;
 }
+
+
+
+
+

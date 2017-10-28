@@ -12,6 +12,7 @@
 #include <float.h>
 #include <line_routines.h>
 #include <stack>
+#include <xastro.h>
 
 
 
@@ -284,8 +285,6 @@ double Get_Element_Number(const char * i_lpszNuclide)
 
 double	Compute_Velocity(const double & i_dObserved_Wavelength, const double & i_dRest_Wavelength)
 {
-	double	dz = i_dObserved_Wavelength / i_dRest_Wavelength;
-	double	dz_sqr = dz * dz;
-	return (2.99792458e5 * (dz_sqr - 1.0) / (dz_sqr + 1.0));
+	return XA_Compute_Velocity(i_dObserved_Wavelength , i_dRest_Wavelength) * 1.0e-5;
 }
 

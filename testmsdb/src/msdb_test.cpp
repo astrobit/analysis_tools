@@ -5,10 +5,10 @@
 #include <xlinalg.h>
 #include "ES_Synow.hh"
 //#include "ES_Generic_Error.hh"
-#include <best_fit_data.h>
+//#include <best_fit_data.h>
 #include <line_routines.h>
 #include <model_spectra_db.h>
-#include <opacity_profile_data.h>
+//#include <opacity_profile_data.h>
 
 bool Test(const std::string i_strDescription, bool i_bPass)
 {
