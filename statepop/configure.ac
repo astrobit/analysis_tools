@@ -2,7 +2,7 @@
 m4_define([package_version_major],[1])
 m4_define([package_version_minor],[0])
 m4_define([package_version_micro],[0])
-m4_define([package_repository],[https://github.com/astrobit/analysis_tools])
+m4_define([package_repository],[https://github.com/astrobit/snatk])
 m4_define([package_auth_email],[bwmulligan@astronaos.com])
  
 # API version
