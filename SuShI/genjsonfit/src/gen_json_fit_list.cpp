@@ -12,6 +12,8 @@
 #include <xmath.h>
 #include <xastro.h>
 #include <iomanip>
+#include <sstream>
+
 
 double Compute_MJD_Bmax(std::map<double, double> &i_mddPhotometry)
 {
