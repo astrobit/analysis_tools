@@ -1,0 +1,8 @@
+libtoolize
+aclocal
+automake
+automake --add-missing
+automake
+autoconf
+autoreconf
+
