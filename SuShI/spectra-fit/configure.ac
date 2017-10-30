@@ -19,7 +19,7 @@ AC_SUBST([PACKAGE_AUTH_EMAIL],package_auth_email)
 AC_SUBST([API_VERSION],api_version)
 AC_SUBST([LIB_NAME],[sf])
 AC_SUBST([LIB_DESCRIPTION],["spectral fitting routines with SuShI"])
-AC_SUBST([LIB_REQUIRES],["es >= 0.100.0 jsoncpp >= 1.0.0 snatk-epsplot >= 1.0.0 snatk-osc >= 1.0.0 snatk-linerout >= 1.0.0 xml2 >= 1.0.0 xio >= 1.0.0 xstdlib >= 1.0.0 xastro >= 1.2.0 xmath >= 1.0.0 snatk-msdb >= 1.0.0"])
+AC_SUBST([LIB_REQUIRES],["es-0 >= 0.99.0 jsoncpp >= 1.0.0 snatk-epsplot-1 >= 1.0.0 snatk-osc-1 >= 1.0.0 snatk-linerout-1 >= 1.0.0 xml2 >= 1.0.0 xio-1 >= 1.0.0 xstdlib-1 >= 1.0.0 xastro-1 >= 1.1.0 xmath-1 >= 1.0.0 snatk-msdb-1 >= 1.0.0"])
 
 
 LT_INIT
@@ -33,7 +33,7 @@ AC_PROG_CXX
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
-AX_CXX_COMPILE_STDCXX(14,noext,mandatory) #use c++14 standard, required in a variety of places
+AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a variety of places
 
 AC_OPENMP #openmp required
 

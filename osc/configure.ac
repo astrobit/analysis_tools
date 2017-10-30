@@ -33,13 +33,13 @@ AC_PROG_CXX
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
-AX_CXX_COMPILE_STDCXX(14,noext,mandatory) #use c++14 standard, required in a variety of places
+AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a variety of places
 
 AC_OPENMP #openmp required
 
 PKG_CHECK_MODULES([jsoncpp],[jsoncpp],[],[AC_MSG_ERROR([" Could not find jsoncpp development package"])])
-PKG_CHECK_MODULES([xastro],[xastro-1],[],[AC_MSG_ERROR([" Could not find xastro development package"])])
-PKG_CHECK_MODULES([es],[es-0],[],[AC_MSG_ERROR([" Could not find es development package"])])
+PKG_CHECK_MODULES([xastro],[xastro-1 >= 1.1.0],[],[AC_MSG_ERROR([" Could not find xastro development package"])])
+PKG_CHECK_MODULES([es],[es-0 >= 0.99.0],[],[AC_MSG_ERROR([" Could not find es development package"])])
 
 AC_SUBST([radiation_CFLAGS],['-I${top_srcdir}/../radiation/include ${xastro_CFLAGS}'])
 AC_SUBST([radiation_LIBS],['${xastro_LIBS}'])

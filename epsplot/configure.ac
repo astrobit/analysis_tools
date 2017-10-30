@@ -33,7 +33,7 @@ AC_PROG_CXX
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
-AX_CXX_COMPILE_STDCXX(14,noext,mandatory) #use c++14 standard, required in a variety of places
+AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a variety of places
 
 AC_OPENMP #openmp required
 

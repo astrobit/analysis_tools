@@ -19,7 +19,7 @@ AC_SUBST([PACKAGE_AUTH_EMAIL],package_auth_email)
 AC_SUBST([API_VERSION],api_version)
 AC_SUBST([LIB_NAME],[kurucz_data])
 AC_SUBST([LIB_DESCRIPTION],["c++ routines for reading and using data in the Kurucz line list"])
-AC_SUBST([LIB_REQUIRES],["xastro-1 >= 1.2.0 xio-1 >= 1.0.0 snatk-radiation-1 >= 1.0.0 snatk-linerout-1 >= 1.0.0"])
+AC_SUBST([LIB_REQUIRES],["xastro-1 >= 1.1.0 xio-1 >= 1.0.0 snatk-radiation-1 >= 1.0.0 snatk-linerout-1 >= 1.0.0"])
 
 
 LT_INIT
@@ -33,7 +33,7 @@ AC_PROG_CXX
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
-AX_CXX_COMPILE_STDCXX(14,noext,mandatory) #use c++14 standard, required in a variety of places
+AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a variety of places
 
 AC_OPENMP #openmp required
 

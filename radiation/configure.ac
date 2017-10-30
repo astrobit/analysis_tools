@@ -18,7 +18,7 @@ AC_SUBST([PACKAGE_REPOSITORY],package_repository)
 AC_SUBST([PACKAGE_AUTH_EMAIL],package_auth_email)
 AC_SUBST([API_VERSION],api_version)
 AC_SUBST([LIB_DESCRIPTION],["c++ containers for a radiation field. Includes standard blackbody or allows user specified field"])
-AC_SUBST([LIB_REQUIRES],["xastro-1 >= 1.2.0"])
+AC_SUBST([LIB_REQUIRES],["xastro-1 >= 1.1.0"])
 
 
 LT_INIT
@@ -32,7 +32,7 @@ AC_PROG_CXX
 PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
-AX_CXX_COMPILE_STDCXX(14,noext,mandatory) #use c++14 standard, required in a variety of places
+AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a variety of places
 
 AC_OPENMP #openmp required
 
