@@ -9,7 +9,7 @@ m4_define([package_auth_email],[bwmulligan@astronaos.com])
 m4_define([api_version],package_version_major)
 
 AC_INIT(snatk-SuShI-sf,package_version_major.package_version_minor.package_version_micro,package_auth_email,snatk-SuShI-sf,package_repository)
-#AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([../../m4])
 
 AC_SUBST([PACKAGE_VERSION_MAJOR],package_version_major)
 AC_SUBST([PACKAGE_VERSION_MINOR],package_version_minor)
