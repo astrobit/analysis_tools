@@ -744,9 +744,11 @@ namespace	epsplot
 
 		inline plot_item * Get_Plot_Item(unsigned int i_uiID) const
 		{
+			//printf("GPI: %i (%i)\n",i_uiID,m_vcPlot_Item_List.size());
 			plot_item * plRet = nullptr;
 			if (i_uiID < m_vcPlot_Item_List.size())
 				plRet = m_vcPlot_Item_List[i_uiID];
+			return plRet;
 		}
 
 		color_triplet	m_cCustom_Colors[16];

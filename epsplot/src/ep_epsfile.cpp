@@ -121,7 +121,7 @@ void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument
 	strcpy(m_lpszFilename,i_lpszFilename);
 	m_lpFileOut = fopen(m_lpszFilename,"wt");
 	fprintf(m_lpFileOut,"%%!PS-Adobe-3.0 EPSF-3.0\n");
-	fprintf(m_lpFileOut,"%%%%Creator: B. W. Mulligan; Plot_Utilities: Plot_EPS_Grid\n");
+	fprintf(m_lpFileOut,"%%%%Creator: B. W. Mulligan; libepsplot (http://github.com/astrobit/snatk)\n");
 	fprintf(m_lpFileOut,"%%%%Title: %s\n",i_lpszDocument_Title && i_lpszDocument_Title[0] != 0 ? i_lpszDocument_Title : i_lpszFilename);
 	fprintf(m_lpFileOut,"%%%%CreationDate: %s",asctime(timeinfo));
 	fprintf(m_lpFileOut,"%%%%DocumentData: Clean7Bit\n");
@@ -131,7 +131,6 @@ void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument
 		fprintf(m_lpFileOut,"%%%%BoundingBox: 0 0 %.2f %.2f\n",i_dWidth_Inches * 72.0, i_dHeight_Inches * 72.0);
 	fprintf(m_lpFileOut,"%%%%LanguageLevel: 2 [could be 1 2 or 3]\n");
 	fprintf(m_lpFileOut,"%%%%Pages: 1\n");
-	fprintf(m_lpFileOut,"%%%%Page: 1 1\n");
 	fprintf(m_lpFileOut,"%%%%Page: 1 1\n");
 	fprintf(m_lpFileOut,"/sd {setdash} bind def\n");
 	fprintf(m_lpFileOut,"/gs {gsave} bind def\n");

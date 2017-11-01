@@ -492,6 +492,8 @@ void	data::Plot(const page_parameters & i_cGrid)
 		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
 			plot_item * lpCurr = *cPlot_Item_Iter;
+			//printf("plot item type %i\n",lpCurr->m_eType);
+			//printf("Line Axes %i %i\n",lpCurr->m_uiPlot_Axes_To_Use[0],lpCurr->m_uiPlot_Axes_To_Use[1]);
 			uiI++;
 			line_item * lpcLine = nullptr;
 			symbol_item * lpcSymbol = nullptr;
@@ -620,6 +622,8 @@ void	data::Plot(const page_parameters & i_cGrid)
 				break;
 			case type_line:
 				lpcLine = (line_item *) lpCurr;
+				//printf("Num points in line %i\n",lpcLine->m_uiNum_Points);
+				//printf("Line Axes %i %i\n",lpcLine->m_uiPlot_Axes_To_Use[0],lpcLine->m_uiPlot_Axes_To_Use[1]);
 				if (lpcLine->m_uiNum_Points >= 2)
 				{
 					if (lpcLine->m_cPlot_Line_Info.m_eColor != eCurr_Color)

@@ -91,9 +91,22 @@ unsigned int	data::Modify_Plot_Data(unsigned int i_uiPlot_Data_ID, const double 
 {
 	unsigned int uiRet = -1;
 	line_item * lpItem = (line_item *)Get_Plot_Item(i_uiPlot_Data_ID);
+//		printf("Attempting to modify plot data %i of %i\n",i_uiPlot_Data_ID,m_vcPlot_Item_List.size());
+//	if (m_vcPlot_Item_List.size() > 0)
+//	{
+//		plot_item * lpPItem = Get_Plot_Item(i_uiPlot_Data_ID);
+//		printf("ptr %i\n",m_vcPlot_Item_List[0]);
+//		printf("ptr %i\n",lpPItem);
+//	}
+	if (lpItem != nullptr)
+	{
+		printf("Plot Item data type %i\n",lpItem->m_eType);
+		printf("Line Item data type %i\n",epsplot::type_line);
+	}
 	if (lpItem != nullptr && lpItem->m_eType == type_line)
 	{
 		uiRet = i_uiPlot_Data_ID;
+		printf("Modifying plot data %i\n",i_uiPlot_Data_ID);
 
 		lpItem->m_uiNum_Points = i_uiNum_Points;
 		lpItem->m_uiPlot_Axes_To_Use[0] = i_uiX_Axis_ID;
