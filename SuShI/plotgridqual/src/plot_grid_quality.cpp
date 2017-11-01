@@ -4,6 +4,25 @@
 #include <vector>
 #include <cfloat>
 
+void Set_Axis_Title(unsigned int i_uiAxis_Index, epsplot::axis_parameters &io_Axis)
+{
+	switch (i_uiAxis_Index)
+	{
+	case 2:
+		io_Axis.Set_Title("v_{PS}  (1000 km/s )");
+		break;
+	case 3:
+		io_Axis.Set_Title("T_{PS}  (1000 K)");
+		break;
+	case 4:
+		io_Axis.Set_Title("log S^{E}");
+		break;
+	case 5:
+		io_Axis.Set_Title("log S^{S}");
+		break;
+	}
+}
+
 int main(int i_iNum_Params, const char * i_lpszParams[])
 {
 	using namespace epsplot;
@@ -83,7 +102,6 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 	vtRef_Points.push_back(tBest);
 
 	cZ_Axis.Set_Title("log(J)");
-	cZ_Axis.m_dTitle_Size = 12.0;
 	cZ_Axis.m_eScheme = epsplot::two_color_transition;
 //	cZ_Axis.m_ctColor_Upper = color_triplet(0,0,0.25); // only used for Z axis
 //	cZ_Axis.m_ctColor_Lower = color_triplet(0,0,1.0); // only used for Z axis
@@ -95,45 +113,14 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 	unsigned int uiZ_Axis_ID = cPlot.Set_Z_Axis_Parameters(cZ_Axis);
 	cPage.m_uiNum_Columns = 1;
 	cPage.m_uiNum_Rows = 1;
-	cPage.m_dWidth_Inches = 11.0;
-	cPage.m_dHeight_Inches = 8.5;
 	for (size_t tAxis_X = 2; tAxis_X < 6; tAxis_X++)
 	{
 		size_t tX_Offset;
 		size_t tY_Offset;
 		for (size_t tAxis_Y = tAxis_X + 1; tAxis_Y < 6; tAxis_Y++)
 		{
-			switch (tAxis_X)
-			{
-			case 2:
-				cX_Axis.Set_Title("T_{PS}");
-				break;
-			case 3:
-				cX_Axis.Set_Title("v_{PS}");
-				break;
-			case 4:
-				cX_Axis.Set_Title("S^{E}");
-				break;
-			case 5:
-				cX_Axis.Set_Title("S^{S}");
-				break;
-			}
-			switch (tAxis_Y)
-			{
-			case 2:
-				cY_Axis.Set_Title("T_{PS}");
-				break;
-			case 3:
-				cY_Axis.Set_Title("v_{PS}");
-				break;
-			case 4:
-				cY_Axis.Set_Title("S^{E}");
-				break;
-			case 5:
-				cY_Axis.Set_Title("S^{S}");
-				break;
-			}
-
+			Set_Axis_Title(tAxis_X,cX_Axis);
+			Set_Axis_Title(tAxis_Y,cY_Axis);
 
 			cPlot.Modify_X_Axis_Parameters(uiX_Axis_ID,cX_Axis);
 			cPlot.Modify_Y_Axis_Parameters(uiY_Axis_ID,cY_Axis);
@@ -164,25 +151,10 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 							switch (tAxis_Y)
 							{
 							case 3:
-								cElem = mQuality_Data[tRefine][tAxis_A][tAxis_B][tSe][tSs];
-								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dVel,std::log10(cElem.m_dQ)));
-								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dVel));
+								cElem = mQuality_Data[tRefine][tAxis_B][tAxis_A][tSe][tSs];
+								vetData.push_back(eps_triplet(cElem.m_dVel,cElem.m_dTemp,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dTemp));
 								break;
-							case 4:
-								cElem = mQuality_Data[tRefine][tAxis_A][tVel][tAxis_B][tSs];
-								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dSe,std::log10(cElem.m_dQ)));
-								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSe));
-								break;
-							case 5:
-								cElem = mQuality_Data[tRefine][tAxis_A][tVel][tSe][tAxis_B];
-								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dSs,std::log10(cElem.m_dQ)));
-								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSs));
-								break;
-							}
-							break;
-						case 3:
-							switch (tAxis_Y)
-							{
 							case 4:
 								cElem = mQuality_Data[tRefine][tTemp][tAxis_A][tAxis_B][tSs];
 								vetData.push_back(eps_triplet(cElem.m_dVel,cElem.m_dSe,std::log10(cElem.m_dQ)));
@@ -192,6 +164,21 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 								cElem = mQuality_Data[tRefine][tTemp][tAxis_A][tSe][tAxis_B];
 								vetData.push_back(eps_triplet(cElem.m_dVel,cElem.m_dSs,std::log10(cElem.m_dQ)));
 								vepPoint_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSs));
+								break;
+							}
+							break;
+						case 3:
+							switch (tAxis_Y)
+							{
+							case 4:
+								cElem = mQuality_Data[tRefine][tAxis_A][tVel][tAxis_B][tSs];
+								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dSe,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSe));
+								break;
+							case 5:
+								cElem = mQuality_Data[tRefine][tAxis_A][tVel][tSe][tAxis_B];
+								vetData.push_back(eps_triplet(cElem.m_dTemp,cElem.m_dSs,std::log10(cElem.m_dQ)));
+								vepPoint_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSs));
 								break;
 							}
 							break;
@@ -264,6 +251,32 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 				fclose(fileData);
 			}				*/
 
+			double dX_Min = DBL_MAX, dX_Max = -DBL_MAX, dY_Min = DBL_MAX, dY_Max = -DBL_MAX;
+
+			for (auto iterK = vepPoint_Data.begin(); iterK != vepPoint_Data.end(); iterK++)
+			{
+				if (dX_Min > iterK->m_dX)
+					dX_Min = iterK->m_dX;
+				if (dX_Max < iterK->m_dX)
+					dX_Max = iterK->m_dX;
+				if (dY_Min > iterK->m_dY)
+					dY_Min = iterK->m_dY;
+				if (dY_Max < iterK->m_dY)
+					dY_Max = iterK->m_dY;
+			}
+			double dX_Range = std::fabs(dX_Max - dX_Min);
+			double dY_Range = std::fabs(dY_Max - dY_Min);
+
+			cX_Axis.m_dLower_Limit = dX_Min - 0.1 * dX_Range;
+			cX_Axis.m_dUpper_Limit = dX_Max + 0.1 * dX_Range;
+			dX_Range = cX_Axis.m_dUpper_Limit - cX_Axis.m_dLower_Limit;
+			cPlot.Modify_X_Axis_Parameters(uiX_Axis_ID,cX_Axis);
+
+			cY_Axis.m_dLower_Limit = dY_Min - 0.1 * dY_Range;
+			cY_Axis.m_dUpper_Limit = dY_Max + 0.1 * dY_Range;
+			dY_Range = cY_Axis.m_dUpper_Limit - cY_Axis.m_dLower_Limit;
+			cPlot.Modify_Y_Axis_Parameters(uiY_Axis_ID,cY_Axis);
+
 
 			cPlot.Set_Plot_Data(vetData,nearest,uiX_Axis_ID,uiY_Axis_ID,uiZ_Axis_ID);
 			std::string szFilename = i_lpszParams[1];
@@ -272,10 +285,10 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			switch (tAxis_X)
 			{
 			case 2:
-				szFilename[tPos + 1] = 'T';
+				szFilename[tPos + 1] = 'v';
 				break;
 			case 3:
-				szFilename[tPos + 1] = 'v';
+				szFilename[tPos + 1] = 'T';
 				break;
 			case 4:
 				szFilename[tPos + 1] = 'E';
@@ -288,10 +301,10 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			switch (tAxis_Y)
 			{
 			case 2:
-				szFilename[tPos + 3] = 'T';
+				szFilename[tPos + 3] = 'v';
 				break;
 			case 3:
-				szFilename[tPos + 3] = 'v';
+				szFilename[tPos + 3] = 'T';
 				break;
 			case 4:
 				szFilename[tPos + 3] = 'E';
@@ -317,13 +330,13 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 				switch (tAxis_Y)
 				{
 				case 3:
-					vpBest_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dVel));
+					vpBest_Data.push_back(eps_pair(cElem.m_dVel, cElem.m_dTemp));
 					break;
 				case 4:
-					vpBest_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSe));
+					vpBest_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSe));
 					break;
 				case 5:
-					vpBest_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSs));
+					vpBest_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSs));
 					break;
 				}
 				break;
@@ -331,10 +344,10 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 				switch (tAxis_Y)
 				{
 				case 4:
-					vpBest_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSe));
+					vpBest_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSe));
 					break;
 				case 5:
-					vpBest_Data.push_back(eps_pair(cElem.m_dVel,cElem.m_dSs));
+					vpBest_Data.push_back(eps_pair(cElem.m_dTemp,cElem.m_dSs));
 					break;
 				}
 				break;
@@ -352,7 +365,7 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			cSymb.m_eColor = MAGENTA;
 			cSymb.m_bFilled = true;
 			cSymb.m_eType = SQUARE;
-			cSymb.m_dSize = 1.0;
+			cSymb.m_dSize = 3.0;
 			cPlot.Set_Symbol_Data(vepPoint_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 
 			cSymb.m_eColor = YELLOW;
@@ -363,6 +376,27 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			cPlot.Set_Symbol_Data(vpBest_Data, cSymb, uiX_Axis_ID,uiY_Axis_ID);
 
 			cPlot.Set_Plot_Filename(szFilename.c_str());
+
+			cPage.m_dWidth_Inches = 11.0;
+			cPage.m_dHeight_Inches = 8.5;
+			double dGraph_Eff_Width = cPage.m_dWidth_Inches - cPage.m_dSide_Unprintable_Margins_Inches * 2 - 1 - 0.1 * 8.5; //(title margins and Z axis margin)
+			double dGraph_Eff_Height = cPage.m_dHeight_Inches - cPage.m_dTop_Bottom_Unprintable_Margins_Inches * 2 - 1 - 1.2; //(title margins)
+			
+			if (dY_Range >= dX_Range)
+			{
+				dGraph_Eff_Height = dGraph_Eff_Width * (dY_Range / dX_Range);
+			}
+			else
+			{
+				dGraph_Eff_Width = dGraph_Eff_Height * (dY_Range / dX_Range);
+			}
+			cPage.m_dWidth_Inches = (dGraph_Eff_Width + 2 * cPage.m_dSide_Unprintable_Margins_Inches + 1) / 0.9; // 0.9 is the effect of the Z axis, which takes up 10% of space
+			cPage.m_dHeight_Inches = dGraph_Eff_Height + cPage.m_dTop_Bottom_Unprintable_Margins_Inches * 2 + 1 + 1.2;
+			cPage.m_dTitle_Margin = 1.0 / cPage.m_dHeight_Inches;
+			cPage.m_dTop_Axis_Margin = 0.0;
+			cPage.m_dBottom_Axis_Margin = 1.2 / cPage.m_dHeight_Inches;
+			cPage.m_dLeft_Axis_Margin = 1.0 / cPage.m_dWidth_Inches;
+
 			cPlot.Plot(cPage);
 		}
 	}
