@@ -11,7 +11,7 @@ pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 
 include_HEADERS = include/kurucz_data.h
 
-datasub0dir = ${pkgdatadir}/Kurucz
+datasub0dir = ${pkgdatadir}
 datasub1dir = ${datasub0dir}
 datasub2dir = ${datasub0dir}
 datasubNdir = ${datasub0dir}

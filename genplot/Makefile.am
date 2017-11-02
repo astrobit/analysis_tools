@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
-AM_CPPFLAGS = -I${srcdir}/include ${epsplot_CFLAGS} ${xio_CFLAGS}  ${xstdlib_CFLAGS}  ${xml2_CFLAGS}
+AM_CPPFLAGS = -I${srcdir}/include ${epsplot_CFLAGS} ${xio_CFLAGS}  ${xstdlib_CFLAGS}  ${xml2_CFLAGS} -DDATAPATH=\"${pkgdatadir}\"
 
 bin_PROGRAMS = genplot
 

@@ -1,6 +1,6 @@
 # Release version
 m4_define([package_version_major],[1])
-m4_define([package_version_minor],[0])
+m4_define([package_version_minor],[2])
 m4_define([package_version_micro],[0])
 m4_define([package_repository],[https://github.com/astrobit/snatk])
 m4_define([package_auth_email],[bwmulligan@astronaos.com])
@@ -17,8 +17,9 @@ AC_SUBST([PACKAGE_VERSION_MICRO],package_version_micro)
 AC_SUBST([PACKAGE_REPOSITORY],package_repository)
 AC_SUBST([PACKAGE_AUTH_EMAIL],package_auth_email)
 AC_SUBST([API_VERSION],api_version)
+AC_SUBST([LIB_NAME],["opacity_profile"])
 AC_SUBST([LIB_DESCRIPTION],["c++ classes for reading opacity profile information for SuShI"])
-AC_SUBST([LIB_REQUIRES],[""])
+AC_SUBST([LIB_REQUIRES],["xio-1 xstdlib-1"])
 
 
 LT_INIT
@@ -33,11 +34,11 @@ PKG_PROG_PKG_CONFIG
 PKG_INSTALLDIR
 
 AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a variety of places
-
-AC_OPENMP #openmp required
+PKG_CHECK_MODULES([xio],[xio-1],[],[AC_MSG_ERROR([" Could not find xio development package"])])
+PKG_CHECK_MODULES([xstdlib],[xstdlib-1],[],[AC_MSG_ERROR([" Could not find xstdlib development package"])])
 
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([$PACKAGE_NAME-$API_VERSION.pc:headers.pc.in],[],[PACKAGE_NAME='$PACKAGE_NAME' API_VERSION='$API_VERSION'])
+AC_CONFIG_FILES([$PACKAGE_NAME-$API_VERSION.pc:lib.pc.in],[],[PACKAGE_NAME='$PACKAGE_NAME' API_VERSION='$API_VERSION'])
 
 AC_OUTPUT
 

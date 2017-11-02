@@ -1401,7 +1401,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
 		xmlNodePtr root_node = xmlNewNode(NULL, BAD_CAST "GRAPH");
 		const char * lpszDTD_Path = getenv("LINE_ANALYSIS_DATA_PATH");
-		if (lpszDTD_Path)
+		const char * lpszDatapath = DATAPATH;
+		if (lpszDTD_Path == nullptr)
+			lpszDTD_Path = lpszDatapath;
+
+		if (lpszDTD_Path != nullptr)
 		{
 			char *lpszDTD_Full_Path = new char[strlen(lpszDTD_Path) + 16];
 			sprintf(lpszDTD_Full_Path,"%s/genplots.dtd",lpszDTD_Path);

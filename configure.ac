@@ -1,5 +1,5 @@
 # Release version
-m4_define([package_version_major],[1])
+m4_define([package_version_major],[2])
 m4_define([package_version_minor],[0])
 m4_define([package_version_micro],[0])
 m4_define([package_repository],[https://github.com/astrobit/snatk])
@@ -58,8 +58,8 @@ AC_SUBST([radiation_CFLAGS],['-I${top_srcdir}/radiation/include ${xastro_CFLAGS}
 AC_SUBST([radiation_LIBS],['${xastro_LIBS}'])
 AC_SUBST([velocity_field_CFLAGS],['-I${top_srcdir}/velocityfield/include ${xastro_CFLAGS}'])
 AC_SUBST([velocity_field_LIBS],['${xastro_LIBS}'])
-AC_SUBST([opacity_profile_CFLAGS],['-I${top_srcdir}/SuShI/opacity_profile/include'])
-AC_SUBST([opacity_profile_LIBS],[])
+AC_SUBST([opacity_profile_CFLAGS],['-I${top_srcdir}/SuShI/opacity_profile/include  ${xio_CFLAGS}'])
+AC_SUBST([opacity_profile_LIBS],['-L${top_srcdir}/SuShI/opacity_profile -lopacity_profile ${xio_LIBS} ${xstdlib_LIBS}'])
 
 
 ACX_DEF_LOCALLIB([statepop],[],[],[],[sp])

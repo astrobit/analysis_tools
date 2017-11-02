@@ -1,81 +1,87 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
+datasubdir = ${pkgdatadir}
+
 include_HEADERS = include/opacity_profile_data.h
+lib_LTLIBRARIES = libopacity_profile.la
+libopacity_profile_la_SOURCES = src/opacity_profile.cpp src/model.cpp
+libopacity_profile_la_CXXFLAGS = -I${srcdir}/include -DDATADIR=\"$(datasubdir)\" ${xio_CFLAGS} ${xstdlib_CFLAGS}
+
+
 
 # Install the pkg-config file; the directory is set using
 # PKG_INSTALLDIR in configure.ac.
 pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 
 lcldatadir = ${srcdir}/data
-datasubdir = ${pkgdatadir}/opacity_profile
-datasub10dir = ${datasubdir}
-datasub17dir = ${datasubdir}
-datasub18dir = ${datasubdir}
-datasub19dir = ${datasubdir}
-datasub20dir = ${datasubdir}
-datasub21dir = ${datasubdir}
-datasub22dir = ${datasubdir}
-datasub23dir = ${datasubdir}
-datasub24dir = ${datasubdir}
-datasub25dir = ${datasubdir}
-datasub26dir = ${datasubdir}
-datasub27dir = ${datasubdir}
-datasub28dir = ${datasubdir}
-datasub29dir = ${datasubdir}
-datasub30dir = ${datasubdir}
-datasub31dir = ${datasubdir}
-datasub32dir = ${datasubdir}
-datasub33dir = ${datasubdir}
-datasub34dir = ${datasubdir}
-datasub35dir = ${datasubdir}
-datasub36dir = ${datasubdir}
-datasub37dir = ${datasubdir}
-datasub38dir = ${datasubdir}
-datasub39dir = ${datasubdir}
-datasub40dir = ${datasubdir}
-datasub41dir = ${datasubdir}
-datasub42dir = ${datasubdir}
-datasub43dir = ${datasubdir}
-datasub44dir = ${datasubdir}
-datasub45dir = ${datasubdir}
-datasub46dir = ${datasubdir}
-datasub47dir = ${datasubdir}
-datasub48dir = ${datasubdir}
-datasub49dir = ${datasubdir}
-datasub50dir = ${datasubdir}
-datasub51dir = ${datasubdir}
-datasub52dir = ${datasubdir}
-datasub53dir = ${datasubdir}
-datasub54dir = ${datasubdir}
-datasub55dir = ${datasubdir}
-datasub56dir = ${datasubdir}
-datasub57dir = ${datasubdir}
-datasub58dir = ${datasubdir}
-datasub59dir = ${datasubdir}
-datasub60dir = ${datasubdir}
-datasub61dir = ${datasubdir}
-datasub62dir = ${datasubdir}
-datasub63dir = ${datasubdir}
-datasub64dir = ${datasubdir}
-datasub65dir = ${datasubdir}
-datasub66dir = ${datasubdir}
-datasub67dir = ${datasubdir}
-datasub68dir = ${datasubdir}
-datasub69dir = ${datasubdir}
-datasub70dir = ${datasubdir}
-datasub71dir = ${datasubdir}
-datasub72dir = ${datasubdir}
-datasub73dir = ${datasubdir}
-datasub74dir = ${datasubdir}
-datasub75dir = ${datasubdir}
-datasub76dir = ${datasubdir}
-datasub77dir = ${datasubdir}
-datasub78dir = ${datasubdir}
-datasub79dir = ${datasubdir}
-datasub80dir = ${datasubdir}
-datasub81dir = ${datasubdir}
-datasub82dir = ${datasubdir}
-datasub83dir = ${datasubdir}
+datasub10dir = ${datasubdir}/10/
+datasub17dir = ${datasubdir}/17/
+datasub18dir = ${datasubdir}/18/
+datasub19dir = ${datasubdir}/19/
+datasub20dir = ${datasubdir}/20/
+datasub21dir = ${datasubdir}/21/
+datasub22dir = ${datasubdir}/22/
+datasub23dir = ${datasubdir}/23/
+datasub24dir = ${datasubdir}/24/
+datasub25dir = ${datasubdir}/25/
+datasub26dir = ${datasubdir}/26/
+datasub27dir = ${datasubdir}/27/
+datasub28dir = ${datasubdir}/28/
+datasub29dir = ${datasubdir}/29/
+datasub30dir = ${datasubdir}/30/
+datasub31dir = ${datasubdir}/31/
+datasub32dir = ${datasubdir}/32/
+datasub33dir = ${datasubdir}/33/
+datasub34dir = ${datasubdir}/34/
+datasub35dir = ${datasubdir}/35/
+datasub36dir = ${datasubdir}/36/
+datasub37dir = ${datasubdir}/37/
+datasub38dir = ${datasubdir}/38/
+datasub39dir = ${datasubdir}/39/
+datasub40dir = ${datasubdir}/40/
+datasub41dir = ${datasubdir}/41/
+datasub42dir = ${datasubdir}/42/
+datasub43dir = ${datasubdir}/43/
+datasub44dir = ${datasubdir}/44/
+datasub45dir = ${datasubdir}/45/
+datasub46dir = ${datasubdir}/46/
+datasub47dir = ${datasubdir}/47/
+datasub48dir = ${datasubdir}/48/
+datasub49dir = ${datasubdir}/49/
+datasub50dir = ${datasubdir}/50/
+datasub51dir = ${datasubdir}/51/
+datasub52dir = ${datasubdir}/52/
+datasub53dir = ${datasubdir}/53/
+datasub54dir = ${datasubdir}/54/
+datasub55dir = ${datasubdir}/55/
+datasub56dir = ${datasubdir}/56/
+datasub57dir = ${datasubdir}/57/
+datasub58dir = ${datasubdir}/58/
+datasub59dir = ${datasubdir}/59/
+datasub60dir = ${datasubdir}/60/
+datasub61dir = ${datasubdir}/61/
+datasub62dir = ${datasubdir}/62/
+datasub63dir = ${datasubdir}/63/
+datasub64dir = ${datasubdir}/64/
+datasub65dir = ${datasubdir}/65/
+datasub66dir = ${datasubdir}/66/
+datasub67dir = ${datasubdir}/67/
+datasub68dir = ${datasubdir}/68/
+datasub69dir = ${datasubdir}/69/
+datasub70dir = ${datasubdir}/70/
+datasub71dir = ${datasubdir}/71/
+datasub72dir = ${datasubdir}/72/
+datasub73dir = ${datasubdir}/73/
+datasub74dir = ${datasubdir}/74/
+datasub75dir = ${datasubdir}/75/
+datasub76dir = ${datasubdir}/76/
+datasub77dir = ${datasubdir}/77/
+datasub78dir = ${datasubdir}/78/
+datasub79dir = ${datasubdir}/79/
+datasub80dir = ${datasubdir}/80/
+datasub81dir = ${datasubdir}/81/
+datasub82dir = ${datasubdir}/82/
+datasub83dir = ${datasubdir}/83/
 
 
 datasub10_DATA = ${lcldatadir}/10/opacity_map_ejecta.C.xdataset ${lcldatadir}/10/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/10/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/10/opacity_map_ejecta.O.xdataset ${lcldatadir}/10/opacity_map_ejecta.Si.xdataset ${lcldatadir}/10/opacity_map_scalars.opdata ${lcldatadir}/10/photosphere.csv ${lcldatadir}/10/photosphere_eo.csv
@@ -208,7 +214,7 @@ datasub79_DATA = ${lcldatadir}/79/opacity_map_ejecta.C.xdataset ${lcldatadir}/79
 
 datasub80_DATA = ${lcldatadir}/80/opacity_map_ejecta.C.xdataset ${lcldatadir}/80/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/80/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/80/opacity_map_ejecta.O.xdataset ${lcldatadir}/80/opacity_map_ejecta.Si.xdataset ${lcldatadir}/80/opacity_map_scalars.opdata ${lcldatadir}/80/opacity_map_shell.xdataset ${lcldatadir}/80/photosphere.csv ${lcldatadir}/80/photosphere_eo.csv
 
-datasub81_DATA = ${lcldatadir}/81/opacity_map_ejecta.C.xdataset ${lcldatadir}/81/opacity_map_ejecta.Fe.xdataset${lcldatadir}/81/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/81/opacity_map_ejecta.O.xdataset ${lcldatadir}/81/opacity_map_ejecta.Si.xdataset ${lcldatadir}/81/opacity_map_scalars.opdata ${lcldatadir}/81/opacity_map_shell.xdataset ${lcldatadir}/81/photosphere.csv ${lcldatadir}/81/photosphere_eo.csv
+datasub81_DATA = ${lcldatadir}/81/opacity_map_ejecta.C.xdataset ${lcldatadir}/81/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/81/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/81/opacity_map_ejecta.O.xdataset ${lcldatadir}/81/opacity_map_ejecta.Si.xdataset ${lcldatadir}/81/opacity_map_scalars.opdata ${lcldatadir}/81/opacity_map_shell.xdataset ${lcldatadir}/81/photosphere.csv ${lcldatadir}/81/photosphere_eo.csv
 
 datasub82_DATA = ${lcldatadir}/82/opacity_map_ejecta.C.xdataset ${lcldatadir}/82/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/82/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/82/opacity_map_ejecta.O.xdataset ${lcldatadir}/82/opacity_map_ejecta.Si.xdataset ${lcldatadir}/82/opacity_map_scalars.opdata ${lcldatadir}/82/opacity_map_shell.xdataset ${lcldatadir}/82/photosphere.csv ${lcldatadir}/82/photosphere_eo.csv
 

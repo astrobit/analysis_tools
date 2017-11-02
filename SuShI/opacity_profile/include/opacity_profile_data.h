@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
+#include <xio.h>
 
 class opacity_profile_data
 {
@@ -318,5 +319,24 @@ public:
 		}
 		return iRet;
 	}
+
+	void Load(size_t i_tModel);
 };
 typedef opacity_profile_data OPACITY_PROFILE_DATA;
+
+class model
+{
+public:
+	unsigned int m_uiModel_ID;
+	xdataset	m_dsEjecta[5]; // carbon=0,oxygen=1,mg group = 2, si group = 3, fe group = 4
+	xdataset	m_dsShell;
+	opacity_profile_data	m_opdOp_Profile_Data;
+	xdataset	m_dsPhotosphere;
+	xdataset	m_dsEjecta_Photosphere;
+
+
+	void Load_Model(unsigned int i_uiModel);
+
+	model(void){m_uiModel_ID = -1;}
+	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
+};

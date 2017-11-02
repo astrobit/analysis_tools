@@ -108,36 +108,14 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 			{
 				if (i_lpszArg_Values[1][0] != '-') // make sure that no
 					sFilename = i_lpszArg_Values[1];
-			}
-			else
-			{
-				const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
-				std::ostringstream ossFilepath;
-				ossFilepath << lpszLA_Data_Path;
-				ossFilepath << "/models/";
-				ossFilepath << uiModel << "/opacity_map_scalars.opdata";
-				sFilename = ossFilepath.str();
-
-			}
-			if (!sFilename.empty())
-			{
-				std::ifstream ifOpData;
-				ifOpData.open(sFilename.c_str());
-				if (ifOpData.is_open())
+				if (!sFilename.empty())
 				{
-					ifOpData.close();
 					cOpData.Load(sFilename.c_str());
 				}
-				else
-				{
-					uiError = 8;
-					std::cerr << "Could not open " << sFilename << "." << std::endl;
-				}
 			}
 			else
 			{
-				uiError = 7;
-				std::cerr << "No opdata file specified." << std::endl;
+				cOpData.Load(uiModel);
 			}
 		}
 		if (uiError == 0)
@@ -212,6 +190,7 @@ int main(int i_iArg_Count, char * i_lpszArg_Values[])
 		std::cout << "\t--scalar, -s: reports reference scalar for element group" << std::endl;
 		std::cout << "\t--normtime, -n: reports reference normtime for element group" << std::endl;
 		std::cout << "\t--reftime, -r: reports reference time" << std::endl;
+		std::cerr << "Error code " << uiError << std::endl;
 	}
-	return 0;
+	return uiError;
 }

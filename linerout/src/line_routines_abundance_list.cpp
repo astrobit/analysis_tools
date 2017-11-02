@@ -15,8 +15,12 @@
 
 void	ABUNDANCE_LIST::Read_Table(ABUNDANCE_TYPE i_eAbundance_Type)
 {
-	char * lpszData_Path = getenv("LINE_ANALYSIS_DATA_PATH");
-	if (lpszData_Path)
+	const char * lpszData_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
+	const char * lpszData_Dir = {DATADIR};
+	if (lpszData_Path == nullptr)
+		lpszData_Path = lpszData_Dir;
+		
+	if (lpszData_Path != nullptr)
 	{
 		char lpszFilename[256] = {0};
 		switch (i_eAbundance_Type)

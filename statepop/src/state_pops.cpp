@@ -705,7 +705,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		//
 		////////////////////////////////////////////////////////////////////////////////////////
 			FILE * fileMatB = fopen("matrixb.csv","wt");
-			xsquare_matrix_ep smMatrix(tMatrix_Order);
+			xsquare_matrix_long smMatrix(tMatrix_Order);
 			smMatrix.Zero();
 			if (fileMatB != nullptr)
 			{
@@ -936,7 +936,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			// Output best eigenvector to console and file
 			//
 			////////////////////////////////////////////////////////////////////////////////////////
-			xvector_ep vEig = smMatrix.Get_Eigenvector(1.0);
+			xvector_long vEig = smMatrix.Get_Eigenvector(1.0);
 			FILE * fileOut = fopen("eigv.csv","wt");
 			if (fileOut != nullptr)
 			{
@@ -948,7 +948,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					for (mklvd::iterator iterJ = iterI->begin(); iterJ != iterI->end(); iterJ++)
 					{
 						std::cout << "v[" << uiCount << "] = " << vEig[uiCount] << std::endl;
-						fprintf(fileOut,"%i, %.2f, %s, %.1f, %.5f, %s\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,vEig[uiCount].get_b10_value(17,true).c_str());
+						std::ostringstream ssEig;
+						ssEig << std::scientific << std::setprecision(std::numeric_limits<long double>::digits10) << vEig[uiCount];
+						fprintf(fileOut,"%i, %.2f, %s, %.1f, %.5f, %s\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ,iterJ->second.klvdLevel_Data.m_dEnergy_Level_cm,ssEig.str().c_str());
 						uiCount++;
 
 					}
@@ -998,12 +1000,14 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 								}
 								cLevel_Upper = (*iterK)->m_cLevel_Upper;
 							}
-							expdouble dNup = vEig[tJ];
-							expdouble dNlow = vEig[tState_ID];
-							expdouble dVal = dNlow - dNup * expdouble(iterJ->second.klvdLevel_Data.m_dStat_Weight / cLevel_Upper.m_dStat_Weight);
-							expdouble dX = expdouble(8.0 * g_XASTRO.k_dpi * (*iterK)->m_dFrequency_Hz * (*iterK)->m_dFrequency_Hz) / (expdouble(g_XASTRO.k_dc * g_XASTRO.k_dc * (*iterK)->m_dEinstein_A * dN) * dVal);
+							long double dNup = vEig[tJ];
+							long double dNlow = vEig[tState_ID];
+							long double dVal = dNlow - dNup * iterJ->second.klvdLevel_Data.m_dStat_Weight / cLevel_Upper.m_dStat_Weight;
+							long double dX = 8.0 * g_XASTRO.k_dpi * (*iterK)->m_dFrequency_Hz * (*iterK)->m_dFrequency_Hz / ((g_XASTRO.k_dc * g_XASTRO.k_dc * (*iterK)->m_dEinstein_A * dN) * dVal);
 
-							fprintf(fileTrx,"%i, %.2f, %i, %s %.1f, %s %.1f, %.3f, %.3e, %.3e, %.3e, %.3e, %.3e, %.3e, %s\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,tState_ID,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ, cLevel_Upper.m_szLabel.c_str(), cLevel_Upper.m_dJ, (*iterK)->m_dWavelength_cm * 1e8, (*iterK)->m_dEinstein_A, (*iterK)->m_dEinstein_B, (*iterK)->m_dEinstein_B_SE, (*iterK)->m_dH_abs, (*iterK)->m_dH_em, iterJ->second.klvdLevel_Data.m_dZ,dX.get_b10_value(3,true).c_str());
+							std::ostringstream ssX;
+							ssX << std::scientific << std::setprecision(std::numeric_limits<long double>::digits10) << (dX);
+							fprintf(fileTrx,"%i, %.2f, %i, %s %.1f, %s %.1f, %.3f, %.3e, %.3e, %.3e, %.3e, %.3e, %.3e, %s\n",uiCount,iterJ->second.klvdLevel_Data.m_dElement_Code,tState_ID,iterJ->second.klvdLevel_Data.m_szLabel.c_str(),iterJ->second.klvdLevel_Data.m_dJ, cLevel_Upper.m_szLabel.c_str(), cLevel_Upper.m_dJ, (*iterK)->m_dWavelength_cm * 1e8, (*iterK)->m_dEinstein_A, (*iterK)->m_dEinstein_B, (*iterK)->m_dEinstein_B_SE, (*iterK)->m_dH_abs, (*iterK)->m_dH_em, iterJ->second.klvdLevel_Data.m_dZ,ssX.str().c_str());
 							uiCount++;
 						}
 						tState_ID++;
@@ -1022,29 +1026,31 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	FILE * fileSaha = fopen("saha.csv","wt");
 	if (fileSaha != nullptr)
 	{
-		expdouble dInv_Kb_T = 1.0 / (g_XASTRO.k_dKb * dElectron_Velocity_Temperature);
-		expdouble dLog_e = log10(exp(1.0));
+		long double dInv_Kb_T = 1.0 / (g_XASTRO.k_dKb * dElectron_Velocity_Temperature);
+		long double dLog_e = log10(exp(1.0));
 		fprintf(fileSaha,"Ion, E_{ion} [Ryd] , Relative Population\n");
-		expdouble dTot_Pop = 1.0;
-		expdouble dLog_Rel_Pop_Sum = 0.0;
+		long double dTot_Pop = 1.0;
+		long double dLog_Rel_Pop_Sum = 0.0;
 		for (size_t uiState = vdOP_Ground_State.size(); uiState < vdOP_Ground_State.size(); uiState--)
 		{
-			expdouble dLambda = g_XASTRO.k_dh * g_XASTRO.k_dh / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dme) * dInv_Kb_T;
-			expdouble dExponential_Term = -dInv_Kb_T * xextprec::fabs(vdOP_Ground_State[uiState] * g_XASTRO.k_dRy);
-			expdouble dLog_Rel_Pop = xextprec::log10(2.0 / (dLambda * xextprec::sqrt(dLambda))) + dExponential_Term * dLog_e - xextprec::log10(dNe);
+			long double dLambda = g_XASTRO.k_dh * g_XASTRO.k_dh / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dme) * dInv_Kb_T;
+			long double dExponential_Term = -dInv_Kb_T * std::fabs(vdOP_Ground_State[uiState] * g_XASTRO.k_dRy);
+			long double dLog_Rel_Pop = std::log10(2.0 / (dLambda * std::sqrt(dLambda))) + dExponential_Term * dLog_e - std::log10(dNe);
 			dLog_Rel_Pop_Sum += dLog_Rel_Pop;
-			dTot_Pop += xextprec::pow(10.0,dLog_Rel_Pop_Sum);
+			dTot_Pop += std::pow(10.0,dLog_Rel_Pop_Sum);
 		}
-		dTot_Pop = xextprec::log10(dTot_Pop);
+		dTot_Pop = std::log10(dTot_Pop);
 		dLog_Rel_Pop_Sum = 0.0;
 		fprintf(fileSaha,"%i, 0.0, 0.0\n",uiMin_Ion);
 		for (size_t uiState = vdOP_Ground_State.size(); uiState < vdOP_Ground_State.size(); uiState--)
 		{
-			expdouble dLambda = g_XASTRO.k_dh * g_XASTRO.k_dh / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dme) * dInv_Kb_T;
-			expdouble dExponential_Term = -dInv_Kb_T * xextprec::fabs(vdOP_Ground_State[uiState] * g_XASTRO.k_dRy);
-			expdouble dLog_Rel_Pop = xextprec::log10(2.0 / (dLambda * xextprec::sqrt(dLambda))) + dExponential_Term * dLog_e - xextprec::log10(dNe) - dTot_Pop;
+			long double dLambda = g_XASTRO.k_dh * g_XASTRO.k_dh / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dme) * dInv_Kb_T;
+			long double dExponential_Term = -dInv_Kb_T * std::fabs(vdOP_Ground_State[uiState] * g_XASTRO.k_dRy);
+			long double dLog_Rel_Pop = std::log10(2.0 / (dLambda * std::sqrt(dLambda))) + dExponential_Term * dLog_e - std::log10(dNe) - dTot_Pop;
 			dLog_Rel_Pop_Sum += dLog_Rel_Pop;
-			fprintf(fileSaha,"%i, %.2e, %s\n",uiElement_Z - (uiState + uiMin_Ion),vdOP_Ground_State[uiState],(dLog_Rel_Pop_Sum - dTot_Pop).get_b10_value(3,true).c_str());
+			std::ostringstream ssPop;
+			ssPop << std::scientific << std::setprecision(std::numeric_limits<long double>::digits10) << (dLog_Rel_Pop_Sum - dTot_Pop);
+			fprintf(fileSaha,"%i, %.2e, %s\n",uiElement_Z - (uiState + uiMin_Ion),vdOP_Ground_State[uiState],ssPop.str().c_str());
 		}
 	}
 	////////////////////////////////////////////////////////////////////////
@@ -1056,9 +1062,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	size_t tLevel_ID = 0;
 	if (fileBoltzmann != nullptr)
 	{
-		expdouble dInv_Kb_T = 1.0 / (g_XASTRO.k_dKb * dElectron_Velocity_Temperature);
-		expdouble dLog_e = EDBL_LOG2_e / EDBL_LOG2_10;//log10(exp(1.0));
-		expdouble dTot_Pop = 1.0;
+		long double dInv_Kb_T = 1.0 / (g_XASTRO.k_dKb * dElectron_Velocity_Temperature);
+		long double dLog_e = std::log10(std::exp((long double)(1.0)));
+		long double dTot_Pop = 1.0;
 		for (size_t tIdx_Ion_I = 0; tIdx_Ion_I < kddData.m_vmklvdLevel_Data.size(); tIdx_Ion_I++)
 		{
 			imklvd iterJ = kddData.m_vmklvdLevel_Data[tIdx_Ion_I].begin();
@@ -1067,11 +1073,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				iterJ++;
 			for (; iterJ != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end(); iterJ++)
 			{ // do all pops relative to ground state
-				expdouble dRel_Pop = xextprec::log10(iterJ->second.klvdLevel_Data.m_dStat_Weight / iterJlast->second.klvdLevel_Data.m_dStat_Weight) + (iterJlast->second.klvdLevel_Data.m_dEnergy_Level_Ryd - iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd) * g_XASTRO.k_dRy * dInv_Kb_T * dLog_e;
-				dTot_Pop += xextprec::pow(10.0,dRel_Pop);
+				long double dRel_Pop = std::log10(iterJ->second.klvdLevel_Data.m_dStat_Weight / iterJlast->second.klvdLevel_Data.m_dStat_Weight) + (iterJlast->second.klvdLevel_Data.m_dEnergy_Level_Ryd - iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd) * g_XASTRO.k_dRy * dInv_Kb_T * dLog_e;
+				dTot_Pop += std::pow(10.0,dRel_Pop);
 			}
 		}
-		dTot_Pop = xextprec::log10(dTot_Pop);
+		dTot_Pop = std::log10(dTot_Pop);
 		tLevel_ID = 1;
 		fprintf(fileBoltzmann,"Level ID, Relative Population\n");
 		fprintf(fileBoltzmann,"0, 0.000\n");
@@ -1083,8 +1089,10 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				iterJ++;
 			for (; iterJ != kddData.m_vmklvdLevel_Data[tIdx_Ion_I].end(); iterJ++)
 			{ // do all pops relative to ground state
-				expdouble dRel_Pop = xextprec::log10(iterJ->second.klvdLevel_Data.m_dStat_Weight / iterJlast->second.klvdLevel_Data.m_dStat_Weight) + (iterJlast->second.klvdLevel_Data.m_dEnergy_Level_Ryd - iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd) * g_XASTRO.k_dRy * dInv_Kb_T * dLog_e;
-				fprintf(fileBoltzmann,"%i, %s\n",tLevel_ID,(dRel_Pop - dTot_Pop).get_b10_value(3,true).c_str());
+				long double dRel_Pop = std::log10(iterJ->second.klvdLevel_Data.m_dStat_Weight / iterJlast->second.klvdLevel_Data.m_dStat_Weight) + (iterJlast->second.klvdLevel_Data.m_dEnergy_Level_Ryd - iterJ->second.klvdLevel_Data.m_dEnergy_Level_Ryd) * g_XASTRO.k_dRy * dInv_Kb_T * dLog_e;
+				std::ostringstream ssPop;
+				ssPop << std::scientific << std::setprecision(std::numeric_limits<long double>::digits10) << (dRel_Pop - dTot_Pop);
+				fprintf(fileBoltzmann,"%i, %s\n",tLevel_ID,ssPop.str().c_str());
 				tLevel_ID++;
 			}
 		}

@@ -6,10 +6,10 @@ void kurucz_data::Load_Data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsign
 	const char * lpszLA_Data_Path = std::getenv("LINE_ANALYSIS_DATA_PATH");
 #ifdef DATADIR
 	// use the user specified path in LINE_ANALYSIS_DATA path. If it is undefined, use the DATADIR specified when the package was installed
+	const char lpszData_Dir[] = {DATADIR};
 	if (lpszLA_Data_Path == nullptr)
 	{
-		const char lpszData_Dir[] = {DATADIR};
-		lpszLA_Data_Path == lpszData_Dir;
+		lpszLA_Data_Path = lpszData_Dir;
 	}
 #endif
 	if (lpszLA_Data_Path == nullptr)
