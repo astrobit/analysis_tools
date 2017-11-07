@@ -110,7 +110,7 @@ void	epsfile::Close_File(void)
 	}
 	m_lpFileOut = NULL;
 }
-void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument_Title, const double & i_dWidth_Inches, const double & i_dHeight_Inches)
+void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument_Title, const double & i_dWidth_Inches, const double & i_dHeight_Inches,bool i_bLandscape)
 {
 	struct tm * timeinfo;
 	time_t rawtime;
@@ -125,7 +125,7 @@ void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument
 	fprintf(m_lpFileOut,"%%%%Title: %s\n",i_lpszDocument_Title && i_lpszDocument_Title[0] != 0 ? i_lpszDocument_Title : i_lpszFilename);
 	fprintf(m_lpFileOut,"%%%%CreationDate: %s",asctime(timeinfo));
 	fprintf(m_lpFileOut,"%%%%DocumentData: Clean7Bit\n");
-	if (i_dHeight_Inches < i_dWidth_Inches)
+	if (i_dHeight_Inches < i_dWidth_Inches && i_bLandscape)
 		fprintf(m_lpFileOut,"%%%%BoundingBox: 0 0 %.2f %.2f\n",i_dHeight_Inches * 72.0, i_dWidth_Inches * 72.0);
 	else
 		fprintf(m_lpFileOut,"%%%%BoundingBox: 0 0 %.2f %.2f\n",i_dWidth_Inches * 72.0, i_dHeight_Inches * 72.0);
@@ -148,7 +148,7 @@ void epsfile::Open_File(const char * i_lpszFilename, const char * i_lpszDocument
 	fprintf(m_lpFileOut,"/fs {scalefont setfont} bind def \n");
 	fprintf(m_lpFileOut,"/tbb {dup true charpath pathbbox 3 -1 roll dup 3 1 roll sub dup 1.2 mul 3 1 roll 0.1 mul sub 4 -1 roll dup 5 -1 roll exch sub dup 1.2 mul 3 1 roll 0.1 mul sub 4 1 roll exch 3 1 roll exch} bind def \n");
 	fprintf(m_lpFileOut,m_lpszGsave);
-	if (i_dHeight_Inches < i_dWidth_Inches) // rotate to landscape mode
+	if (i_dHeight_Inches < i_dWidth_Inches && i_bLandscape) // rotate to landscape mode
 		fprintf(m_lpFileOut,"90 rotate 0 -%.2f translate\n",i_dHeight_Inches * 72.0);
 }
 void epsfile::Text(PS_FONT i_eFont, bool i_bItalic, bool i_bBold, int i_iFont_Size, PS_HORIZONTAL_JUSTIFICATION i_eHoirzontal_Justification, PS_VERTICAL_JUSTIFICATION i_eVertical_Justification, const color_triplet & i_cColor,const double & i_dX, const double & i_dY, const char * i_lpszText, const double & i_dRotation, const double & i_dLine_Width) const

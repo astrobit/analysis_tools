@@ -116,35 +116,57 @@ namespace	epsplot
 		double			m_dHeight_Inches;
 		double			m_dSide_Unprintable_Margins_Inches;
 		double			m_dTop_Bottom_Unprintable_Margins_Inches;
+		double			m_dZ_Axis_Space;
 
+		double			m_dTitle_Margin_Inches;
+		double			m_dX_Axis_Margin_Inches;
+		double			m_dY_Axis_Margin_Inches;
+		double			m_dZ_Axis_Margin_Inches;
+
+		bool			m_bLandscape;
 
 		page_parameters(void)
 		{
 			m_dWidth_Inches = 8.5;
 			m_dHeight_Inches = 11.0;
+			m_bLandscape = true;
 			m_uiNum_Columns = 1;
 			m_uiNum_Rows = 1;
-			m_dTitle_Margin = 1.0 / m_dHeight_Inches;
-			m_dTop_Axis_Margin = 0.0;
-			m_dBottom_Axis_Margin = 1.2 / m_dHeight_Inches;
-			m_dLeft_Axis_Margin = 1.0 / m_dWidth_Inches;
-			m_dRight_Axis_Margin = 0.0;
+
+			m_dTitle_Margin = -1.0;//1.0 / m_dHeight_Inches;
+			m_dTop_Axis_Margin = -1.0;//0.0;
+			m_dBottom_Axis_Margin = -1.0;//1.2 / m_dHeight_Inches;
+			m_dLeft_Axis_Margin = -1.0;//1.0 / m_dWidth_Inches;
+			m_dRight_Axis_Margin = -1.0;//0.0;
+
+			m_dTitle_Margin_Inches = -1.0; // value less than zero indicates the margin is determined by the plotting routines
+			m_dX_Axis_Margin_Inches = -1.0; // value less than zero indicates the margin is determined by the plotting routines
+			m_dY_Axis_Margin_Inches = -1.0; // value less than zero indicates the margin is determined by the plotting routines
+			m_dZ_Axis_Margin_Inches = -1.0; // value less than zero indicates the margin is determined by the plotting routines
+
 
 			m_dSide_Unprintable_Margins_Inches = 0.25; // Inches
 			m_dTop_Bottom_Unprintable_Margins_Inches = 0.25; // Inches
 
+//			m_bReformat = false;
+
 		}
+
+//		void Format_Journal_Column(void)
+//		{ // format the page for a journal, typical width 3.35"
+//			m_bReformat = true;
+//		}
+
 	};
 
 
 	class axis_parameters
 	{
 	protected:
-		std::string	m_sTitle;
 
 		void	Set_Defaults(void)
 		{
-			m_sTitle = "";
+			m_sTitle.clear();
 			m_bLog = m_bInvert = false;
 			m_dLower_Limit = nan("");
 			m_dUpper_Limit = nan("");
@@ -169,9 +191,11 @@ namespace	epsplot
 			m_eScheme = rainbow;
 			m_ctColor_Upper = color_triplet(1.,1.,1.);
 			m_ctColor_Lower = color_triplet(0.,0.,0.);
+			m_dBar_Width = 16.0;
 
 		}
 	public:
+		std::string	m_sTitle;
 		double	m_dLine_Width; // Points
 		double	m_dMajor_Tick_Width; // Points
 		double	m_dMajor_Tick_Length; // Points
@@ -197,6 +221,7 @@ namespace	epsplot
 		color_triplet	m_ctColor_Upper; // only used for Z axis
 		color_triplet	m_ctColor_Lower; // only used for Z axis
 		z_axis_scheme	m_eScheme; // only used for Z axis
+		double	m_dBar_Width; /// Points, Z-axis only
 
 
 		void	Set_Title(const char * i_lpszTitle)
@@ -204,7 +229,7 @@ namespace	epsplot
 			if (i_lpszTitle != nullptr)
 				m_sTitle = i_lpszTitle;
 			else
-				m_sTitle = "";
+				m_sTitle.clear();
 		}
 		const char * Get_Title(void) const {return m_sTitle.c_str();}
 		std::string Get_Title_String(void) const {return m_sTitle;}
@@ -282,7 +307,7 @@ namespace	epsplot
 		epsfile(const char * i_lpszFormat);
 		~epsfile(void);
 
-		void	Open_File(const char * i_lpszFilename, const char * i_lpszDocument_Title, const double & i_dWidth_Inches, const double & i_dHeight_Inches);
+		void	Open_File(const char * i_lpszFilename, const char * i_lpszDocument_Title, const double & i_dWidth_Inches, const double & i_dHeight_Inches, bool i_bLandscape = true);
 		void	Close_File(void);
 
 
@@ -598,17 +623,13 @@ namespace	epsplot
 			if (std::isnan(m_cParameters.m_dUpper_Limit) && (std::isnan(m_dUpper_Limit) || m_dUpper_Limit < i_dValue))
 				m_dUpper_Limit = i_dValue;
 		}
-		void Finalize_Limit(const double & i_dGraph_Space)
+		void Finalize_Limit(void)
 		{
 			if (!std::isnan(m_cParameters.m_dLower_Limit))
 				m_dLower_Limit = m_cParameters.m_dLower_Limit;
 			if (!std::isnan(m_cParameters.m_dUpper_Limit))
 				m_dUpper_Limit = m_cParameters.m_dUpper_Limit;
 			m_dRange = m_dUpper_Limit - m_dLower_Limit;
-			if (m_dRange > 0.0)
-				m_dScale = i_dGraph_Space / m_dRange;
-			else
-				m_dScale = 1.0;
 
 			if (m_cParameters.m_bLog && m_cParameters.m_bInvert)
 			{
@@ -636,6 +657,13 @@ namespace	epsplot
 				m_dStart = m_dLower_Limit;
 				m_dEnd = m_dUpper_Limit;
 			}
+		}
+		void Set_Scale(const double & i_dGraph_Space)
+		{
+			if (m_dRange > 0.0)
+				m_dScale = i_dGraph_Space / m_dRange;
+			else
+				m_dScale = 1.0;
 			if (m_cParameters.m_bLog)
 				m_dScale = i_dGraph_Space / fabs(m_dEnd - m_dStart);
 
@@ -735,10 +763,10 @@ namespace	epsplot
 	class data
 	{
 	protected:
-		char	* m_lpszTitle;
+		std::string m_szTitle;
 		double	m_dTitle_Size;
 		COLOR	m_eTitle_Color;
-		char 	* m_lpszFilename;
+		std::string m_szFilename;
 
 		std::vector<plot_item *> m_vcPlot_Item_List;
 
@@ -829,8 +857,8 @@ namespace	epsplot
 		void	Null_Pointers(void)
 		{
 			m_vcPlot_Item_List.clear();
-			m_lpszTitle = nullptr;
-			m_lpszFilename = nullptr;
+			m_szTitle.clear();
+			m_szFilename.clear();
 
 			for (unsigned int uiI = 0; uiI < 16; uiI++)
 			{
@@ -843,12 +871,12 @@ namespace	epsplot
 
 	public:
 	// Methods for the title
-		void	Set_Plot_Title(const char * i_lpszTitle, const double & i_dSize = 36.0, COLOR i_eColor = BLACK) { if(m_lpszTitle) delete [] m_lpszTitle; if (i_lpszTitle && i_lpszTitle[0] != 0) {m_lpszTitle = new char[strlen(i_lpszTitle) + 1]; strcpy(m_lpszTitle,i_lpszTitle);} else m_lpszTitle = nullptr;m_dTitle_Size = i_dSize;m_eTitle_Color = i_eColor;}
-		const char *	Get_Plot_Title(void) const { return m_lpszTitle;}
+		void	Set_Plot_Title(const char * i_lpszTitle, const double & i_dSize = 36.0, COLOR i_eColor = BLACK) { if (i_lpszTitle == nullptr) m_szTitle.clear(); else m_szTitle = i_lpszTitle;}
+		const char *	Get_Plot_Title(void) const { return m_szTitle.c_str();}
 
 	// Methods for the destination file
-		void	Set_Plot_Filename(const char * i_lpszFilename) { if(m_lpszFilename) delete [] m_lpszFilename; if (i_lpszFilename && i_lpszFilename[0] != 0) {m_lpszFilename = new char[strlen(i_lpszFilename) + 1]; strcpy(m_lpszFilename,i_lpszFilename);} else m_lpszFilename = nullptr;}
-		const char *	Get_Plot_Filename(void) const { return m_lpszFilename;}
+		void	Set_Plot_Filename(const char * i_lpszFilename) { if(i_lpszFilename == nullptr) m_szFilename.clear(); else m_szFilename = i_lpszFilename;}
+		const char *	Get_Plot_Filename(void) const { return m_szFilename.c_str();}
 
 
 	// Methods for setting data to be plotted
@@ -965,11 +993,6 @@ namespace	epsplot
 		}
 		~data(void)
 		{
-			if (m_lpszTitle)
-				delete [] m_lpszTitle;
-			if (m_lpszFilename)
-				delete [] m_lpszFilename;
-
 			Deallocate_Plot_Data();
 
 			for (unsigned int uiI = 0; uiI < 16; uiI++)

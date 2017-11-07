@@ -243,41 +243,116 @@ void	data::Plot(const page_parameters & i_cGrid)
 	axis_metadata cX_Axis_Default;
 	axis_metadata cY_Axis_Default;
 	axis_metadata cZ_Axis_Default;
-	if (m_lpszFilename != nullptr && m_lpszFilename[0] != 0)
+	double dPoints_To_Inches = 1.0 / 72.0;
+
+	if (!m_szFilename.empty())
 	{
-		cEPS.Open_File(m_lpszFilename, m_lpszTitle, i_cGrid.m_dWidth_Inches, i_cGrid.m_dHeight_Inches);
 
 		bool bHas_3d_plots = false;
 		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end() && !bHas_3d_plots; cPlot_Item_Iter++)
 		{
 			bHas_3d_plots = ((*cPlot_Item_Iter)->m_eType == type_3d);
 		}
-		double	dGraph_Space_X;
-		double	dGraph_Space_Y;
-		double	dRight_Margin = i_cGrid.m_dRight_Axis_Margin;
-		double	dTop_Margin = i_cGrid.m_dTop_Axis_Margin;
-		double	dTitle_Margin = i_cGrid.m_dTitle_Margin;
-		if (m_cY_Axis_Parameters.size() > 1 && dRight_Margin <= 0.0)
-			dRight_Margin = i_cGrid.m_dLeft_Axis_Margin;
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Determine the size of the plot title area
+		//
+		////////////////////////////////////////////////////////////////////////
+		double dTitle_Margin = 0.0;
+		if (i_cGrid.m_dTitle_Margin > 0.0 && i_cGrid.m_dHeight_Inches > 0.0)
+			dTitle_Margin = i_cGrid.m_dTitle_Margin * i_cGrid.m_dHeight_Inches;
+		else if (i_cGrid.m_dTitle_Margin_Inches > 0.0)
+			dTitle_Margin = i_cGrid.m_dTitle_Margin_Inches;
+		else if (!m_szTitle.empty())
+			dTitle_Margin = m_dTitle_Size * 2.0 * dPoints_To_Inches;
+
+
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Determine the margins for the axes
+		//
+		////////////////////////////////////////////////////////////////////////
+		size_t tSide = 0;
+		double dX_Margin[2] = {0,0};
+		if (i_cGrid.m_dX_Axis_Margin_Inches > 0.0)
+		{
+			dX_Margin[0] = i_cGrid.m_dX_Axis_Margin_Inches;
+			if (m_cX_Axis_Parameters.size() > 1)
+				dX_Margin[1] = i_cGrid.m_dX_Axis_Margin_Inches;
+		}
+		else
+		{
+			for (auto iterI = m_cX_Axis_Parameters.begin(); iterI != m_cX_Axis_Parameters.end(); iterI++)
+			{
+				double dSize = 0.0;
+				if (!iterI->m_cParameters.m_sTitle.empty())
+					dSize += iterI->m_cParameters.m_dTitle_Size * 2.0;
+				double dLabel_Size = 0.0;
+				if (iterI->m_cParameters.m_bLabel_Minor_Indices)
+					dLabel_Size = iterI->m_cParameters.m_dMinor_Label_Size;
+				if (iterI->m_cParameters.m_bLabel_Major_Indices && iterI->m_cParameters.m_dMajor_Label_Size > dLabel_Size)
+					dLabel_Size = iterI->m_cParameters.m_dMajor_Label_Size;
+				dLabel_Size *= 1.5;
+				dSize += dLabel_Size;
+				if (dX_Margin[tSide] < dSize)
+					dX_Margin[tSide] = dSize;
+				tSide++;
+				tSide &= 1;
+			}
+			dX_Margin[0] *= dPoints_To_Inches;
+			dX_Margin[1] *= dPoints_To_Inches;
+		}
+
+		// determine size of Y margins
+		tSide = 0;
+		double dY_Margin[2] = {0,0};
+		if (i_cGrid.m_dY_Axis_Margin_Inches > 0.0)
+		{
+			dY_Margin[0] = i_cGrid.m_dY_Axis_Margin_Inches;
+			if (m_cY_Axis_Parameters.size() > 1)
+				dY_Margin[1] = i_cGrid.m_dY_Axis_Margin_Inches;
+		}
+		else
+		{
+			for (auto iterI = m_cY_Axis_Parameters.begin(); iterI != m_cY_Axis_Parameters.end(); iterI++)
+			{
+				double dSize = 0.0;
+				if (!iterI->m_cParameters.m_sTitle.empty())
+					dSize += iterI->m_cParameters.m_dTitle_Size * 2.0;
+				double dLabel_Size = 0.0;
+				if (iterI->m_cParameters.m_bLabel_Minor_Indices)
+					dLabel_Size = iterI->m_cParameters.m_dMinor_Label_Size;
+				if (iterI->m_cParameters.m_bLabel_Major_Indices && iterI->m_cParameters.m_dMajor_Label_Size > dLabel_Size)
+					dLabel_Size = iterI->m_cParameters.m_dMajor_Label_Size;
+				dLabel_Size *= 1.5;
+				dSize += dLabel_Size;
+				if (dY_Margin[tSide] < dSize)
+					dY_Margin[tSide] = dSize;
+				tSide++;
+				tSide &= 1;
+			}
+			dY_Margin[0] *= dPoints_To_Inches;
+			dY_Margin[1] *= dPoints_To_Inches;
+		}
+
+		// determine size of Z margins
+		double dZ_Margin = 0.0;
 		if (bHas_3d_plots)
-			dRight_Margin += 0.1;
-		if (m_lpszTitle == nullptr || m_lpszTitle[0] == 0)
-			dTitle_Margin = 0.0;
-		if (m_cX_Axis_Parameters.size() <= 1)
-			dTop_Margin = 0.05; // give a little buffer
-		if (m_cX_Axis_Parameters.size() > 1 && dTop_Margin <= 0.0)
-			dTop_Margin = i_cGrid.m_dBottom_Axis_Margin;
-
-		dGraph_Space_X = (i_cGrid.m_dWidth_Inches - 2.0 * i_cGrid.m_dSide_Unprintable_Margins_Inches)* 72.0 * (1.0 - i_cGrid.m_dLeft_Axis_Margin - dRight_Margin) - 2.0;
-		dGraph_Space_Y = (i_cGrid.m_dHeight_Inches - 2.0 * i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0 * (1.0 - dTop_Margin - i_cGrid.m_dBottom_Axis_Margin - dTitle_Margin) - 2.0; // -2 to allow a little gap at the edge
-		
-
-		double	dGraph_Offset_X = (i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0;
-		double	dGraph_Offset_Y = (i_cGrid.m_dHeight_Inches * i_cGrid.m_dBottom_Axis_Margin + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0;
-		// Don't do multi plot for now.. @@TODO
-		//double	dSingle_Plot_Space_X = dGraph_Space_X / i_cGrid.m_uiNum_Columns;
-		//double	dSingle_Plot_Space_Y = dGraph_Space_Y / i_cGrid.m_uiNum_Rows;
-
+		{
+			if (i_cGrid.m_dZ_Axis_Margin_Inches > 0.0)
+				dZ_Margin = i_cGrid.m_dZ_Axis_Margin_Inches;
+			else
+			{
+				for (auto iterI = m_cZ_Axis_Parameters.begin(); iterI != m_cZ_Axis_Parameters.end(); iterI++)
+				{
+					double dSize = iterI->m_cParameters.m_dBar_Width * 3.0;
+					if (dSize > dZ_Margin)
+						dZ_Margin = dSize;
+				}
+				dZ_Margin *= dPoints_To_Inches;
+			}
+		}
+	
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Reset_Limits();
@@ -291,6 +366,15 @@ void	data::Plot(const page_parameters & i_cGrid)
 			(*cAxis_Iter).Reset_Limits();
 		}
 
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Determine the limits for each axis, if the user hasn't explicitly 
+		// specified them, by going through the data to the plotted and 
+		// identifying minima and maxima
+		//
+		////////////////////////////////////////////////////////////////////////
+		// x-axis
+		////////////////////////////////////////////////////////////////////////
 		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
 			plot_item * lpCurr = *cPlot_Item_Iter;
@@ -342,12 +426,11 @@ void	data::Plot(const page_parameters & i_cGrid)
 				break;
 			}
 		}
-		cX_Axis_Default.Finalize_Limit(dGraph_Space_X);
-		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
-		{
-			(*cAxis_Iter).Finalize_Limit(dGraph_Space_X);
-		}
+		
 
+		////////////////////////////////////////////////////////////////////////
+		// y-axis and z-axis
+		////////////////////////////////////////////////////////////////////////
 		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
 			plot_item * lpCurr = *cPlot_Item_Iter;
@@ -420,19 +503,112 @@ void	data::Plot(const page_parameters & i_cGrid)
 				break;
 			}
 		}
-		cY_Axis_Default.Finalize_Limit(dGraph_Space_Y);
+
+
+		////////////////////////////////////////////////////////////////////////
+		// finalize x-axis
+		////////////////////////////////////////////////////////////////////////
+		cX_Axis_Default.Finalize_Limit();
+		double dX_Range = 0.0;
+		double dY_Range = 0.0;
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Finalize_Limit();
+
+			double dRange = std::fabs(cAxis_Iter->m_dRange);
+			if (cAxis_Iter->m_cParameters.m_bLog)
+				dRange = std::log10(dRange);
+			if (dRange > dX_Range)
+				dX_Range = dRange;
+			
+		}
+
+
+		////////////////////////////////////////////////////////////////////////
+		// finalize y-axis
+		////////////////////////////////////////////////////////////////////////
+		cY_Axis_Default.Finalize_Limit();
 
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 		{
-			(*cAxis_Iter).Finalize_Limit(dGraph_Space_Y);
+			(*cAxis_Iter).Finalize_Limit();
+			double dRange = std::fabs(cAxis_Iter->m_dRange);
+			if (cAxis_Iter->m_cParameters.m_bLog)
+				dRange = std::log10(dRange);
+			if (dRange > dY_Range)
+				dY_Range = dRange;
 		}
 
-		cZ_Axis_Default.Finalize_Limit(1.0);
+		////////////////////////////////////////////////////////////////////////
+		// finalize z-axis
+		////////////////////////////////////////////////////////////////////////
+		cZ_Axis_Default.Finalize_Limit();
 
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cZ_Axis_Parameters.begin(); cAxis_Iter != m_cZ_Axis_Parameters.end(); cAxis_Iter++)
 		{
-			(*cAxis_Iter).Finalize_Limit(1.0);
+			(*cAxis_Iter).Finalize_Limit();
 		}
+
+		////////////////////////////////////////////////////////////////////////
+		// if the user left the plot size open ended, compute the size of the
+		//  graph space
+		////////////////////////////////////////////////////////////////////////
+		
+		double dHoriz_Margins_Total = dY_Margin[0] + dY_Margin[1] + dZ_Margin + 2.0 * i_cGrid.m_dSide_Unprintable_Margins_Inches;
+		double dVert_Margins_Total = dX_Margin[0] + dX_Margin[1] + dTitle_Margin + 2.0 * i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches;
+
+		double dGraph_Space_X = 0.0;
+		double dGraph_Space_Y = 0.0;
+
+		if (i_cGrid.m_dWidth_Inches > 0.0)
+		{
+			dGraph_Space_X = i_cGrid.m_dWidth_Inches - dHoriz_Margins_Total;
+			if (i_cGrid.m_dHeight_Inches > 0.0)
+				dGraph_Space_Y = i_cGrid.m_dHeight_Inches - dVert_Margins_Total;
+			else
+				dGraph_Space_Y = dGraph_Space_X * (dY_Range / dX_Range);
+		}
+		else
+		{
+			dGraph_Space_Y = i_cGrid.m_dHeight_Inches - dVert_Margins_Total;
+			if (i_cGrid.m_dWidth_Inches > 0.0)
+				dGraph_Space_X = i_cGrid.m_dWidth_Inches - dHoriz_Margins_Total;
+			else
+				dGraph_Space_X = dGraph_Space_Y * (dX_Range / dY_Range);
+		}
+		double dWidth_Inches = dGraph_Space_X + dHoriz_Margins_Total;
+		double dHeight_Inches = dVert_Margins_Total + dGraph_Space_Y;
+		// convert to points
+		dGraph_Space_X *= 72.0;
+		dGraph_Space_Y *= 72.0;
+
+
+		double	dGraph_Offset_X = (dY_Margin[0] + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0;
+		double	dGraph_Offset_Y = (dX_Margin[0] + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0;
+		// Don't do multi plot for now.. @@TODO
+		//double	dSingle_Plot_Space_X = dGraph_Space_X / i_cGrid.m_uiNum_Columns;
+		//double	dSingle_Plot_Space_Y = dGraph_Space_Y / i_cGrid.m_uiNum_Rows;
+
+		cEPS.Open_File(m_szFilename.c_str(), m_szTitle.c_str(), dWidth_Inches, dHeight_Inches, i_cGrid.m_bLandscape);
+
+		////////////////////////////////////////////////////////////////////////
+		// set the scaling factor for the axes
+		////////////////////////////////////////////////////////////////////////
+		cX_Axis_Default.Set_Scale(dGraph_Space_X);
+		cY_Axis_Default.Set_Scale(dGraph_Space_Y);
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Set_Scale(dGraph_Space_X);
+		}
+		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
+		{
+			(*cAxis_Iter).Set_Scale(dGraph_Space_Y);
+		}
+
+		////////////////////////////////////////////////////////////////////////
+		// draw the boundaries of the graph
+		////////////////////////////////////////////////////////////////////////
+
 
 		COLOR eCurr_Color = BLACK;
 		STIPPLE eCurr_Stipple = SOLID;
@@ -489,6 +665,11 @@ void	data::Plot(const page_parameters & i_cGrid)
 			fprintf(stderr,"No data to graph\n");
 			fflush(stderr);
 		}
+		////////////////////////////////////////////////////////////////////////
+		// 
+		// Loop through all data and plot it
+		// 
+		////////////////////////////////////////////////////////////////////////
 		for (std::vector<plot_item *>::iterator cPlot_Item_Iter = m_vcPlot_Item_List.begin(); cPlot_Item_Iter != m_vcPlot_Item_List.end(); cPlot_Item_Iter++)
 		{
 			plot_item * lpCurr = *cPlot_Item_Iter;
@@ -944,15 +1125,27 @@ void	data::Plot(const page_parameters & i_cGrid)
 
 		cEPS.State_Pop();
 
-		if (m_lpszTitle)
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Draw the title of the plot if the user specified one
+		//
+		////////////////////////////////////////////////////////////////////////
+
+		if (!m_szTitle.empty())
 		{
 			cEPS.State_Push();
 			cEPS.Comment("Title");
 			double dY = dGraph_Space_Y + dGraph_Offset_Y + 40;
-			double dX = i_cGrid.m_dWidth_Inches * 72.0  *0.5;
-			cEPS.Text(TIMES,false,false,m_dTitle_Size,CENTER,BOTTOM,Get_Color(m_eTitle_Color),dX,dY, m_lpszTitle,0.0);
+			double dX = dWidth_Inches * 72.0 * 0.5;
+			cEPS.Text(TIMES,false,false,m_dTitle_Size,CENTER,BOTTOM,Get_Color(m_eTitle_Color),dX,dY, m_szTitle.c_str(),0.0);
 			cEPS.State_Pop();
 		}
+
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Draw the title of each axis if the user specified one
+		//
+		////////////////////////////////////////////////////////////////////////
 
 		cEPS.Comment("Axis titles");
 		// write axis data
@@ -961,28 +1154,62 @@ void	data::Plot(const page_parameters & i_cGrid)
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			double dX,dY;
-			dX = (i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_X * 0.5;
+			dX = dGraph_Space_X * 0.5 + dGraph_Offset_X;
 			if (uiI & 1)
-				dY = ((dTop_Margin * 0.4 + i_cGrid.m_dBottom_Axis_Margin) * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_Y;
+			{
+				dY = dGraph_Space_Y + dGraph_Offset_Y;
+				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
+					dY += cAxis_Iter->m_cParameters.m_dMajor_Label_Size * 2.0;
+				else if (cAxis_Iter->m_cParameters.m_bLabel_Minor_Indices)
+					dY += cAxis_Iter->m_cParameters.m_dMinor_Label_Size * 2.0;
+				dY += 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
+			}
 			else			
-				dY = ((0.10 * i_cGrid.m_dBottom_Axis_Margin) * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0;
+			{
+				dY = dGraph_Offset_Y;
+				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
+					dY -= cAxis_Iter->m_cParameters.m_dMajor_Label_Size * 2.0;
+				else if (cAxis_Iter->m_cParameters.m_bLabel_Minor_Indices)
+					dY -= cAxis_Iter->m_cParameters.m_dMinor_Label_Size * 2.0;
+				dY -= 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
+			}
 
-			cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),dX,dY, (*cAxis_Iter).m_cParameters.Get_Title());
+			cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),dX,dY, (*cAxis_Iter).m_cParameters.Get_Title());
 			uiI++;
 		}
 		uiI = 0;
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cY_Axis_Parameters.begin(); cAxis_Iter != m_cY_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			double	dX,dY;
-			dY = (i_cGrid.m_dBottom_Axis_Margin * i_cGrid.m_dHeight_Inches + i_cGrid.m_dTop_Bottom_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_Y * 0.5;
+			dY = dGraph_Offset_Y + 0.5 * dGraph_Space_Y;
 			if (uiI & 1)
-				dX = ((i_cGrid.m_dLeft_Axis_Margin + dRight_Margin * 0.8) * i_cGrid.m_dWidth_Inches + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0 + dGraph_Space_X;
-			else
-				dX = (i_cGrid.m_dLeft_Axis_Margin * 0.4 * i_cGrid.m_dWidth_Inches + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0;
-			cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,BOTTOM,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),dX,dY, (*cAxis_Iter).m_cParameters.Get_Title(),90.0);
+			{
+				dX = dGraph_Space_X + dGraph_Offset_X;
+				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
+					dX += cAxis_Iter->m_cParameters.m_dMajor_Label_Size * 2.0;
+				else if (cAxis_Iter->m_cParameters.m_bLabel_Minor_Indices)
+					dX += cAxis_Iter->m_cParameters.m_dMinor_Label_Size * 2.0;
+				dX += 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
+			}
+			else			
+			{
+				dX = dGraph_Offset_X;
+				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
+					dX -= cAxis_Iter->m_cParameters.m_dMajor_Label_Size * 2.0;
+				else if (cAxis_Iter->m_cParameters.m_bLabel_Minor_Indices)
+					dX -= cAxis_Iter->m_cParameters.m_dMinor_Label_Size * 2.0;
+				dX -= 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
+			}
+			cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),dX,dY, (*cAxis_Iter).m_cParameters.Get_Title(),90.0);
 			uiI++;
 			
 		}
+
+		////////////////////////////////////////////////////////////////////////
+		//
+		// Draw the labels and ticks for each axis
+		//
+		////////////////////////////////////////////////////////////////////////
 		cEPS.State_Pop();
 		cEPS.Comment("Axis labels and ticks");
 		cEPS.State_Push();
@@ -1020,13 +1247,18 @@ void	data::Plot(const page_parameters & i_cGrid)
 			double	dStart = XRoundNearest(cX_Axis_Default.m_dStart,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cX_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
-			double	dDeltaText = ((uiI % 2) == 0) ? -(cX_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : (cX_Axis_Default.m_cParameters.m_dMajor_Label_Size * 0.5);//8.0;
+			//double	dDeltaText = ((uiI % 2) == 0? -(cX_Axis_Default.m_cParameters.m_dMajor_Label_Size * 0.5) : (cX_Axis_Default.m_cParameters.m_dMajor_Label_Size * 0.5);//8.0;
 			for (double dVal = dStart; dVal <= cX_Axis_Default.m_dEnd; dVal += dMinor_Ticks)
 			{
 				if (dVal >= cX_Axis_Default.m_dLower_Limit && dVal <= cX_Axis_Default.m_dUpper_Limit) // just to make sure
 				{
 					double dX = cX_Axis_Default.Scale(dVal);
 					double dY = (uiI % 2) * dGraph_Space_Y;
+					double dText_Y ;
+					if ((uiI % 2) & 1)
+						dText_Y = dGraph_Space_Y + cX_Axis_Default.m_cParameters.m_dMajor_Label_Size;
+					else
+						dText_Y = -cX_Axis_Default.m_cParameters.m_dMajor_Label_Size;
 					bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 					cEPS.Set_Line_Width(bMajor_Test ? cX_Axis_Default.m_cParameters.m_dMajor_Tick_Width : cX_Axis_Default.m_cParameters.m_dMinor_Tick_Width);
 					cEPS.Move_To(dX,dY);
@@ -1077,7 +1309,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 						{
 							sprintf(lpszValue,lpszFormat,dVal);
 						}
-						cEPS.Text(TIMES,false,false,dSize,CENTER,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
+						cEPS.Text(TIMES,false,false,dSize,CENTER,MIDDLE,Get_Color(eColor),dX,dText_Y, lpszValue);
 					}
 				}
 			}
@@ -1121,7 +1353,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);//8.0;
+					//double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);//8.0;
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
 						dStart =  XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
@@ -1133,6 +1365,12 @@ void	data::Plot(const page_parameters & i_cGrid)
 						{
 							double dX = (*cAxis_Iter).Scale(dVal);
 							double dY = (uiI % 2) * dGraph_Space_Y;
+							double dText_Y;
+							if ((uiI % 2) & 1)
+								dText_Y = dGraph_Space_Y + (*cAxis_Iter).m_cParameters.m_dMajor_Label_Size;
+							else
+								dText_Y = -(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size;
+
 							bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 							cEPS.Set_Line_Width(bMajor_Test ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Width : (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Width);
 							cEPS.Move_To(dX,dY);
@@ -1184,7 +1422,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 								{
 									sprintf(lpszValue,lpszFormat,dVal);
 								}
-								cEPS.Text(TIMES,false,false,dSize,CENTER,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue);
+								cEPS.Text(TIMES,false,false,dSize,CENTER,MIDDLE,Get_Color(eColor),dX,dText_Y, lpszValue);
 							}
 				
 						}
@@ -1195,7 +1433,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 				{
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
+					//double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
 					if (!std::isnan(dRange_Lower) && !std::isnan(dRange_Upper))
@@ -1210,6 +1448,11 @@ void	data::Plot(const page_parameters & i_cGrid)
 								double dVal = dMult * uiScalar;
 								double dX = (*cAxis_Iter).Scale(dVal);
 								double dY = (uiI % 2) * dGraph_Space_Y;
+								double dText_Y ;
+								if ((uiI % 2) & 1)
+									dText_Y = dGraph_Space_Y + (*cAxis_Iter).m_cParameters.m_dMajor_Label_Size;
+								else
+									dText_Y = -(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size;
 								bool bMajor_Test = (uiScalar == 1);
 								if ((*cAxis_Iter).m_dLower_Limit <= dVal  && dVal <= (*cAxis_Iter).m_dUpper_Limit)
 								{
@@ -1257,7 +1500,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 										{
 											sprintf(lpszValue,"10^{%.0f}",dPower);
 										}
-										cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dY + dDeltaText, lpszValue, 90.0);
+										cEPS.Text(TIMES,false,false,dSize,RIGHT,MIDDLE,Get_Color(eColor),dX,dText_Y, lpszValue, 90.0);
 									}
 								}
 							}
@@ -1305,7 +1548,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 			double	dEnd = XRoundNearest(cY_Axis_Default.m_dEnd,dMinor_Ticks);
 			double	dDeltaTickMinor = ((uiI % 2) == 0) ? cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length : -(cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length);
 			double	dDeltaTickMajor = ((uiI % 2) == 0) ? cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length : -(cY_Axis_Default.m_cParameters.m_dMajor_Tick_Length);
-			double	dDeltaText = ((uiI % 2) == 0) ? -(cY_Axis_Default.m_cParameters.m_dMinor_Tick_Length) : 2.5;
+			//double	dDeltaText = ((uiI % 2) == 0) ? -(cY_Axis_Default.m_cParameters.m_dMajor_Label_Size * 0.5) : (cY_Axis_Default.m_cParameters.m_dMajor_Label_Size * 0.5);
 			if (cY_Axis_Default.m_cParameters.m_bInvert)
 			{
 				dStart =  XRoundNearest(cY_Axis_Default.m_dEnd,dMinor_Ticks);
@@ -1317,6 +1560,11 @@ void	data::Plot(const page_parameters & i_cGrid)
 				{
 					double dY = cY_Axis_Default.Scale(dVal);
 					double dX = (uiI % 2) * dGraph_Space_X;
+					double dText_X;
+					if ((uiI % 2) & 1)
+						dText_X = dGraph_Space_X + cY_Axis_Default.m_cParameters.m_dMajor_Label_Size;
+					else
+						dText_X = -cY_Axis_Default.m_cParameters.m_dMajor_Label_Size;
 					bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 					cEPS.Set_Line_Width(bMajor_Test ? cY_Axis_Default.m_cParameters.m_dMajor_Tick_Width : cY_Axis_Default.m_cParameters.m_dMinor_Tick_Width);
 					cEPS.Move_To(dX,dY);
@@ -1366,7 +1614,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 						else
 							sprintf(lpszValue,lpszFormat,dVal);
 						
-						cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 0.0);
+						cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dText_X, dY, lpszValue, 0.0);
 					}
 				}
 			}
@@ -1410,7 +1658,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 					double	dEnd = XRoundNearest((*cAxis_Iter).m_dEnd,dMinor_Ticks);
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
+					//double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 //					printf("Y %f %f %f (%f %f)\n",dStart,dEnd,dMinor_Ticks,(*cAxis_Iter).m_dLower_Limit,(*cAxis_Iter).m_dUpper_Limit);
 					if ((*cAxis_Iter).m_cParameters.m_bInvert)
 					{
@@ -1424,6 +1672,11 @@ void	data::Plot(const page_parameters & i_cGrid)
 						{
 							double dY = (*cAxis_Iter).Scale(dVal);
 							double dX = (uiI % 2) * dGraph_Space_X;
+							double dText_X;
+							if ((uiI % 2) & 1)
+								dText_X = dGraph_Space_X + cAxis_Iter->m_cParameters.m_dMajor_Label_Size;
+							else
+								dText_X = -cAxis_Iter->m_cParameters.m_dMajor_Label_Size;
 							bool bMajor_Test = ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) < 0.05) || ((fmod(fabs(dVal),dMajor_Ticks) / dMajor_Ticks) > 0.95);
 							cEPS.Set_Line_Width(bMajor_Test ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Width : (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Width);
 							cEPS.Move_To(dX,dY);
@@ -1474,7 +1727,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 								else
 									sprintf(lpszValue,lpszFormat,dVal);
 					
-								cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 0.0);
+								cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dText_X, dY, lpszValue, 0.0);
 							}
 						}
 					}
@@ -1484,7 +1737,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 				{
 					double	dDeltaTickMinor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length);
 					double	dDeltaTickMajor = ((uiI % 2) == 0) ? (*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length : -((*cAxis_Iter).m_cParameters.m_dMajor_Tick_Length);
-					double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMinor_Tick_Length) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
+					//double	dDeltaText = ((uiI % 2) == 0) ? -((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5) : ((*cAxis_Iter).m_cParameters.m_dMajor_Label_Size * 0.5);
 					double	dRange_Lower = (*cAxis_Iter).m_dStart;
 					double	dRange_Upper = (*cAxis_Iter).m_dEnd;
 					if (!std::isnan(dRange_Lower) && !std::isnan(dRange_Upper))
@@ -1544,8 +1797,13 @@ void	data::Plot(const page_parameters & i_cGrid)
 										}
 										else
 											sprintf(lpszValue,"%.1f",dMantissa);
+										double dText_X;
+										if ((uiI % 2) & 1)
+											dText_X = dGraph_Space_X + cAxis_Iter->m_cParameters.m_dMajor_Label_Size;
+										else
+											dText_X = -cAxis_Iter->m_cParameters.m_dMajor_Label_Size;
 					
-										cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dX + dDeltaText, dY, lpszValue, 0.0);
+										cEPS.Text(TIMES,false,false,dSize,(uiI % 2) == 0 ? RIGHT: LEFT,MIDDLE,Get_Color(eColor),dText_X, dY, lpszValue, 0.0);
 									}
 								}
 							}
@@ -1563,7 +1821,15 @@ void	data::Plot(const page_parameters & i_cGrid)
 		{
 			cEPS.Comment("Z Axis labels");
 			cEPS.State_Push();
-			cEPS.Translate(dGraph_Offset_X + dGraph_Space_X + i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin * 0.5 * 72.0, dGraph_Offset_Y);
+			if (i_cGrid.m_dZ_Axis_Margin_Inches > 0.0)
+			{
+				cEPS.Translate((dWidth_Inches - i_cGrid.m_dZ_Axis_Margin_Inches* 0.5 - i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0, dGraph_Offset_Y);
+			}
+			else
+			{
+				cEPS.Translate(dGraph_Offset_X + dGraph_Space_X, dGraph_Offset_Y);
+			}
+
 			for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cZ_Axis_Parameters.begin(); cAxis_Iter != m_cZ_Axis_Parameters.end(); cAxis_Iter++)
 			{
 				std::vector<color_triplet> vctColor_Data;
@@ -1573,70 +1839,79 @@ void	data::Plot(const page_parameters & i_cGrid)
 					//printf("%.3f %.3f %.3f %.3f\n",tI/255.0,ctCurr.m_dRed,ctCurr.m_dGreen,ctCurr.m_dBlue);
 					vctColor_Data.push_back(ctCurr);
 				}
+				double dLabel_Text_Height = 0.0;
+				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
+					dLabel_Text_Height = cAxis_Iter->m_cParameters.m_dMajor_Label_Size; // top, bottom, and space
 				//cEPS.ColorImage(dGraph_Offset_X + dGraph_Space_X + i_cGrid.m_dWidth_Inches * i_cGrid.m_dLeft_Axis_Margin * 0.5 * 72.0, dGraph_Offset_Y, 16.0, dGraph_Space_Y, 8, vctColor_Data, 256);
-				cEPS.ColorImage(0.0, 0.0, 16.0, dGraph_Space_Y - 32.0, 8, vctColor_Data, 1);
-				double dVal = cAxis_Iter->m_dStart;
-				char lpszValue[64];
-				if (dVal == 0.0)
-					sprintf(lpszValue,"%.1f",dVal);
-				else if (dVal > -1.0 && dVal <= -0.01)
-					sprintf(lpszValue,"%.2f",dVal);
-				else if (dVal < 1.0 && dVal >= 0.01)
-					sprintf(lpszValue,"%.2f",dVal);
-				else if (dVal >=  -100.0 && dVal <= 100.0)
-					sprintf(lpszValue,"%.1f",dVal);
-				else if (dVal >=  -10000.0 && dVal <= 10000.0)
-					sprintf(lpszValue,"%.0f",dVal);
-				else
+				cEPS.State_Push();
+				cEPS.Translate(-cAxis_Iter->m_cParameters.m_dBar_Width * 0.5, dLabel_Text_Height * 2.0);
+				cEPS.ColorImage(0.0,0.0, cAxis_Iter->m_cParameters.m_dBar_Width, dGraph_Space_Y - dLabel_Text_Height * 4.0 - (*cAxis_Iter).m_cParameters.m_dTitle_Size * 2.0, 8, vctColor_Data, 1);
+				cEPS.State_Pop();
+				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
 				{
-					double dLog10 = log10(fabs(dVal));
-					double dPower = floor(dLog10);
-					double	dMantissa = dVal * pow(10.0,-dPower);
-					if (dMantissa != 1.0 && dPower != 0.0)
-					{
-						sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
-					}
-					else if (dMantissa == 1.0 && dPower != 0.0)
-					{
-						sprintf(lpszValue,"10^{%.0f}",dPower);
-					}
+					double dVal = cAxis_Iter->m_dStart;
+					char lpszValue[64];
+					if (dVal == 0.0)
+						sprintf(lpszValue,"%.1f",dVal);
+					else if (dVal > -1.0 && dVal <= -0.01)
+						sprintf(lpszValue,"%.2f",dVal);
+					else if (dVal < 1.0 && dVal >= 0.01)
+						sprintf(lpszValue,"%.2f",dVal);
+					else if (dVal >=  -100.0 && dVal <= 100.0)
+						sprintf(lpszValue,"%.1f",dVal);
+					else if (dVal >=  -10000.0 && dVal <= 10000.0)
+						sprintf(lpszValue,"%.0f",dVal);
 					else
-						sprintf(lpszValue,"%.1f",dMantissa);
+					{
+						double dLog10 = log10(fabs(dVal));
+						double dPower = floor(dLog10);
+						double	dMantissa = dVal * pow(10.0,-dPower);
+						if (dMantissa != 1.0 && dPower != 0.0)
+						{
+							sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+						}
+						else if (dMantissa == 1.0 && dPower != 0.0)
+						{
+							sprintf(lpszValue,"10^{%.0f}",dPower);
+						}
+						else
+							sprintf(lpszValue,"%.1f",dMantissa);
+					}
+
+					cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),0.0, dLabel_Text_Height, lpszValue, 0.0);
+
+					dVal = cAxis_Iter->m_dEnd;
+					if (dVal == 0.0)
+						sprintf(lpszValue,"%.1f",dVal);
+					else if (dVal > -1.0 && dVal <= -0.01)
+						sprintf(lpszValue,"%.2f",dVal);
+					else if (dVal < 1.0 && dVal >= 0.01)
+						sprintf(lpszValue,"%.2f",dVal);
+					else if (dVal >=  -100.0 && dVal <= 100.0)
+						sprintf(lpszValue,"%.1f",dVal);
+					else if (dVal >=  -10000.0 && dVal <= 10000.0)
+						sprintf(lpszValue,"%.0f",dVal);
+					else
+					{
+						double dLog10 = log10(fabs(dVal));
+						double dPower = floor(dLog10);
+						double	dMantissa = dVal * pow(10.0,-dPower);
+						if (dMantissa != 1.0 && dPower != 0.0)
+						{
+							sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+						}
+						else if (dMantissa == 1.0 && dPower != 0.0)
+						{
+							sprintf(lpszValue,"10^{%.0f}",dPower);
+						}
+						else
+							sprintf(lpszValue,"%.1f",dMantissa);
+					}
+
+					cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),0.0, dGraph_Space_Y-dLabel_Text_Height - (*cAxis_Iter).m_cParameters.m_dTitle_Size * 2.0, lpszValue, 0.0);
 				}
 
-				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),8.0, -16.0, lpszValue, 0.0);
-
-				dVal = cAxis_Iter->m_dEnd;
-				if (dVal == 0.0)
-					sprintf(lpszValue,"%.1f",dVal);
-				else if (dVal > -1.0 && dVal <= -0.01)
-					sprintf(lpszValue,"%.2f",dVal);
-				else if (dVal < 1.0 && dVal >= 0.01)
-					sprintf(lpszValue,"%.2f",dVal);
-				else if (dVal >=  -100.0 && dVal <= 100.0)
-					sprintf(lpszValue,"%.1f",dVal);
-				else if (dVal >=  -10000.0 && dVal <= 10000.0)
-					sprintf(lpszValue,"%.0f",dVal);
-				else
-				{
-					double dLog10 = log10(fabs(dVal));
-					double dPower = floor(dLog10);
-					double	dMantissa = dVal * pow(10.0,-dPower);
-					if (dMantissa != 1.0 && dPower != 0.0)
-					{
-						sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
-					}
-					else if (dMantissa == 1.0 && dPower != 0.0)
-					{
-						sprintf(lpszValue,"10^{%.0f}",dPower);
-					}
-					else
-						sprintf(lpszValue,"%.1f",dMantissa);
-				}
-
-				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dMajor_Label_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eMajor_Label_Color),8.0, dGraph_Space_Y-16.0, lpszValue, 0.0);
-
-				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),8.0, dGraph_Space_Y+16.0, cAxis_Iter->m_cParameters.Get_Title(), 0.0);
+				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),0.0, dGraph_Space_Y-(*cAxis_Iter).m_cParameters.m_dTitle_Size * 0.5, cAxis_Iter->m_cParameters.Get_Title(), 0.0);
 			}
 			
 			cEPS.State_Pop();
