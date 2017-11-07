@@ -8,6 +8,7 @@ void OSCIn_SuShI_main::init(void) // initialization routine; rendering context n
 {
 	if (m_vszCommand_Line_Parameters.size() == 1)
 	{
+		Set_Screenshot_Default_Filename("OSCIn-SuShI-screenshot");
 
 		m_idPane = Register_Pane(true);
 		m_idError_Pane = Register_Pane(false);

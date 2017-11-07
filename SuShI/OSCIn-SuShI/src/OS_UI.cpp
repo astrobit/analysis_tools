@@ -13,6 +13,13 @@ void OSCIn_SuShI_main::on_key_down(KEYID eKey_ID, unsigned char chScan_Code, uns
 		m_qEvent_List.push_back(quit_request);
 		m_csEvent_Queue.Unset();
 		break;
+	case KEY_P:
+		if (Get_Key_State(KEY_LCTRL) || Get_Key_State(KEY_RCTRL) || Get_Key_State(KEY_CONTROL))
+			Request_Screenshot(std::string());
+		break;
+	case KEY_PRSCRN:
+		Request_Screenshot(std::string());
+		break;
 	}
 }
 
