@@ -51,7 +51,7 @@ PKG_CHECK_MODULES([es],[es-0],[],[AC_MSG_ERROR([" Could not find libes developme
 PKG_CHECK_MODULES([jsoncpp],[jsoncpp],[],[AC_MSG_ERROR([" Could not find jsoncpp development package"])])
 PKG_CHECK_MODULES([xml2],[libxml-2.0],[],[AC_MSG_ERROR([" Could not find xml2 development package"])])
 PKG_CHECK_MODULES([yamlcpp],[yaml-cpp],[],[AC_MSG_ERROR([" Could not find yaml-cpp development package"])])
-PKG_CHECK_MODULES([bwm801],[bwm801-0],[AM_CONDITIONAL([BWM801AVAIL],[test "1" = "1"])],[AM_CONDITIONAL([BWM801AVAIL],[test "1" = "2"])])
+PKG_CHECK_MODULES([bwm801],[BWM801-0 >= 0.4.0],[AM_CONDITIONAL([BWM801AVAIL],[test "1" = "1"])],[AM_CONDITIONAL([BWM801AVAIL],[test "1" = "2"])])
 
 
 AC_SUBST([radiation_CFLAGS],['-I${top_srcdir}/radiation/include ${xastro_CFLAGS}'])
