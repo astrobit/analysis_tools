@@ -33,6 +33,15 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 	data	cPlot;
 	page_parameters	cPage;
 	xdataset_improved xData;
+
+	cX_Axis.m_dMajor_Label_Size = 20.0; // Points
+	cX_Axis.m_dMinor_Label_Size = 20.0; // Points
+	cX_Axis.m_dMinor_Tick_Length = 6.0;
+	cX_Axis.m_dMajor_Tick_Length = 12.0;
+	cX_Axis.m_dTitle_Size = 24.0; // Points
+	cY_Axis = cX_Axis;
+	cZ_Axis = cX_Axis;
+
 	class element
 	{
 	public:
@@ -377,25 +386,12 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 
 			cPlot.Set_Plot_Filename(szFilename.c_str());
 
-			cPage.m_dWidth_Inches = 11.0;
-			cPage.m_dHeight_Inches = 8.5;
-			double dGraph_Eff_Width = cPage.m_dWidth_Inches - cPage.m_dSide_Unprintable_Margins_Inches * 2 - 1 - 0.1 * 8.5; //(title margins and Z axis margin)
-			double dGraph_Eff_Height = cPage.m_dHeight_Inches - cPage.m_dTop_Bottom_Unprintable_Margins_Inches * 2 - 1 - 1.2; //(title margins)
-			
-			if (dY_Range >= dX_Range)
-			{
-				dGraph_Eff_Height = dGraph_Eff_Width * (dY_Range / dX_Range);
-			}
-			else
-			{
-				dGraph_Eff_Width = dGraph_Eff_Height * (dY_Range / dX_Range);
-			}
-			cPage.m_dWidth_Inches = (dGraph_Eff_Width + 2 * cPage.m_dSide_Unprintable_Margins_Inches + 1) / 0.9; // 0.9 is the effect of the Z axis, which takes up 10% of space
-			cPage.m_dHeight_Inches = dGraph_Eff_Height + cPage.m_dTop_Bottom_Unprintable_Margins_Inches * 2 + 1 + 1.2;
-			cPage.m_dTitle_Margin = 1.0 / cPage.m_dHeight_Inches;
-			cPage.m_dTop_Axis_Margin = 0.0;
-			cPage.m_dBottom_Axis_Margin = 1.2 / cPage.m_dHeight_Inches;
-			cPage.m_dLeft_Axis_Margin = 1.0 / cPage.m_dWidth_Inches;
+			cPage.m_dWidth_Inches = 3.35 * 2.0;
+			cPage.m_dHeight_Inches = -1.0;
+			cPage.m_dSide_Unprintable_Margins_Inches = 0.0; // Inches
+			cPage.m_dTop_Bottom_Unprintable_Margins_Inches = 4.0/72.0; // 4 points (in inches)
+			cPage.m_dZ_Axis_Margin_Inches = 1.5; // Inches
+			cPage.m_bLandscape = false;
 
 			cPlot.Plot(cPage);
 		}
