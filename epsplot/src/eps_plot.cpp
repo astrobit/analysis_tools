@@ -328,24 +328,6 @@ void	data::Plot(const page_parameters & i_cGrid)
 			dY_Margin[1] *= dPoints_To_Inches;
 		}
 
-		// determine size of Z margins
-		double dZ_Margin = 0.0;
-		if (bHas_3d_plots)
-		{
-			if (i_cGrid.m_dZ_Axis_Margin_Inches > 0.0)
-				dZ_Margin = i_cGrid.m_dZ_Axis_Margin_Inches;
-			else
-			{
-				for (auto iterI = m_cZ_Axis_Parameters.begin(); iterI != m_cZ_Axis_Parameters.end(); iterI++)
-				{
-					double dSize = iterI->m_cParameters.m_dBar_Width * 3.0;
-					if (dSize > dZ_Margin)
-						dZ_Margin = dSize;
-				}
-				dZ_Margin *= dPoints_To_Inches;
-			}
-		}
-	
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cX_Axis_Parameters.begin(); cAxis_Iter != m_cX_Axis_Parameters.end(); cAxis_Iter++)
 		{
 			(*cAxis_Iter).Reset_Limits();
@@ -823,6 +805,118 @@ void	data::Plot(const page_parameters & i_cGrid)
 		// finalize z-axis
 		////////////////////////////////////////////////////////////////////////
 		cZ_Axis_Default.Finalize_Limit();
+
+		// determine size of Z margins
+		double dZ_Margin = 0.0;
+		if (bHas_3d_plots)
+		{
+			if (i_cGrid.m_dZ_Axis_Margin_Inches > 0.0)
+				dZ_Margin = i_cGrid.m_dZ_Axis_Margin_Inches;
+			else
+			{
+				for (auto iterI = m_cZ_Axis_Parameters.begin(); iterI != m_cZ_Axis_Parameters.end(); iterI++)
+				{
+					double dTop_Label = 0.0;
+					double dBottom_Label = 0.0;
+					if (iterI->m_cParameters.m_bLabel_Major_Indices)
+					{
+						double dVal = iterI->m_dStart;
+						char lpszValue[64];
+						if (dVal == 0.0)
+							sprintf(lpszValue,"%.1f",dVal);
+						else if (dVal > -1.0 && dVal <= -0.01)
+							sprintf(lpszValue,"%.2f",dVal);
+						else if (dVal < 1.0 && dVal >= 0.01)
+							sprintf(lpszValue,"%.2f",dVal);
+						else if (dVal >=  -100.0 && dVal <= 100.0)
+							sprintf(lpszValue,"%.1f",dVal);
+						else if (dVal >=  -10000.0 && dVal <= 10000.0)
+							sprintf(lpszValue,"%.0f",dVal);
+						else
+						{
+							double dLog10 = log10(fabs(dVal));
+							double dPower = floor(dLog10);
+							double	dMantissa = dVal * pow(10.0,-dPower);
+							if (dMantissa != 1.0 && dPower != 0.0)
+							{
+								if (std::fabs(std::fmod(dMantissa,1.0) - 0.25) < 0.001 ||
+									std::fabs(std::fmod(dMantissa,1.0) - 0.75) < 0.001)
+									sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
+								else
+									sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+							}
+							else if (dMantissa == 1.0 && dPower != 0.0)
+							{
+								sprintf(lpszValue,"10^{%.0f}",dPower);
+							}
+							else
+							{
+								if (std::fabs(std::fmod(dMantissa,1.0) - 0.25) < 0.001 ||
+									std::fabs(std::fmod(dMantissa,1.0) - 0.75) < 0.001)
+									sprintf(lpszValue,"%.2f",dMantissa);
+								else
+									sprintf(lpszValue,"%.1f",dMantissa);
+							}
+						}
+						dTop_Label = (strlen(lpszValue) + 1.0) * iterI->m_cParameters.m_dMajor_Label_Size * 5.0 / 7.0;
+
+						dVal = iterI->m_dEnd;
+						if (dVal == 0.0)
+							sprintf(lpszValue,"%.1f",dVal);
+						else if (dVal > -1.0 && dVal <= -0.01)
+							sprintf(lpszValue,"%.2f",dVal);
+						else if (dVal < 1.0 && dVal >= 0.01)
+							sprintf(lpszValue,"%.2f",dVal);
+						else if (dVal >=  -100.0 && dVal <= 100.0)
+							sprintf(lpszValue,"%.1f",dVal);
+						else if (dVal >=  -10000.0 && dVal <= 10000.0)
+							sprintf(lpszValue,"%.0f",dVal);
+						else
+						{
+							double dLog10 = log10(fabs(dVal));
+							double dPower = floor(dLog10);
+							double	dMantissa = dVal * pow(10.0,-dPower);
+							if (dMantissa != 1.0 && dPower != 0.0)
+							{
+								if (std::fabs(std::fmod(dMantissa,1.0) - 0.25) < 0.001 ||
+									std::fabs(std::fmod(dMantissa,1.0) - 0.75) < 0.001)
+									sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
+								else
+									sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+							}
+								else if (dMantissa == 1.0 && dPower != 0.0)
+							{
+								sprintf(lpszValue,"10^{%.0f}",dPower);
+							}
+							else
+							{
+								if (std::fabs(std::fmod(dMantissa,1.0) - 0.25) < 0.001 ||
+									std::fabs(std::fmod(dMantissa,1.0) - 0.75) < 0.001)
+									sprintf(lpszValue,"%.2f",dMantissa);
+								else
+									sprintf(lpszValue,"%.1f",dMantissa);
+							}
+						}
+						dBottom_Label = (strlen(lpszValue) + 1.0) * iterI->m_cParameters.m_dMajor_Label_Size * 5.0 / 7.0;
+					}
+
+					double dTitle_Size = (iterI->m_cParameters.m_sTitle.size() + 1) * iterI->m_cParameters.m_dMajor_Label_Size * 5.0 / 7.0;
+					double dSize = iterI->m_cParameters.m_dBar_Width;
+					if (dTitle_Size > dSize)
+						dSize = dTitle_Size;
+					if (dTop_Label > dSize)
+						dSize = dTop_Label;
+					if (dBottom_Label > dSize)
+						dSize = dBottom_Label;
+					if (dSize > dZ_Margin)
+						dZ_Margin = dSize;
+					
+				}
+				dZ_Margin *= dPoints_To_Inches;
+			}
+		}
+	
+
 
 		for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cZ_Axis_Parameters.begin(); cAxis_Iter != m_cZ_Axis_Parameters.end(); cAxis_Iter++)
 		{
@@ -2168,7 +2262,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 			}
 			else
 			{
-				cEPS.Translate(dGraph_Offset_X + dGraph_Space_X, dGraph_Offset_Y);
+				cEPS.Translate(dGraph_Offset_X + dGraph_Space_X + (dY_Margin[1] + 0.5 * dZ_Margin) * 72.0, dGraph_Offset_Y);
 			}
 
 			for (std::vector<axis_metadata>::iterator cAxis_Iter = m_cZ_Axis_Parameters.begin(); cAxis_Iter != m_cZ_Axis_Parameters.end(); cAxis_Iter++)
