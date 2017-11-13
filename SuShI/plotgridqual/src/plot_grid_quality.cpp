@@ -385,7 +385,7 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 			cPage.m_dHeight_Inches = -1.0;
 			cPage.m_dSide_Unprintable_Margins_Inches = 0.0; // Inches
 			cPage.m_dTop_Bottom_Unprintable_Margins_Inches = 4.0/72.0; // 4 points (in inches)
-			cPage.m_dZ_Axis_Margin_Inches = 1.5; // Inches
+//			cPage.m_dZ_Axis_Margin_Inches = 1.5; // Inches
 			cPage.m_bLandscape = false;
 
 			cPlot.Plot(cPage);
