@@ -77,16 +77,20 @@ int main(int i_iNum_Params, const char * i_lpszParams[])
 	// identify the grid points used in the search
 	for (size_t tI = 1; tI < 9; tI++)
 	{
-		size_t tRef_Idx = tI * 81 + 41;
+		size_t tRef_Idx = tI * 81 + 40;
 		size_t tStart_Idx = (tI - 1) * 81;
 		size_t tEnd_Idx = tI * 81;
-		for (size_t tJ = tStart_Idx; tJ < tEnd_Idx; tJ++)
+		//printf("%i -- %.2f %.2f %.2f %.2f\n",tRef_Idx,xData.Get_Element_Double(tRef_Idx,2),xData.Get_Element_Double(tRef_Idx,3),xData.Get_Element_Double(tRef_Idx,4),xData.Get_Element_Double(tRef_Idx,5));
+		bool bDone = false;
+		for (size_t tJ = tStart_Idx; tJ < tEnd_Idx && !bDone; tJ++)
 		{
+			//printf("%i %i -- %.2f %.2f %.2f %.2f\n",tRef_Idx,tJ,xData.Get_Element_Double(tJ,2),xData.Get_Element_Double(tJ,3),xData.Get_Element_Double(tJ,4),xData.Get_Element_Double(tJ,5));
 			if (xData.Get_Element_Double(tRef_Idx,2) == xData.Get_Element_Double(tJ,2) &&
 				xData.Get_Element_Double(tRef_Idx,3) == xData.Get_Element_Double(tJ,3) &&
 				xData.Get_Element_Double(tRef_Idx,4) == xData.Get_Element_Double(tJ,4) &&
 				xData.Get_Element_Double(tRef_Idx,5) == xData.Get_Element_Double(tJ,5))
 			{
+				bDone = true;
 				vtRef_Points.push_back(tJ);
 			}
 		} 
