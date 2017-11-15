@@ -22,13 +22,13 @@ pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 datasubc0dir = ${pkgdatadir}
 datasubc1dir = ${datasubc0dir}
 datasubc2dir = ${datasubc0dir}
-datasubcr0dir = ${datasub0dir}
-datasubcr1dir = ${datasub0dir}
-datasubcr2dir = ${datasub0dir}
-datasubedir = ${datasub0dir}
-datasubfdir = ${datasub0dir}
-datasubpdir = ${datasub0dir}
-datasubmdir = ${datasub0dir}
+datasubcr0dir = ${datasubc0dir}
+datasubcr1dir = ${datasubc0dir}
+datasubcr2dir = ${datasubc0dir}
+datasubedir = ${datasubc0dir}
+datasubfdir = ${datasubc0dir}
+datasubpdir = ${datasubc0dir}
+datasubmdir = ${datasubc0dir}
 
 
 dist_datasubc0_DATA = data/c01.01 data/c02.01 data/c02.02 data/c03.01 data/c03.02 data/c03.03 data/c04.01 data/c04.02 data/c04.03 data/c04.04 data/c05.01 data/c05.02 data/c05.03 data/c05.04 data/c05.05 data/c06.01 data/c06.02 data/c06.03 data/c06.04 data/c06.05 data/c06.06 data/c07.01 data/c07.02 data/c07.03 data/c07.04 data/c07.05 data/c07.06 data/c07.07 data/c08.01 data/c08.02 data/c08.03 data/c08.04 data/c08.05 data/c08.06 data/c08.07 data/c08.08 data/c09.01 data/c09.02 data/c09.03 data/c09.04 data/c09.05 data/c09.06 data/c09.07 data/c09.08 data/c09.09

@@ -19,7 +19,7 @@ msmst opacity_project_ion::Read_Transition_Data(void)
 			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
 		else 
 		{
-			sprintf(lpszFilename,"%s/Opacity-Project/f%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
+			sprintf(lpszFilename,"%s/f%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
 			FILE * fileEdata = fopen(lpszFilename,"rt");
 
 			if (fileEdata)
@@ -108,7 +108,10 @@ msmst opacity_project_ion::Read_Transition_Data(void)
 							msmstData[sstateI.m_opldDescriptor] = mstTransitions;
 					}
 				} while (uiS1 != 0 || uiL1 != 0 || uiP1 != 0 || uiS2 != 0 || uiL2 != 0 || uiP2 != 0);
+				fclose(fileEdata);
 			}
+			else
+				std::cerr << "Couldn't open " << lpszFilename << std::endl;
 		}
 	}
 	return msmstData;
@@ -134,7 +137,7 @@ ms opacity_project_ion::Read_State_Data(void)
 			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
 		else
 		{
-			sprintf(lpszFilename,"%s/Opacity-Project/e%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
+			sprintf(lpszFilename,"%s/e%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
 			FILE * fileEdata = fopen(lpszFilename,"rt");
 
 			if (fileEdata)
@@ -185,7 +188,10 @@ ms opacity_project_ion::Read_State_Data(void)
 						msData[sState.m_opldDescriptor] = sState;
 					}
 				} while (sState.m_opldDescriptor.m_uiS != 0 || sState.m_opldDescriptor.m_uiL != 0 || sState.m_opldDescriptor.m_uiP != 0);
+				fclose(fileEdata);
 			}
+			else
+				std::cerr << "Couldn't open " << lpszFilename << std::endl;
 		}
 	}
 	return msData;
@@ -210,7 +216,7 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
 		else
 		{
-			sprintf(lpszFilename,"%s/Opacity-Project/p%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
+			sprintf(lpszFilename,"%s/p%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
 
 			FILE * filePIdata = fopen(lpszFilename,"rt");
 			if (filePIdata)
@@ -275,6 +281,8 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 				}
 				fclose(filePIdata);
 			}
+			else
+				std::cerr << "Couldn't open " << lpszFilename << std::endl;
 		}
 	}
 	return mscsData;
@@ -295,7 +303,7 @@ void opacity_project_ion::Read_Configuration_Data(void)
 	else
 	{
 		char lpszFilename[256];
-		sprintf(lpszFilename,"%s/Opacity-Project/c%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
+		sprintf(lpszFilename,"%s/c%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
 
 		FILE * fileConfigData = fopen(lpszFilename,"rt");
 		if (fileConfigData)
@@ -366,6 +374,8 @@ void opacity_project_ion::Read_Configuration_Data(void)
 			}
 			fclose(fileConfigData);
 		}
+		else
+			std::cerr << "Couldn't open " << lpszFilename << std::endl;
 	}
 }
 
