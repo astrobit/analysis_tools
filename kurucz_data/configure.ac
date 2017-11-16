@@ -38,7 +38,7 @@ AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++14 standard, required in a var
 AC_OPENMP #openmp required
 
 PKG_CHECK_MODULES([xastro],[xastro-1],[],[AC_MSG_ERROR([" Could not find xastro development package (available at http://github.com/astrobit/xlibs)"])])
-PKG_CHECK_MODULES([xio],[xio-1],[],[AC_MSG_ERROR([" Could not find xio development package (available at http://github.com/astrobit/xlibs)"])])
+PKG_CHECK_MODULES([xmath],[xmath-1],[],[AC_MSG_ERROR([" Could not find xio development package (available at http://github.com/astrobit/xlibs)"])])
 PKG_CHECK_MODULES([es],[es-0],[],[AC_MSG_ERROR([" Could not find es development package (available at http://github.com/astrobit/es)"])])
 
 AC_SUBST([radiation_CFLAGS],['-I${top_srcdir}/../radiation/include ${xastro_CFLAGS}'])
