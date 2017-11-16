@@ -472,7 +472,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		char * lpLA_Data = getenv("LINE_ANALYSIS_DATA_PATH");
 		if (lpLA_Data == nullptr)
 		{
-			fprintf(stderr,"LINE_ANALYSIS_DATA_PATH is not defined.\n");
+			fprintf(stderr,"LINE_ANALYSIS_DATA_PATH is not defined. (mve)\n");
 			return(1);
 		}
 		if (uiRef_Model != 0)

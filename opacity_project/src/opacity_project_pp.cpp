@@ -16,7 +16,7 @@ msmst opacity_project_ion::Read_Transition_Data(void)
 		}
 #endif
 		if (lpszLA_Data_Path == nullptr)
-			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
+			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined (op-f)." << std::endl;
 		else 
 		{
 			sprintf(lpszFilename,"%s/f%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
@@ -134,7 +134,7 @@ ms opacity_project_ion::Read_State_Data(void)
 		}
 #endif
 		if (lpszLA_Data_Path == nullptr)
-			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
+			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined.  (op-e)" << std::endl;
 		else
 		{
 			sprintf(lpszFilename,"%s/e%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
@@ -213,7 +213,7 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 		}
 #endif
 		if (lpszLA_Data_Path == nullptr)
-			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
+			std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined.  (op-p)" << std::endl;
 		else
 		{
 			sprintf(lpszFilename,"%s/p%02i.%02i",lpszLA_Data_Path,m_uiZ,m_uiN);
@@ -299,7 +299,7 @@ void opacity_project_ion::Read_Configuration_Data(void)
 	}
 #endif
 	if (lpszLA_Data_Path == nullptr)
-		std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
+		std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined.  (op-c)" << std::endl;
 	else
 	{
 		char lpszFilename[256];

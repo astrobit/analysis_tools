@@ -13,7 +13,7 @@ void kurucz_data::Load_Data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsign
 	}
 #endif
 	if (lpszLA_Data_Path == nullptr)
-		std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined." << std::endl;
+		std::cerr << "LINE_ANALYSIS_DATA_PATH is undefined. (kurucz)" << std::endl;
 	else
 	{
 		m_uiN = i_uiN;
@@ -24,7 +24,7 @@ void kurucz_data::Load_Data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsign
 		for (unsigned int uiI = i_uiMin_Ion; uiI <= m_uiMax_Ion; uiI++)
 		{
 			std::ostringstream ossFilename;
-			ossFilename << lpszLA_Data_Path << "/Kurucz/gf";
+			ossFilename << lpszLA_Data_Path << "/gf";
 	//		ossFilename.fill('0');
 	//		ossFilename.width(2);
 			ossFilename << std::setfill('0') << std::setw(2) << m_uiN;
@@ -48,6 +48,8 @@ void kurucz_data::Load_Data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsign
 				}
 				m_vvkldLine_Data.push_back(vkldIon_Line_Data);
 			}
+			else
+				std::cerr << "Could not open " << ossFilename.str() << std::endl;
 		}
 	}
 }
