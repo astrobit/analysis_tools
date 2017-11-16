@@ -1,5 +1,7 @@
 #include <opacity_project_pp.h>
 
+#include <cstring>
+
 msmst opacity_project_ion::Read_Transition_Data(void)
 {
 	msmst msmstData;
@@ -199,6 +201,7 @@ ms opacity_project_ion::Read_State_Data(void)
 
 mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 {
+	//double dOscillator_Strength_Constant = g_XASTRO.k_dme * g_XASTRO.k_dc / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi * g_XASTRO.k_de * g_XASTRO.k_de);
 	mscs mscsData;
 	char lpszFilename[256];
 	if (m_uiZ != -1 && m_uiN != -1)
@@ -254,7 +257,7 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 					mddcs mddcsState_Data;
 					fgets(lpszData,64,filePIdata); // first one seems to be garbage?
 					lpszCursor = NextNum(lpszData);
-					double dEnergy = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
+					double dEnergy_State = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
 
 
 					//std::cout << uiS << " " << uiL << " " << uiP << " " << uiID << " " << dEnergy << " " << uiCS_Count << std::endl;
@@ -270,8 +273,8 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 						lpszCursor = NextNum(lpszCursor);
 						double dCross_Section = atof(lpszCursor);
 
-						double dOscillator_Strength = g_XASTRO.k_dme * g_XASTRO.k_dc / (2.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi * g_XASTRO.k_de * g_XASTRO.k_de) * dCross_Section;
-						double dEnergy_f = dEnergy * dOscillator_Strength;
+						//double dOscillator_Strength = dOscillator_Strength_Constant * dCross_Section;
+						//double dEnergy_f = dEnergy * dOscillator_Strength;
 						//std::cout << dEnergy << " " << dOscillator_Strength << " " << dEnergy_f << std::endl;
 
 						mddcsState_Data[dEnergy] = dCross_Section;
@@ -335,7 +338,11 @@ void opacity_project_ion::Read_Configuration_Data(void)
 					lpszCursor++;
 				}
 				lpszopacity_project_state_Cursor[0] = 0;
-				cConfig.m_szState = lpszopacity_project_state;
+				if (strncmp(lpszopacity_project_state,"()",2) == 0)
+					cConfig.m_szState = &lpszopacity_project_state[2];
+				else
+					cConfig.m_szState = lpszopacity_project_state;
+
 
 
 				if (cConfig.m_chType == 'T')
