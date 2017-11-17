@@ -38,7 +38,7 @@ public:
 //			i_cRHO.m_uiNLTE_Index == m_uiNLTE_Index &&
 //			i_cRHO.m_iHyperfine_Shift_mK == m_iHyperfine_Shift_mK &&
 //			i_cRHO.m_iHyperfine_F == m_iHyperfine_F &&
-			i_cRHO.m_szLabel == m_szLabel);
+			(i_cRHO.m_szLabel == m_szLabel || i_cRHO.m_szLabel == "AVERAGE   " || i_cRHO.m_szLabel == "ENERGIES  " || m_szLabel == "AVERAGE   " || m_szLabel == "ENERGIES  "));
 		
 	}
 	inline bool operator != (const Kurucz_Level_Data & i_cRHO) const
@@ -180,8 +180,9 @@ public:
 //		m_dEinstein_B_SE = m_dWavelength_cm * m_dWavelength_cm * m_dWavelength_cm  / (8.0 * g_XASTRO.k_dpi * g_XASTRO.k_dh)  * m_dEinstein_A;
 //		m_dEinstein_B = m_dEinstein_B_SE * m_cLevel_Lower.m_dStat_Weight / m_cLevel_Upper.m_dStat_Weight;
 
-		m_dEinstein_B = 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi * g_XASTRO.k_de * g_XASTRO.k_de / (g_XASTRO.k_dh * m_dFrequency_Hz * g_XASTRO.k_dme) * m_dOscillator_Strength / 100.0; // I don't know why this factor of 100 is here, but it seems to be needed to get the right order or magnitude for A
-		m_dEinstein_B_SE = m_cLevel_Upper.m_dStat_Weight / m_cLevel_Lower.m_dStat_Weight * m_dEinstein_B;
+		// BWM 2017-Nov-15: modified B and B_SE to match definition in Allen's (1976, p58)
+		m_dEinstein_B = g_XASTRO.k_dpi * g_XASTRO.k_de * g_XASTRO.k_de / (g_XASTRO.k_dh * m_dFrequency_Hz * g_XASTRO.k_dme) * m_dOscillator_Strength;
+		m_dEinstein_B_SE = m_cLevel_Lower.m_dStat_Weight / m_cLevel_Upper.m_dStat_Weight * m_dEinstein_B; // B21 = g1/g2 B12
 		m_dEinstein_A = 8.0 * g_XASTRO.k_dpi * g_XASTRO.k_dh / (m_dWavelength_cm * m_dWavelength_cm * m_dWavelength_cm) * m_dEinstein_B_SE;
 
 //		if (m_cLevel_Lower.m_dEnergy_Level_cm == 0.0 && fabs(m_cLevel_Upper.m_dEnergy_Level_cm - 82259.1) < 0.1)
