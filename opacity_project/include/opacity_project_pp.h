@@ -58,16 +58,16 @@ public:
 	unsigned int m_ui_n; // quantum number n
 	unsigned int m_ui_l; // quantum number l
 
-	double m_dEnergy_Ry; // level energy relative to potential at infinity
-	double m_dEnergy_eV; // level energy relative to potential at infinity
-	double m_dEnergy_erg; // level energy relative to potential at infinity
+	long double m_dEnergy_Ry; // level energy relative to potential at infinity
+	long double m_dEnergy_eV; // level energy relative to potential at infinity
+	long double m_dEnergy_erg; // level energy relative to potential at infinity
 
-	double m_dGamma; // sum of all spontanous emission coefficients for this opacity_project_state
+	long double m_dGamma; // sum of all spontanous emission coefficients for this opacity_project_state
 
 	unsigned int m_uiStatistical_Weight; // derived quantity
 
 	opacity_project_state(void) {m_opldDescriptor.m_uiS = -1; m_opldDescriptor.m_uiL = -1; m_opldDescriptor.m_uiP = -1; m_opldDescriptor.m_uiLvl_ID = -1; m_dEnergy_eV = 0.0;}
-	opacity_project_state(unsigned int i_uiZ, unsigned int i_uiN, unsigned int i_uiS, unsigned int i_uiL, unsigned int i_uiP, unsigned int i_uiLvl_ID, double i_dEnergy_eV = 0.0) : m_opldDescriptor(i_uiZ, i_uiN, i_uiS,i_uiL,i_uiP,i_uiLvl_ID) {m_dEnergy_eV = i_dEnergy_eV;}
+	opacity_project_state(unsigned int i_uiZ, unsigned int i_uiN, unsigned int i_uiS, unsigned int i_uiL, unsigned int i_uiP, unsigned int i_uiLvl_ID, long double i_dEnergy_eV = 0.0) : m_opldDescriptor(i_uiZ, i_uiN, i_uiS,i_uiL,i_uiP,i_uiLvl_ID) {m_dEnergy_eV = i_dEnergy_eV;}
 
 	inline bool operator < (const opacity_project_state & i_cRHO) const
 	{
@@ -100,17 +100,17 @@ public:
 class opacity_project_transition
 {
 public:
-	double	m_dOscillator_Strength;
-	double m_dWeighted_Oscillator_Strength; // g2/g1 f?
+	long double	m_dOscillator_Strength;
+	long double m_dWeighted_Oscillator_Strength; // g2/g1 f?
 
-	double m_dTransition_Energy_Ry;
-	double m_dTransition_Energy_erg;
-	double m_dTransition_Energy_eV;
-	double m_dWavelength_cm;
-	double m_dFrequency_Hz;
-	double m_dEinstein_A; // spontaneous emission - transition from upper to lower, in [s^-1]
-	double m_dEinstein_B; // absorption - transition from lower to upper, in [s^-1 / (erg s^-1 cm^-2 cm^1)]
-	double m_dEinstein_B_SE; // stimulated emission - transition from upper to lower, in [s^-1 / (erg s^-1 cm^-2 cm^1) ]
+	long double m_dTransition_Energy_Ry;
+	long double m_dTransition_Energy_erg;
+	long double m_dTransition_Energy_eV;
+	long double m_dWavelength_cm;
+	long double m_dFrequency_Hz;
+	long double m_dEinstein_A; // spontaneous emission - transition from upper to lower, in [s^-1]
+	long double m_dEinstein_B; // absorption - transition from lower to upper, in [s^-1 / (erg s^-1 cm^-2 cm^1)]
+	long double m_dEinstein_B_SE; // stimulated emission - transition from upper to lower, in [s^-1 / (erg s^-1 cm^-2 cm^1) ]
 
 	void Calculate_Derived_Quantities(const opacity_project_state & i_sState_Lower, const opacity_project_state & i_sState_Upper)
 	{
@@ -130,7 +130,7 @@ typedef std::map<opacity_project_level_descriptor,opacity_project_state> ms;
 typedef ms::iterator ims;
 typedef ms::const_iterator cims;
 
-typedef std::map<double, double> mddcs;
+typedef std::map<long double, long double> mddcs;
 typedef mddcs::iterator imddcs;
 typedef mddcs::const_iterator cimddcs;
 
@@ -153,7 +153,7 @@ public:
 	unsigned int m_uiS;
 	unsigned int m_uiL;
 	unsigned int m_uiP;
-	double		m_dLevel_Energy;
+	long double		m_dLevel_Energy;
 	std::string m_szState;
 };
 
@@ -191,10 +191,11 @@ public:
 		return Find_State(opacity_project_level_descriptor(m_uiZ,m_uiN,i_uiState_S,i_uiState_L,i_uiState_P,i_uiID));
 	}
 
-	double Calc_Ionizing_Rate(const opacity_project_state &i_sState, const radiation_field & i_cRad, const double & i_dRescale_Energy_Ry = -1.0, const double &  i_dRedshift = 0.0) const
+	long double Calc_Ionizing_Rate(const opacity_project_state &i_sState, const radiation_field & i_cRad, const long double & i_dRescale_Energy_Ry = -1.0, const long double &  i_dRedshift = 0.0) const
 	{
-		double dSum = 0.0;
+		long double dSum = 0.0;
 		cimscs cimscsCS_Data = m_mscsPI_Cross_Sections.find(i_sState.m_opldDescriptor);
+		long double dScaling = fabs(i_dRescale_Energy_Ry / i_sState.m_dEnergy_Ry);
 		if (cimscsCS_Data != m_mscsPI_Cross_Sections.end())
 		{
 			cimddcs iterEnd = cimscsCS_Data->second.end();
@@ -204,23 +205,22 @@ public:
 			cimddcs iterIpp = iterIp;
 			if (iterIpp != iterEnd)
 				iterIpp++;
-			double dScaling = fabs(i_dRescale_Energy_Ry / i_sState.m_dEnergy_Ry);
 			for (cimddcs iterI = cimscsCS_Data->second.begin(); iterI != iterEnd; iterI++)
 			{
 				if (iterIp != iterEnd)
 					iterIp++;
 				if (iterIpp != iterEnd)
 					iterIpp++;
-				double dE = iterI->first;
+				long double dE = iterI->first;
 				if (dE >= -i_sState.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
 				{
-					double dE_Res = dScaling * dE * g_XASTRO.k_dRy;
-					double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
-					double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
-					double dJ = i_cRad.Get_Energy_Flux_freq(dFrequency,i_dRedshift);
-					double dJ_Ry = dJ / g_XASTRO.k_dRy; // radiation field in Ry / (cm^2 s Hz)
+					long double dE_Res = dScaling * dE * g_XASTRO.k_dRy;
+					long double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
+					long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
+					long double dJ = i_cRad.Get_Energy_Flux_freq(dFrequency,i_dRedshift);
+					long double dJ_Ry = dJ / g_XASTRO.k_dRy; // radiation field in Ry / (cm^2 s Hz)
 					// calculate step size in Ry
-					double dDelta_E;
+					long double dDelta_E;
 					if ((iterImm == iterEnd || iterIpp == iterEnd) && iterIm != iterEnd && iterIp != iterEnd)
 					{
 						dDelta_E = (iterIp->first - iterIm->first) * 0.5;
@@ -237,9 +237,9 @@ public:
 					{
 						dDelta_E = (iterIpp->first + iterIp->first - iterIm->first - iterImm->first) / 6.0;
 					}
-					double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
+					long double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
 
-					double dF = 4.0 * g_XASTRO.k_dpi * dJ_Ry * dCS / (dE_Res) * dDelta_Freq;
+					long double dF = 4.0 * g_XASTRO.k_dpi * dJ_Ry * dCS / (dE_Res) * dDelta_Freq;
 //					printf("f(%.2e,%.2e): %.2e, %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",dE,dE_Res,dScaling,dJ_Ry,dFrequency,dCS,dE_Res,dDelta_Freq,dDelta_E,dF);
 					dSum += dF;
 				}
@@ -247,11 +247,33 @@ public:
 				iterIm = iterI;
 			}
 		}
+		else
+		{ // assume cross section of 0.01 barn
+			long double dDelta_E = 0.1 * -i_sState.m_dEnergy_Ry;
+			for (unsigned int uiI = 0; uiI < 100; uiI++)
+			{
+			//if (dE >= -i_sState.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
+			//{
+				long double dE = -i_sState.m_dEnergy_Ry + dDelta_E * uiI;
+				long double dE_Res = dScaling * dE * g_XASTRO.k_dRy;
+				long double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
+				long double dCS = 0.01 * 1e-18 * (1.0 - uiI / 99.0); // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
+				long double dJ = i_cRad.Get_Energy_Flux_freq(dFrequency,i_dRedshift);
+				long double dJ_Ry = dJ / g_XASTRO.k_dRy; // radiation field in Ry / (cm^2 s Hz)
+				// calculate step size in Ry
+				long double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
+
+				long double dF = 4.0 * g_XASTRO.k_dpi * dJ_Ry * dCS / (dE_Res) * dDelta_Freq;
+//					printf("f(%.2e,%.2e): %.2e, %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",dE,dE_Res,dScaling,dJ_Ry,dFrequency,dCS,dE_Res,dDelta_Freq,dDelta_E,dF);
+				dSum += dF;
+			}
+		}
 		return dSum;
 	}
-	double Calc_Recombination_Rate(const opacity_project_state &i_sIonized_State, const opacity_project_state &i_sRecombined_State, const velocity_function & i_cVel_Fn, const double & i_dRescale_Energy_Ry = -1.0) const
+	long double Calc_Recombination_Rate(const opacity_project_state &i_sIonized_State, const opacity_project_state &i_sRecombined_State, const velocity_function & i_cVel_Fn, const long  & i_dRescale_Energy_Ry = -1.0) const
 	{
-		double dSum = 0.0;
+		long double dSum = 0.0;
+		long double dScaling = fabs(i_dRescale_Energy_Ry / i_sRecombined_State.m_dEnergy_Ry);
 		cimscs cimscsCS_Data = m_mscsPI_Cross_Sections.find(i_sRecombined_State.m_opldDescriptor);
 		if (cimscsCS_Data != m_mscsPI_Cross_Sections.end())
 		{
@@ -262,25 +284,24 @@ public:
 			cimddcs iterIpp = iterIp;
 			if (iterIpp != iterEnd)
 				iterIpp++;
-			double dScaling = fabs(i_dRescale_Energy_Ry / i_sRecombined_State.m_dEnergy_Ry);
 			for (cimddcs iterI = cimscsCS_Data->second.begin(); iterI != iterEnd; iterI++)
 			{
 				if (iterIp != iterEnd)
 					iterIp++;
 				if (iterIpp != iterEnd)
 					iterIpp++;
-				double dE = iterI->first;
+				long double dE = iterI->first;
 				if (dE >= -i_sRecombined_State.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
 				{
-					double dE_erg = fabs(dScaling * dE * g_XASTRO.k_dRy);
-					double dFrequency = dE_erg / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
-					double dVelocity = sqrt(fabs(dScaling * dE - i_dRescale_Energy_Ry) * 2.0 * g_XASTRO.k_dRy / g_XASTRO.k_dme);
-					double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
+					long double dE_erg = fabs(dScaling * dE * g_XASTRO.k_dRy);
+					long double dFrequency = dE_erg / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
+					long double dVelocity = sqrt(fabs(dScaling * dE - i_dRescale_Energy_Ry) * 2.0 * g_XASTRO.k_dRy / g_XASTRO.k_dme);
+					long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
 					if (dVelocity > 0.0)
 					{
-						double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
+						long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 						// calculate step size in Ry
-						double dDelta_E;
+						long double dDelta_E;
 						if ((iterImm == iterEnd || iterIpp == iterEnd) && iterIm != iterEnd && iterIp != iterEnd)
 						{
 							dDelta_E = (iterIp->first - iterIm->first) * 0.5;
@@ -299,11 +320,11 @@ public:
 						}
 						//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
 
-						double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
-						double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
+						long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
+						long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
 
-						double dMW = i_cVel_Fn(dVelocity);
-						double dF = dg_neut / (dg_plus * 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi) * dVelocity * i_cVel_Fn(dVelocity) * dCS * dE_Rel * dE_Rel * dDelta_E;
+						long double dMW = i_cVel_Fn(dVelocity);
+						long double dF = dg_neut / (dg_plus * 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi) * dVelocity * i_cVel_Fn(dVelocity) * dCS * dE_Rel * dE_Rel * dDelta_E;
 						//if (isnan(dF) || isinf(dF))
 						//	printf("f(%.2e,%.2e): s%.2e, v%.2e f%.2e er%.2e m%.2e de%.2e f%.2e\n",dE,dE_erg,dScaling,dVelocity,dFrequency,dE_Rel,dMW,dDelta_E,dF);
 						dSum += dF;
@@ -312,6 +333,33 @@ public:
 				}
 				iterImm = iterIm;
 				iterIm = iterI;
+			}
+		}
+		else
+		{
+			long double dDelta_E = 0.1 * -i_sRecombined_State.m_dEnergy_Ry;
+			for (unsigned int uiI = 0; uiI < 100; uiI++)
+			{
+				long double dE = -i_sRecombined_State.m_dEnergy_Ry + uiI * dDelta_E;
+				long double dE_erg = fabs(dScaling * dE * g_XASTRO.k_dRy);
+				long double dFrequency = dE_erg / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
+				long double dVelocity = sqrt(fabs(dScaling * dE - i_dRescale_Energy_Ry) * 2.0 * g_XASTRO.k_dRy / g_XASTRO.k_dme);
+				long double dCS = 0.01 * 1e-18 * (1.0 - uiI / 99.0); // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
+				if (dVelocity > 0.0)
+				{
+					long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
+					// calculate step size in Ry
+					//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
+
+					long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
+					long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
+
+					long double dMW = i_cVel_Fn(dVelocity);
+					long double dF = dg_neut / (dg_plus * 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi) * dVelocity * i_cVel_Fn(dVelocity) * dCS * dE_Rel * dE_Rel * dDelta_E;
+					//if (isnan(dF) || isinf(dF))
+					//	printf("f(%.2e,%.2e): s%.2e, v%.2e f%.2e er%.2e m%.2e de%.2e f%.2e\n",dE,dE_erg,dScaling,dVelocity,dFrequency,dE_Rel,dMW,dDelta_E,dF);
+					dSum += dF;
+				}
 			}
 		}
 		return dSum;
@@ -435,13 +483,13 @@ public:
 		return Find_State(opacity_project_level_descriptor(m_uiZ, i_uiN, i_uiState_S, i_uiState_L, i_uiState_P, i_uiID));
 	}
 
-	double Get_Ionization_Rate(const opacity_project_level_descriptor &i_opld_State, const double & i_dCorrected_Energy_Ry, const radiation_field & i_cRad, const double &  i_dRedshift = 0.0) const
+	long double Get_Ionization_Rate(const opacity_project_level_descriptor &i_opld_State, const long double & i_dCorrected_Energy_Ry, const radiation_field & i_cRad, const long double &  i_dRedshift = 0.0) const
 	{
 		opacity_project_state sState = Find_State(i_opld_State);
 		return m_vopiIon_Data[i_opld_State.m_uiN - 1].Calc_Ionizing_Rate(sState, i_cRad, i_dCorrected_Energy_Ry, i_dRedshift);
 
 	}
-	double Get_Recombination_Rate(const opacity_project_level_descriptor &i_opld_Ionized_State, const opacity_project_level_descriptor &i_opld_Recombined_State, const double & i_dCorrected_Energy_Ry, const velocity_function & i_cVel) const
+	long double Get_Recombination_Rate(const opacity_project_level_descriptor &i_opld_Ionized_State, const opacity_project_level_descriptor &i_opld_Recombined_State, const long double & i_dCorrected_Energy_Ry, const velocity_function & i_cVel) const
 	{
 		opacity_project_state sIonized_State = Find_State(i_opld_Ionized_State);
 		opacity_project_state sRecombined_State = Find_State(i_opld_Recombined_State);

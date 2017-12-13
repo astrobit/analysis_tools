@@ -1,6 +1,6 @@
-#include <state_pops.h>
+#include <statepop.h>
 
-bool Ion_Recombine_Equivalence(const std::vector<config> &i_Source_Ion, const std::vector<config> & i_Candidate)
+bool statepop::Ion_Recombine_Equivalence(const vecconfig &i_Source_Ion, const vecconfig & i_Candidate)
 { // the source ion may recombine to candidate
 	bool bRet = false;
 	// need size of source to be one smaller than the candidate

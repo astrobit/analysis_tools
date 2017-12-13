@@ -257,7 +257,7 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 					mddcs mddcsState_Data;
 					fgets(lpszData,64,filePIdata); // first one seems to be garbage?
 					lpszCursor = NextNum(lpszData);
-					double dEnergy_State = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
+					long double dEnergy_State = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
 
 
 					//std::cout << uiS << " " << uiL << " " << uiP << " " << uiID << " " << dEnergy << " " << uiCS_Count << std::endl;
@@ -269,12 +269,12 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 					{
 						fgets(lpszData,64,filePIdata);
 						lpszCursor = NextNum(lpszData);
-						double dEnergy = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
+						long double dEnergy = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
 						lpszCursor = NextNum(lpszCursor);
-						double dCross_Section = atof(lpszCursor);
+						long double dCross_Section = atof(lpszCursor);
 
-						//double dOscillator_Strength = dOscillator_Strength_Constant * dCross_Section;
-						//double dEnergy_f = dEnergy * dOscillator_Strength;
+						//long double dOscillator_Strength = dOscillator_Strength_Constant * dCross_Section;
+						//long double dEnergy_f = dEnergy * dOscillator_Strength;
 						//std::cout << dEnergy << " " << dOscillator_Strength << " " << dEnergy_f << std::endl;
 
 						mddcsState_Data[dEnergy] = dCross_Section;

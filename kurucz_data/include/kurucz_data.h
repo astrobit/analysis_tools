@@ -13,23 +13,23 @@ class Kurucz_Level_Data
 {
 public:
 	// Data from Kurucz table
-	double m_dEnergy_Level_cm;
-	double m_dJ;
+	long double m_dEnergy_Level_cm;
+	long double m_dJ;
 	std::string   m_szLabel;
 	unsigned int m_uiNLTE_Index;
 	int	m_iHyperfine_Shift_mK;
 //	int m_iHyperfine_F;	
 
 	// derived data
-	double	m_dStat_Weight;
-	double	m_dZ; // Z coefficient (M&W 2016(?) Eq. 12)
-	double m_dEnergy_Level_eV;
-	double m_dEnergy_Level_Ryd;
+	long double	m_dStat_Weight;
+	long double	m_dZ; // Z coefficient (M&W 2016(?) Eq. 12)
+	long double m_dEnergy_Level_eV;
+	long double m_dEnergy_Level_Ryd;
 
-	double m_dGamma; // sum of spontaneous emission coefficents to all lower levels
+	long double m_dGamma; // sum of spontaneous emission coefficents to all lower levels
 
 	// duplicate data
-	double m_dElement_Code;
+	long double m_dElement_Code;
 
 	inline bool operator == (const Kurucz_Level_Data & i_cRHO) const
 	{
@@ -70,19 +70,19 @@ class Kurucz_Line_Data
 {
 public:
 	// data from the file
-	double m_dWavelength_nm;
-	double m_dLog_gf;
-	double m_dElement_Code;
+	long double m_dWavelength_nm;
+	long double m_dLog_gf;
+	long double m_dElement_Code;
 	Kurucz_Level_Data	m_cLevel_Lower;
 	Kurucz_Level_Data	m_cLevel_Upper;
-	double	m_dGamma_Rad;
-	double	m_dGamma_Stark;
-	double	m_dGamma_vdWaals;
+	long double	m_dGamma_Rad;
+	long double	m_dGamma_Stark;
+	long double	m_dGamma_vdWaals;
 	std::string	m_szReference;
 	unsigned int m_uiIsotope;
-	double	m_dHyperfine_Fractional_Strength;
+	long double	m_dHyperfine_Fractional_Strength;
 	unsigned int m_uiIsotope_Diatomics;
-	double	m_dIsotope_Abundance_Fraction;
+	long double	m_dIsotope_Abundance_Fraction;
 	unsigned int m_uiLine_Strength_Class;
 	std::string	m_szCode;
 	int m_uiEven_Lande_g;
@@ -90,17 +90,17 @@ public:
 	int m_uiIsotope_Shift_mA;
 
 	// derived / calculated data
-	double m_dTransition_Energy_erg;
-	double m_dTransition_Energy_eV;
-	double m_dWavelength_cm;
-	double m_dFrequency_Hz;
-	double m_dOscillator_Strength; 
-	double m_dEinstein_A; // spontaneous emission - transition from upper to lower, in [s^-1]
-	double m_dEinstein_B; // absorption - transition from lower to upper, in [s^-1 / (erg s^-1 cm^-2 cm^1)]
-	double m_dEinstein_B_SE; // stimulated emission - transition from upper to lower, in [s^-1 / (erg s^-1 cm^-2 cm^1) ]
+	long double m_dTransition_Energy_erg;
+	long double m_dTransition_Energy_eV;
+	long double m_dWavelength_cm;
+	long double m_dFrequency_Hz;
+	long double m_dOscillator_Strength; 
+	long double m_dEinstein_A; // spontaneous emission - transition from upper to lower, in [s^-1]
+	long double m_dEinstein_B; // absorption - transition from lower to upper, in [s^-1 / (erg s^-1 cm^-2 cm^1)]
+	long double m_dEinstein_B_SE; // stimulated emission - transition from upper to lower, in [s^-1 / (erg s^-1 cm^-2 cm^1) ]
 
-	double m_dH_abs; // H coefficient (M&W 2017, Eq. 13) for j < i
-	double m_dH_em; // H coefficient (M&W 2017, Eq. 13) for j > i
+	long double m_dH_abs; // H coefficient (M&W 2017, Eq. 13) for j < i
+	long double m_dH_em; // H coefficient (M&W 2017, Eq. 13) for j > i
 private:
 	std::string mysubstr(const std::string & i_szStr, size_t &tStart, size_t tLen)
 	{
@@ -128,7 +128,7 @@ public:
 		m_dGamma_Stark = std::stod(mysubstr(i_szLine,tPos,6));
 		m_dGamma_vdWaals = std::stod(mysubstr(i_szLine,tPos,6));
 		m_szReference = mysubstr(i_szLine,tPos,4);
-		m_cLevel_Lower.m_uiNLTE_Index = std::stoi(mysubstr(i_szLine,tPos,2));
+		m_cLevel_Lower.m_uiNLTE_Index = std::stoi(mysubstr(i_szLine,tPos,2)); // the n value of the lower state for some levels?
 		m_cLevel_Upper.m_uiNLTE_Index = std::stoi(mysubstr(i_szLine,tPos,2));
 		m_uiIsotope = std::stoi(mysubstr(i_szLine,tPos,3));
 		m_dHyperfine_Fractional_Strength = std::stod(mysubstr(i_szLine,tPos,6));
@@ -160,11 +160,11 @@ public:
 
 		 //del E / (4 pi) n2 A  = pi q^2 / (me c) f
 		//A = 4 pi^2 q^2 / (me c delE) f
-		double dgf = pow(10.0,m_dLog_gf);
+		long double dgf = pow(10.0,m_dLog_gf);
 		m_dOscillator_Strength = dgf / m_cLevel_Lower.m_dStat_Weight;
 
 		//double dicm_eV = g_XASTRO.k_dh_eV * g_XASTRO.k_dh_h;
-		double	dicm_erg = g_XASTRO.k_dhc;
+		long double	dicm_erg = g_XASTRO.k_dhc;
 		m_dTransition_Energy_erg = fabs(m_cLevel_Upper.m_dEnergy_Level_cm - m_cLevel_Lower.m_dEnergy_Level_cm) * dicm_erg;
 		m_dTransition_Energy_eV = g_XASTRO.k_deV_erg * m_dTransition_Energy_erg;
 
@@ -191,15 +191,15 @@ public:
 		m_dH_abs = 0.0;
 		m_dH_em = 0.0;
 	}
-	void Compute_Z(const radiation_field & i_cRad, const double & i_dRedshift = 0.0)
+	void Compute_Z(const radiation_field & i_cRad, const long double & i_dRedshift = 0.0)
 	{
-		double dEnergy_Flux = Calc_Exciting(i_cRad,i_dRedshift);
+		long double dEnergy_Flux = Calc_Exciting(i_cRad,i_dRedshift);
 		m_dH_abs = m_dEinstein_B * dEnergy_Flux;
 		m_dH_em = m_dEinstein_A + m_dEinstein_B_SE * dEnergy_Flux;
 //		std::cout << std::fixed << m_dElement_Code << " " << m_cLevel_Lower.m_dEnergy_Level_cm << "-" << m_cLevel_Upper.m_dEnergy_Level_cm << " " << m_dWavelength_cm * 1e8 << " " << std::scientific << m_dH_abs << " " << m_dH_em << " " << m_dTransition_Energy_eV << " " << m_dEinstein_A << " " << m_dEinstein_B << std::endl;
 	}
 
-	double Calc_Exciting(const radiation_field & i_cRad, const double &  i_dRedshift = 0.0) const
+	long double Calc_Exciting(const radiation_field & i_cRad, const long double &  i_dRedshift = 0.0) const
 	{
 		//double dWavelength_cm = m_dWavelength_cm * (1.0 + i_dRedshift);
 
@@ -208,12 +208,16 @@ public:
 		cldRef_Data.m_lpdField  = &i_cRad;
 		cldRef_Data.m_dReference_Frequency_Hz = m_dFrequency_Hz;//g_XASTRO.k_dc / m_dWavelength_cm;
 		cldRef_Data.m_dRedshift = i_dRedshift;
-		cldRef_Data.m_dGamma = m_cLevel_Upper.m_dGamma + m_cLevel_Lower.m_dGamma;
+		//if (m_dGamma_Rad != 0.0)
+		//	cldRef_Data.m_dGamma = m_dGamma_Rad;//m_cLevel_Upper.m_dGamma + m_cLevel_Lower.m_dGamma;
+		//else
+			cldRef_Data.m_dGamma = m_cLevel_Upper.m_dGamma + m_cLevel_Lower.m_dGamma;
 
-		double dFreq_Low = cldRef_Data.m_dReference_Frequency_Hz - 2048.0 * cldRef_Data.m_dGamma;
-		double dFreq_Hi = cldRef_Data.m_dReference_Frequency_Hz + 2048.0 * cldRef_Data.m_dGamma;
 
-		double dF_n = XM_Simpsons_Integration(Line_Energy_Flux_freq,dFreq_Low,dFreq_Hi,1 << 16,(const void *)&cldRef_Data);
+		long double dFreq_Low = cldRef_Data.m_dReference_Frequency_Hz - 2048.0 * cldRef_Data.m_dGamma;
+		long double dFreq_Hi = cldRef_Data.m_dReference_Frequency_Hz + 2048.0 * cldRef_Data.m_dGamma;
+
+		long double dF_n = XM_Simpsons_Integration_LD(Line_Energy_Flux_freq,dFreq_Low,dFreq_Hi,1 << 16,(const void *)&cldRef_Data);
 		
 		return dF_n;// * g_XASTRO.k_dc / (m_dWavelength_cm * m_dWavelength_cm); // convert from per Hz to per cm
 	}
@@ -229,10 +233,10 @@ typedef std::vector <vkld > vvkld;
 class level_definition
 {
 public:
-	double			m_dEnergy_Level_cm;
-	double			m_dJ;
+	long double			m_dEnergy_Level_cm;
+	long double			m_dJ;
 	level_definition(void){m_dEnergy_Level_cm = -1; m_dJ = -1;}
-	level_definition(const double & i_dEnergy_Level_cm, const double & i_dJ){m_dEnergy_Level_cm = i_dEnergy_Level_cm; m_dJ = i_dJ;}
+	level_definition(const long double & i_dEnergy_Level_cm, const long double & i_dJ){m_dEnergy_Level_cm = i_dEnergy_Level_cm; m_dJ = i_dJ;}
 	level_definition(const Kurucz_Level_Data & i_klvdLevel){m_dEnergy_Level_cm = i_klvdLevel.m_dEnergy_Level_cm; m_dJ = i_klvdLevel.m_dJ;}
 
 	inline bool operator ==  (const level_definition & i_cRHO) const
@@ -324,7 +328,13 @@ private:
 		}
 	}
 public:
-	kurucz_derived_data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const double & i_dRedshift)
+	kurucz_derived_data(void){;}
+	kurucz_derived_data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const long double & i_dRedshift)
+	{
+		Initialize(i_uiN, i_uiMin_Ion, i_uiMax_Ion, i_rfRad, i_dRedshift);
+	}
+
+	void Initialize(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const long double & i_dRedshift)
 	{
 		m_kdKurucz_Data.Load_Data(i_uiN,i_uiMin_Ion,i_uiMax_Ion);
 
@@ -333,7 +343,7 @@ public:
 		for (vvkld::iterator iterI = m_kdKurucz_Data.m_vvkldLine_Data.begin(); iterI != m_kdKurucz_Data.m_vvkldLine_Data.end(); iterI++)
 		{
 			mklvd mklvdCurr_Ion_Level_Data;
-			double dIon_State = (iterI->begin()->m_dElement_Code - i_uiN) * 100.0; // 0.01 for rounding error
+			long double dIon_State = (iterI->begin()->m_dElement_Code - i_uiN) * 100.0; // 0.01 for rounding error
 			if (dIon_State <= (i_uiMax_Ion + 0.02))
 			{
 				for (ivkld iterJ = iterI->begin(); iterJ != iterI->end(); iterJ++)
@@ -378,7 +388,7 @@ public:
 		}
 		for (vvkld::iterator iterI = m_kdKurucz_Data.m_vvkldLine_Data.begin(); iterI != m_kdKurucz_Data.m_vvkldLine_Data.end(); iterI++)
 		{
-			double dIon_State = (iterI->begin()->m_dElement_Code - i_uiN) * 100.0; // 0.01 for rounding error
+			long double dIon_State = (iterI->begin()->m_dElement_Code - i_uiN) * 100.0; // 0.01 for rounding error
 			if (dIon_State <= (i_uiMax_Ion + 0.02))
 			{
 				for (ivkld iterJ = iterI->begin(); iterJ != iterI->end(); iterJ++)

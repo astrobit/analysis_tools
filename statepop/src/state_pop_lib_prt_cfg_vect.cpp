@@ -1,8 +1,8 @@
-#include <state_pops.h>
+#include <statepop.h>
 
-void Print_Config_Vector(const std::vector<config> & i_vcConfig, std::ostream & io_out)
+void statepop::Print_Config_Vector(const vecconfig & i_vcConfig, std::ostream & io_out)
 {
-	for (std::vector<config>::const_iterator iterI = i_vcConfig.begin(); iterI != i_vcConfig.end(); iterI++)
+	for (auto iterI = i_vcConfig.cbegin(); iterI != i_vcConfig.cend(); iterI++)
 	{
 		io_out << "( ";
 		if (iterI->m_uin != -1)

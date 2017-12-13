@@ -1,4 +1,4 @@
-#include <state_pops.h>
+#include <statepop.h>
 #include <cstring>
 
 
@@ -50,9 +50,9 @@ void Report_Bad_Format(const std::string & i_szLabel, const std::vector<cc> & i_
 
 }
 
-std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLabel_Kurucz)
+statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLabel_Kurucz)
 {
-	std::vector<config> vRet;
+	vecconfig vRet;
 	std::vector<cc> vccString;
 	config cConfig;
 	config cConfig_m1;
@@ -229,7 +229,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				unsigned int uiN0 = vRet[0].m_uin;
 				unsigned int uiNs = uiN0;
 				unsigned int uiN1,uiN2;
-				std::vector<config> vTest;
+				vecconfig vTest;
 				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[0].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[1].m_chValue);
 				bool bTests[7] = {false,false,false,false,false,false,false};
 
@@ -249,7 +249,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 					{
 						if (uiN1 != (uiN2 + 2) && (uiN1 + 2) != uiN2) //  make sure not to do 1s3p or 3s1p, the latter is nonsensical, the former is pretty unlikely
 						{
-							std::vector<config> vTest;
+							vecconfig vTest;
 							if (uiN1 == uiN2 || uiN1 < uiN2)
 							{ // e.g. 3s3p, 3s4p
 								for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
@@ -380,7 +380,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				unsigned int uiN0 = vRet[0].m_uin;
 				unsigned int uiNs = uiN0;
 				unsigned int uiN1,uiN2;
-				std::vector<config> vTest;
+				vecconfig vTest;
 				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[0].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[2].m_chValue);
 				bool bTests[7] = {false,false,false,false,false,false,false};
 
@@ -400,7 +400,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 					{
 						if (uiN1 != (uiN2 + 2) && (uiN1 + 2) != uiN2) //  make sure not to do 1s3p or 3s1p, the latter is nonsensical, the former is pretty unlikely
 						{
-							std::vector<config> vTest;
+							vecconfig vTest;
 							if (uiN1 == uiN2 || uiN1 < uiN2)
 							{ // e.g. 3s3p, 3s4p
 								for (unsigned int uiI = 0; uiI < vccString[1].m_chValue; uiI++)
@@ -572,7 +572,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 				unsigned int uiNs = uiN0;
 				unsigned int uiN1,uiN2;
 				unsigned int uiN3 = vccString[4].m_chValue;
-				std::vector<config> vTest;
+				vecconfig vTest;
 				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[0].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[1].m_chValue);
 				unsigned int uil3 = Ang_Mom_Term_To_L(vccString[5].m_chValue);
 				bool bTests[7] = {false,false,false,false,false,false,false};
@@ -593,7 +593,7 @@ std::vector<config> Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLab
 					{
 						if (uiN1 != (uiN2 + 2) && (uiN1 + 2) != uiN2) //  make sure not to do 1s3p or 3s1p, the latter is nonsensical, the former is pretty unlikely
 						{
-							std::vector<config> vTest;
+							vecconfig vTest;
 							if (uiN1 == uiN2 || uiN1 < uiN2)
 							{ // e.g. 3s3p, 3s4p
 								vTest.push_back(config(uiN3,uil3));

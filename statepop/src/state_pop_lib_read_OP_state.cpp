@@ -1,9 +1,9 @@
-#include <state_pops.h>
+#include <statepop.h>
 
-std::vector<config> Read_OP_State(unsigned int i_uiNe, std::string   i_szLabel_OP)
+statepop::vecconfig statepop::Read_OP_State(unsigned int i_uiNe, std::string   i_szLabel_OP)
 {
-	std::vector<config> vRet;
-	std::vector<config> vReverse;
+	vecconfig vRet;
+	vecconfig vReverse;
 //	std::vector<cc> vccString;
 
 //	std::cout << "OP: " << i_szLabel_OP << std::endl;

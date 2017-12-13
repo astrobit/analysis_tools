@@ -2,49 +2,65 @@
 #include <xastro.h>
 #include <radiation.h>
 
-double Radiation_Field_Photon_Flux_wl(const double & i_dWavelength_cm, const void * i_lpvRadiation_Field)
+long double Radiation_Field_Photon_Flux_wl(const long double & i_dWavelength_cm, const void * i_lpvRadiation_Field)
 {
 	radiation_field * rfField = (radiation_field *)i_lpvRadiation_Field;
 	return rfField->Get_Photon_Flux_wl(i_dWavelength_cm);
 }
-double Radiation_Field_Energy_Flux_wl(const double & i_dWavelength_cm, const void * i_lpvRadiation_Field)
+long double Radiation_Field_Energy_Flux_wl(const long double & i_dWavelength_cm, const void * i_lpvRadiation_Field)
 {
 	radiation_field * rfField = (radiation_field *)i_lpvRadiation_Field;
 	return rfField->Get_Energy_Flux_wl(i_dWavelength_cm);
 }
-double Radiation_Field_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvRadiation_Field)
+long double Radiation_Field_Photon_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvRadiation_Field)
 {
 	radiation_field * rfField = (radiation_field *)i_lpvRadiation_Field;
 	return rfField->Get_Photon_Flux_freq(i_dFrequency_Hz);
 }
-double Radiation_Field_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvRadiation_Field)
+long double Radiation_Field_Energy_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvRadiation_Field)
 {
 	radiation_field * rfField = (radiation_field *)i_lpvRadiation_Field;
 	return rfField->Get_Energy_Flux_freq(i_dFrequency_Hz);
 }
 
-double Lorentz_Function(const double & i_dFrequency_Hz, const double & i_dFrequency_Reference_Hz, const double & i_dGamma_Hz)
+long double Lorentz_Function(const long double & i_dFrequency_Hz, const long double & i_dFrequency_Reference_Hz, const long double & i_dGamma_Hz)
 {
 // see http://www.phy.ohiou.edu/~mboett/astro401_fall12/broadening.pdf
 // tested and verified 1 Dec 2016
-	double dGamma = i_dGamma_Hz * 0.25 / g_XASTRO.k_dpi;
-	double dDel_f = (i_dFrequency_Hz - i_dFrequency_Reference_Hz); 
-	double dPhi_f = (dGamma / (dDel_f * dDel_f + dGamma * dGamma) / g_XASTRO.k_dpi);
+	long double dGamma = i_dGamma_Hz * 0.25 / g_XASTRO.k_dpi;
+	long double dDel_f = (i_dFrequency_Hz - i_dFrequency_Reference_Hz); 
+	long double dPhi_f = (dGamma / (dDel_f * dDel_f + dGamma * dGamma) / g_XASTRO.k_dpi);
+	if (std::isnan(dGamma))
+		std::cerr << "Gamma nan\n";
+	if (dGamma == 0.0)
+		std::cerr << "Gamma zero\n";
 	return dPhi_f;
 }
 
-double Line_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData)
+long double Line_Energy_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvData)
 {
 	lef_data * lpldData = (lef_data *) i_lpvData;
 
-	double dRet = lpldData->m_lpdField->Get_Energy_Flux_freq(i_dFrequency_Hz,lpldData->m_dRedshift);
-	return dRet * Lorentz_Function(i_dFrequency_Hz,lpldData->m_dReference_Frequency_Hz,lpldData->m_dGamma);
+	if (std::isnan(i_dFrequency_Hz))
+		std::cerr << "Frequency nan\n";
+	if (std::isnan(lpldData->m_dRedshift))
+		std::cerr << "redshift nan\n";
+
+	long double dRet = lpldData->m_lpdField->Get_Energy_Flux_freq(i_dFrequency_Hz,lpldData->m_dRedshift);
+	if (std::isnan(dRet))
+		std::cerr << "energy flux nan\n";
+	long double dLorentz = Lorentz_Function(i_dFrequency_Hz,lpldData->m_dReference_Frequency_Hz,lpldData->m_dGamma);
+	if (std::isnan(dLorentz))
+		std::cerr << "lorentz nan\n";
+	dRet *= dLorentz;
+
+	return dRet;
 }
 
-double Line_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData)
+long double Line_Photon_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvData)
 {
 	lef_data * lpldData = (lef_data *) i_lpvData;
 
-	double dRet = lpldData->m_lpdField->Get_Photon_Flux_freq(i_dFrequency_Hz,lpldData->m_dRedshift);
+	long double dRet = lpldData->m_lpdField->Get_Photon_Flux_freq(i_dFrequency_Hz,lpldData->m_dRedshift);
 	return dRet * Lorentz_Function(i_dFrequency_Hz,lpldData->m_dReference_Frequency_Hz,lpldData->m_dGamma);
 }

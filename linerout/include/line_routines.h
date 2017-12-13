@@ -372,19 +372,19 @@ class lef_data
 {
 public:
 	const radiation_field * m_lpdField;
-	double m_dReference_Frequency_Hz;
-	double m_dRedshift;
-	double m_dGamma;
+	long double m_dReference_Frequency_Hz;
+	long double m_dRedshift;
+	long double m_dGamma;
 };
 
 
-double Radiation_Field_Photon_Flux_wl(const double & i_dWavelength_cm, const void * i_lpvRadiation_Field);
-double Radiation_Field_Energy_Flux_wl(const double & i_dWavelength_cm, const void * i_lpvRadiation_Field);
-double Radiation_Field_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvRadiation_Field);
-double Radiation_Field_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvRadiation_Field);
-double Lorentz_Function(const double & i_dFrequency_Hz, const double & i_dFrequency_Reference_Hz, const double & i_dGamma_Hz);
-double Line_Energy_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
-double Line_Photon_Flux_freq(const double & i_dFrequency_Hz, const void * i_lpvData);
+long double Radiation_Field_Photon_Flux_wl(const long double & i_dWavelength_cm, const void * i_lpvRadiation_Field);
+long double Radiation_Field_Energy_Flux_wl(const long double & i_dWavelength_cm, const void * i_lpvRadiation_Field);
+long double Radiation_Field_Photon_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvRadiation_Field);
+long double Radiation_Field_Energy_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvRadiation_Field);
+long double Lorentz_Function(const long double & i_dFrequency_Hz, const long double & i_dFrequency_Reference_Hz, const long double & i_dGamma_Hz);
+long double Line_Energy_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvData);
+long double Line_Photon_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvData);
 
 double Get_Element_Number(const char * i_lpszNuclide);
 

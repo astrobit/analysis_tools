@@ -1,9 +1,9 @@
-#include <state_pops.h>
+#include <statepop.h>
 #include <cmath>
 
-std::vector<config> Get_Default_Configuration(unsigned int i_uiNe)
+statepop::vecconfig statepop::Get_Default_Configuration(unsigned int i_uiNe)
 {
-	std::vector<config> vRet;
+	vecconfig vRet;
 	switch (i_uiNe)
 	{
 	case 134:
@@ -278,17 +278,17 @@ std::vector<config> Get_Default_Configuration(unsigned int i_uiNe)
 	return vRet;
 }
 
-bool operator ==(const std::vector<config> & i_vccLHO, const std::vector<config> i_vccRHO)
+bool statepop::vecconfig::operator ==(const statepop::vecconfig & i_vccRHO) const
 {
 	bool bRet = true;
-	bRet = (i_vccLHO.size() == i_vccRHO.size());
-	for (unsigned int uiI = 0; uiI < i_vccLHO.size() && bRet; uiI++)
+	bRet = (vccData.size() == i_vccRHO.size());
+	for (unsigned int uiI = 0; uiI < vccData.size() && bRet; uiI++)
 	{
-		bRet &= (i_vccLHO[uiI].m_uin == i_vccRHO[uiI].m_uin);
-		bRet &= (i_vccLHO[uiI].m_uil == i_vccRHO[uiI].m_uil);
-		bRet &= (i_vccLHO[uiI].m_uiS == i_vccRHO[uiI].m_uiS || i_vccLHO[uiI].m_uiS == -1 || i_vccRHO[uiI].m_uiS == -1);
-		bRet &= (fabs(i_vccLHO[uiI].m_dL - i_vccRHO[uiI].m_dL) < 0.01  || i_vccLHO[uiI].m_dL  == -1 || i_vccRHO[uiI].m_dL  == -1);
-		bRet &= (i_vccLHO[uiI].m_uiP == i_vccRHO[uiI].m_uiP || i_vccLHO[uiI].m_uiP == -1 || i_vccRHO[uiI].m_uiP == -1);
+		bRet &= (vccData[uiI].m_uin == i_vccRHO.vccData[uiI].m_uin);
+		bRet &= (vccData[uiI].m_uil == i_vccRHO.vccData[uiI].m_uil);
+		bRet &= (vccData[uiI].m_uiS == i_vccRHO.vccData[uiI].m_uiS || vccData[uiI].m_uiS == -1 || i_vccRHO.vccData[uiI].m_uiS == -1);
+		bRet &= (fabs(vccData[uiI].m_dL - i_vccRHO.vccData[uiI].m_dL) < 0.01  || vccData[uiI].m_dL  == -1 || i_vccRHO.vccData[uiI].m_dL  == -1);
+		bRet &= (vccData[uiI].m_uiP == i_vccRHO.vccData[uiI].m_uiP || vccData[uiI].m_uiP == -1 || i_vccRHO.vccData[uiI].m_uiP == -1);
 	}
 	return bRet;
 }
