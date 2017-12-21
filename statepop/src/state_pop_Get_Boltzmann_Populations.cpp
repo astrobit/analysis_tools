@@ -4,15 +4,14 @@ std::map<size_t,statepop::boltzmann_info> statepop::Get_Boltzmann_Populations(vo
 {
 	std::map<size_t,boltzmann_info> mbiRet;
 	size_t tLevel_ID = 0;
-	statepop::floattype dInv_Kb_T = (statepop::floattype)(1.0) / (statepop::floattype)(g_XASTRO.k_dKb * m_cParam.dElectron_Kinetic_Temperature_K);
-	statepop::floattype dLog_e = std::log10(std::exp((statepop::floattype)(1.0)));
-	statepop::floattype dTot_Pop = 1.0;
+	floattype dInv_Kb_T = (floattype)(1.0) / (floattype)(g_XASTRO.k_dKb * m_cParam.dElectron_Kinetic_Temperature_K);
+	floattype dLog_e = std::log10(std::exp((floattype)(1.0)));
 	std::map<size_t,saha_info> mSaha = Get_Saha_Populations();
 
 	for (size_t tIon = m_cParam.uiElement_Min_Ion_Species; tIon <= m_cParam.uiElement_Max_Ion_Species; tIon++)
 	{
-		std::vector<statepop::floattype> vldZ;
-		statepop::floattype ldZsum = 0.0;
+		std::vector<floattype> vldZ;
+		floattype ldZsum = 0.0;
 		size_t tLevel_ID_Start = tLevel_ID;
 		for (auto iterJ = kddData.m_vmklvdLevel_Data[tIon].begin(); iterJ != kddData.m_vmklvdLevel_Data[tIon].end(); iterJ++)
 		{ // do all pops relative to ground state

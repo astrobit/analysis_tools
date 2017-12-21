@@ -164,17 +164,18 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	FILE * fileTrx = fopen("trx.csv","wt");
 	if (fileTrx)
 	{
-		fprintf(fileTrx,"Trx ID, Element code, Level (Lower) ID, Level (lower), Level (upper), Wavelength [A], A, B, B(SE), Gamma (rad), Hab (%.1f kK), Hem (%.1f kK), Z\n",dRadiation_Temperature_K*1e-3,dRadiation_Temperature_K*1e-3);
+		fprintf(fileTrx,"Trx ID, Element code, Level (Lower) ID, Level (lower), J (lower), Level (Upper) ID, Level (upper), J (upper), Wavelength [A], A, B, B(SE), Gamma (rad), Hab (%.1f kK), Hem (%.1f kK), Z\n",dRadiation_Temperature_K*1e-3,dRadiation_Temperature_K*1e-3);
 		size_t tNum_Trx = cStatepop.Get_Num_Transitions();
 		for (size_t tI = 0; tI < tNum_Trx; tI++)
 		{
 			statepop::transition_data cTrx = cStatepop.Get_Transition(tI);
-			fprintf(fileTrx,"%i, %.2Lf, %i, %s %.1Lf, %s %.1Lf, %.3Lf, %.3Le, %.3Le, %.3Le, %.3Le, %.3Le, %.3Le, %.3Le\n",
+			fprintf(fileTrx,"%i, %.2Lf, %i, %s, %.1Lf, %i, %s, %.1Lf, %.3Lf, %.3Le, %.3Le, %.3Le, %.3Le, %.3Le, %.3Le, %.3Le\n",
 						cTrx.tID,
 						cTrx.ldElement_Code,
 						cTrx.tLower_Level_ID,
 						cTrx.szLower_Level_State.c_str(),
 						cTrx.ldLower_Level_J,
+						cTrx.tUpper_Level_ID,
 						cTrx.szUpper_Level_State.c_str(),
 						cTrx.ldUpper_Level_J,
 						cTrx.ldWavenegth_Angstroms,
@@ -273,7 +274,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fclose(fileMatB);
 	}
 
-
+	//xvector_long vX = smB.Get_Eigenvector(1.0);
+	//printf("spX\n");
+	//vX.Print();
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Get state populations
@@ -295,9 +298,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		for (size_t tI = 0; tI < vEig.size(); tI++)
 		{
 			statepop::level_data cLevel = cStatepop.Get_Level(tI);
-			std::cout << "v[" << tI << "] = " << vEig[uiCount] << std::endl;
+			std::cout << "v[" << tI << "] = " << vEig[tI] << std::endl;
 			std::ostringstream ssEig;
-			ssEig << std::scientific << std::setprecision(std::numeric_limits<statepop::floattype>::digits10) << vEig[uiCount];
+			ssEig << std::scientific << std::setprecision(std::numeric_limits<statepop::floattype>::digits10) << vEig[tI];
 			fprintf(fileOut,"%i, %.2Lf, %s, %.1Lf, %.5Lf, %.17Le\n",
 					tI,
 					cLevel.ldElement_Code,
@@ -309,6 +312,33 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fclose(fileOut);
 		std::cout << "Eigenvalue has been output to eigv.csv" << std::endl;
 	}
+
+	statepop::vector vLines = cStatepop.Get_Relative_Line_Strengths();
+	//statepop::vector vB_Lines = cStatepop.Get_Boltzmann_Relative_Line_Strengths();
+	FILE * fileLines = fopen("lines.csv","wt");
+	if (fileLines != nullptr)
+	{
+		fprintf(fileLines,"Index, Element Code, Wavelength [A], Lower State, Lower State J, Upper State, Upper State J, Relative Strength, Relative Strength (Boltzmann)\n");
+ 		// write out the normalized best eigenvector to eigv.csv, with state information
+		unsigned int uiCount = 0;
+		for (size_t tI = 0; tI < vLines.size(); tI++)
+		{
+			statepop::transition_data cTrx = cStatepop.Get_Transition(tI);
+			fprintf(fileLines,"%i, %.2Lf, %.3Lf, %s, %.1Lf, %s, %.1Lf, %.23Le\n",//, %.23Le\n",
+					tI,
+					cTrx.ldElement_Code,
+					cTrx.ldWavenegth_Angstroms,
+					cTrx.szLower_Level_State.c_str(),
+					cTrx.ldLower_Level_J,
+					cTrx.szUpper_Level_State.c_str(),
+					cTrx.ldUpper_Level_J,
+					vLines[tI]);
+		//			vB_Lines[tI]);
+		}
+		fclose(fileOut);
+		std::cout << "Line strengths have been output to lines.csv" << std::endl;
+	}
+
 
 }
 

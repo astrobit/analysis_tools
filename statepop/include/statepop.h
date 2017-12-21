@@ -44,7 +44,7 @@ private:
 		unsigned int m_uil;
 	
 		unsigned int m_uiS;
-		long double		m_dL; // allows for some of the L=1/2 type states
+		floattype		m_dL; // allows for some of the L=1/2 type states
 		unsigned int m_uiP;
 
 		config(void)
@@ -52,7 +52,7 @@ private:
 			m_uin = m_uil = m_uiS = m_uiP = -1;
 			m_dL = -1;
 		}
-		config(unsigned int i_uin, unsigned int i_uil, unsigned int i_uiS = -1, const long double &i_dL = -1.0, unsigned int i_uiP = -1)
+		config(unsigned int i_uin, unsigned int i_uil, unsigned int i_uiS = -1, const floattype &i_dL = -1.0, unsigned int i_uiP = -1)
 		{
 			m_uin = i_uin;
 			m_uil = i_uil;
@@ -114,9 +114,9 @@ private:
 		size_t size(void) const{return vccData.size();}
 		void push_back(const config &i_cConfig){vccData.push_back(i_cConfig);}
 		std::vector<config>::iterator begin(void){return vccData.begin();}
-		std::vector<config>::iterator end(void){return vccData.begin();}
+		std::vector<config>::iterator end(void){return vccData.end();}
 		std::vector<config>::const_iterator cbegin(void) const{return vccData.cbegin();}
-		std::vector<config>::const_iterator cend(void) const{return vccData.cbegin();}
+		std::vector<config>::const_iterator cend(void) const{return vccData.cend();}
 		config & operator[](size_t tIdx){return vccData[tIdx];}
 		const config & operator[](size_t tIdx) const{return vccData[tIdx];}
 		void clear(void){vccData.clear();}
@@ -144,7 +144,7 @@ private:
 	typedef std::map<size_t, state_correlation > mcorr;
 
 
-	opacity_project_level_descriptor Find_Equivalent_Level(const statepop::floattype & i_dElement_Code, const statepop::floattype & i_lpdEnergy_Level_cm, const statepop::floattype & i_dGamma, const std::string & i_sLabel, const mcfg &i_mcfgConfigs, const vecconfig & i_vcfgConfig, bool i_bQuiet = false);
+	opacity_project_level_descriptor Find_Equivalent_Level(const floattype & i_dElement_Code, const floattype & i_lpdEnergy_Level_cm, const floattype & i_dGamma, const std::string & i_sLabel, const mcfg &i_mcfgConfigs, const vecconfig & i_vcfgConfig, bool i_bQuiet = false);
 
 	std::vector<opacity_project_level_descriptor> Find_Equivalent_Recombined_Levels(const mcfg &i_mcfgConfigs, const vecconfig & i_vcfgConfig, bool i_bQuiet = false);
 
@@ -152,12 +152,12 @@ public:
 	class param
 	{
 	public:
-		statepop::floattype		dN;
-		statepop::floattype		dNe;
-		statepop::floattype		dRadiation_Temperature_K;
-		statepop::floattype		dPhotosphere_Velocity_km_s;
-		statepop::floattype		dMaterial_Velocity_km_s;
-		statepop::floattype		dElectron_Kinetic_Temperature_K;
+		floattype		dN;
+		floattype		dNe;
+		floattype		dRadiation_Temperature_K;
+		floattype		dPhotosphere_Velocity_km_s;
+		floattype		dMaterial_Velocity_km_s;
+		floattype		dElectron_Kinetic_Temperature_K;
 		unsigned int 	uiElement_Z;
 		unsigned int 	uiElement_Max_Ion_Species;
 		unsigned int 	uiElement_Min_Ion_Species;
@@ -167,31 +167,32 @@ public:
 	{
 	public:
 		size_t tID;
-		statepop::floattype ldElement_Code;
+		floattype ldElement_Code;
 		size_t tLower_Level_ID;
 		std::string szLower_Level_State;
-		statepop::floattype ldLower_Level_J;
+		floattype ldLower_Level_J;
+		size_t tUpper_Level_ID;
 		std::string szUpper_Level_State;
-		statepop::floattype ldUpper_Level_J;
-		statepop::floattype ldWavenegth_Angstroms;
-		statepop::floattype ldEinstein_A;
-		statepop::floattype ldEinstein_B;
-		statepop::floattype ldEinstein_B_Spontaneous_Emission;
-		statepop::floattype ldGamma;
-		statepop::floattype ldH_absorption;
-		statepop::floattype ldH_emission;
-		statepop::floattype ldZ;
+		floattype ldUpper_Level_J;
+		floattype ldWavenegth_Angstroms;
+		floattype ldEinstein_A;
+		floattype ldEinstein_B;
+		floattype ldEinstein_B_Spontaneous_Emission;
+		floattype ldGamma;
+		floattype ldH_absorption;
+		floattype ldH_emission;
+		floattype ldZ;
 	};
 	class level_data
 	{
 	public:
 		size_t tID;
-		statepop::floattype ldElement_Code;
+		floattype ldElement_Code;
 		std::string szLabel;
-		statepop::floattype ldJ;
-		statepop::floattype ldEnergy_Level_Ryd;
-		statepop::floattype ldGamma;
-		statepop::floattype ldZ;
+		floattype ldJ;
+		floattype ldEnergy_Level_Ryd;
+		floattype ldGamma;
+		floattype ldZ;
 		size_t		tNumber_of_Absorption_Transitions;
 		size_t		tNumber_of_Emission_Transitions;
 		size_t		tOP_Project_Level_Correlation[4];
@@ -205,10 +206,10 @@ public:
 	{
 		public:
 		size_t tIon_State;
-		statepop::floattype ldIonization_Energy_Ryd;
-		statepop::floattype ldLog_Pop;
+		floattype ldIonization_Energy_Ryd;
+		floattype ldLog_Pop;
 		saha_info(void){;}
-		saha_info(size_t i_tIon_State, const statepop::floattype & i_ldIonization_Energy_Ryd, const statepop::floattype & i_ldLog_Pop)
+		saha_info(size_t i_tIon_State, const floattype & i_ldIonization_Energy_Ryd, const floattype & i_ldLog_Pop)
 		{
 			tIon_State = i_tIon_State;
 			ldIonization_Energy_Ryd = i_ldIonization_Energy_Ryd;
@@ -219,9 +220,9 @@ public:
 	{
 		public:
 		size_t tLevel_ID;
-		statepop::floattype ldLog_Pop;
+		floattype ldLog_Pop;
 		boltzmann_info(void){;}
-		boltzmann_info(size_t i_tLevel_ID, const statepop::floattype & i_ldLog_Pop)
+		boltzmann_info(size_t i_tLevel_ID, const floattype & i_ldLog_Pop)
 		{
 			tLevel_ID = i_tLevel_ID;
 			ldLog_Pop = i_ldLog_Pop;
@@ -230,23 +231,40 @@ public:
 
 private:
 	param 															m_cParam;
-	statepop::floattype														dRedshift;
+	floattype														dRedshift;
+	floattype						 								dVelocity_Ratio;
 	Planck_radiation_field 											rfPlanck;
 	Maxwellian_velocity_function 									vfMaxwell;
 	kurucz_derived_data 											kddData;
 	opacity_project_element 										opElement;
-	std::vector<statepop::floattype> 										vdOP_Ground_State;
-	std::map<opacity_project_level_descriptor, vecconfig > mConfigs;
+	std::vector<floattype> 											vdOP_Ground_State;
+	std::map<opacity_project_level_descriptor, vecconfig > 			mConfigs;
 	mcorr 															mCorrelation;
 	mimkvld 														mimkvldKurucz_Correlation;
 	size_t 															tMatrix_Order;
-	std::vector<statepop::floattype> 										vdZ;
-	std::map<std::pair<size_t, size_t> , statepop::floattype> 				mpdSparse_MatrixBZ;
-	std::map<std::pair<size_t, size_t> , statepop::floattype> 				mpdSparse_MatrixB;
+	std::vector<floattype> 											vdZ;
+	std::map<std::pair<size_t, size_t> , floattype> 				mpdSparse_MatrixBZ;
+	std::map<std::pair<size_t, size_t> , floattype> 				mpdSparse_MatrixB;
 	matrix				 											smMatrixB;
 	std::vector<transition_data> 									vTransition_Data;
 	std::vector<level_data> 										vLevel_Data;
 
+
+	size_t Find_Level_ID(floattype i_ldElement_Code, const std::string & i_szLabel, const floattype & i_dJ, const floattype & i_dEnergy_Level_Ryd)
+	{
+		size_t tRet = -1;
+		for (size_t tI = 0; tI < vLevel_Data.size() && tRet == -1; tI++)
+		{
+			if (vLevel_Data[tI].ldElement_Code == i_ldElement_Code &&
+				vLevel_Data[tI].szLabel == i_szLabel &&
+				vLevel_Data[tI].ldJ == i_dJ &&
+				vLevel_Data[tI].ldEnergy_Level_Ryd == i_dEnergy_Level_Ryd)
+				tRet = tI;
+		}
+		return tRet;
+
+	}
+	void Generate_Matrix(void);
 
 public:
 	statepop(void)
@@ -261,9 +279,12 @@ public:
 	level_data Get_Level(size_t i_tIndex){return vLevel_Data[i_tIndex];}
 
 	void Set_Param(const param & i_cParam);
+	void Reset_Param(const floattype & dRadiation_Temperature_K, const floattype & dElectron_Kinetic_Temperature_K, const floattype & dMaterial_Velocity_km_s, const floattype & dPhotosphere_Velocity_km_s);
 
 		
 	vector Get_Populations(void);
+	vector Get_Relative_Line_Strengths(void);
+	vector Get_Boltzmann_Relative_Line_Strengths(void);
 
 	matrix Get_Matrix_B(void)
 	{

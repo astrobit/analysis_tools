@@ -6,8 +6,8 @@ lib_LTLIBRARIES = libsp.la
 include_HEADERS = include/statepop.h
 
 
-libsp_la_SOURCES = src/state_pop_lib_cursor.cpp src/state_pop_lib_ang_mom.cpp src/state_pop_lib_get_def_cfg.cpp src/state_pop_lib_prt_cfg_vect.cpp src/state_pop_lib_read_K_state.cpp src/state_pop_lib_read_OP_state.cpp src/state_pop_lib_ion_rec_eqv.cpp src/state_pop_Find_Equivalent_Level.cpp src/state_pop_Find_Equivalent_Recombined_Levels.cpp src/state_pop_Get_Boltzmann_Populations.cpp src/state_pop_Get_Populations.cpp src/state_pop_Get_Saha_Populations.cpp src/state_pop_Set_Param.cpp
-libsp_la_LDFLAGS = -version-info 1:0:1
+libsp_la_SOURCES = src/state_pop_lib_cursor.cpp src/state_pop_lib_ang_mom.cpp src/state_pop_lib_get_def_cfg.cpp src/state_pop_lib_prt_cfg_vect.cpp src/state_pop_lib_read_K_state.cpp src/state_pop_lib_read_OP_state.cpp src/state_pop_lib_ion_rec_eqv.cpp src/state_pop_Find_Equivalent_Level.cpp src/state_pop_Find_Equivalent_Recombined_Levels.cpp src/state_pop_Get_Boltzmann_Populations.cpp src/state_pop_Get_Populations.cpp src/state_pop_Get_Saha_Populations.cpp src/state_pop_Set_Param.cpp src/state_pop_Get_Relative_Line_Strengths.cpp src/state_pop_Generate_Matrix.cpp
+libsp_la_LDFLAGS = -version-info 2:0:2
 
 
 statepop_SOURCES = src/state_pops.cpp
