@@ -171,8 +171,8 @@ public:
 		m_cLevel_Upper.m_dEnergy_Level_eV = m_cLevel_Upper.m_dEnergy_Level_cm * dicm_erg;
 		m_cLevel_Lower.m_dEnergy_Level_eV = m_cLevel_Lower.m_dEnergy_Level_cm * dicm_erg;
 
-		m_cLevel_Upper.m_dEnergy_Level_Ryd = m_cLevel_Upper.m_dEnergy_Level_cm / 109737.31568508;
-		m_cLevel_Lower.m_dEnergy_Level_Ryd = m_cLevel_Lower.m_dEnergy_Level_cm / 109737.31568508;
+		m_cLevel_Upper.m_dEnergy_Level_Ryd = m_cLevel_Upper.m_dEnergy_Level_cm / g_XASTRO.k_dRy_cmm1;
+		m_cLevel_Lower.m_dEnergy_Level_Ryd = m_cLevel_Lower.m_dEnergy_Level_cm / g_XASTRO.k_dRy_cmm1;
 
 		m_dWavelength_cm = (m_dWavelength_nm * 1.0e-7);
 		m_dFrequency_Hz = g_XASTRO.k_dc / m_dWavelength_cm;
@@ -191,11 +191,11 @@ public:
 		m_dH_abs = 0.0;
 		m_dH_em = 0.0;
 	}
-	void Compute_Z(const radiation_field & i_cRad, const long double & i_dRedshift = 0.0)
+	void Compute_Z(const radiation_field & i_cRad, const long double & i_dRedshift = 0.0, const long double & i_dFlux_Dilution = 1.0)
 	{
 		long double dEnergy_Flux = Calc_Exciting(i_cRad,i_dRedshift);
-		m_dH_abs = m_dEinstein_B * dEnergy_Flux;
-		m_dH_em = m_dEinstein_A + m_dEinstein_B_SE * dEnergy_Flux;
+		m_dH_abs = m_dEinstein_B * dEnergy_Flux * i_dFlux_Dilution;
+		m_dH_em = m_dEinstein_A + m_dEinstein_B_SE * dEnergy_Flux * i_dFlux_Dilution;
 //		std::cout << std::fixed << m_dElement_Code << " " << m_cLevel_Lower.m_dEnergy_Level_cm << "-" << m_cLevel_Upper.m_dEnergy_Level_cm << " " << m_dWavelength_cm * 1e8 << " " << std::scientific << m_dH_abs << " " << m_dH_em << " " << m_dTransition_Energy_eV << " " << m_dEinstein_A << " " << m_dEinstein_B << std::endl;
 	}
 
@@ -329,16 +329,14 @@ private:
 	}
 public:
 	kurucz_derived_data(void){;}
-	kurucz_derived_data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const long double & i_dRedshift)
+	kurucz_derived_data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion)
 	{
-		Initialize(i_uiN, i_uiMin_Ion, i_uiMax_Ion, i_rfRad, i_dRedshift);
+		Initialize(i_uiN, i_uiMin_Ion, i_uiMax_Ion);
 	}
 
-	void Initialize(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion, const radiation_field & i_rfRad, const long double & i_dRedshift)
+	void Initialize(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsigned int i_uiMax_Ion)
 	{
 		m_kdKurucz_Data.Load_Data(i_uiN,i_uiMin_Ion,i_uiMax_Ion);
-
-
 		// Build list of levels and the associated transitions
 		for (vvkld::iterator iterI = m_kdKurucz_Data.m_vvkldLine_Data.begin(); iterI != m_kdKurucz_Data.m_vvkldLine_Data.end(); iterI++)
 		{
@@ -386,14 +384,18 @@ public:
 				}
 			}
 		}
+	}
+
+	void Compute_H_Z(const radiation_field & i_rfRad, const long double & i_dRedshift, const long double & i_dFlux_Dilution)
+	{
 		for (vvkld::iterator iterI = m_kdKurucz_Data.m_vvkldLine_Data.begin(); iterI != m_kdKurucz_Data.m_vvkldLine_Data.end(); iterI++)
 		{
-			long double dIon_State = (iterI->begin()->m_dElement_Code - i_uiN) * 100.0; // 0.01 for rounding error
-			if (dIon_State <= (i_uiMax_Ion + 0.02))
+			long double dIon_State = (iterI->begin()->m_dElement_Code - m_kdKurucz_Data.m_uiN) * 100.0; // 0.01 for rounding error
+			if (dIon_State <= (m_kdKurucz_Data.m_uiMax_Ion + 0.02))
 			{
 				for (ivkld iterJ = iterI->begin(); iterJ != iterI->end(); iterJ++)
 				{
-					iterJ->Compute_Z(i_rfRad,i_dRedshift);
+					iterJ->Compute_Z(i_rfRad,i_dRedshift,i_dFlux_Dilution);
 				}
 			}
 		}

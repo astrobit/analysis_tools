@@ -1,5 +1,5 @@
 # Release version
-m4_define([package_version_major],[1])
+m4_define([package_version_major],[2])
 m4_define([package_version_minor],[0])
 m4_define([package_version_micro],[0])
 m4_define([package_repository],[https://github.com/astrobit/snatk])
