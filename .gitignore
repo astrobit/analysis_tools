@@ -48,6 +48,7 @@ share/Opacity-Project/config_reprocess
 #modulefiles
 1.*.*
 2.*.*
+3.*.*
 
 #misc files
 *~
