@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 AM_CPPFLAGS = -I${srcdir}/include -DDATADIR=\"$(pkgdatadir)\" ${radiation_CFLAGS} ${velocity_field_CFLAGS} ${xastro_CFLAGS}  ${xstdlib_CFLAGS}
 
 lib_LTLIBRARIES = libopacity_project.la
-bin_PROGRAMS = opquikread op_config_reprocess
+bin_PROGRAMS = opquikread op_config_reprocess testopp
 libopacity_project_la_SOURCES = src/opacity_project_pp.cpp
 libopacity_project_la_LDFLAGS = -version-info 0:0:0
 
@@ -11,8 +11,11 @@ include_HEADERS = include/opacity_project_pp.h
 opquikread_SOURCES = src/quikread.cpp
 opquikread_LDADD =  -lopacity_project ${xastro_LIBS}  ${xstdlib_LIBS}
 
+testopp_SOURCES = src/testOPP.cpp
+testopp_LDADD =  -lopacity_project ${xastro_LIBS}  ${xstdlib_LIBS}
+
 op_config_reprocess_SOURCES = src/config_reprocess.cpp
-op_config_reprocess_LDADD = -lopacity_project ${xastro_LIBS}
+op_config_reprocess_LDADD = -lopacity_project ${xastro_LIBS} ${radiation_LIBS} ${velocity_field_LIBS}
 
 # Install the pkg-config file; the directory is set using
 # PKG_INSTALLDIR in configure.ac.
