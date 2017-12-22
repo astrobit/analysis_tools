@@ -214,7 +214,7 @@ public:
 				long double dE = iterI->first;
 				if (dE >= -i_sState.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
 				{
-					long double dE_Res = dScaling * dE * g_XASTRO.k_dRy;
+					long double dE_Res = dScaling * dE * g_XASTRO.k_dRy; // photon energy in erg
 					long double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
 					long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
 					long double dJ = i_cRad.Get_Energy_Flux_freq(dFrequency,i_dRedshift);
@@ -239,7 +239,7 @@ public:
 					}
 					long double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
 
-					long double dF = 4.0 * g_XASTRO.k_dpi * dJ_Ry * dCS / (dE_Res) * dDelta_Freq;
+					long double dF = 4.0 * g_XASTRO.k_dpi * dJ / dE_Res * dCS * dDelta_Freq;
 //					printf("f(%.2e,%.2e): %.2e, %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",dE,dE_Res,dScaling,dJ_Ry,dFrequency,dCS,dE_Res,dDelta_Freq,dDelta_E,dF);
 					dSum += dF;
 				}
@@ -299,7 +299,6 @@ public:
 					long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
 					if (dVelocity > 0.0)
 					{
-						long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 						// calculate step size in Ry
 						long double dDelta_E;
 						if ((iterImm == iterEnd || iterIpp == iterEnd) && iterIm != iterEnd && iterIp != iterEnd)
@@ -319,14 +318,14 @@ public:
 							dDelta_E = (iterIpp->first + iterIp->first - iterIm->first - iterImm->first) / 6.0;
 						}
 						//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
+						long double ldDelta_Vel = dDelta_E / (g_XASTRO.k_dme * dVelocity);
 
 						long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
 						long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
-
+						long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 						long double dMW = i_cVel_Fn(dVelocity);
-						long double dF = dg_neut / (dg_plus * 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi) * dVelocity * i_cVel_Fn(dVelocity) * dCS * dE_Rel * dE_Rel * dDelta_E;
-						//if (isnan(dF) || isinf(dF))
-						//	printf("f(%.2e,%.2e): s%.2e, v%.2e f%.2e er%.2e m%.2e de%.2e f%.2e\n",dE,dE_erg,dScaling,dVelocity,dFrequency,dE_Rel,dMW,dDelta_E,dF);
+						long double dF = dE_Rel * dE_Rel * dMW * dVelocity * dCS * ldDelta_Vel;
+
 						dSum += dF;
 					}
 
@@ -347,15 +346,15 @@ public:
 				long double dCS = 0.01 * 1e-18 * (1.0 - uiI / 99.0); // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
 				if (dVelocity > 0.0)
 				{
-					long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 					// calculate step size in Ry
 					//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
 
 					long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
 					long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
-
-					long double dMW = i_cVel_Fn(dVelocity);
-					long double dF = dg_neut / (dg_plus * 4.0 * g_XASTRO.k_dpi * g_XASTRO.k_dpi) * dVelocity * i_cVel_Fn(dVelocity) * dCS * dE_Rel * dE_Rel * dDelta_E;
+					long double ldDelta_Vel = dDelta_E / (g_XASTRO.k_dme * dVelocity);
+					long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
+					long double dFv = i_cVel_Fn(dVelocity);
+					long double dF = dE_Rel * dE_Rel * dFv * dVelocity * dCS * ldDelta_Vel;
 					//if (isnan(dF) || isinf(dF))
 					//	printf("f(%.2e,%.2e): s%.2e, v%.2e f%.2e er%.2e m%.2e de%.2e f%.2e\n",dE,dE_erg,dScaling,dVelocity,dFrequency,dE_Rel,dMW,dDelta_E,dF);
 					dSum += dF;
