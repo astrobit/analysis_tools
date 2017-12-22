@@ -164,7 +164,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	FILE * fileTrx = fopen("trx.csv","wt");
 	if (fileTrx)
 	{
-		fprintf(fileTrx,"Trx ID, Element code, Level (Lower) ID, Level (lower), J (lower), Level (Upper) ID, Level (upper), J (upper), Wavelength [A], A, B, B(SE), Gamma (rad), Hab (%.1f kK), Hem (%.1f kK), Z\n",dRadiation_Temperature_K*1e-3,dRadiation_Temperature_K*1e-3);
+		fprintf(fileTrx,"Trx ID, Element code, Level (Lower) ID, Level (lower), J (lower), Level (Upper) ID, Level (upper), J (upper), Wavelength [A], A, B, B(SE), Gamma (rad), Hab (%.1Lf kK), Hem (%.1Lf kK), Z\n",dRadiation_Temperature_K*1e-3,dRadiation_Temperature_K*1e-3);
 		size_t tNum_Trx = cStatepop.Get_Num_Transitions();
 		for (size_t tI = 0; tI < tNum_Trx; tI++)
 		{
@@ -316,6 +316,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	statepop::vector vLines = cStatepop.Get_Relative_Line_Strengths();
 	//statepop::vector vB_Lines = cStatepop.Get_Boltzmann_Relative_Line_Strengths();
 	FILE * fileLines = fopen("lines.csv","wt");
+	std::map<long double, long double> mapOpacity;
+	long double ldMax_Op = 0.0;
+	long double ldMax_Op_Optical = 0.0;
 	if (fileLines != nullptr)
 	{
 		fprintf(fileLines,"Index, Element Code, Wavelength [A], Lower State, Lower State J, Upper State, Upper State J, Relative Strength, Relative Strength (Boltzmann)\n");
@@ -334,9 +337,35 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cTrx.ldUpper_Level_J,
 					vLines[tI]);
 		//			vB_Lines[tI]);
+			if (mapOpacity.count(cTrx.ldWavenegth_Angstroms) != 0)
+				mapOpacity[cTrx.ldWavenegth_Angstroms] += vLines[tI];
+			else
+				mapOpacity[cTrx.ldWavenegth_Angstroms] = vLines[tI];
+			if (vLines[tI] > ldMax_Op)
+				ldMax_Op = vLines[tI];
+			if (cTrx.ldWavenegth_Angstroms >= 3000.0 && cTrx.ldWavenegth_Angstroms < 10000.0)
+			{
+				if (vLines[tI] > ldMax_Op_Optical)
+					ldMax_Op_Optical = vLines[tI];
+			}
 		}
 		fclose(fileOut);
 		std::cout << "Line strengths have been output to lines.csv" << std::endl;
+	}
+	FILE * fileSpecSamp = fopen("spectrum.csv","wt");
+	if (fileSpecSamp != nullptr)
+	{
+		fprintf(fileSpecSamp,"wavelength [A], Rel. transmission, Rel. Transmission (optical)\n");
+		for (auto iterI = mapOpacity.begin(); iterI != mapOpacity.end(); iterI++)
+		{
+			long double ldTrans = 1.0;
+			ldTrans -= iterI->second / ldMax_Op;
+			long double ldTrans_Optical = 1.0;
+			ldTrans_Optical -= iterI->second / ldMax_Op_Optical;
+			fprintf(fileSpecSamp,"%.17Le, %.17Le, %.17Le\n",iterI->first,ldTrans,ldTrans_Optical);
+		}
+		fclose(fileSpecSamp);
+		std::cout << "Sample spectrum has been output to spectrum.csv" << std::endl;
 	}
 
 
