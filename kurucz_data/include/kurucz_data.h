@@ -101,6 +101,7 @@ public:
 
 	long double m_dH_abs; // H coefficient (M&W 2017, Eq. 13) for j < i
 	long double m_dH_em; // H coefficient (M&W 2017, Eq. 13) for j > i
+	long double m_dH_StE;
 private:
 	std::string mysubstr(const std::string & i_szStr, size_t &tStart, size_t tLen)
 	{
@@ -190,12 +191,14 @@ public:
 
 		m_dH_abs = 0.0;
 		m_dH_em = 0.0;
+		m_dH_StE = 0.0;
 	}
 	void Compute_Z(const radiation_field & i_cRad, const long double & i_dRedshift = 0.0, const long double & i_dFlux_Dilution = 1.0)
 	{
 		long double dEnergy_Flux = Calc_Exciting(i_cRad,i_dRedshift);
 		m_dH_abs = m_dEinstein_B * dEnergy_Flux * i_dFlux_Dilution;
-		m_dH_em = m_dEinstein_A + m_dEinstein_B_SE * dEnergy_Flux * i_dFlux_Dilution;
+		m_dH_StE = m_dEinstein_B_SE * dEnergy_Flux * i_dFlux_Dilution; // mostly just for debugging purposes
+		m_dH_em = m_dEinstein_A + m_dH_StE;
 //		std::cout << std::fixed << m_dElement_Code << " " << m_cLevel_Lower.m_dEnergy_Level_cm << "-" << m_cLevel_Upper.m_dEnergy_Level_cm << " " << m_dWavelength_cm * 1e8 << " " << std::scientific << m_dH_abs << " " << m_dH_em << " " << m_dTransition_Energy_eV << " " << m_dEinstein_A << " " << m_dEinstein_B << std::endl;
 	}
 
@@ -352,6 +355,8 @@ public:
 
 					if (iterJ->m_cLevel_Lower > iterJ->m_cLevel_Upper)
 					{
+						// 22 Dec. 2017: verified that some Kurucz data is inverted
+//						std::cout << "lower - upper reverse for trx " << iterJ->m_dElement_Code << " " << iterJ->m_cLevel_Lower.m_szLabel << " -- " << iterJ->m_cLevel_Upper.m_szLabel << " (" << iterJ->m_dWavelength_nm << ") [" << iterJ->m_cLevel_Lower.m_dEnergy_Level_cm << " -- " << iterJ->m_cLevel_Upper.m_dEnergy_Level_cm << "]" << std::endl;
 						tLU_Type = tt_emission;
 						tUL_Type = tt_absorption;
 					}
