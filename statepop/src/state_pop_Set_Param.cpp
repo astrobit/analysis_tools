@@ -1,8 +1,14 @@
 #include <statepop.h>
 #include <sp_config.h>
 
-void statepop::Reset_Param(const statepop::floattype & dRadiation_Temperature_K, const statepop::floattype & dElectron_Kinetic_Temperature_K, const statepop::floattype & dMaterial_Velocity_km_s, const statepop::floattype & dPhotosphere_Velocity_km_s)
+void statepop::Reset_Param(const floattype & i_dElectron_Density_cm3, const statepop::floattype & i_dRadiation_Temperature_K, const statepop::floattype & i_dElectron_Kinetic_Temperature_K, const statepop::floattype & i_dMaterial_Velocity_km_s, const statepop::floattype & i_dPhotosphere_Velocity_km_s)
 {
+	m_cParam.dNe = i_dElectron_Density_cm3;
+	m_cParam.dMaterial_Velocity_km_s = i_dMaterial_Velocity_km_s;
+	m_cParam.dPhotosphere_Velocity_km_s = i_dPhotosphere_Velocity_km_s;
+	m_cParam.dRadiation_Temperature_K = i_dRadiation_Temperature_K;
+	m_cParam.dElectron_Kinetic_Temperature_K = i_dElectron_Kinetic_Temperature_K;
+
 	dRedshift = (m_cParam.dMaterial_Velocity_km_s - m_cParam.dPhotosphere_Velocity_km_s) * 1.0e5 / g_XASTRO.k_dc;
 	dVelocity_Ratio = m_cParam.dPhotosphere_Velocity_km_s / m_cParam.dMaterial_Velocity_km_s; // also relative ratio of radii of material and photosphere
 	// generate radiation field

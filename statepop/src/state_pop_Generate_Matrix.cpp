@@ -118,7 +118,6 @@ void statepop::Generate_Matrix(void)
 						for (imklvd iterSt_J = kddData.m_vmklvdLevel_Data[tIdx_Ion_J].begin(); iterSt_J != kddData.m_vmklvdLevel_Data[tIdx_Ion_J].end(); iterSt_J++)
 						{
 							tNum_States_J++;
-							// calculate Z (Eq 12) for Level i
 
 							// -- processing section
 							if (tIdx_I != tIdx_J)
@@ -129,7 +128,8 @@ void statepop::Generate_Matrix(void)
 									bool bFound = false;
 									if (tIdx_I > tIdx_J)
 									{
-									// first find the transition in the list for j
+									// first find the transition in the list for i-->j
+										//std::cout << "state j  = " << tIdx_J << " has " << iterSt_J->second.vivkldAbsorption_Transition_Data.size() << " absorptions" << std::endl;
 										for (ivivkld iterK = iterSt_J->second.vivkldAbsorption_Transition_Data.begin(); iterK != iterSt_J->second.vivkldAbsorption_Transition_Data.end() && !bFound; iterK++)
 										{
 											if ((*iterK)->m_cLevel_Upper == iterSt_I->second.klvdLevel_Data || (*iterK)->m_cLevel_Lower == iterSt_I->second.klvdLevel_Data)
@@ -142,7 +142,7 @@ void statepop::Generate_Matrix(void)
 									}
 									else
 									{
-									// first find the transition in the list for j
+									// first find the transition in the list for j-->i
 										for (ivivkld iterK = iterSt_J->second.vivkldEmission_Transition_Data.begin(); iterK != iterSt_J->second.vivkldEmission_Transition_Data.end() && !bFound; iterK++)
 										{
 											if ((*iterK)->m_cLevel_Upper == iterSt_I->second.klvdLevel_Data || (*iterK)->m_cLevel_Lower == iterSt_I->second.klvdLevel_Data)
@@ -227,7 +227,7 @@ void statepop::Generate_Matrix(void)
 						}
 					}
 					tIdx_I++;
-					tIdx_J = 0; // new row
+					tIdx_J = 0; // new column
 				}
 			}
 
@@ -259,13 +259,15 @@ void statepop::Generate_Matrix(void)
 			smMatrixB.Zero();
 			for (auto iterI = mpdSparse_MatrixBZ.begin(); iterI != mpdSparse_MatrixBZ.end(); iterI++)
 			{
-				// now divide all items in row J by the computed Z; M&W Eq. 14 / 15 (B_{ij} = H_{ij}/Z_j, but here we use j and ii instead of i and j, so here it is B_{j,ii} = H_{j,ii}/Z_{j}
+				// now divide all items in row i by the computed Z_i for that row; M&W Eq. 14 / 15 (B_{ij} = H_{ij}/Z_i
+				// note that the sparse matrix is stored with (column, row) format
 				floattype fVal = iterI->second / vdZ[iterI->first.second];
 				mpdSparse_MatrixB[iterI->first] = fVal;
 				if (dMax_Val < fVal)
 					dMax_Val = fVal;
 				// fill the matrix to be used for the eigenvector problem
-				smMatrixB.Set(iterI->first.first,iterI->first.second,fVal);
+				// note that the square matrix class uses (row, column) format
+				smMatrixB.Set(iterI->first.second,iterI->first.first,fVal);
 			}
 		}
 	}

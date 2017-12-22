@@ -279,7 +279,7 @@ public:
 	level_data Get_Level(size_t i_tIndex){return vLevel_Data[i_tIndex];}
 
 	void Set_Param(const param & i_cParam);
-	void Reset_Param(const floattype & dRadiation_Temperature_K, const floattype & dElectron_Kinetic_Temperature_K, const floattype & dMaterial_Velocity_km_s, const floattype & dPhotosphere_Velocity_km_s);
+	void Reset_Param(const floattype & i_dElectron_Density_cm3, const floattype & i_dRadiation_Temperature_K, const floattype & i_dElectron_Kinetic_Temperature_K, const floattype & i_dMaterial_Velocity_km_s, const floattype & i_dPhotosphere_Velocity_km_s);
 
 		
 	vector Get_Populations(void);
@@ -297,7 +297,7 @@ public:
 		msqlBZ.Zero();
 		for (auto iterI = mpdSparse_MatrixBZ.begin(); iterI != mpdSparse_MatrixBZ.end(); iterI++)
 		{
-			msqlBZ.Set(iterI->first.first,iterI->first.second,iterI->second);
+			msqlBZ.Set(iterI->first.second,iterI->first.first,iterI->second);
 		}
 		return msqlBZ;
 	}
