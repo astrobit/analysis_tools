@@ -19,7 +19,7 @@ statepop::vector statepop::Get_Populations(void)
 		if (dErr > 1.0e-2) // 1% error
 		{
 			bEigenvector_Fault = true;
-			std::cerr << "Eignevector fault at index " << tI << "( " << vEigTest[tI] << " , " << vEig[tI] << " )" << std::endl;
+			std::cerr << "Eigenvector fault at index " << tI << "( " << vEigTest[tI] << " , " << vEig[tI] << " )" << std::endl;
 		}
 	}
 	if (!bEigenvector_Fault)

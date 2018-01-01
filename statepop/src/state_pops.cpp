@@ -199,12 +199,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	FILE * fileLevels = fopen("levels.csv","wt");
 	if (fileLevels)
 	{
-		fprintf(fileLevels,"ID, Element code, Level , J, Energy (Ryd), Gamma (s^-1), Z (s^-1), Absorbtion lines, Emission Lines, OP Project State\n");
+		fprintf(fileLevels,"ID, Element code, Level , J, Energy (Ryd), Gamma (s^-1), Z (s^-1), Absorbtion lines, Emission Lines, Ionized State ID, OP Project State, OP Project Ionized State\n");
 		size_t tNum_Level = cStatepop.Get_Num_Levels();
 		for (size_t tI = 0; tI < tNum_Level; tI++)
 		{
 			statepop::level_data cLevel = cStatepop.Get_Level(tI);
-			fprintf(fileLevels,"%i, %.2Lf, %s, %.1Lf, %.5Lf, %.3Le, %.3Le, %i, %i, ",
+			fprintf(fileLevels,"%i, %.2Lf, %s, %.1Lf, %.5Lf, %.3Le, %.3Le, %i, %i, %i, ",
 				cLevel.tID,
 				cLevel.ldElement_Code,
 				cLevel.szLabel.c_str(),
@@ -213,7 +213,8 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				cLevel.ldGamma,
 				cLevel.ldZ,
 				cLevel.tNumber_of_Absorption_Transitions,
-				cLevel.tNumber_of_Emission_Transitions);
+				cLevel.tNumber_of_Emission_Transitions,
+				cLevel.tIonized_State_ID);
 			if (cLevel.tOP_Project_Level_Correlation[0] != -1)
 			{
 				fprintf(fileLevels,"%i%i%i %i",
@@ -222,10 +223,76 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cLevel.tOP_Project_Level_Correlation[2],
 					cLevel.tOP_Project_Level_Correlation[3]);
 			}
+			fprintf(fileLevels,", ");
+	
+			if (cLevel.tOP_Project_Ionization_State[0] != -1)
+			{
+				fprintf(fileLevels,"%i%i%i %i",
+					cLevel.tOP_Project_Ionization_State[0],
+					cLevel.tOP_Project_Ionization_State[1],
+					cLevel.tOP_Project_Ionization_State[2],
+					cLevel.tOP_Project_Ionization_State[3]);
+			}
+
+			for (auto iterI = cLevel.cElectron_Configuration.begin(); iterI != cLevel.cElectron_Configuration.end(); iterI++)
+			{
+				fprintf(fileLevels,", (%i-%i ", iterI->m_uin,	iterI->m_uil);
+
+				if (iterI->m_dK != -1.0)
+				{
+					if (iterI->m_uiS != -1)
+						fprintf(fileLevels,"%i",iterI->m_uiS);
+					int iK = iterI->m_dK * 2.0;				
+					fprintf(fileLevels,"[%i/2]",iK);
+				}
+				else if (iterI->m_uiS != -1)
+				{
+					fprintf(fileLevels,"%i",iterI->m_uiS);
+					char chTerm = 0;
+					switch(iterI->m_uiL)
+					{
+					case 0:
+						chTerm =  'S';
+						break;
+					case 1:
+						chTerm =  'P';
+						break;
+					case 2:
+						chTerm =  'D';
+						break;
+					default:
+						chTerm = 'F';
+						chTerm += (iterI->m_uiL - 3);
+						if (chTerm >= 'H')
+							chTerm++; // 'H' is not an allowed term
+						if (chTerm >= 'P')
+							chTerm++; // 'P' occurrs earlier, so it is skipped here
+						if (chTerm >= 'S')
+							chTerm++; // 'S' occurs earlier, so it is skipped here
+					}
+					fprintf(fileLevels,"%c",chTerm);
+				}
+				if (iterI->m_uiP == 1)
+					fprintf(fileLevels,"o");
+
+				if (iterI->m_dJ != -1)
+				{
+					int i2J = iterI->m_dJ * 2.0;
+					if (i2J & 1) // odd
+						fprintf(fileLevels,"%i/2",i2J);
+					else
+						fprintf(fileLevels,"%.0Lf",iterI->m_dJ);
+				}
+				fprintf(fileLevels,")");
+			}
 			fprintf(fileLevels,"\n");
 		}
 		fclose(fileLevels);
 	}
+
+	cStatepop.Reset_Param(dNe, dRadiation_Temperature_K, dElectron_Kinetic_Temperature_K, dMaterial_Velocity_km_s, dPhotosphere_Velocity_km_s);
+
+
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Output matrix to matrixa.csv

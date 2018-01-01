@@ -11,32 +11,49 @@ opacity_project_level_descriptor statepop::Find_Equivalent_Level(const statepop:
 			opldEquivalent_Level = iterK->first;
 		}
 	}
-	if (!bFound && !i_bQuiet)
+	if (!bFound)
 	{
-		// try again with SLP info stripped - this will not be quite right - it could return a 1P state 
+		// try again with lower state SLP info stripped
 		std::vector<opacity_project_level_descriptor> vMatches;
 		statepop::vecconfig vcTest = i_vcfgConfig;
-		vcTest[0].m_uiS = vcTest[0].m_uiP = -1; vcTest[0].m_dL = -1.0;
-		for(auto iterK = i_mcfgConfigs.cbegin(); iterK != i_mcfgConfigs.cend(); iterK++)
+		if (vcTest[1].m_uiS != -1 || vcTest[1].m_uiP != -1 || vcTest[1].m_uiL != -1)
 		{
-			if (vcTest == iterK->second)
+			vcTest[1].m_uiS = vcTest[1].m_uiP = -1; vcTest[1].m_uiL = -1;
+			for(auto iterK = i_mcfgConfigs.cbegin(); iterK != i_mcfgConfigs.cend() && !bFound; iterK++)
 			{
-				vMatches.push_back(iterK->first);
+				if (vcTest == iterK->second)
+				{
+					bFound = true;
+					opldEquivalent_Level = iterK->first;
+				}
 			}
 		}
-		std::cerr << "Unable to correlate Kurucz state (" << i_dElement_Code << ") " << i_sLabel << " [" << i_lpdEnergy_Level_cm << ", " << i_dGamma << "]" << std::endl;
-		std::cerr << "Possible matches:" << std::endl;
-		if (vMatches.size() >= 1)
+		if (!bFound  &&  !i_bQuiet)
 		{
-			for (auto iterK = vMatches.begin(); iterK != vMatches.end(); iterK++)
+			// try again with highest state SLP info stripped
+			vcTest[0].m_uiS = vcTest[0].m_uiP = -1; vcTest[0].m_uiL = -1;
+			for(auto iterK = i_mcfgConfigs.cbegin(); iterK != i_mcfgConfigs.cend(); iterK++)
 			{
-				std::cerr << iterK->m_uiS << " " << iterK->m_uiL << " " << iterK->m_uiP << " " << iterK->m_uiLvl_ID << std::endl;
+				//Print_Config_Vector(iterK->second,std::cerr);
+				if (vcTest == iterK->second)
+				{
+					vMatches.push_back(iterK->first);
+				}
 			}
-		}
-		else
-			std::cerr << "None" << std::endl;
-		Print_Config_Vector(i_vcfgConfig,std::cerr);
 
+			std::cerr << "Unable to correlate Kurucz state (" << i_dElement_Code << ") " << i_sLabel << " [" << i_lpdEnergy_Level_cm << ", " << i_dGamma << "]" << std::endl;
+			std::cerr << "Possible matches:" << std::endl;
+			if (vMatches.size() >= 1)
+			{
+				for (auto iterK = vMatches.begin(); iterK != vMatches.end(); iterK++)
+				{
+					std::cerr << iterK->m_uiS << " " << iterK->m_uiL << " " << iterK->m_uiP << " " << iterK->m_uiLvl_ID << std::endl;
+				}
+			}
+			else
+				std::cerr << "None" << std::endl;
+			Print_Config_Vector(i_vcfgConfig,std::cerr);
+		}
 	}
 	return opldEquivalent_Level;
 }

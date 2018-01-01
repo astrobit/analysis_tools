@@ -5,7 +5,7 @@
 class cc
 {
 public:
-	enum type {number,letter,paren,brace,plus,space,splat,other};
+	enum type {number,letter,paren,brace,plus,space,splat,tick,other};
 	type m_eType;
 	char m_chValue;
 };
@@ -50,15 +50,17 @@ void Report_Bad_Format(const std::string & i_szLabel, const std::vector<cc> & i_
 
 }
 
-statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLabel_Kurucz)
+statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string   i_szLabel_Kurucz, const statepop::floattype & i_dJ)
 {
 	vecconfig vRet;
-	std::vector<cc> vccString;
+	std::deque<cc> vccString;
 	config cConfig;
 	config cConfig_m1;
 	config cConfig_m2;
-
+	//std::cout << "Get default config " << i_uiNe << std::endl;
 	vRet = Get_Default_Configuration(i_uiNe);
+	//std::cout << "Get state config " << i_szLabel_Kurucz << std::endl;
+
 
 	char lpszKurucz[32];
 	strcpy(lpszKurucz,i_szLabel_Kurucz.c_str());
@@ -66,6 +68,7 @@ statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string
 	const char * lpszCursor = lpszKurucz;
 	lpszCursor = Pass_Whitespace(lpszCursor);
 	bool bFlag_other = false;
+	// parse the string and identify what information is at each position
 	while (lpszCursor != nullptr && lpszCursor[0] != 0 && lpszCursor < lpszEnd)
 	{
 		if (lpszCursor[0] >= '0' && lpszCursor[0] <= '9')
@@ -124,6 +127,10 @@ statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string
 			vccString.push_back(ccCurr);
 			lpszCursor = Pass_Whitespace(lpszCursor);
 		}
+		else if (lpszCursor[0] == '\'') // the tick seems unimportant -- ignore it
+		{
+			lpszCursor++;
+		}
 		else if (lpszCursor[0] == '?')
 		{
 			lpszCursor++; // I think this is an uncertain identification - ignore it for now
@@ -142,600 +149,169 @@ statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string
 	{
 		std::cerr << "uh oh. Unidentified character in of configuration string. " << lpszKurucz << std::endl;
 	}
+	while (vccString.back().m_eType == cc::space)
+		vccString.pop_back();
 
-	cc ccBack = (*vccString.rbegin()); vccString.pop_back();
-	while (ccBack.m_eType == cc::space) // get rid of any trailiing spaces
+	// form "... PX" - the X just indicates that the level is experimentally unverified
+	if (vccString.back().m_eType == cc::letter && vccString.back().m_chValue == 'X')
+		vccString.pop_back();
+
+	size_t tL = -1;
+	size_t tS = -1;
+	size_t tP = -1;
+	size_t tLm1 = -1;
+	double dJ = -1;
+	double dK = -1;
+	double dJm1 = -1;
+
+	switch (vccString.back().m_eType)
 	{
-		ccBack = (*vccString.rbegin()); vccString.pop_back();
-	}
-	if (ccBack.m_eType == cc::letter && ccBack.m_chValue == 'X')
-	{
-//		std::cerr << "here" << std::endl;
-//		Report_Bad_Format(lpszKurucz,vccString);
-		cc ccBack2 = (*vccString.rbegin());
-		if (ccBack2.m_eType == cc::letter)
+	case cc::brace: // JK or LK coupling term
+		// J = 2n+1/2
+		vccString.pop_back(); // brace
+		if (vccString.back().m_eType == cc::plus)
+			vccString.pop_back(); // plus
+		else
+			std::cerr << "odd JK/LK coupling term in "  << i_szLabel_Kurucz << " (" << i_uiNe << ")" << std::endl;
+		if (vccString.back().m_eType == cc::number)
 		{
-			vccString.pop_back();
-			ccBack = ccBack2;
+			dK = (vccString.back().m_chValue + 1) * 0.5;
+			vccString.pop_back(); // number
+		}
+		else
+			dK = 0.5;
+		vccString.pop_back(); // brace
+		if (vccString.back().m_eType == cc::number)
+		{
+			tS = vccString.back().m_chValue;
+			vccString.pop_back(); // number
+		}
+		// handle the leading data
+		dJm1 = (2 * vccString.front().m_chValue + 1) * 0.5;
+		vccString.pop_front(); // number
+		vccString.pop_front(); // paren
+		break;
+	case cc::letter: //  "normal" 	LS coupling
+		tL = Ang_Mom_Term_To_L(vccString.back().m_chValue);
+		vccString.pop_back(); // letter
+		tS = vccString.back().m_chValue;
+		vccString.pop_back(); // number
+		break;
+	case cc::paren:
+		//@@TODO
+		// note-- jj coupling terms haven't been handled yet - I haven't yet found specific examples within the Kurucz data set to work with
+		std::cerr << "JJ coupling term probably identified, but code not currently set up to handle it.  Make appropriate changes in the Read_Kurucz_State function" << std::endl;
+		break;
+	}
+
+	if (vccString.back().m_eType == cc::splat)
+	{
+		tP = 1;
+		vccString.pop_back(); // splat
+	}
+
+	while (vccString.back().m_eType == cc::space)
+		vccString.pop_back();
+
+	vRet[0].m_uiP = tP;
+	vRet[0].m_uiS = tS;
+	vRet[0].m_uiL = tL;
+	vRet[0].m_dJ = i_dJ;
+	vRet[0].m_dK = dK;
+	if (vRet.size() > 1) // in case we are dealing with a Hydrogen like ion, don't set the J for the lower state
+		vRet[1].m_dJ = dJm1; // only for JK/LK coupling
+
+	//@@TODO: There may be other LK/JK or JJ coupling terms for lower level electrons. Here we handle only LS coupled terms
+	if (vccString.size() > 0 && vccString.front().m_eType == cc::paren) // term for next lower set of electrons
+	{
+		vccString.pop_front(); // paren
+		if (vccString.size() > 0 && vccString.front().m_eType == cc::number)
+		{
+			vRet[1].m_uiS = vccString.front().m_chValue;
+			vccString.pop_front(); // number (S term)
+			vRet[1].m_uiL = Ang_Mom_Term_To_L(vccString.front().m_chValue);
+			vccString.pop_front(); // letter
+			if (vccString.size() > 0 && vccString.front().m_eType != cc::paren)
+				std::cerr << "Unexpected front coupling term for state" << i_szLabel_Kurucz << " in electron number " << i_uiNe << "." << std::endl;
+			while (vccString.size() > 0 && vccString.front().m_eType != cc::paren)
+				vccString.pop_front(); // unknown stuff
+			if (vccString.size() > 0)
+				vccString.pop_front(); // paren
+		}
+		else
+		{
+			std::cerr << "Unidentifiable Kurucz state " << i_szLabel_Kurucz << " in electron number " << i_uiNe << "." << std::endl;
 		}
 	}
-
-
-
-	switch (ccBack.m_eType)
+	if (vccString.size() > 0 && (vccString.front().m_eType != cc::number && vccString.front().m_eType != cc::letter)) // this is probably a LK/JK or JJ coupling term
 	{
-	case cc::brace:
-		vccString.pop_back(); // plus
-		ccBack = (*vccString.rbegin()); vccString.pop_back(); // number
-		vRet[0].m_dL = (ccBack.m_chValue + 1) * 0.5;
-		vccString.pop_back(); // brace
-		ccBack = (*vccString.rbegin()); vccString.pop_back(); // number
-		vRet[0].m_uiS = ccBack.m_chValue;
-		break;
-	case cc::letter:
-		vRet[0].m_dL = Ang_Mom_Term_To_L(ccBack.m_chValue);
-		ccBack = (*vccString.rbegin()); vccString.pop_back();; // number
-		vRet[0].m_uiS = ccBack.m_chValue;
-		break;
+		std::cerr << "Unexpected front coupling term for state" << i_szLabel_Kurucz << " in electron number " << i_uiNe << "." << std::endl;
 	}
-	ccBack = (*vccString.rbegin()); vccString.pop_back();
-	if (ccBack.m_eType == cc::splat)
-		vRet[0].m_uiP = 1;
-	while (ccBack.m_eType == cc::space) // bypass spaces
-	{
-		ccBack = (*vccString.rbegin()); vccString.pop_back();
-	}
-	vccString.push_back(ccBack); // put the last item back in place
 
-	if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::paren)
+	size_t tIdx = 0;
+	while (vccString.size() > 0)
 	{
-		vRet[1].m_dL = (vccString[0].m_chValue + 1) * 0.5;
-		
-		vRet[0].m_uin = vccString[2].m_chValue;
-		vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[3].m_chValue);
-	}
-	else
-	{
-		switch (vccString.size())
+		if (vccString.back().m_eType == cc::letter)
 		{
-		case 1:
-			if (vccString[0].m_eType == cc::letter)
-				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[0].m_chValue);
-			else
-				Report_Bad_Format(lpszKurucz,vccString);
-			break;
-		case 2:
-			if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter)
-			{
-				vRet[0].m_uin = vccString[0].m_chValue;
-				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[1].m_chValue);
+			vRet[tIdx].m_uil = Ang_Mom_Term_To_L(vccString.back().m_chValue);
+			vccString.pop_back();
+			if (vccString.size() > 0 && vccString.back().m_eType == cc::number)
+			{ // e.g. 3s
+				vRet[tIdx].m_uin = vccString.back().m_chValue;
+				vccString.pop_back();
+				tIdx++;
 			}
-			else
-				Report_Bad_Format(lpszKurucz,vccString);
-			break;
-		case 3:
-			if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number)
-			{
-				vRet[0].m_uin = vccString[0].m_chValue;
-				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[1].m_chValue);
-				for (unsigned int uiI = 1; uiI < vccString[2].m_chValue; uiI++)
+			else if (vccString.size() > 0 && vccString.back().m_eType == cc::letter)
+			{ // e.g. 3sp
+				vRet[tIdx + 1].m_uil = Ang_Mom_Term_To_L(vccString.back().m_chValue);
+				vccString.pop_back();
+				if (vccString.size() > 0)
 				{
-					vRet[uiI].m_uin = vRet[0].m_uin;
-					vRet[uiI].m_uil = vRet[0].m_uil;
+					vRet[tIdx + 1].m_uin = vccString.back().m_chValue;
+					vRet[tIdx].m_uin = vccString.back().m_chValue;
+					vccString.pop_back();
 				}
+				tIdx += 2;
 			}
-			else if (vccString[0].m_eType == cc::letter && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number)
+			else if (vccString.size() > 0 && vccString.back().m_eType != cc::space)
 			{
-				unsigned int uiN0 = vRet[0].m_uin;
-				unsigned int uiNs = uiN0;
-				unsigned int uiN1,uiN2;
-				vecconfig vTest;
-				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[0].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[1].m_chValue);
-				bool bTests[7] = {false,false,false,false,false,false,false};
-
-				if (uil2 < uil1)
-				{
-					unsigned int uiswap = uil2;
-					uil2 = uil1;
-					uil1 = uiswap;
-				}
-				if (uiNs != 1)
-					uiNs--;
-				
-				unsigned int uiTest_ID = 0;
-				for (unsigned int uiN1 = uiNs; uiN1 < uiN0 + 2; uiN1++)
-				{
-					for (unsigned int uiN2 = uiNs; uiN2 < uiN0 + 2; uiN2++)
-					{
-						if (uiN1 != (uiN2 + 2) && (uiN1 + 2) != uiN2) //  make sure not to do 1s3p or 3s1p, the latter is nonsensical, the former is pretty unlikely
-						{
-							vecconfig vTest;
-							if (uiN1 == uiN2 || uiN1 < uiN2)
-							{ // e.g. 3s3p, 3s4p
-								for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN2,uil2));
-								}
-								vTest.push_back(config(uiN1,uil1));
-							}
-							else
-							{ // e.g. 3p4s
-								vTest.push_back(config(uiN1,uil1));
-								for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN2,uil2));
-								}
-							}
-
-							unsigned int uiI = 0;
-							while (vTest[uiI] >= vRet[uiI] && uiI < vTest.size())
-								uiI++;
-							bTests[uiTest_ID] = (uiI == vTest.size()); // we successfully got through and all are higher energy or equal energy of the ground state
-							uiTest_ID++;
-						}
-					}
-				}
-				unsigned int uiTest_Type = 1;
-				if (uiN0 != 1)
-				{
-					std::cout << std::endl;
-
-					if (bTests[0])
-					{
-						uiN1 = uiN2 = uiNs;
-
-					}
-					else if (bTests[2])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs;
-						uiTest_Type = 2;
-					}
-					else if (bTests[1])
-					{
-						uiN1 = uiNs;
-						uiN2 = uiNs + 1;
-					}
-					else if (bTests[3])
-					{
-						uiN1 = uiN2 = uiNs + 1;
-					}
-					else if (bTests[5])
-					{
-						uiN1 = uiNs + 2;
-						uiN2 = uiNs + 1;
-						uiTest_Type = 2;
-					}
-					else if (bTests[4])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs + 2;
-					}
-					else if (bTests[6])
-					{
-						uiN1 = uiN2 = uiNs + 2;
-					}
-					else
-					{
-						uiTest_Type = 0;
-						std::cerr << "uh oh. Unable to definitively identify state " << lpszKurucz << std::endl;
-					}
-
+				std::cerr << "Unidentifiable Kurucz state " << i_szLabel_Kurucz << " in electron number " << i_uiNe << "." << std::endl;
+			}
+		}
+		else if (vccString.back().m_eType == cc::number)
+		{
+			size_t tMult = vccString.back().m_chValue;
+			vccString.pop_back();
+			size_t tL = Ang_Mom_Term_To_L(vccString.back().m_chValue);
+			vccString.pop_back();
+			size_t tN = vRet[tIdx].m_uin;
+			if (vccString.size() > 0 && vccString.back().m_eType == cc::number)
+			{
+				cc ccBack = vccString.back();
+				vccString.pop_back();
+				if (vccString.size() > 0 && vccString.back().m_eType == cc::letter)
+				{ // this is a weird case where Kurucz lists a state as something like s2p5, potentially meaning ns2 np5, 
+				// thus, don't process it as s 2p5
+					vccString.push_back(ccBack);
 				}
 				else
-				{
-					if (bTests[0])
-					{
-						uiN1 = uiN2 = uiNs;
-
-					}
-					else if (bTests[2])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs;
-						uiTest_Type = 2;
-					}
-					else if (bTests[1])
-					{
-						uiN1 = uiNs;
-						uiN2 = uiNs + 1;
-					}
-					else if (bTests[3])
-					{
-						uiN1 = uiN2 = uiNs + 1;
-					}
-					else
-					{
-						uiTest_Type = 0;
-						std::cerr << "uh oh. Unable to definitively identify state " << lpszKurucz << std::endl;
-					}
-				}
-				if (uiTest_Type == 1)
-				{
-					vRet[0].m_uin = uiN1;
-					vRet[0].m_uil = uil1;
-					for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-					{
-						vRet[uiI + 1].m_uin = uiN2;
-						vRet[uiI + 1].m_uil = uil2;
-					}
-				}
-				else if (uiTest_Type == 2)
-				{
-					for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-					{
-						vRet[uiI].m_uin = uiN2;
-						vRet[uiI].m_uil = uil2;
-					}
-					vRet[vccString[2].m_chValue].m_uin = uiN1;
-					vRet[vccString[2].m_chValue].m_uil = uil1;
-				}
+					tN = ccBack.m_chValue;
 			}
-			else
-				Report_Bad_Format(lpszKurucz,vccString);
-			break;
-		case 4:
-			if (vccString[0].m_eType == cc::letter && vccString[1].m_eType == cc::number && vccString[2].m_eType == cc::letter && vccString[3].m_eType == cc::number)
+
+			for (size_t tX = 0; tX < tMult; tX++)
 			{
-				unsigned int uiN0 = vRet[0].m_uin;
-				unsigned int uiNs = uiN0;
-				unsigned int uiN1,uiN2;
-				vecconfig vTest;
-				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[0].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[2].m_chValue);
-				bool bTests[7] = {false,false,false,false,false,false,false};
-
-				if (uil2 < uil1)
-				{
-					unsigned int uiswap = uil2;
-					uil2 = uil1;
-					uil1 = uiswap;
-				}
-				if (uiNs != 1)
-					uiNs--;
-				
-				unsigned int uiTest_ID = 0;
-				for (unsigned int uiN1 = uiNs; uiN1 < uiN0 + 2; uiN1++)
-				{
-					for (unsigned int uiN2 = uiNs; uiN2 < uiN0 + 2; uiN2++)
-					{
-						if (uiN1 != (uiN2 + 2) && (uiN1 + 2) != uiN2) //  make sure not to do 1s3p or 3s1p, the latter is nonsensical, the former is pretty unlikely
-						{
-							vecconfig vTest;
-							if (uiN1 == uiN2 || uiN1 < uiN2)
-							{ // e.g. 3s3p, 3s4p
-								for (unsigned int uiI = 0; uiI < vccString[1].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN2,uil2));
-								}
-								for (unsigned int uiI = 0; uiI < vccString[3].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN1,uil1));
-								}
-							}
-							else
-							{ // e.g. 3p4s
-								for (unsigned int uiI = 0; uiI < vccString[3].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN1,uil1));
-								}
-								for (unsigned int uiI = 0; uiI < vccString[1].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN2,uil2));
-								}
-							}
-
-							unsigned int uiI = 0;
-							while (vTest[uiI] >= vRet[uiI] && uiI < vTest.size())
-								uiI++;
-							bTests[uiTest_ID] = (uiI == vTest.size()); // we successfully got through and all are higher energy or equal energy of the ground state
-							uiTest_ID++;
-						}
-					}
-				}
-				unsigned int uiTest_Type = 1;
-				if (uiN0 != 1)
-				{
-					std::cout << std::endl;
-
-					if (bTests[0])
-					{
-						uiN1 = uiN2 = uiNs;
-
-					}
-					else if (bTests[2])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs;
-						uiTest_Type = 2;
-					}
-					else if (bTests[1])
-					{
-						uiN1 = uiNs;
-						uiN2 = uiNs + 1;
-					}
-					else if (bTests[3])
-					{
-						uiN1 = uiN2 = uiNs + 1;
-					}
-					else if (bTests[5])
-					{
-						uiN1 = uiNs + 2;
-						uiN2 = uiNs + 1;
-						uiTest_Type = 2;
-					}
-					else if (bTests[4])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs + 2;
-					}
-					else if (bTests[6])
-					{
-						uiN1 = uiN2 = uiNs + 2;
-					}
-					else
-					{
-						uiTest_Type = 0;
-						std::cerr << "uh oh. Unable to definitively identify state " << lpszKurucz << std::endl;
-					}
-
-				}
-				else
-				{
-					if (bTests[0])
-					{
-						uiN1 = uiN2 = uiNs;
-
-					}
-					else if (bTests[2])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs;
-						uiTest_Type = 2;
-					}
-					else if (bTests[1])
-					{
-						uiN1 = uiNs;
-						uiN2 = uiNs + 1;
-					}
-					else if (bTests[3])
-					{
-						uiN1 = uiN2 = uiNs + 1;
-					}
-					else
-					{
-						uiTest_Type = 0;
-						std::cerr << "uh oh. Unable to definitively identify state " << lpszKurucz << std::endl;
-					}
-				}
-				if (uiTest_Type == 1)
-				{
-					for (unsigned int uiI = 0; uiI < vccString[1].m_chValue; uiI++)
-					{
-						vRet[uiI].m_uin = uiN2;
-						vRet[uiI].m_uil = uil2;
-					}
-					for (unsigned int uiI = 0; uiI < vccString[3].m_chValue; uiI++)
-					{
-						vRet[uiI + vccString[1].m_chValue].m_uin = uiN1;
-						vRet[uiI + vccString[1].m_chValue].m_uil = uil1;
-					}
-				}
-				else if (uiTest_Type == 2)
-				{
-					for (unsigned int uiI = 0; uiI < vccString[3].m_chValue; uiI++)
-					{
-						vRet[uiI].m_uin = uiN1;
-						vRet[uiI].m_uil = uil1;
-					}
-					for (unsigned int uiI = 0; uiI < vccString[1].m_chValue; uiI++)
-					{
-						vRet[uiI + vccString[3].m_chValue].m_uin = uiN2;
-						vRet[uiI + vccString[3].m_chValue].m_uil = uil2;
-					}
-				}
+				vRet[tIdx].m_uin = tN;
+				vRet[tIdx].m_uil = tL;
+				tIdx++;
 			}
-			else if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number && vccString[3].m_eType == cc::letter)
-			{
-				vRet[0].m_uin = vccString[2].m_chValue;
-				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[3].m_chValue);
-				vRet[1].m_uin = vccString[0].m_chValue;
-				vRet[1].m_uil = Ang_Mom_Term_To_L(vccString[1].m_chValue);
 
-				if (vRet[0] < vRet[1])
-				{
-					config cCfg = vRet[0];
-					vRet[0].m_uin = vRet[1].m_uin;
-					vRet[0].m_uil = vRet[1].m_uil;
-					vRet[1].m_uin = cCfg.m_uin;
-					vRet[1].m_uil = cCfg.m_uil;
-				}
-			}
-			else
-				Report_Bad_Format(lpszKurucz,vccString);
-			break;
-		case 6:
-			if (vccString[0].m_eType == cc::number && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number && 
-				vccString[3].m_eType == cc::space  && vccString[4].m_eType == cc::number && vccString[5].m_eType == cc::letter)
-			{
-				vRet[0].m_uin = vccString[4].m_chValue;
-				vRet[0].m_uil = Ang_Mom_Term_To_L(vccString[5].m_chValue);
-				for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-				{
-					vRet[uiI + 1].m_uin = vccString[0].m_chValue;
-					vRet[uiI + 1].m_uil = Ang_Mom_Term_To_L(vccString[1].m_chValue);
-				}
-			}
-			else if (vccString[0].m_eType == cc::letter && vccString[1].m_eType == cc::letter && vccString[2].m_eType == cc::number && 
-				vccString[3].m_eType == cc::space  && vccString[4].m_eType == cc::number && vccString[5].m_eType == cc::letter)
-			{
-				unsigned int uiN0 = vRet[0].m_uin;
-				unsigned int uiNs = uiN0;
-				unsigned int uiN1,uiN2;
-				unsigned int uiN3 = vccString[4].m_chValue;
-				vecconfig vTest;
-				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[0].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[1].m_chValue);
-				unsigned int uil3 = Ang_Mom_Term_To_L(vccString[5].m_chValue);
-				bool bTests[7] = {false,false,false,false,false,false,false};
-
-				if (uil2 < uil1)
-				{
-					unsigned int uiswap = uil2;
-					uil2 = uil1;
-					uil1 = uiswap;
-				}
-				if (uiNs != 1)
-					uiNs--;
-				
-				unsigned int uiTest_ID = 0;
-				for (unsigned int uiN1 = uiNs; uiN1 < uiN0 + 2; uiN1++)
-				{
-					for (unsigned int uiN2 = uiNs; uiN2 < uiN0 + 2; uiN2++)
-					{
-						if (uiN1 != (uiN2 + 2) && (uiN1 + 2) != uiN2) //  make sure not to do 1s3p or 3s1p, the latter is nonsensical, the former is pretty unlikely
-						{
-							vecconfig vTest;
-							if (uiN1 == uiN2 || uiN1 < uiN2)
-							{ // e.g. 3s3p, 3s4p
-								vTest.push_back(config(uiN3,uil3));
-								for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN2,uil2));
-								}
-								vTest.push_back(config(uiN1,uil1));
-							}
-							else
-							{ // e.g. 3p4s
-								vTest.push_back(config(uiN3,uil3));
-								vTest.push_back(config(uiN1,uil1));
-								for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-								{
-									vTest.push_back(config(uiN2,uil2));
-								}
-							}
-							unsigned int uiI = 0;
-							while (vTest[uiI] >= vRet[uiI] && uiI < vTest.size())
-								uiI++;
-							bTests[uiTest_ID] = (uiI == vTest.size()); // we successfully got through and all are higher energy or equal energy of the ground state
-							uiTest_ID++;
-						}
-					}
-				}
-				unsigned int uiTest_Type = 1;
-				if (uiN0 != 1)
-				{
-					if (bTests[0])
-					{
-						uiN1 = uiN2 = uiNs;
-
-					}
-					else if (bTests[2])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs;
-						uiTest_Type = 2;
-					}
-					else if (bTests[1])
-					{
-						uiN1 = uiNs;
-						uiN2 = uiNs + 1;
-					}
-					else if (bTests[3])
-					{
-						uiN1 = uiN2 = uiNs + 1;
-					}
-					else if (bTests[5])
-					{
-						uiN1 = uiNs + 2;
-						uiN2 = uiNs + 1;
-						uiTest_Type = 2;
-					}
-					else if (bTests[4])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs + 2;
-					}
-					else if (bTests[6])
-					{
-						uiN1 = uiN2 = uiNs + 2;
-					}
-					else
-					{
-						uiTest_Type = 0;
-						std::cerr << "uh oh. Unable to definitively identify state " << lpszKurucz << std::endl;
-					}
-
-				}
-				else
-				{
-					if (bTests[0])
-					{
-						uiN1 = uiN2 = uiNs;
-
-					}
-					else if (bTests[2])
-					{
-						uiN1 = uiNs + 1;
-						uiN2 = uiNs;
-						uiTest_Type = 2;
-					}
-					else if (bTests[1])
-					{
-						uiN1 = uiNs;
-						uiN2 = uiNs + 1;
-					}
-					else if (bTests[3])
-					{
-						uiN1 = uiN2 = uiNs + 1;
-					}
-					else
-					{
-						uiTest_Type = 0;
-						std::cerr << "uh oh. Unable to definitively identify state " << lpszKurucz << std::endl;
-					}
-				}
-				if (uiTest_Type == 1)
-				{
-					for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-					{
-						vRet[uiI + 1].m_uin = uiN2;
-						vRet[uiI + 1].m_uil = uil2;
-					}
-					vRet[vccString[2].m_chValue + 1].m_uin = uiN1;
-					vRet[vccString[2].m_chValue + 1].m_uil = uil1;
-				}
-				else if (uiTest_Type == 2)
-				{
-					vRet[1].m_uin = uiN1;
-					vRet[1].m_uil = uil1;
-					for (unsigned int uiI = 0; uiI < vccString[2].m_chValue; uiI++)
-					{
-						vRet[uiI + 2].m_uin = uiN2;
-						vRet[uiI + 2].m_uil = uil2;
-					}
-				}
-
-				vRet[0].m_uin = uiN3;
-				vRet[0].m_uil = uil3;
-			}
-			else if (vccString[0].m_eType == cc::paren && vccString[1].m_eType == cc::number &&
-				vccString[2].m_eType == cc::letter && vccString[3].m_eType == cc::paren &&
-				vccString[4].m_eType == cc::number && vccString[5].m_eType == cc::letter)
-			{
-				unsigned int uil1 = Ang_Mom_Term_To_L(vccString[2].m_chValue), uil2 = Ang_Mom_Term_To_L(vccString[5].m_chValue);
-				unsigned int uil3 = Ang_Mom_Term_To_L(vccString[8].m_chValue);
-
-				vRet[0].m_uin = vccString[4].m_chValue;
-				vRet[0].m_uil = uil2;
-				vRet[1].m_uiS = vccString[1].m_chValue;
-				vRet[1].m_dL = uil1;
-			}
-			else
-				Report_Bad_Format(lpszKurucz,vccString);
-			break;
-		case 5:
-		default:
-			Report_Bad_Format(lpszKurucz,vccString);
-			break;
+		}
+		else if (vccString.back().m_eType == cc::space)
+			vccString.pop_back();
+		else
+		{
+			std::cerr << "Unidentifiable data in Kurucz state " << i_szLabel_Kurucz << " in electron number " << i_uiNe << "(" << vccString.back().m_chValue << ")." << std::endl;
+			vccString.pop_back();
 		}
 	}
 

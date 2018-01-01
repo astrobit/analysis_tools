@@ -54,7 +54,7 @@ statepop::vecconfig statepop::Read_OP_State(unsigned int i_uiNe, std::string   i
 					}
 					unsigned int uiIdx = vReverse.size() - 1;
 					vReverse[uiIdx].m_uiS = uiS;
-					vReverse[uiIdx].m_dL = uiL;
+					vReverse[uiIdx].m_uiL = uiL;
 					vReverse[uiIdx].m_uiP = uiP;
 				}
 				iterI++;
@@ -83,12 +83,12 @@ statepop::vecconfig statepop::Read_OP_State(unsigned int i_uiNe, std::string   i
 				{
 					unsigned int uiIdx = vReverse.size() - 1;
 					vReverse[uiIdx].m_uiS = uin;
-					vReverse[uiIdx].m_dL = uil;
+					vReverse[uiIdx].m_uiL = uil;
 					iterI++;
 					if (iterI != i_szLabel_OP.end() && *iterI == '*')
 						vReverse[uiIdx].m_uiP = 1;
 					else
-						vReverse[uiIdx].m_uiP = 0;
+						vReverse[uiIdx].m_uiP = -0;
 //					std::cout << "S = " << uin << " L = " << uil << " P = " << vReverse[uiIdx].m_uiP << std::endl;
 					if (iterI == i_szLabel_OP.end())
 						break;
