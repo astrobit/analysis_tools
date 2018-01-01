@@ -230,10 +230,10 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 
 				fgets(lpszData,64,filePIdata); // general ion information that we don't care about right now
 				char * lpszCursor = NextNum(lpszData);
-				unsigned int uiopacity_project_state_Count = atoi(lpszCursor);
+				//unsigned int uiopacity_project_state_Count = atoi(lpszCursor);
 				//std::cout << uiopacity_project_state_Count << std::endl;
-
-				for (unsigned int uiI = 0; uiI < uiopacity_project_state_Count; uiI++)
+				bool bQuit = false;
+				while (!bQuit) //for (unsigned int uiI = 0; uiI < uiopacity_project_state_Count; uiI++)
 				{
 					fgets(lpszData,64,filePIdata);
 					lpszCursor = NextNum(lpszData);
@@ -244,43 +244,47 @@ mscs opacity_project_ion::Read_Opacity_PI_Data(void)
 					unsigned int uiP = atoi(lpszCursor);
 					lpszCursor = NextNum(lpszCursor);
 					unsigned int uiID = atoi(lpszCursor);
-
-					opacity_project_level_descriptor opldState(m_uiZ,m_uiN,uiS,uiL,uiP,uiID);
-
-					fgets(lpszData,64,filePIdata);
-					lpszCursor = NextNum(lpszData);
-					unsigned int uiEner_Count = atoi(lpszCursor);
-					lpszCursor = NextNum(lpszCursor);
-					unsigned int uiCS_Count = atoi(lpszCursor);
-
-
-					mddcs mddcsState_Data;
-					fgets(lpszData,64,filePIdata); // first one seems to be garbage?
-					lpszCursor = NextNum(lpszData);
-					long double dEnergy_State = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
-
-
-					//std::cout << uiS << " " << uiL << " " << uiP << " " << uiID << " " << dEnergy << " " << uiCS_Count << std::endl;
-		
-		//			if (uiEner_Count != uiCS_Count)
-		//				std::cerr << "Something fishy at " << uiopacity_project_state_S << " " << uiopacity_project_state_L << " " << uiopacity_project_state_P << " " << uiopacity_project_state_ID  << std::endl;
-
-					for (unsigned int uiJ = 0; uiJ < uiCS_Count; uiJ++)
+					if (uiS != 0 || uiL != 0 || uiP != 0 || uiID != 0) // 0 0 0 0  indicates end of file
 					{
+						opacity_project_level_descriptor opldState(m_uiZ,m_uiN,uiS,uiL,uiP,uiID);
+
 						fgets(lpszData,64,filePIdata);
 						lpszCursor = NextNum(lpszData);
-						long double dEnergy = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
+						unsigned int uiEner_Count = atoi(lpszCursor);
 						lpszCursor = NextNum(lpszCursor);
-						long double dCross_Section = atof(lpszCursor);
+						unsigned int uiCS_Count = atoi(lpszCursor);
 
-						//long double dOscillator_Strength = dOscillator_Strength_Constant * dCross_Section;
-						//long double dEnergy_f = dEnergy * dOscillator_Strength;
-						//std::cout << dEnergy << " " << dOscillator_Strength << " " << dEnergy_f << std::endl;
 
-						mddcsState_Data[dEnergy] = dCross_Section;
+						mddcs mddcsState_Data;
+						fgets(lpszData,64,filePIdata); // first one seems to be garbage?
+						lpszCursor = NextNum(lpszData);
+						long double dEnergy_State = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
+
+
+						//std::cout << uiS << " " << uiL << " " << uiP << " " << uiID << " " << dEnergy << " " << uiCS_Count << std::endl;
+		
+			//			if (uiEner_Count != uiCS_Count)
+			//				std::cerr << "Something fishy at " << uiopacity_project_state_S << " " << uiopacity_project_state_L << " " << uiopacity_project_state_P << " " << uiopacity_project_state_ID  << std::endl;
+
+						for (unsigned int uiJ = 0; uiJ < uiCS_Count; uiJ++)
+						{
+							fgets(lpszData,64,filePIdata);
+							lpszCursor = NextNum(lpszData);
+							long double dEnergy = atof(lpszCursor);// * g_XASTRO.k_dRy_eV; // Rydberg
+							lpszCursor = NextNum(lpszCursor);
+							long double dCross_Section = atof(lpszCursor);
+
+							//long double dOscillator_Strength = dOscillator_Strength_Constant * dCross_Section;
+							//long double dEnergy_f = dEnergy * dOscillator_Strength;
+							//std::cout << dEnergy << " " << dOscillator_Strength << " " << dEnergy_f << std::endl;
+
+							mddcsState_Data[dEnergy] = dCross_Section;
+						}
+						//printf("opload: %i %i %i%i%i %i %i\n",opldState.m_uiZ,opldState.m_uiN,opldState.m_uiS,opldState.m_uiL,opldState.m_uiP,opldState.m_uiLvl_ID,mddcsState_Data.size());
+						mscsData[opldState] = mddcsState_Data;
 					}
-
-					mscsData[opldState] = mddcsState_Data;
+					else
+						bQuit = true;
 				}
 				fclose(filePIdata);
 			}

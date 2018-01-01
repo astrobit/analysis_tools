@@ -196,6 +196,7 @@ public:
 		long double dSum = 0.0;
 		cimscs cimscsCS_Data = m_mscsPI_Cross_Sections.find(i_sState.m_opldDescriptor);
 		long double dScaling = fabs(i_dRescale_Energy_Ry / i_sState.m_dEnergy_Ry);
+		//printf("2here0 %Le %Le %i %i %i%i%i %i\n",i_dRescale_Energy_Ry,i_sState.m_dEnergy_Ry,i_sState.m_opldDescriptor.m_uiZ,i_sState.m_opldDescriptor.m_uiN,i_sState.m_opldDescriptor.m_uiS,i_sState.m_opldDescriptor.m_uiL,i_sState.m_opldDescriptor.m_uiP,i_sState.m_opldDescriptor.m_uiLvl_ID);
 		if (cimscsCS_Data != m_mscsPI_Cross_Sections.end())
 		{
 			cimddcs iterEnd = cimscsCS_Data->second.end();
@@ -205,6 +206,7 @@ public:
 			cimddcs iterIpp = iterIp;
 			if (iterIpp != iterEnd)
 				iterIpp++;
+			//printf("2here1\n");
 			for (cimddcs iterI = cimscsCS_Data->second.begin(); iterI != iterEnd; iterI++)
 			{
 				if (iterIp != iterEnd)
@@ -212,7 +214,8 @@ public:
 				if (iterIpp != iterEnd)
 					iterIpp++;
 				long double dE = iterI->first;
-				if (dE >= -i_sState.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
+				//printf("2here2 %Le\n",dE);
+				if (dE >= i_sState.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
 				{
 					long double dE_Res = dScaling * dE * g_XASTRO.k_dRy; // photon energy in erg
 					long double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
@@ -240,6 +243,7 @@ public:
 					long double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
 
 					long double dF = 4.0 * g_XASTRO.k_dpi * dJ / dE_Res * dCS * dDelta_Freq;
+					//printf("2here3 %Le %Le %Le %Le %Le %Le\n",dE_Res,dCS,dJ,dDelta_Freq,dF,dSum);
 //					printf("f(%.2e,%.2e): %.2e, %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",dE,dE_Res,dScaling,dJ_Ry,dFrequency,dCS,dE_Res,dDelta_Freq,dDelta_E,dF);
 					dSum += dF;
 				}
@@ -247,30 +251,9 @@ public:
 				iterIm = iterI;
 			}
 		}
-		else
-		{ // assume cross section of 0.01 barn
-			long double dDelta_E = 0.1 * -i_sState.m_dEnergy_Ry;
-			for (unsigned int uiI = 0; uiI < 100; uiI++)
-			{
-			//if (dE >= -i_sState.m_dEnergy_Ry) // energies below ionization threshold are included in order to approximate transitions to the continuum of states just below ionization
-			//{
-				long double dE = -i_sState.m_dEnergy_Ry + dDelta_E * uiI;
-				long double dE_Res = dScaling * dE * g_XASTRO.k_dRy;
-				long double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
-				long double dCS = 0.01 * 1e-18 * (1.0 - uiI / 99.0); // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
-				long double dJ = i_cRad.Get_Energy_Flux_freq(dFrequency,i_dRedshift);
-				long double dJ_Ry = dJ / g_XASTRO.k_dRy; // radiation field in Ry / (cm^2 s Hz)
-				// calculate step size in Ry
-				long double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
-
-				long double dF = 4.0 * g_XASTRO.k_dpi * dJ_Ry * dCS / (dE_Res) * dDelta_Freq;
-//					printf("f(%.2e,%.2e): %.2e, %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",dE,dE_Res,dScaling,dJ_Ry,dFrequency,dCS,dE_Res,dDelta_Freq,dDelta_E,dF);
-				dSum += dF;
-			}
-		}
 		return dSum;
 	}
-	long double Calc_Recombination_Rate(const opacity_project_state &i_sIonized_State, const opacity_project_state &i_sRecombined_State, const velocity_function & i_cVel_Fn, const long  & i_dRescale_Energy_Ry = -1.0) const
+	long double Calc_Recombination_Rate(const opacity_project_state &i_sIonized_State, const opacity_project_state &i_sRecombined_State, const velocity_function & i_cVel_Fn, const long double & i_dRescale_Energy_Ry = -1.0) const
 	{
 		long double dSum = 0.0;
 		long double dScaling = fabs(i_dRescale_Energy_Ry / i_sRecombined_State.m_dEnergy_Ry);
@@ -284,6 +267,7 @@ public:
 			cimddcs iterIpp = iterIp;
 			if (iterIpp != iterEnd)
 				iterIpp++;
+			//printf("1here1\n");
 			for (cimddcs iterI = cimscsCS_Data->second.begin(); iterI != iterEnd; iterI++)
 			{
 				if (iterIp != iterEnd)
@@ -297,6 +281,7 @@ public:
 					long double dFrequency = dE_erg / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
 					long double dVelocity = sqrt(fabs(dScaling * dE - i_dRescale_Energy_Ry) * 2.0 * g_XASTRO.k_dRy / g_XASTRO.k_dme);
 					long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
+					//printf("1here2 %Le %Le %Le %Le %e %e\n",dE,dVelocity,dScaling,i_dRescale_Energy_Ry,g_XASTRO.k_dRy,g_XASTRO.k_dme);
 					if (dVelocity > 0.0)
 					{
 						// calculate step size in Ry
@@ -318,13 +303,14 @@ public:
 							dDelta_E = (iterIpp->first + iterIp->first - iterIm->first - iterImm->first) / 6.0;
 						}
 						//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
-						long double ldDelta_Vel = dDelta_E / (g_XASTRO.k_dme * dVelocity);
+						long double ldDelta_Vel = dDelta_E * g_XASTRO.k_dRy / (g_XASTRO.k_dme * dVelocity);
 
 						long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
 						long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
 						long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 						long double dMW = i_cVel_Fn(dVelocity);
 						long double dF = dE_Rel * dE_Rel * dMW * dVelocity * dCS * ldDelta_Vel;
+						//printf("%Le %Le %Le %Le %Le %Le %Le %Le\n",dFrequency,dVelocity,dE_Rel,dMW,dCS,ldDelta_Vel,dF,dSum);
 
 						dSum += dF;
 					}
@@ -336,6 +322,7 @@ public:
 		}
 		else
 		{
+			printf("1ahere1\n");
 			long double dDelta_E = 0.1 * -i_sRecombined_State.m_dEnergy_Ry;
 			for (unsigned int uiI = 0; uiI < 100; uiI++)
 			{
@@ -493,7 +480,6 @@ public:
 		opacity_project_state sIonized_State = Find_State(i_opld_Ionized_State);
 		opacity_project_state sRecombined_State = Find_State(i_opld_Recombined_State);
 		return m_vopiIon_Data[i_opld_Recombined_State.m_uiN - 1].Calc_Recombination_Rate(sIonized_State, sRecombined_State, i_cVel, i_dCorrected_Energy_Ry);
-		return 0.0;
 	}
 
 };
