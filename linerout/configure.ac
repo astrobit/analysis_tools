@@ -1,6 +1,6 @@
 # Release version
 m4_define([package_version_major],[2])
-m4_define([package_version_minor],[0])
+m4_define([package_version_minor],[1])
 m4_define([package_version_micro],[0])
 m4_define([package_repository],[https://github.com/astrobit/snatk])
 m4_define([package_auth_email],[bwmulligan@astronaos.com])
@@ -40,6 +40,8 @@ AC_OPENMP #openmp required
 PKG_CHECK_MODULES([es],[es-0],[],[AC_MSG_ERROR([" Could not find libes development package (available at http://github.com/astrobit/es)"])])
 PKG_CHECK_MODULES([xio],[xio-1],[],[AC_MSG_ERROR([" Could not find xio development package (available at http://github.com/astrobit/xlibs)"])])
 PKG_CHECK_MODULES([xmath],[xmath-1],[],[AC_MSG_ERROR([" Could not find xmath development package (available at http://github.com/astrobit/xlibs)"])])
+PKG_CHECK_MODULES([xastro],[xastro-1],[],[AC_MSG_ERROR([" Could not find xastro development package (available at http://github.com/astrobit/xlibs)"])])
+
 
 AC_SUBST([radiation_CFLAGS],['-I${top_srcdir}/../radiation/include ${xastro_CFLAGS}'])
 AC_SUBST([radiation_LIBS],['${xastro_LIBS}'])

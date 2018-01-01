@@ -1,7 +1,7 @@
 # Release version
 m4_define([package_version_major],[3])
-m4_define([package_version_minor],[1])
-m4_define([package_version_micro],[1])
+m4_define([package_version_minor],[2])
+m4_define([package_version_micro],[0])
 m4_define([package_repository],[https://github.com/astrobit/snatk])
 m4_define([package_auth_email],[bwmulligan@astronaos.com])
  
@@ -67,7 +67,7 @@ ACX_DEF_LOCALLIB([msdb],[${es_CFLAGS}],[${es_LIBS}])
 ACX_DEF_LOCALLIB([epsplot],[],[${xstdlib_LIBS}])
 ACX_DEF_LOCALLIB([osc],[${jsoncpp_CFLAGS}],[${jsoncpp_LIBS}])
 ACX_DEF_LOCALLIB([opacity_project],[${xastro_CFLAGS} ${radiation_CFLAGS} ${velocity_field_CFLAGS}],[${xastro_LIBS} ${radiation_LIBS} ${velocity_field_LIBS}])
-ACX_DEF_LOCALLIB([linerout],[${xio_CFLAGS} ${xmath_CFLAGS} ${es_CFLAGS} ${radiation_CFLAGS} ${msdb_CFLAGS} ${opacity_profile_CFLAGS}],[${xastro_LIBS} ${xio_LIBS} ${xmath_LIBS} ${es_LIBS} ${radiation_LIBS} ${msdb_LIBS} ${opacity_profile_LIBS}])
+ACX_DEF_LOCALLIB([linerout],[${xio_CFLAGS} ${xmath_CFLAGS} ${es_CFLAGS} ${radiation_CFLAGS} ${velocity_field_CFLAGS} ${msdb_CFLAGS} ${opacity_profile_CFLAGS}],[${xastro_LIBS} ${xio_LIBS} ${xmath_LIBS} ${es_LIBS} ${radiation_LIBS}  ${velocity_field_LIBS} ${msdb_LIBS} ${opacity_profile_LIBS}])
 ACX_DEF_LOCALLIB([esplot],[${es_CFLAGS} ${eps_CFLAGS} ${xio_CFLAGS}],[${es_LIBS} ${eps_LIBS} ${xio_LIBS} ${xstdlib_LIBS} ${linerout_LIBS}])
 ACX_DEF_LOCALLIB([kurucz_data],[${xastro_CFLAGS} ${xmath_CFLAGS} ${linerout_CFLAGS} ${radiation_CFLAGS}],[${xastro_LIBS} ${xmath_LIBS} ${linerout_LIBS} ${radiation_LIBS}])
 

@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
-AM_CPPFLAGS = -I${srcdir}/include ${es_CFLAGS} ${epsplot_CFLAGS} ${xio_CFLAGS} ${xstdlib_CFLAGS} ${linerout_CFLAGS} ${radiation_CFLAGS} ${msdb_CFLAGS} ${opacity_profile_CFLAGS}
+AM_CPPFLAGS = -I${srcdir}/include ${es_CFLAGS} ${epsplot_CFLAGS} ${xio_CFLAGS} ${xstdlib_CFLAGS} ${linerout_CFLAGS} ${radiation_CFLAGS} ${velocity_field_CFLAGS} ${msdb_CFLAGS} ${opacity_profile_CFLAGS}
 
 lib_LTLIBRARIES = libesplot.la
 libesplot_la_SOURCES =  src/Plot_Utilities.cpp

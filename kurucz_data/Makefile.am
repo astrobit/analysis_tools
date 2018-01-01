@@ -1,10 +1,10 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
-AM_CPPFLAGS = -I${srcdir}/include -DDATADIR=\"$(pkgdatadir)\" ${es_CFLAGS} ${xastro_CFLAGS} ${radiation_CFLAGS} ${linerout_CFLAGS} ${msdb_CFLAGS} ${opacity_profile_CFLAGS} ${xmath_CFLAGS}
+AM_CPPFLAGS = -I${srcdir}/include -DDATADIR=\"$(pkgdatadir)\" ${es_CFLAGS} ${xastro_CFLAGS} ${radiation_CFLAGS} ${linerout_CFLAGS} ${msdb_CFLAGS} ${opacity_profile_CFLAGS} ${xmath_CFLAGS} ${velocity_field_CFLAGS}
 
 noinst_PROGRAMS = testkurucz
 lib_LTLIBRARIES = libkurucz_data.la
 libkurucz_data_la_SOURCES = src/kurucz_data.cpp
-libkurucz_data_la_LDFLAGS = -version-info 0:0:0
+libkurucz_data_la_LDFLAGS = -version-info 1:0:1
 
 testkurucz_SOURCES = src/testkurucz.cpp
 testkurucz_LDFLAGS = -lkurucz_data ${es_LIBS} ${xastro_LIBS} ${radiation_LIBS} ${linerout_LIBS} ${msdb_LIBS} ${opacity_profile_LIBS} ${xmath_LIBS}

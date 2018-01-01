@@ -8,6 +8,7 @@
 #include <radiation.h>
 #include <model_spectra_db.h>
 #include <opacity_profile_data.h>
+#include <velocity_function.h>
 
 double	Equivalent_Width(const XDATASET & i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
 double	Equivalent_Width(const ES::Spectrum &i_cData, double & io_dContinuum_WL_Blue, double & io_dContinuum_WL_Red, unsigned int i_uiAveraging_Length);
@@ -385,6 +386,10 @@ long double Radiation_Field_Energy_Flux_freq(const long double & i_dFrequency_Hz
 long double Lorentz_Function(const long double & i_dFrequency_Hz, const long double & i_dFrequency_Reference_Hz, const long double & i_dGamma_Hz);
 long double Line_Energy_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvData);
 long double Line_Photon_Flux_freq(const long double & i_dFrequency_Hz, const void * i_lpvData);
+
+long double Photoionization_Rate(const long double & i_dCross_Section_cm2, const long double & i_dIonization_Energy_erg,const radiation_field & i_cRadiation_Field, const long double & i_dRedshift = 0.0);
+long double Ion_Recombination_Rate(const long double & i_dCross_Section_cm2, const long double & i_dIonization_Energy_erg, const long double & i_dIonized_State_g, const long double & i_dRecombined_State_g, const velocity_function & i_cVelocity_Function, const long double & i_dRedshift = 0.0);
+
 
 double Get_Element_Number(const char * i_lpszNuclide);
 

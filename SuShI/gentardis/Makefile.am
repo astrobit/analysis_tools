@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
-AM_CPPFLAGS = -I${srcdir}/include ${es_CFLAGS} ${linerout_CFLAGS} ${xmath_CFLAGS} ${xastro_CFLAGS} ${xio_CFLAGS} ${xstdlib_CFLAGS}
+AM_CPPFLAGS = -I${srcdir}/include ${es_CFLAGS} ${linerout_CFLAGS} ${xmath_CFLAGS} ${xastro_CFLAGS} ${xio_CFLAGS} ${xstdlib_CFLAGS} ${es_CFLAGS}
 
 bin_PROGRAMS = gentardis
 
