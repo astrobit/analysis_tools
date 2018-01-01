@@ -30,6 +30,8 @@ public:
 
 	// duplicate data
 	long double m_dElement_Code;
+	unsigned int m_uiZ; // atomic number
+	unsigned int m_uiIon_State; // 0 = neutral, 1 = singly ionized, 2 = doubly ionized, etc.
 
 	inline bool operator == (const Kurucz_Level_Data & i_cRHO) const
 	{
@@ -129,7 +131,7 @@ public:
 		m_dGamma_Stark = std::stod(mysubstr(i_szLine,tPos,6));
 		m_dGamma_vdWaals = std::stod(mysubstr(i_szLine,tPos,6));
 		m_szReference = mysubstr(i_szLine,tPos,4);
-		m_cLevel_Lower.m_uiNLTE_Index = std::stoi(mysubstr(i_szLine,tPos,2)); // the n value of the lower state for some levels?
+		m_cLevel_Lower.m_uiNLTE_Index = std::stoi(mysubstr(i_szLine,tPos,2)); // the n value for levels when there are hyperfine transitions and the indicated level is the ensemble average
 		m_cLevel_Upper.m_uiNLTE_Index = std::stoi(mysubstr(i_szLine,tPos,2));
 		m_uiIsotope = std::stoi(mysubstr(i_szLine,tPos,3));
 		m_dHyperfine_Fractional_Strength = std::stod(mysubstr(i_szLine,tPos,6));
@@ -138,6 +140,18 @@ public:
 		m_cLevel_Lower.m_iHyperfine_Shift_mK = std::stoi(mysubstr(i_szLine,tPos,5));
 		m_cLevel_Upper.m_iHyperfine_Shift_mK = std::stoi(mysubstr(i_szLine,tPos,5));
 		tPos += 7;
+
+		// use the hyperfine level as state information
+		if ((m_cLevel_Lower.m_szLabel == "AVERAGE   " &&
+			m_cLevel_Upper.m_szLabel == "ENERGIES  ") ||
+			m_cLevel_Upper.m_szLabel == "CONTINUUM ") // these are used esp. for H I and He II since there are hyperfine transitions
+		{	// note: Hydrogen and He will still cause problems in level identification because of isotope information
+			char lpszn[3];
+			sprintf(lpszn,"%i",m_cLevel_Lower.m_uiNLTE_Index);
+			m_cLevel_Lower.m_szLabel = lpszn;
+			sprintf(lpszn,"%i",m_cLevel_Upper.m_uiNLTE_Index);
+			m_cLevel_Upper.m_szLabel = lpszn;
+		}
 //		tPos++; // symbol "F" for legibility
 //		m_cLevel_Lower.m_iHyperfine_F = std::stoi(mysubstr(i_szLine,tPos,1));
 //		tPos++; // Hyperfine note
@@ -157,7 +171,12 @@ public:
 
 		// duplicate element code data into level (handy for later)
 		m_cLevel_Lower.m_dElement_Code = m_dElement_Code;
+		m_cLevel_Lower.m_uiZ = floor(m_dElement_Code);
+		m_cLevel_Lower.m_uiIon_State = fmod(m_dElement_Code,1.0) * 100.0;
+
 		m_cLevel_Upper.m_dElement_Code = m_dElement_Code;
+		m_cLevel_Upper.m_uiZ = floor(m_dElement_Code);
+		m_cLevel_Upper.m_uiIon_State = fmod(m_dElement_Code,1.0) * 100.0;
 
 		 //del E / (4 pi) n2 A  = pi q^2 / (me c) f
 		//A = 4 pi^2 q^2 / (me c delE) f
