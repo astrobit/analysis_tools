@@ -357,6 +357,27 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	//
 	////////////////////////////////////////////////////////////////////////////////////////
 	FILE * fileOut = fopen("eigv.csv","wt");
+	std::map<statepop::floattype, statepop::floattype> mapIon_Fractions;
+	statepop::level_data cLevel = cStatepop.Get_Level(0);
+	std::map<statepop::floattype, std::string> mapIon_Symbol;
+	// get element atomic number and associated symbol
+	size_t tZ = 	std::floor(cLevel.ldElement_Code);
+	
+	char lpszElem[4] = {0,0,0,0};
+	xGet_Element_Symbol(tZ,lpszElem);
+
+	for (size_t tN = 0; tN < tZ; tN++)
+	{
+		statepop::floattype dElement_Code = tN * 0.01 + tZ;
+		mapIon_Fractions[dElement_Code] = 0.0;
+
+		char lpszIon[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+		xRomanNumeralGenerator(lpszIon,tN + 1);
+		char lpszStr[32];
+		sprintf(lpszStr,"%s %s",lpszElem,lpszIon);
+		mapIon_Symbol[dElement_Code] = lpszStr;
+	}
+
 	if (fileOut != nullptr)
 	{
 		fprintf(fileOut,"i, Element Code, State, J, Energy Level (Ryd), Relative Population\n");
@@ -375,9 +396,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cLevel.ldJ,
 					cLevel.ldEnergy_Level_Ryd,
 					vEig[tI]);
+			mapIon_Fractions[cLevel.ldElement_Code] += vEig[tI]; 
 		}
 		fclose(fileOut);
 		std::cout << "Eigenvalue has been output to eigv.csv" << std::endl;
+	}
+
+	FILE * fileOutIon = fopen("ion_fractions.csv","wt");
+	if (fileOutIon != nullptr)
+	{
+		fprintf(fileOutIon,"Ion, Fraction\n");
+		for (auto iterI = mapIon_Fractions.begin(); iterI != mapIon_Fractions.end(); iterI++)
+		{
+			fprintf(fileOutIon,"%s, %.17Le\n", mapIon_Symbol[iterI->first].c_str(), iterI->second);
+		}
+		fclose(fileOutIon);
 	}
 
 	statepop::vector vLines = cStatepop.Get_Relative_Line_Strengths();
@@ -409,18 +442,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				mapOpacity[cTrx.ldWavenegth_Angstroms] += vLines[tI];
 			else
 				mapOpacity[cTrx.ldWavenegth_Angstroms] = vLines[tI];
-			int iZ = floor(cTrx.ldElement_Code);
-			int iN = (cTrx.ldElement_Code  - iZ) * 100.0;
-			std::string szElem;
-			std::string szIon;
-
-			char lpszElem[4] = {0,0,0,0};
-			char lpszIon[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-			xGet_Element_Symbol(iZ,lpszElem);
-			xRomanNumeralGenerator(lpszIon,iN + 1);
-			char lpszStr[32];
-			sprintf(lpszStr,"%s %s",lpszElem,lpszIon);
-			mapOpacity_Element_Source[cTrx.ldWavenegth_Angstroms] = lpszStr;
+			mapOpacity_Element_Source[cTrx.ldWavenegth_Angstroms] = mapIon_Symbol[cTrx.ldElement_Code];
 			if (vLines[tI] > ldMax_Op)
 				ldMax_Op = vLines[tI];
 			if (cTrx.ldWavenegth_Angstroms >= 3000.0 && cTrx.ldWavenegth_Angstroms <= 10000.0)
