@@ -384,6 +384,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	//statepop::vector vB_Lines = cStatepop.Get_Boltzmann_Relative_Line_Strengths();
 	FILE * fileLines = fopen("lines.csv","wt");
 	std::map<long double, long double> mapOpacity;
+	std::map<long double, std::string> mapOpacity_Element_Source;
 	long double ldMax_Op = 0.0;
 	long double ldMax_Op_Optical = 0.0;
 	if (fileLines != nullptr)
@@ -408,9 +409,21 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				mapOpacity[cTrx.ldWavenegth_Angstroms] += vLines[tI];
 			else
 				mapOpacity[cTrx.ldWavenegth_Angstroms] = vLines[tI];
+			int iZ = floor(cTrx.ldElement_Code);
+			int iN = (cTrx.ldElement_Code  - iZ) * 100.0;
+			std::string szElem;
+			std::string szIon;
+
+			char lpszElem[4] = {0,0,0,0};
+			char lpszIon[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+			xGet_Element_Symbol(iZ,lpszElem);
+			xRomanNumeralGenerator(lpszIon,iN + 1);
+			char lpszStr[32];
+			sprintf(lpszStr,"%s %s",lpszElem,lpszIon);
+			mapOpacity_Element_Source[cTrx.ldWavenegth_Angstroms] = lpszStr;
 			if (vLines[tI] > ldMax_Op)
 				ldMax_Op = vLines[tI];
-			if (cTrx.ldWavenegth_Angstroms >= 3000.0 && cTrx.ldWavenegth_Angstroms < 10000.0)
+			if (cTrx.ldWavenegth_Angstroms >= 3000.0 && cTrx.ldWavenegth_Angstroms <= 10000.0)
 			{
 				if (vLines[tI] > ldMax_Op_Optical)
 					ldMax_Op_Optical = vLines[tI];
@@ -420,19 +433,29 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		std::cout << "Line strengths have been output to lines.csv" << std::endl;
 	}
 	FILE * fileSpecSamp = fopen("spectrum.csv","wt");
-	if (fileSpecSamp != nullptr)
+	FILE * fileSpecSampOpt = fopen("spectrum_optical.csv","wt");
+	if (fileSpecSamp != nullptr || fileSpecSampOpt != nullptr)
 	{
-		fprintf(fileSpecSamp,"wavelength [A], Rel. transmission, Rel. Transmission (optical)\n");
+		if (fileSpecSamp != nullptr)
+			fprintf(fileSpecSamp,"wavelength [A], Ion, Rel. transmission, Rel. Transmission (optical)\n");
+		if (fileSpecSampOpt != nullptr)
+			fprintf(fileSpecSampOpt,"wavelength [A], Ion, Rel. transmission, Rel. Transmission (optical)\n");
 		for (auto iterI = mapOpacity.begin(); iterI != mapOpacity.end(); iterI++)
 		{
 			long double ldTrans = 1.0;
 			ldTrans -= iterI->second / ldMax_Op;
 			long double ldTrans_Optical = 1.0;
 			ldTrans_Optical -= iterI->second / ldMax_Op_Optical;
-			fprintf(fileSpecSamp,"%.17Le, %.17Le, %.17Le\n",iterI->first,ldTrans,ldTrans_Optical);
+			if (fileSpecSamp != nullptr)
+				fprintf(fileSpecSamp,"%.17Le, %s, %.17Le, %.17Le\n",iterI->first,mapOpacity_Element_Source[iterI->first].c_str(),ldTrans,ldTrans_Optical);
+			if (fileSpecSampOpt != nullptr && iterI->first >= 3000.0 && iterI->first <= 10000.0)
+				fprintf(fileSpecSampOpt,"%.17Le, %s, %.17Le\n",iterI->first,mapOpacity_Element_Source[iterI->first].c_str(),ldTrans_Optical);
 		}
-		fclose(fileSpecSamp);
-		std::cout << "Sample spectrum has been output to spectrum.csv" << std::endl;
+		if (fileSpecSamp != nullptr)
+			fclose(fileSpecSamp);
+		if (fileSpecSampOpt != nullptr)
+			fclose(fileSpecSampOpt);
+		std::cout << "Sample spectrum has been output to spectrum.csv and spectrum_optical.csv" << std::endl;
 	}
 
 
