@@ -3,25 +3,41 @@
 
 void statepop::Reset_Param(const floattype & i_dElectron_Density_cm3, const statepop::floattype & i_dRadiation_Temperature_K, const statepop::floattype & i_dElectron_Kinetic_Temperature_K, const statepop::floattype & i_dMaterial_Velocity_km_s, const statepop::floattype & i_dPhotosphere_Velocity_km_s)
 {
-	m_cParam.dNe = i_dElectron_Density_cm3;
-	m_cParam.dMaterial_Velocity_km_s = i_dMaterial_Velocity_km_s;
-	m_cParam.dPhotosphere_Velocity_km_s = i_dPhotosphere_Velocity_km_s;
-	m_cParam.dRadiation_Temperature_K = i_dRadiation_Temperature_K;
-	m_cParam.dElectron_Kinetic_Temperature_K = i_dElectron_Kinetic_Temperature_K;
-
-	dRedshift = (m_cParam.dMaterial_Velocity_km_s - m_cParam.dPhotosphere_Velocity_km_s) * 1.0e5 / g_XASTRO.k_dc;
-	dVelocity_Ratio = m_cParam.dPhotosphere_Velocity_km_s / m_cParam.dMaterial_Velocity_km_s; // also relative ratio of radii of material and photosphere
-	// generate radiation field
-	rfPlanck.Set_Temperature(m_cParam.dRadiation_Temperature_K);
-	if (m_cParam.dElectron_Kinetic_Temperature_K == -1)
-		m_cParam.dElectron_Kinetic_Temperature_K = m_cParam.dRadiation_Temperature_K;
-	// set temperature for electrons
-	vfMaxwell.Set_Temperature(m_cParam.dElectron_Kinetic_Temperature_K);
-	// compute H and Z for each level / transition
-	kddData.Compute_H_Z(rfPlanck,dRedshift,dVelocity_Ratio * dVelocity_Ratio);
-	// regenerate the matrix
-	Generate_Matrix();
+	param i_cParam = m_cParam;
+	i_cParam.dNe = i_dElectron_Density_cm3;
+	i_cParam.dMaterial_Velocity_km_s = i_dMaterial_Velocity_km_s;
+	i_cParam.dPhotosphere_Velocity_km_s = i_dPhotosphere_Velocity_km_s;
+	i_cParam.dRadiation_Temperature_K = i_dRadiation_Temperature_K;
+	i_cParam.dElectron_Kinetic_Temperature_K = i_dElectron_Kinetic_Temperature_K;
+	Reset_Param(i_cParam);
 }
+void statepop::Reset_Param(const statepop::param & i_cParam)
+{
+	if (i_cParam.uiElement_Min_Ion_Species != i_cParam.uiElement_Min_Ion_Species ||
+		i_cParam.uiElement_Max_Ion_Species != i_cParam.uiElement_Max_Ion_Species ||
+		i_cParam.uiElement_Z != m_cParam.uiElement_Z)
+	{
+		Set_Param(i_cParam);
+	}
+	else
+	{
+		m_cParam = i_cParam;
+
+		dRedshift = (m_cParam.dMaterial_Velocity_km_s - m_cParam.dPhotosphere_Velocity_km_s) * 1.0e5 / g_XASTRO.k_dc;
+		dVelocity_Ratio = m_cParam.dPhotosphere_Velocity_km_s / m_cParam.dMaterial_Velocity_km_s; // also relative ratio of radii of material and photosphere
+		// generate radiation field
+		rfPlanck.Set_Temperature(m_cParam.dRadiation_Temperature_K);
+		if (m_cParam.dElectron_Kinetic_Temperature_K == -1)
+			m_cParam.dElectron_Kinetic_Temperature_K = m_cParam.dRadiation_Temperature_K;
+		// set temperature for electrons
+		vfMaxwell.Set_Temperature(m_cParam.dElectron_Kinetic_Temperature_K);
+		// compute H and Z for each level / transition
+		kddData.Compute_H_Z(rfPlanck,dRedshift,dVelocity_Ratio * dVelocity_Ratio);
+		// regenerate the matrix
+		Generate_Matrix();
+	}
+}
+
 
 void statepop::Set_Param(const statepop::param & i_cParam)
 {
@@ -44,12 +60,14 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 
 
 	// load Kurucz data
+	//@@TODO: warning - if reset called I'm not sure that kurucz data will reload correctly
 	kddData.Initialize(m_cParam.uiElement_Z,m_cParam.uiElement_Min_Ion_Species,m_cParam.uiElement_Max_Ion_Species);
 	kddData.Compute_H_Z(rfPlanck,dRedshift,dVelocity_Ratio * dVelocity_Ratio);
 
 	std::cout << "Initialize Opacity Project Data" << std::endl;
 
 	// load Opacity Project data
+	//@@TODO: warning - if reset called I'm not sure that opacity project data will reload correctly
 	opElement.Read_Element_Data(m_cParam.uiElement_Z);
 
 
