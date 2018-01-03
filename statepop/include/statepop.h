@@ -317,7 +317,7 @@ public:
 	void Set_Param(const param & i_cParam);
 	void Reset_Param(const param & i_cParam);
 	void Reset_Param(const floattype & i_dElectron_Density_cm3, const floattype & i_dRadiation_Temperature_K, const floattype & i_dElectron_Kinetic_Temperature_K, const floattype & i_dMaterial_Velocity_km_s, const floattype & i_dPhotosphere_Velocity_km_s);
-	param Get_Param(void){ return m_cParam;}
+	param Get_Param(void) const { return m_cParam;}
 
 		
 	vector Get_Populations(void);
