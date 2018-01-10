@@ -3,7 +3,7 @@ Some discrepancies have been found in these data in the process of using them fo
 Si I
 79338.5 cm^-1 and 79355.02 cm^-1 level were labeled as either 3d 2D or 2d 2D. Since 2d is an impossible configuration, all of those instances were relabeled as 3d 2D.
 62667.823 were labeled as either 6f [5] or 6f [7]. Martin & Zalubas (1983) list this as 6f [7] so references were updated accordingly.
-56733.380 cm^-1 was labeled as s3p3 2P; this state is not found in the Opacity Project data, and NIST lists this level as p4d 2P. Changed confiruation label to p4d 2P.
+56733.380 cm^-1 was labeled as s3p3 3P; this state is not found in the Opacity Project data, and NIST lists this level as p4d 3P. Changed confiruation label to p4d 3P.
 
 Si II
 the configuration of 149871.2 cm^-1 for the 578.5734 transition was listed as 4d' 2p instead of 4d; 2P.
