@@ -1,0 +1,31 @@
+Some discrepancies have been found in these data in the process of using them for the statepop project. The changes that I have made are listed below in this file
+
+Si I
+79338.5 cm^-1 and 79355.02 cm^-1 level were labeled as either 3d 2D or 2d 2D. Since 2d is an impossible configuration, all of those instances were relabeled as 3d 2D.
+62667.823 were labeled as either 6f [5] or 6f [7]. Martin & Zalubas (1983) list this as 6f [7] so references were updated accordingly.
+...
+
+Si II
+...
+
+Si III
+...
+
+S I
+...
+
+S II
+...
+
+Ca I
+...
+
+Ca II
+...
+
+Ca III
+...
+
+Ca IV
+...
+
