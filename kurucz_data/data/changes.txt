@@ -22,4 +22,5 @@ Some 4s" 1P J=1 levels were listed with an energy of 78286.420 cm^-1 and some wi
 
 S II
 110177.020 cm^-1 was sometimes listed as 4d 4F and sometimes as 3d 4F. Convert all to 3d 4F for consistency and to match current NIST listing.
+138061.400 cm^-1 was listed as 3p3 *3P, but s3p3 *3P is 98765 cm^-1. NIST lists 138066 as 3p3 *3S, so changed all L terms to S instead of P for this level.
 
