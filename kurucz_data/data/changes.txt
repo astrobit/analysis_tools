@@ -18,6 +18,8 @@ S I
 The 133.3758 nm transition was listed with lower state 3p4 3P (J=0, 0 cm^-1). The J=0 state is at 0.00522739 Ry, not the ground level. As the other nearby transitions (133.3774 nm and 133.3792 nm) are listed as 3p4 3P (J=2, 0 cm^-1) the J term of the 133.3758 nm transition was changed to J=2.
 The upper level of the 133.3792 nm transition was listed with an energy of 74974.200 cm^-1, yet all other instances of the 4d 5D J=3 level had an energy of 74974.170 cm^-1. Change the energy listed in the 133.3792 nm transition.
 The 746.8588 nm and 747.8594 nm transitions list their upper state as 4s' 3D. This is clearly wrong as the 4s' 3D levels lie near 67800 cm^-1 and the upper state level is listed as 76800 cm^-1. Further, the listed wavelength does not match the change in energy levels of these transitions. NIST does not list any transitions with these wavelengths, but NIST does show transitions near 2280 and 2289 that are 4p 5P -> 4s 3D. I have modified the upper state energy to be that of the 4s' 3D J=2 state which does have a listed energy of 67842.867 (the original energy level was listed as 76842.867, suggesting that this really was a typo). The wavelengths were changed to match the wavelength of transition energies with the now listed energy states (i.e. 2280.1247 nm and 2289.4737 nm). 
+Some 4s" 1P J=1 levels were listed with an energy of 78286.420 cm^-1 and some with 78288.440 cm^-1. NIST lists the state as 78288.44, so used that for all instances of the level.
+
 S II
 110177.020 cm^-1 was sometimes listed as 4d 4F and sometimes as 3d 4F. Convert all to 3d 4F for consistency and to match current NIST listing.
 
