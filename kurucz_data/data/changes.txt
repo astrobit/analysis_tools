@@ -24,3 +24,6 @@ S II
 110177.020 cm^-1 was sometimes listed as 4d 4F and sometimes as 3d 4F. Convert all to 3d 4F for consistency and to match current NIST listing.
 138061.400 cm^-1 was listed as 3p3 *3P, but s3p3 *3P is 98765 cm^-1. NIST lists 138066 as 3p3 *3S, so changed all L terms to S instead of P for this level.
 
+S V
+3p *3P was sometimes listed as 84155.200 cm^-1 and someties as 81955.0 cm^-1. NIST lists this level as 84155.2 cm^-1, so assumed that 81955 is a typo and replaced all instances with 84155.2 cm^-1.
+
