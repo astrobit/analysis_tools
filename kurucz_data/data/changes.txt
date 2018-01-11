@@ -16,6 +16,7 @@ The 204828.060 cm^-1 level was sometimes listed as 4f *1F and sometimes just as 
 S I
 79144.150  cm^-1 level was sometimes listed as 5f 5F and sometimes as 5f 3F. Convert all to 5f 3F for consistency and to match current NIST listing.
 The 133.3758 nm transition was listed with lower state 3p4 3P (J=0, 0 cm^-1). The J=0 state is at 0.00522739 Ry, not the ground level. As the other nearby transitions (133.3774 nm and 133.3792 nm) are listed as 3p4 3P (J=2, 0 cm^-1) the J term of the 133.3758 nm transition was changed to J=2.
+The upper level of the 133.3792 nm transition was listed with an energy of 74974.200 cm^-1, yet all other instances of the 4d 5D J=3 level had an energy of 74974.170 cm^-1. Change the energy listed in the 133.3792 nm transition.
 
 S II
 110177.020 cm^-1 was sometimes listed as 4d 4F and sometimes as 3d 4F. Convert all to 3d 4F for consistency and to match current NIST listing.
