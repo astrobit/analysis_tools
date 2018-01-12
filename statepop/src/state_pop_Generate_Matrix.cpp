@@ -89,6 +89,8 @@ void statepop::Generate_Matrix(void)
 		//   |                            |                           0|                            |
 		// --+----------------------------+----------------------------+----------------------------+
 
+		mpdSparse_MatrixBZ.clear();
+
 		tMatrix_Order = mapKStates.size();
 		std::cout << "Matrix size will be " << tMatrix_Order << std::endl;
 		for (auto iterI = mapKStates.begin(); iterI != mapKStates.end(); iterI++)
@@ -228,6 +230,7 @@ void statepop::Generate_Matrix(void)
 	// Generate Z and divide matrix entries by z
 	//
 	////////////////////////////////////////////////////////////////////////////////////
+	vdZ.clear();
 	for (size_t tIdx_J = 0; tIdx_J < tMatrix_Order; tIdx_J++)
 	{
 		floattype dZ = 0;
