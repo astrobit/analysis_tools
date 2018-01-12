@@ -18,7 +18,7 @@
 #include <kurucz_data.h>
 #include <ios>
 #include <opacity_project_pp.h>
-#include <sp_config.h>
+//#include <sp_config.h>
 #include <velocity_function.h>
 #include <unordered_map>
 #include <xastroion.h>
