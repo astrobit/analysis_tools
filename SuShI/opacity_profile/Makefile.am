@@ -6,6 +6,7 @@ include_HEADERS = include/opacity_profile_data.h
 lib_LTLIBRARIES = libopacity_profile.la
 libopacity_profile_la_SOURCES = src/opacity_profile.cpp src/model.cpp
 libopacity_profile_la_CXXFLAGS = -I${srcdir}/include -DDATADIR=\"$(datasubdir)\" ${xio_CFLAGS} ${xstdlib_CFLAGS}
+libopacity_profile_la_LDFLAGS = -version-info 1:0:1
 
 
 
