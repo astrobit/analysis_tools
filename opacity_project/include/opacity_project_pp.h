@@ -7,6 +7,8 @@
 #include <sstream>
 #include <velocity_function.h>
 #include <iostream>
+#include <xstdlib.h>
+
 class opacity_project_level_descriptor
 {
 public:
@@ -183,7 +185,13 @@ public:
 		if (m_msStates.count(i_opldDescriptor) == 1)
 			stateI = m_msStates.at(i_opldDescriptor);
 		else
-			std::cerr << "Failed to find state " << i_opldDescriptor.m_uiS << " " << i_opldDescriptor.m_uiL << " " << i_opldDescriptor.m_uiP << " " << i_opldDescriptor.m_uiLvl_ID << " " << m_msStates.count(i_opldDescriptor) << std::endl;
+		{
+			char lpszSymb[4];
+			char lpszNum[32];
+			xGet_Element_Symbol(m_uiZ,lpszSymb);
+			xRomanNumeralGenerator(lpszNum,m_uiZ - m_uiN + 1);
+			std::cerr << "Failed to find state " << lpszSymb << " " << lpszNum << ":" << i_opldDescriptor.m_uiS << " " << i_opldDescriptor.m_uiL << " " << i_opldDescriptor.m_uiP << " " << i_opldDescriptor.m_uiLvl_ID << " " << m_msStates.count(i_opldDescriptor) << std::endl;
+		}
 		return stateI;
 	}
 	opacity_project_state Find_State(unsigned int i_uiState_S, unsigned int i_uiState_L, unsigned int i_uiState_P, unsigned int i_uiID) const
@@ -322,7 +330,7 @@ public:
 		}
 		else
 		{
-			printf("1ahere1\n");
+			//printf("1ahere1\n");
 			long double dDelta_E = 0.1 * -i_sRecombined_State.m_dEnergy_Ry;
 			for (unsigned int uiI = 0; uiI < 100; uiI++)
 			{
@@ -445,6 +453,11 @@ public:
 	unsigned int m_uiZ;
 	std::vector<opacity_project_ion> m_vopiIon_Data;
 public:
+	void clear(void)
+	{
+		m_vopiIon_Data.clear();
+	}
+
 	void Read_Element_Data(unsigned int i_uiZ)
 	{
 		m_uiZ = i_uiZ;

@@ -4,7 +4,7 @@ AM_CPPFLAGS = -I${srcdir}/include -DDATADIR=\"$(pkgdatadir)\" ${radiation_CFLAGS
 lib_LTLIBRARIES = libopacity_project.la
 bin_PROGRAMS = opquikread op_config_reprocess testopp
 libopacity_project_la_SOURCES = src/opacity_project_pp.cpp
-libopacity_project_la_LDFLAGS = -version-info 0:0:0
+libopacity_project_la_LDFLAGS = -version-info 1:0:1
 
 include_HEADERS = include/opacity_project_pp.h
 
