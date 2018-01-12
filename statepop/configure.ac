@@ -20,6 +20,7 @@ AC_SUBST([API_VERSION],api_version)
 AC_SUBST([LIB_NAME],[sp])
 AC_SUBST([LIB_DESCRIPTION],["library of routines for determining the state populations of a set of ions"])
 AC_SUBST([LIB_REQUIRES],[])
+AC_SUBST([LIB_REQUIRES],["xio-1 >= 1.0.0 xmath-1 >= 1.0.0 es-0 >= 0.100.0 snatk-linerout-2 snatk-kurucz_data-2 snatk-opacity-project-1 >= 1.0.0 snatk-radiation-1 >= 1.0.0 snatk-velocity_field-1 >= 1.0.0 "])
 
 
 LT_INIT
