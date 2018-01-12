@@ -132,6 +132,58 @@ public:
 		unsigned int uiIdx = (unsigned int)(i_eGroup - CARBON);
 		m_dReference_Normalization_Time[uiIdx] = i_dValue;
 	}
+
+	// duplicate set using group instead of GROUP
+	double &	Get_Scalar(group i_eGroup)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		return m_dScalar[uiIdx];
+	}
+	void Set_Scalar(group i_eGroup, const double & i_dValue)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		m_dScalar[uiIdx] = i_dValue;
+	}
+	double &	Get_Density(group i_eGroup)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		return m_dReference_Density[uiIdx];
+	}
+	void Set_Density(group i_eGroup, const double & i_dValue)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		m_dReference_Density[uiIdx] = i_dValue;
+	}
+	double &	Get_Velocity(group i_eGroup)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		return m_dReference_Velocity[uiIdx];
+	}
+	void Set_Velocity(group i_eGroup, const double & i_dValue)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		m_dReference_Velocity[uiIdx] = i_dValue;
+	}
+	double &	Get_Abundance(group i_eGroup)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		return m_dReference_Abundance[uiIdx];
+	}
+	void Set_Abundance(group i_eGroup, const double & i_dValue)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		m_dReference_Abundance[uiIdx] = i_dValue;
+	}
+	double &	Get_Normalization_Time(group i_eGroup)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		return m_dReference_Normalization_Time[uiIdx];
+	}
+	void Set_Normalization_Time(group i_eGroup, const double & i_dValue)
+	{
+		unsigned int uiIdx = (unsigned int)(i_eGroup - carbon);
+		m_dReference_Normalization_Time[uiIdx] = i_dValue;
+	}
 public:
 	int	Read_Verbose(const char * i_lpszFilename)
 	{
