@@ -1,6 +1,6 @@
 #include <statepop.h>
 #include <cstring>
-
+#include <sp_config.h>
 
 class cc
 {
@@ -171,8 +171,8 @@ statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string
 		vccString.pop_back(); // brace
 		if (vccString.back().m_eType == cc::plus)
 			vccString.pop_back(); // plus
-		else
-			std::cerr << "odd JK/LK coupling term in "  << i_szLabel_Kurucz << " (" << i_uiNe << ")" << std::endl;
+		//else
+		//	std::cerr << "odd JK/LK coupling term in "  << i_szLabel_Kurucz << " (" << i_uiNe << ")" << std::endl;
 		if (vccString.back().m_eType == cc::number)
 		{
 			dK = (vccString.back().m_chValue + 1) * 0.5;
@@ -186,20 +186,25 @@ statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string
 			tS = vccString.back().m_chValue;
 			vccString.pop_back(); // number
 		}
-		// handle the leading data
-		dJm1 = (2 * vccString.front().m_chValue + 1) * 0.5;
-		vccString.pop_front(); // number
-		vccString.pop_front(); // paren
+		// handle the leading data if it is there
+		if (vccString.size() > 2 && vccString[1].m_eType == cc::paren)
+		{
+			dJm1 = (2 * vccString.front().m_chValue + 1) * 0.5;
+			vccString.pop_front(); // number
+			vccString.pop_front(); // paren
+		}
 		break;
 	case cc::letter: //  "normal" 	LS coupling
 		tL = Ang_Mom_Term_To_L(vccString.back().m_chValue);
 		vccString.pop_back(); // letter
-		tS = vccString.back().m_chValue;
+		if (vccString.back().m_eType != cc::space) // there are some instances that have a configuration with different LS coupling terms and indistinguishable energies and angular momentum terms that make it impossible to definitively identify the correct level. In this case leave out the S term and hope that the configuration can be found without it. e.g: Si III 6h 3Ho and 6h 1Ho both have a J=5 configuration with energy 242639.38 cm^-1, making them completely indistinguishable.
+			tS = vccString.back().m_chValue;
 		vccString.pop_back(); // number
 		break;
 	case cc::paren:
 		//@@TODO
 		// note-- jj coupling terms haven't been handled yet - I haven't yet found specific examples within the Kurucz data set to work with
+		// note -- 1/9/18 : the Kurucz data do not seem to have a specific way of describing jj coupled terms - they seem to use LS coupling terms for these cases instead
 		std::cerr << "JJ coupling term probably identified, but code not currently set up to handle it.  Make appropriate changes in the Read_Kurucz_State function" << std::endl;
 		break;
 	}
