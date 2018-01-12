@@ -19,7 +19,7 @@ AC_SUBST([PACKAGE_AUTH_EMAIL],package_auth_email)
 AC_SUBST([API_VERSION],api_version)
 AC_SUBST([LIB_NAME],[kurucz_data])
 AC_SUBST([LIB_DESCRIPTION],["c++ routines for reading and using data in the Kurucz line list"])
-AC_SUBST([LIB_REQUIRES],["xastro-1 >= 1.1.0 xio-1 >= 1.0.0 snatk-radiation-1 >= 1.0.0 snatk-linerout-1 >= 1.0.0"])
+AC_SUBST([LIB_REQUIRES],["xastro-1 >= 1.1.0 xio-1 >= 1.0.0 snatk-radiation-1 >= 1.0.0 snatk-linerout-2 >= 1.0.0"])
 
 
 LT_INIT

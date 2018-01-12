@@ -46,7 +46,7 @@ void kurucz_data::Load_Data(unsigned int i_uiN, unsigned int i_uiMin_Ion, unsign
 					kldCurr_Line.Process_Datafile_Line(szLine);
 					
 //						kldCurr_Line.Compute_Z(dRadiation_Temperature_K,dRedshift);
-					if (kldCurr_Line.m_uiIsotope == 0)//@@TODO - handle isotopes intelligently
+					if (kldCurr_Line.m_uiIsotope == 0 && kldCurr_Line.m_uiIsotope_Diatomics == 0)//@@TODO - handle isotopes intelligently
 						vkldIon_Line_Data.push_back(kldCurr_Line);
 					else
 						bIsotope_Warning = true;
