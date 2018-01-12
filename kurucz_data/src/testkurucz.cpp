@@ -2,20 +2,95 @@
 #include<cstdlib>
 #include <kurucz_data.h>
 
+#include <ios>
+#include <iomanip>
+#include <xstdlib.h>
+
 int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 
 	Planck_radiation_field rfPlanck(15000.0);
+	Planck_radiation_field rfPlanck2(15000.0);
 	//Maxwellian_velocity_function vfMaxwell(5800.0);
-	kurucz_derived_data kddData(20,0,2); // Hydrogen -- Ca I and Ca II
+	kurucz_derived_data kddData(20,0,5); // Ca I
 	long double ldVps = 18000.0;
 	long double ldVmat = 20000.0;
 	long double ldVel_Ratio = ldVps / ldVmat;
 	long double ldRedshift = (ldVps - ldVmat) / g_XASTRO.k_dc * 1.0e5;
-	kddData.Compute_H_Z(rfPlanck,ldRedshift,ldVel_Ratio * ldVel_Ratio);
 	printf("here\n");
 	fflush(stdout);
-	FILE * fileKD = fopen("testkd.csv","wt");
+	FILE * fileKDl = fopen("testkdl.csv","wt");
+	if (fileKDl != nullptr)
+	{
+		for (auto iterIon = kddData.m_vmklvdLevel_Data.begin(); iterIon != kddData.m_vmklvdLevel_Data.end(); iterIon++)
+		{
+			for (auto iterS = iterIon->begin(); iterS != iterIon->end(); iterS++)
+			{
+				fprintf(fileKDl,"%.2Lf, %.3Lf, %s, %.1Lf, %.4Le, %i, %i\n", 
+					iterS->second.klvdLevel_Data.m_dElement_Code,
+					iterS->second.klvdLevel_Data.m_dEnergy_Level_cm,
+					iterS->second.klvdLevel_Data.m_szLabel.c_str(),
+					iterS->second.klvdLevel_Data.m_dJ,
+					iterS->second.klvdLevel_Data.m_dGamma,
+					iterS->second.vivkldAbsorption_Transition_Data.size(),
+					iterS->second.vivkldEmission_Transition_Data.size()
+
+);
+
+			}
+		}
+		fclose(fileKDl);
+		fileKDl = nullptr;
+	}
+
+	FILE * fileKDln = fopen("testkdln.csv","wt");
+	if (fileKDln != nullptr)
+	{
+		for (auto iterIon = kddData.m_kdKurucz_Data.m_vvkldLine_Data.begin(); iterIon != kddData.m_kdKurucz_Data.m_vvkldLine_Data.end(); iterIon++)
+		{
+			for (auto iterS = iterIon->begin(); iterS != iterIon->end(); iterS++)
+			{
+				level_definition cLwr(iterS->m_cLevel_Lower);
+				level_definition cUpr(iterS->m_cLevel_Upper);
+
+				fprintf(fileKDln,"%.2Lf, %.3Lf, %.3Lf, %s, %.1Lf, %.3Lf, %.1Lf, %i, %i, %i, %.1Lf, %.3Lf, %s, %.1Lf, %.3Lf, %.1Lf, %i, %i, %i, %.1Lf, %.3Le\n", 
+					iterS->m_dElement_Code,
+					iterS->m_dWavelength_nm,
+					iterS->m_cLevel_Lower.m_dEnergy_Level_cm,
+					iterS->m_cLevel_Lower.m_szLabel.c_str(),
+					iterS->m_cLevel_Lower.m_dJ,
+					cLwr.m_dEnergy_Level_cm,
+					cLwr.m_dJ,
+					cLwr.m_tS,
+					cLwr.m_tL,
+					cLwr.m_tP,
+					cLwr.m_dK,
+					iterS->m_cLevel_Upper.m_dEnergy_Level_cm,
+					iterS->m_cLevel_Upper.m_szLabel.c_str(),
+					iterS->m_cLevel_Upper.m_dJ,
+					cUpr.m_dEnergy_Level_cm,
+					cUpr.m_dJ,
+					cUpr.m_tS,
+					cUpr.m_tL,
+					cUpr.m_tP,
+					cUpr.m_dK,
+					iterS->m_dEinstein_A);
+
+
+
+			}
+		}
+		fclose(fileKDln);
+		fileKDln = nullptr;
+	}
+
+//	return 0;//@@DEBUG
+
+
+	kddData.Compute_H_Z(rfPlanck,ldRedshift,ldVel_Ratio * ldVel_Ratio);
+	printf("here2\n");
+	fflush(stdout);
+/*	FILE * fileKD = fopen("testkd.csv","wt");
 	if (fileKD != nullptr)
 	{
 		fprintf(fileKD,"Freq (Hz), Wavelength (Angstrom), planck*Lorentz, Plank, Lorentz, BPLdf, BPLdf (SE)\n");
@@ -70,6 +145,63 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				}
 			}
 		}
+	}*/
+
+	//return 0; //@@DEBUG
+	for (size_t tZ = 3; tZ <= 92; tZ++)
+	{
+		kurucz_derived_data * PKddData = new kurucz_derived_data(tZ,0,tZ - 1);;
+		char lpszElem[4] = {0,0,0,0};
+		xGet_Element_Symbol(tZ,lpszElem);
+
+		std::cout << lpszElem << " energy test" << std::endl;
+		for (auto iterIon = PKddData->m_vmklvdLevel_Data.begin(); iterIon != PKddData->m_vmklvdLevel_Data.end(); iterIon++)
+		{
+			for (auto iterS = iterIon->begin(); iterS != iterIon->end(); iterS++)
+			{
+				for (auto iterT = iterIon->begin(); iterT != iterIon->end(); iterT++)
+				{
+					if (iterS != iterT)
+					{
+						if (iterS->second.klvdLevel_Data.m_szLabel == iterT->second.klvdLevel_Data.m_szLabel && std::fabs(iterS->second.klvdLevel_Data.m_dJ - iterT->second.klvdLevel_Data.m_dJ) < 0.1)
+						{
+							if (iterS->second.klvdLevel_Data.m_dEnergy_Level_cm < iterT->second.klvdLevel_Data.m_dEnergy_Level_cm) // so each one is only listed once
+							{
+								std::cerr << (iterS->second.klvdLevel_Data.m_uiZ + iterS->second.klvdLevel_Data.m_uiIon_State * 0.01 + 0.001) << ": Probable duplicate states " << iterS->second.klvdLevel_Data.m_szLabel << " " << iterS->second.klvdLevel_Data.m_dJ << " " << iterS->second.klvdLevel_Data.m_dEnergy_Level_cm << " & " << iterT->second.klvdLevel_Data.m_dEnergy_Level_cm << " cm^-1." << std::endl;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		for (auto iterIon = PKddData->m_kdKurucz_Data.m_vvkldLine_Data.begin(); iterIon != PKddData->m_kdKurucz_Data.m_vvkldLine_Data.end(); iterIon++)
+		{
+			for (auto iterS = iterIon->begin(); iterS != iterIon->end(); iterS++)
+			{
+				long double dWL = 1.0e7L / std::fabs(iterS->m_cLevel_Upper.m_dEnergy_Level_cm - iterS->m_cLevel_Lower.m_dEnergy_Level_cm);
+				long double ldFrac_Error = std::fabs(iterS->m_dWavelength_nm - dWL) /  dWL;
+				if (ldFrac_Error > 0.001) // relatively large energe difference in wavelength vs. transition
+				{ // 
+					long double dUpper, dLower;
+					if (iterS->m_cLevel_Lower.m_dEnergy_Level_cm < iterS->m_cLevel_Upper.m_dEnergy_Level_cm)
+					{
+						dUpper = 1.0e7L / iterS->m_dWavelength_nm + iterS->m_cLevel_Lower.m_dEnergy_Level_cm;
+						dLower = iterS->m_cLevel_Upper.m_dEnergy_Level_cm - 1.0e7L / iterS->m_dWavelength_nm;
+					}
+					else
+					{
+						dLower = 1.0e7L / iterS->m_dWavelength_nm + iterS->m_cLevel_Lower.m_dEnergy_Level_cm;
+						dUpper = iterS->m_cLevel_Upper.m_dEnergy_Level_cm - 1.0e7L / iterS->m_dWavelength_nm;
+					}
+
+					std::cerr << iterS->m_dElement_Code << " " << iterS->m_dWavelength_nm << " energy difference error. Try " << dLower << " cm^-1, " << dUpper << " cm^-1, or " << dWL << " nm." << std::endl;
+				}
+			}
+		}
+		delete PKddData;
+		PKddData = nullptr;
+
 	}
 	return 0;
 }
