@@ -1,4 +1,5 @@
 #include <statepop.h>
+#include <sp_config.h>
 
 statepop::vecconfig statepop::Read_OP_State(unsigned int i_uiNe, std::string   i_szLabel_OP)
 {
