@@ -411,10 +411,12 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			fprintf(fileOutIon,"%s, %.17Le\n", mapIon_Symbol[iterI->first].c_str(), iterI->second);
 		}
 		fclose(fileOutIon);
+		std::cout << "Ion fractions have been output to ion_fractions.csv" << std::endl;
 	}
 
 	statepop::vector vLines = cStatepop.Get_Relative_Line_Strengths();
 	//statepop::vector vB_Lines = cStatepop.Get_Boltzmann_Relative_Line_Strengths();
+	std::cout << "Retrieved line list" << std::endl;
 	FILE * fileLines = fopen("lines.csv","wt");
 	std::map<long double, long double> mapOpacity;
 	std::map<long double, std::string> mapOpacity_Element_Source;
