@@ -13,10 +13,11 @@ void statepop::Reset_Param(const floattype & i_dElectron_Density_cm3, const stat
 }
 void statepop::Reset_Param(const statepop::param & i_cParam)
 {
-	if (i_cParam.uiElement_Min_Ion_Species != i_cParam.uiElement_Min_Ion_Species ||
-		i_cParam.uiElement_Max_Ion_Species != i_cParam.uiElement_Max_Ion_Species ||
+	if (i_cParam.uiElement_Min_Ion_Species != m_cParam.uiElement_Min_Ion_Species ||
+		i_cParam.uiElement_Max_Ion_Species != m_cParam.uiElement_Max_Ion_Species ||
 		i_cParam.uiElement_Z != m_cParam.uiElement_Z)
 	{
+		std::cout << "Element information change - performing full set" << std::endl;
 		Set_Param(i_cParam);
 	}
 	else
@@ -60,14 +61,14 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 
 
 	// load Kurucz data
-	//@@TODO: warning - if reset called I'm not sure that kurucz data will reload correctly
+	kddData.clear();
 	kddData.Initialize(m_cParam.uiElement_Z,m_cParam.uiElement_Min_Ion_Species,m_cParam.uiElement_Max_Ion_Species);
 	kddData.Compute_H_Z(rfPlanck,dRedshift,dVelocity_Ratio * dVelocity_Ratio);
 
 	std::cout << "Initialize Opacity Project Data" << std::endl;
 
 	// load Opacity Project data
-	//@@TODO: warning - if reset called I'm not sure that opacity project data will reload correctly
+	opElement.clear();
 	opElement.Read_Element_Data(m_cParam.uiElement_Z);
 
 
@@ -100,6 +101,7 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 	////////////////////////////////////////////////////////////////////////////////////////
 	std::cout << "Find Ground States" << std::endl;
 
+	vdOP_Ground_State.clear();
 	for (std::vector<opacity_project_ion>::iterator iterI = opElement.m_vopiIon_Data.begin(); iterI != opElement.m_vopiIon_Data.end(); iterI++)
 	{
 		statepop::floattype dEmin = LDBL_MAX;
@@ -119,6 +121,7 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 	//
 	////////////////////////////////////////////////////////////////////////////////////////
 	tI = 0;
+	mapKStates.clear();
 	for (auto iterI = kddData.m_vmklvdLevel_Data.begin(); iterI != kddData.m_vmklvdLevel_Data.end(); iterI++)
 	{
 		for (auto iterJ = iterI->begin(); iterJ != iterI->end(); iterJ++)
@@ -141,6 +144,7 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 	mimkvldKurucz_Correlation.clear();
 	mCorrelation.clear();
 
+	vK_Configs.clear();
 	std::cout << "Mapping Kurucz -- Opacity Project" << std::endl;
 
 	for (auto iterI = mapKStates.begin(); iterI != mapKStates.end(); iterI++)
@@ -166,6 +170,7 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 	}
 
 	std::cout << "Kurucz ionization correlation" << std::endl;
+	mK_Ionized_States.clear();
 	// alternative ionization correlation; use the Kurucz configuration information to find the equivalent ionized state
 	for (auto iterI = vK_Configs.begin(); iterI != vK_Configs.end(); iterI++)
 	{
@@ -198,6 +203,7 @@ void statepop::Set_Param(const statepop::param & i_cParam)
 
 	size_t uiCount = 0;
 	double dIon_Code = 0.0;
+	vLevel_Data.clear();
 	for (auto iterI = mapKStates.begin(); iterI != mapKStates.end(); iterI++)
 	{
 		if (iterI->second.klvdLevel_Data.m_dElement_Code != dIon_Code)
