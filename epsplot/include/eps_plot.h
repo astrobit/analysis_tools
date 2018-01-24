@@ -24,6 +24,329 @@ namespace	epsplot
 	enum z_axis_scheme {rainbow,inverse_rainbow,dark_to_light,light_to_dark,two_color_transition};
 	enum z_axis_iterpolation_scheme {nearest,inverse_distance_weight_1,inverse_distance_weight_2,inverse_distance_weight_3,inverse_distance_weight_4,inverse_distance_weight_5,inverse_distance_weight_6,inverse_distance_weight_7,inverse_distance_weight_8,inverse_distance_weight_9,inverse_distance_weight_10,inverse_distance_weight_11,inverse_distance_weight_12,inverse_distance_weight_13,inverse_distance_weight_14,inverse_distance_weight_15,inverse_distance_weight_16};
 
+	class symbol_type
+	{
+	private:
+		size_t m_tCurr_Idx;
+		std::vector<SYMBOL_TYPE> m_vType_Cycle;
+	public:
+		symbol_type(void) : m_vType_Cycle(std::initializer_list<SYMBOL_TYPE>({SQUARE, CIRCLE, TRIANGLE_UP, TRIANGLE_DOWN, TRIANGLE_LEFT, TRIANGLE_RIGHT, DIAMOND, TIMES_SYMB, PLUS_SYMB, DASH_SYMB, ASTERISK_SYMB, STAR4, STAR5, STAR6}))
+
+		{
+			m_tCurr_Idx = 0;
+		}
+
+		void reset(void)
+		{
+			m_tCurr_Idx = 0;
+		}
+		std::vector<SYMBOL_TYPE> getTypeCycle(void) const{return m_vType_Cycle;}
+		void setTypeCycle(const std::vector<SYMBOL_TYPE> &i_vCycle)
+		{
+			m_vType_Cycle = i_vCycle;
+			m_tCurr_Idx = 0;
+		}
+		SYMBOL_TYPE get(void) const {if (m_tCurr_Idx < m_vType_Cycle.size()) return m_vType_Cycle[m_tCurr_Idx]; else return SQUARE;}
+		operator SYMBOL_TYPE() const {return get();}
+		void set(SYMBOL_TYPE i_eType)
+		{
+			m_tCurr_Idx = -1;
+			for (size_t tIdx = 0; tIdx < m_vType_Cycle.size() && m_tCurr_Idx == -1; tIdx++)
+			{
+				if (i_eType == m_vType_Cycle[tIdx])
+					m_tCurr_Idx = tIdx;
+			}
+			if (m_tCurr_Idx == -1) // not found
+			{
+				m_tCurr_Idx = m_vType_Cycle.size();
+				m_vType_Cycle.push_back(i_eType);
+			}
+		}
+		symbol_type operator =(SYMBOL_TYPE i_eType)
+		{
+			set(i_eType);
+			return *this;
+		}
+
+		bool operator ==(const symbol_type & i_cRHO) const
+		{
+			return get() == i_cRHO.get();
+		}
+		bool operator ==(const SYMBOL_TYPE & i_eRHO) const
+		{
+			return get() == i_eRHO;
+		}
+
+		symbol_type & operator++(int)
+		{
+			m_tCurr_Idx++;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		symbol_type & operator--(int)
+		{
+			m_tCurr_Idx--;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		symbol_type & operator++(void)
+		{
+			m_tCurr_Idx++;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		symbol_type & operator--(void)
+		{
+			m_tCurr_Idx--;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		symbol_type & operator+=(size_t i_tDelta)
+		{
+			m_tCurr_Idx += i_tDelta;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		symbol_type & operator-=(size_t i_tDelta)
+		{
+			m_tCurr_Idx -= i_tDelta;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		symbol_type operator+(size_t i_tDelta) const
+		{
+			symbol_type cRet(*this);
+			return (cRet += i_tDelta);
+		}
+		symbol_type operator-(size_t i_tDelta) const
+		{
+			symbol_type cRet(*this);
+			return (cRet -= i_tDelta);
+		}
+	};
+		
+
+	class color
+	{
+	private:
+		size_t m_tCurr_Idx;
+		std::vector<COLOR> m_vType_Cycle;
+	public:
+		color(void) : m_vType_Cycle(std::initializer_list<COLOR>({BLACK, RED, GREEN, BLUE, CYAN, YELLOW, MAGENTA, GREY_25, GREY_50, GREY_75, GRAY_25, GRAY_50, GRAY_75}))
+
+		{
+			m_tCurr_Idx = 0;
+		}
+
+		void reset(void)
+		{
+			m_tCurr_Idx = 0;
+		}
+
+		std::vector<COLOR> getTypeCycle(void) const{return m_vType_Cycle;}
+		void setTypeCycle(const std::vector<COLOR> &i_vCycle)
+		{
+			m_vType_Cycle = i_vCycle;
+			m_tCurr_Idx = 0;
+		}
+		COLOR get(void) const {if (m_tCurr_Idx < m_vType_Cycle.size()) return m_vType_Cycle[m_tCurr_Idx]; else return BLACK;}
+		operator COLOR() const {return get();}
+		void set(COLOR i_eType)
+		{
+			m_tCurr_Idx = -1;
+			for (size_t tIdx = 0; tIdx < m_vType_Cycle.size() && m_tCurr_Idx == -1; tIdx++)
+			{
+				if (i_eType == m_vType_Cycle[tIdx])
+					m_tCurr_Idx = tIdx;
+			}
+			if (m_tCurr_Idx == -1) // not found
+			{
+				m_tCurr_Idx = m_vType_Cycle.size();
+				m_vType_Cycle.push_back(i_eType);
+			}
+		}
+		color operator =(COLOR i_eType)
+		{
+			set(i_eType);
+			return *this;
+		}
+
+		bool operator ==(const color & i_cRHO) const
+		{
+			return get() == i_cRHO.get();
+		}
+		bool operator ==(const COLOR & i_eRHO) const
+		{
+			return get() == i_eRHO;
+		}
+
+		color & operator++(int)
+		{
+			m_tCurr_Idx++;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		color & operator--(int)
+		{
+			m_tCurr_Idx--;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		color & operator++(void)
+		{
+			m_tCurr_Idx++;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		color & operator--(void)
+		{
+			m_tCurr_Idx--;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		color & operator+=(size_t i_tDelta)
+		{
+			m_tCurr_Idx += i_tDelta;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		color & operator-=(size_t i_tDelta)
+		{
+			m_tCurr_Idx -= i_tDelta;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		color operator+(size_t i_tDelta) const
+		{
+			color cRet(*this);
+			return (cRet += i_tDelta);
+		}
+		color operator-(size_t i_tDelta) const
+		{
+			color cRet(*this);
+			return (cRet -= i_tDelta);
+		}
+	};
+
+	class stipple
+	{
+	private:
+		size_t m_tCurr_Idx;
+		std::vector<STIPPLE> m_vType_Cycle;
+	public:
+		stipple(void) : m_vType_Cycle(std::initializer_list<STIPPLE>({SOLID, SHORT_DASH, LONG_DASH, LONG_SHORT_DASH, DOTTED, SHORT_DASH_DOTTED, LONG_DASH_DOTTED, LONG_SHORT_DASH_DOTTED, LONG_LONG_DASH}))
+
+		{
+			m_tCurr_Idx = 0;
+		}
+
+		void reset(void)
+		{
+			m_tCurr_Idx = 0;
+		}
+
+		std::vector<STIPPLE> getTypeCycle(void) const{return m_vType_Cycle;}
+		void setTypeCycle(const std::vector<STIPPLE> &i_vCycle)
+		{
+			m_vType_Cycle = i_vCycle;
+			m_tCurr_Idx = 0;
+		}
+		STIPPLE get(void) const {if (m_tCurr_Idx < m_vType_Cycle.size()) return m_vType_Cycle[m_tCurr_Idx]; else return SOLID;}
+		operator STIPPLE() const {return get();}
+		void set(STIPPLE i_eType)
+		{
+			m_tCurr_Idx = -1;
+			for (size_t tIdx = 0; tIdx < m_vType_Cycle.size() && m_tCurr_Idx == -1; tIdx++)
+			{
+				if (i_eType == m_vType_Cycle[tIdx])
+					m_tCurr_Idx = tIdx;
+			}
+			if (m_tCurr_Idx == -1) // not found
+			{
+				m_tCurr_Idx = m_vType_Cycle.size();
+				m_vType_Cycle.push_back(i_eType);
+			}
+		}
+		stipple operator =(STIPPLE i_eType)
+		{
+			set(i_eType);
+			return *this;
+		}
+
+		bool operator ==(const stipple & i_cRHO) const
+		{
+			return get() == i_cRHO.get();
+		}
+		bool operator ==(const STIPPLE & i_eRHO) const
+		{
+			return get() == i_eRHO;
+		}
+
+		stipple & operator++(int)
+		{
+			m_tCurr_Idx++;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		stipple & operator--(int)
+		{
+			m_tCurr_Idx--;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		stipple & operator++(void)
+		{
+			m_tCurr_Idx++;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		stipple & operator--(void)
+		{
+			m_tCurr_Idx--;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		stipple & operator+=(size_t i_tDelta)
+		{
+			m_tCurr_Idx += i_tDelta;
+			if (m_tCurr_Idx > m_vType_Cycle.size())
+				m_tCurr_Idx -= m_vType_Cycle.size();
+			return *this;
+		}
+		stipple & operator-=(size_t i_tDelta)
+		{
+			m_tCurr_Idx -= i_tDelta;
+			if (m_tCurr_Idx > m_vType_Cycle.size()) // > is intended, because size_t is an unsigned type
+				m_tCurr_Idx += m_vType_Cycle.size();
+			return *this;
+		}
+		stipple operator+(size_t i_tDelta) const
+		{
+			stipple cRet(*this);
+			return (cRet += i_tDelta);
+		}
+		stipple operator-(size_t i_tDelta) const
+		{
+			stipple cRet(*this);
+			return (cRet -= i_tDelta);
+		}
+	};
 	class eps_pair
 	{
 	public:
@@ -375,6 +698,36 @@ namespace	epsplot
 			m_eType = SQUARE;
 			m_bFilled = true;
 			m_dLine_Width = -1.0;
+		}
+		void incrementTypeset(void)
+		{
+			size_t tType = ((int)m_eType - SQUARE);
+			tType++;
+			if (tType > (STAR6 - SQUARE))
+				tType = 0;
+			m_eType = (SYMBOL_TYPE)(SQUARE + tType);
+
+			size_t tColor = ((int)m_eColor - BLACK);
+			tColor++;
+			if (tColor > (GREY_75 - BLACK))
+				tColor = 0;
+			m_eColor = (COLOR)(tColor + BLACK);
+
+		}
+		void decrementTypeset(void)
+		{
+			size_t tType = ((int)m_eType - SQUARE);
+			tType--;
+			if (tType > (STAR6 - SQUARE))
+				tType = (STAR6 - SQUARE);
+			m_eType = (SYMBOL_TYPE)(SQUARE + tType);
+
+			size_t tColor = ((int)m_eColor - BLACK);
+			tColor--;
+			if (tColor > (GREY_75 - BLACK))
+				tColor = (GREY_75 - BLACK);
+			m_eColor = (COLOR)(tColor + BLACK);
+
 		}
 	};
 
