@@ -78,7 +78,7 @@ msmst opacity_project_ion::Read_Transition_Data(void)
 							lpszCursor = NextNum(lpszCursor);
 							unsigned int uiLvl2 = atoi(lpszCursor);
 							lpszCursor = NextNum(lpszCursor);
-							trxData.m_dOscillator_Strength = atof(lpszCursor);
+							trxData.m_dOscillator_Strength = std::pow(10.0,atof(lpszCursor));
 							lpszCursor = NextNum(lpszCursor);
 							trxData.m_dWeighted_Oscillator_Strength = atof(lpszCursor);
 			

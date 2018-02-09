@@ -163,5 +163,7 @@ public:
 	long double Get_Ionization_Rate(const opacity_project_level_descriptor &i_opld_State, const long double & i_dCorrected_Energy_Ry, const radiation_field & i_cRad, const long double &  i_dRedshift = 0.0) const;
 	long double Get_Recombination_Rate(const opacity_project_level_descriptor &i_opld_Ionized_State, const opacity_project_level_descriptor &i_opld_Recombined_State, const long double & i_dCorrected_Energy_Ry, const velocity_function & i_cVel) const;
 
+	opacity_project_transition Get_Transition(const opacity_project_level_descriptor &i_opld_Lower_State, const opacity_project_level_descriptor &i_opld_Upper_State) const;
+
 };
 
