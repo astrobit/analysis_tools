@@ -323,6 +323,7 @@ public:
 	vector Get_Populations(void);
 	vector Get_Relative_Line_Strengths(void);
 	vector Get_Boltzmann_Relative_Line_Strengths(void);
+	vector Get_Relaxational_Populations(size_t tNum_Iterations, const vector * i_lpStart_Condition = nullptr);
 
 	matrix Get_Matrix_B(void)
 	{
