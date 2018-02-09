@@ -9,6 +9,7 @@ std::string Kurucz_Line_Data::mysubstr(const std::string & i_szStr, size_t &tSta
 
 void Kurucz_Line_Data::Fix_Label(std::string & io_szLabel) const
 {
+	return;
 // fixes problems with the kurucz configurations
 	if (io_szLabel[0] >= 'a' && io_szLabel[0] <= 'z' &&
 		io_szLabel[1] >= '0' && io_szLabel[1] <= '9' &&
