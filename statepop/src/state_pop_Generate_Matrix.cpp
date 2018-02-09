@@ -206,11 +206,17 @@ void statepop::Generate_Matrix(void)
 							statepop::floattype dTrue_Ion_Thresh = dIon_Thresh_Ryd * dState_E_Ryd / dGround_Ryd;
 							//printf("0here8 %Le\n",dTrue_Ion_Thresh);
 							dH = opElement.Get_Recombination_Rate(mCorrelation[tIdx_I].m_opld_Main_State, mCorrelation[tIdx_J].m_opld_Main_State,dTrue_Ion_Thresh,vfMaxwell) * m_cParam.dNe * dVelocity_Ratio * dVelocity_Ratio; // velocity ratio ^2 accounts for reduction in flux due to relative radii of the gas and the photosphere
-							//printf("0here9 %Le %Le %Le\n",dH,m_cParam.dNe,dVelocity_Ratio);
+							// we must also acount for stimulated recombination -- this is related to photoionization by a factor of g_i / g_j
+							
+							dH += opElement.Get_Ionization_Rate(mCorrelation[tIdx_I].m_opld_Main_State,dTrue_Ion_Thresh,rfPlanck,dRedshift) * dVelocity_Ratio * dVelocity_Ratio * mapKStates[tIdx_I].klvdLevel_Data.m_dStat_Weight / mapKStates[tIdx_J].klvdLevel_Data.m_dStat_Weight; // velocity ratio ^2 accounts for reduction in flux due to relative radii of the gas and the photosphere
+							//printf("R  %i  %i %Le %Le %Le\n",tIdx_I,tIdx_J,dH,m_cParam.dNe,dVelocity_Ratio);
 						}
 						else
 						{
 							dH = Ion_Recombination_Rate(5.0e-18, dIon_Thresh_erg, cIonized_Level.m_dStat_Weight, cKurucz_Level.m_dStat_Weight, vfMaxwell) * m_cParam.dNe * dVelocity_Ratio * dVelocity_Ratio; // velocity ratio ^2 accounts for reduction in flux due to relative radii of the gas and the photosphere
+							dH += Photoionization_Rate(5.0e-18, dIon_Thresh_erg,rfPlanck,dRedshift) * dVelocity_Ratio * dVelocity_Ratio * mapKStates[tIdx_I].klvdLevel_Data.m_dStat_Weight / mapKStates[tIdx_J].klvdLevel_Data.m_dStat_Weight;
+
+							//printf("Rg %i  %i %Le %Le %Le\n",tIdx_I,tIdx_J,dH,m_cParam.dNe,dVelocity_Ratio);
 						}
 
 						mpdSparse_MatrixBZ[std::pair<size_t,size_t>(tIdx_J,tIdx_I)] = dH;
