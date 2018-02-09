@@ -28,8 +28,8 @@ long double opacity_project_ion::Calc_Ionizing_Rate(const opacity_project_state 
 			{
 				long double dE_Res = dScaling * dE * g_XASTRO.k_dRy; // photon energy in erg
 				long double dFrequency = dE_Res / g_XASTRO.k_dh; // rescale energy here to determine frequency of the photons we want
-				long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2/Ry; 1e-18 cm^2/Mb
-				long double dJ = i_cRad.Get_Energy_Flux_freq(dFrequency,i_dRedshift);
+				long double dCS = iterI->second * 1e-18; // calculate cross-section in cm^2; 1e-18 cm^2/Mb
+				long double dJ = i_cRad.Get_Photon_Flux_freq(dFrequency,i_dRedshift);
 				long double dJ_Ry = dJ / g_XASTRO.k_dRy; // radiation field in Ry / (cm^2 s Hz)
 				// calculate step size in Ry
 				long double dDelta_E;
@@ -51,7 +51,7 @@ long double opacity_project_ion::Calc_Ionizing_Rate(const opacity_project_state 
 				}
 				long double dDelta_Freq = fabs(dDelta_E * g_XASTRO.k_dRy * dScaling / g_XASTRO.k_dh); // need to scale here too
 
-				long double dF = 4.0 * g_XASTRO.k_dpi * dJ / dE_Res * dCS * dDelta_Freq;
+				long double dF = 4.0 * g_XASTRO.k_dpi * dJ * dCS * dDelta_Freq;
 				//printf("2here3 %Le %Le %Le %Le %Le %Le\n",dE_Res,dCS,dJ,dDelta_Freq,dF,dSum);
 //					printf("f(%.2e,%.2e): %.2e, %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",dE,dE_Res,dScaling,dJ_Ry,dFrequency,dCS,dE_Res,dDelta_Freq,dDelta_E,dF);
 				dSum += dF;

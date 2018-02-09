@@ -2,11 +2,15 @@
 
 long double opacity_project_ion::Calc_Recombination_Rate(const opacity_project_state &i_sIonized_State, const opacity_project_state &i_sRecombined_State, const velocity_function & i_cVel_Fn, const long double & i_dRescale_Energy_Ry) const
 {
+	//printf("here\n");fflush(stdout);
 	long double dSum = 0.0;
 	long double dScaling = fabs(i_dRescale_Energy_Ry / i_sRecombined_State.m_dEnergy_Ry);
+	//printf("here\n");fflush(stdout);
 	cimscs cimscsCS_Data = m_mscsPI_Cross_Sections.find(i_sRecombined_State.m_opldDescriptor);
+	//printf("here0\n");fflush(stdout);
 	if (cimscsCS_Data != m_mscsPI_Cross_Sections.end())
 	{
+		//printf("here1\n");fflush(stdout);
 		cimddcs iterEnd = cimscsCS_Data->second.end();
 		cimddcs iterIm = iterEnd;
 		cimddcs iterImm = iterEnd;
@@ -14,7 +18,7 @@ long double opacity_project_ion::Calc_Recombination_Rate(const opacity_project_s
 		cimddcs iterIpp = iterIp;
 		if (iterIpp != iterEnd)
 			iterIpp++;
-		//printf("1here1\n");
+		//printf("1here1\n");fflush(stdout);
 		for (cimddcs iterI = cimscsCS_Data->second.begin(); iterI != iterEnd; iterI++)
 		{
 			if (iterIp != iterEnd)
@@ -52,8 +56,6 @@ long double opacity_project_ion::Calc_Recombination_Rate(const opacity_project_s
 					//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
 					long double ldDelta_Vel = dDelta_E * g_XASTRO.k_dRy / (g_XASTRO.k_dme * dVelocity);
 
-					long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
-					long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
 					long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 					long double dMW = i_cVel_Fn(dVelocity);
 					long double dF = dE_Rel * dE_Rel * dMW * dVelocity * dCS * ldDelta_Vel;
@@ -83,8 +85,6 @@ long double opacity_project_ion::Calc_Recombination_Rate(const opacity_project_s
 				// calculate step size in Ry
 				//double dDelta_Freq = dDelta_E * dScaling / g_XASTRO.k_dh; // need to scale here too
 
-				long double dg_plus = i_sIonized_State.m_opldDescriptor.m_uiS + i_sIonized_State.m_opldDescriptor.m_uiL;
-				long double dg_neut = i_sRecombined_State.m_opldDescriptor.m_uiS + i_sRecombined_State.m_opldDescriptor.m_uiL;
 				long double ldDelta_Vel = dDelta_E / (g_XASTRO.k_dme * dVelocity);
 				long double dE_Rel = dE_erg / (g_XASTRO.k_dme * g_XASTRO.k_dc * dVelocity);
 				long double dFv = i_cVel_Fn(dVelocity);
