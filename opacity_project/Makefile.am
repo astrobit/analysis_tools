@@ -3,8 +3,8 @@ AM_CPPFLAGS = -I${srcdir}/include -DDATADIR=\"$(pkgdatadir)\" ${radiation_CFLAGS
 
 lib_LTLIBRARIES = libopacity_project.la
 bin_PROGRAMS = opquikread op_config_reprocess testopp
-libopacity_project_la_SOURCES = src/opacity_project_pp.cpp src/ope_clear.cpp src/ope_Find_State.cpp src/ope_Get_Ionization_Rate.cpp src/ope_Get_Recombination_Rate.cpp src/ope_Read_Element_Data.cpp src/opi_Calc_Ionizing_Rate.cpp src/opi_Calc_Recombination_Rate.cpp src/opi_constructors.cpp src/opi_Find_State.cpp src/opi_Get_State_Configuration.cpp src/opi_Read_Data.cpp src/opld_constructors.cpp src/opld_operators.cpp src/ops_constructors.cpp src/ops_operators.cpp src/opt_Calculate_Derived_Quantities.cpp
-libopacity_project_la_LDFLAGS = -version-info 1:0:1
+libopacity_project_la_SOURCES = src/opacity_project_pp.cpp src/ope_clear.cpp src/ope_Find_State.cpp src/ope_Get_Ionization_Rate.cpp src/ope_Get_Recombination_Rate.cpp src/ope_Read_Element_Data.cpp src/opi_Calc_Ionizing_Rate.cpp src/opi_Calc_Recombination_Rate.cpp src/opi_constructors.cpp src/opi_Find_State.cpp src/opi_Get_State_Configuration.cpp src/opi_Read_Data.cpp src/opld_constructors.cpp src/opld_operators.cpp src/ops_constructors.cpp src/ops_operators.cpp src/opt_Calculate_Derived_Quantities.cpp src/ope_Get_Transition.cpp
+libopacity_project_la_LDFLAGS = -version-info 2:0:2
 
 include_HEADERS = include/opacity_project_pp.h
 
