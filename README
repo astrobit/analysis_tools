@@ -1,0 +1,32 @@
+snatk is a set of analysis tools developed by Brian W. Mulligan for processing information related to supernovae. 
+Many of the tools are related to working with the compact-circumstellar shell interaction model (Mulligan & Wheeler, 2017). Those specific tools are located in the SuShI (supernova-shell interation).
+There are a variety of tools that are less specific to that model, and many tools dedicated to working with syn++ output, and spectra.
+
+statepop is tool that is curently being devleoped that determines the state populations for a single element across all or many ion species in the regime of a strong radiation field.
+
+Prerequisites:
+	autotools
+	pkg-config
+	libtool
+	openmp compatable compiler
+	HDF5
+	jsoncpp
+	yamlcpp
+	es / syn++ (Important: you need my fork to get the library: https://github.com/astrobit/es)
+	xlibs (https://github.com/astrobit/xlibs)
+	BWM801 engine (https://github.com/Astronaos/BWM801) -- optional: required for some interative SuShI tools
+
+
+Installation:
+	mkdir mk4
+	libtoolize	
+	aclocal
+	automake --add-missing
+	autoconf
+	./configure --prefix=/your/local/install/path
+	make
+	make install
+
+If you prefer to install to /usr you may leave out the --prefix part of the ./configure line.
+
+
