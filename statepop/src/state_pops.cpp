@@ -341,6 +341,47 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		fclose(fileMatB);
 	}
 
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output matrix to matrixa.csv
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+	FILE * fileMatBmat = fopen("matrixb.m","wt");
+
+	if (fileMatBmat != nullptr)
+	{
+		size_t tIdx = 0;
+		fprintf(fileMatBmat,"A = {");
+		for (size_t tIdx_I = 0; tIdx_I < smB.size(); tIdx_I++) // row
+		{
+			if (tIdx_I > 0)
+				fprintf(fileMatBmat,", ");
+			fprintf(fileMatBmat,"{");
+			for (size_t tIdx_J = 0; tIdx_J < smB.size(); tIdx_J++)// column
+			{
+				if (tIdx_J > 0)
+					fprintf(fileMatBmat,", ");
+				if (smB.Get(tIdx_I,tIdx_J) == 0.0)
+					fprintf(fileMatBmat,"0.00");
+				else
+				{
+					int iExp;
+					statepop::floattype dSig = std::frexp(smB.Get(tIdx_I,tIdx_J),&iExp);
+					fprintf(fileMatBmat,"%.17Lf*2^%i",dSig,iExp);
+				}
+			}
+			fprintf(fileMatBmat,"}");
+		}
+		fprintf(fileMatBmat,"};\n");
+		fprintf(fileMatBmat,"G = Eigenvectors[A];\n");
+		fprintf(fileMatBmat,"V = Eigenvalues[A];\n");
+		fprintf(fileMatBmat,"Print[Length[V]]\n");
+		fprintf(fileMatBmat,"Print[A]\n");
+		fprintf(fileMatBmat,"Print[]\n");
+		fprintf(fileMatBmat,"For[ii=1,ii<=Length[V],ii++,Print[ii];Print[];Print[V[[ii]]];Print[];Print[G[[All,ii]]]]\n");
+		fclose(fileMatBmat);
+	}
+
 	//xvector_long vX = smB.Get_Eigenvector(1.0);
 	//printf("spX\n");
 	//vX.Print();
@@ -350,6 +391,31 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	//
 	////////////////////////////////////////////////////////////////////////////////////////
 	statepop::vector vEig = cStatepop.Get_Populations();
+	statepop::vector vEig_R = cStatepop.Get_Relaxational_Populations(1,&vEig);
+
+	////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// Output matrix to rates.csv
+	//
+	////////////////////////////////////////////////////////////////////////////////////////
+	FILE * fileRates = fopen("rates.csv","wt");
+
+	if (fileRates != nullptr)
+	{
+		size_t tIdx = 0;
+		for (size_t tIdx_I = 0; tIdx_I < smB.size(); tIdx_I++) // row
+		{
+			for (size_t tIdx_J = 0; tIdx_J < smB.size(); tIdx_J++)// column
+			{
+				if (tIdx_J > 0)
+					fprintf(fileRates,", ");
+				fprintf(fileRates,"%.20Le",smB.Get(tIdx_I,tIdx_J) * vEig.Get(tIdx_J));
+			}
+			fprintf(fileRates,"\n");
+		}
+		fclose(fileRates);
+	}
+
 
 	////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -399,7 +465,30 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			mapIon_Fractions[cLevel.ldElement_Code] += vEig[tI]; 
 		}
 		fclose(fileOut);
+		fileOut = nullptr;
 		std::cout << "Eigenvalue has been output to eigv.csv" << std::endl;
+	}
+
+	FILE * fileOutR = fopen("eigvr.csv","wt");
+
+	if (fileOutR != nullptr)
+	{
+		fprintf(fileOutR,"i, Element Code, State, J, Energy Level (Ryd), Relative Population\n");
+ 		// write out the normalized best eigenvector to eigv.csv, with state information
+		unsigned int uiCount = 0;
+		for (size_t tI = 0; tI < vEig_R.size(); tI++)
+		{
+			statepop::level_data cLevel = cStatepop.Get_Level(tI);
+			fprintf(fileOutR,"%i, %.2Lf, %s, %.1Lf, %.5Lf, %.17Le\n",
+					tI,
+					cLevel.ldElement_Code,
+					cLevel.szLabel.c_str(),
+					cLevel.ldJ,
+					cLevel.ldEnergy_Level_Ryd,
+					vEig_R[tI]);
+		}
+		fclose(fileOutR);
+		std::cout << "Relaxational Eigenvalue has been output to eigvr.csv" << std::endl;
 	}
 
 	FILE * fileOutIon = fopen("ion_fractions.csv","wt");
@@ -453,7 +542,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					ldMax_Op_Optical = vLines[tI];
 			}
 		}
-		fclose(fileOut);
+		fclose(fileLines);
 		std::cout << "Line strengths have been output to lines.csv" << std::endl;
 	}
 	FILE * fileSpecSamp = fopen("spectrum.csv","wt");

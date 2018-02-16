@@ -31,5 +31,36 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 	printf("%Le %Le\n",ldIon,ldRecombine);
 
 
+	opacity_project_element cH;
+	rfPlanck.Set_Temperature(3000.0);
+	vfMaxwell.Set_Temperature(3000.0);
+	cH.Read_Element_Data(1);
+	cLevel_Neut.m_uiZ = 1;
+	cLevel_Neut.m_uiN = 1;
+	cLevel_Neut.m_uiS = 2;
+	cLevel_Neut.m_uiL = 0;
+	cLevel_Neut.m_uiP = 0;
+	cLevel_Neut.m_uiLvl_ID = 1;
+	cLevel.m_uiZ = 1;
+	cLevel.m_uiN = 0;
+	cLevel.m_uiS = 2;
+	cLevel.m_uiL = 0;
+	cLevel.m_uiP = 0;
+	cLevel.m_uiLvl_ID = 1;
+	ldIon = cH.Get_Ionization_Rate(cLevel_Neut,13.605693009  / g_XASTRO.k_dRy_eV,rfPlanck,0.0);
+	ldRecombine = cH.Get_Recombination_Rate(cLevel,cLevel_Neut,13.605693009 / g_XASTRO.k_dRy_eV,vfMaxwell) * ldNe;
+	printf("H: %Le %Le\n",ldIon,ldRecombine);
+
+	rfPlanck.Set_Temperature(15000.0);
+	vfMaxwell.Set_Temperature(15000.0);
+	ldIon = cH.Get_Ionization_Rate(cLevel_Neut,13.605693009  / g_XASTRO.k_dRy_eV,rfPlanck,0.0);
+	ldRecombine = cH.Get_Recombination_Rate(cLevel,cLevel_Neut,13.605693009 / g_XASTRO.k_dRy_eV,vfMaxwell) * ldNe;
+	printf("H: %Le %Le\n",ldIon,ldRecombine);
+
+
+
+	
+
+
 	return 0;
 }

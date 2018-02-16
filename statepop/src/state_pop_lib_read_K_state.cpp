@@ -320,7 +320,27 @@ statepop::vecconfig statepop::Read_Kurucz_State(unsigned int i_uiNe, std::string
 		}
 	}
 
-	
+	// sometimes the Kurucz configuration is backwards, for example 3d 4s should be 4s 3d. Do a bubble sort to make sure that states are ordered correctly
+	for (size_t tJ = 0; tJ < vRet.size(); tJ++) // iterate multiple times. This is overkill since it is likely that only a handful are misordered, but its easy to code :p
+	{
+		for (size_t tI = 1; tI < vRet.size(); tI++)
+		{
+			size_t tLN = vRet[tI].m_uin + vRet[tI].m_uil;
+			size_t tLNm1 = vRet[tI - 1].m_uin + vRet[tI - 1].m_uil;
+			bool bSwap = (tLNm1 < tLN) || // obvious misorder - swap
+							(tLN == tLNm1 && vRet[tI - 1].m_uin < vRet[tI].m_uin);
+
+			if (bSwap)
+			{
+				unsigned int tn = vRet[tI].m_uin;
+				unsigned int tl = vRet[tI].m_uil;
+				vRet[tI].m_uin = vRet[tI-1].m_uin;
+				vRet[tI].m_uil = vRet[tI-1].m_uil;
+				vRet[tI-1].m_uin = tn;
+				vRet[tI-1].m_uil = tl;
+			}
+		}
+	}
 //	std::cout << lpszKurucz << " --> ";
 //	Print_Config_Vector(vRet);
 

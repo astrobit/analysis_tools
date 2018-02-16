@@ -2,6 +2,18 @@
 
 #include <cstring>
 
+
+char * NextNum(char * i_lpszCursor)
+{
+	char * lpszRet = i_lpszCursor;
+	while (lpszRet[0] != 0 && (lpszRet[0] != ' ' && lpszRet[0] != '\t'))
+		lpszRet++;
+	while (lpszRet[0] != 0 && (lpszRet[0] == ' ' || lpszRet[0] == '\t'))
+		lpszRet++;
+	return lpszRet;
+}
+
+
 msmst opacity_project_ion::Read_Transition_Data(void)
 {
 	msmst msmstData;
@@ -66,7 +78,7 @@ msmst opacity_project_ion::Read_Transition_Data(void)
 							lpszCursor = NextNum(lpszCursor);
 							unsigned int uiLvl2 = atoi(lpszCursor);
 							lpszCursor = NextNum(lpszCursor);
-							trxData.m_dOscillator_Strength = atof(lpszCursor);
+							trxData.m_dOscillator_Strength = std::pow(10.0,atof(lpszCursor));
 							lpszCursor = NextNum(lpszCursor);
 							trxData.m_dWeighted_Oscillator_Strength = atof(lpszCursor);
 			
