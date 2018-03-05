@@ -27,3 +27,6 @@ S II
 S V
 3p *3P was sometimes listed as 84155.200 cm^-1 and someties as 81955.0 cm^-1. NIST lists this level as 84155.2 cm^-1, so assumed that 81955 is a typo and replaced all instances with 84155.2 cm^-1.
 
+Fe I
+The d7 (4Fj) 4f .. states were listed as (4Fj/4f); changed to (4Fj)4f for consistency with all other configurations.
+
