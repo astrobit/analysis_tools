@@ -30,3 +30,6 @@ S V
 Fe I
 The d7 (4Fj) 4f .. states were listed as (4Fj/4f); changed to (4Fj)4f for consistency with all other configurations.
 
+C I
+One 103541 cm^-1 was labeled p3S instead of p3s; changed to p3s for consistency
+
