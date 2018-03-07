@@ -33,3 +33,6 @@ The d7 (4Fj) 4f .. states were listed as (4Fj/4f); changed to (4Fj)4f for consis
 C I
 One 103541 cm^-1 was labeled p3S instead of p3s; changed to p3s for consistency
 
+Ca II
+The 227444.000 cm^-1 and 230224.000 cm^-1 levels were labeled in the file as "p5s2 2P", which is ambiguous ("p 5s2" or "p5 s2") and inconsistent with most cases that do not include the principal quantum numbers (usually p5s indicates p 5s). Relabeled to p5 4s2 2P for clarity (and easier parsing).
+
