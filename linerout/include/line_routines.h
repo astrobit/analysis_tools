@@ -217,19 +217,6 @@ public:
 	}
 };
 
-enum ABUNDANCE_TYPE {Solar,Seitenzahl_N100_2013,CO_Rich,Seitenzahl_Ca_Rich};
-
-class ABUNDANCE_LIST
-{
-public:
-	double	m_dAbundances[128]; // ordered by z; neutrons not included; no differentiation between isotopes
-	double	m_dUncertainties[128];
-
-	void	Read_Table(const char * i_lpszFilename);
-	void	Read_Table(ABUNDANCE_TYPE i_eType);
-	void	Normalize_Groups(void);
-};
-
  // parameters for fitting a gaussian to a spectral absorption feature
 
 class gauss_fit_parameters

@@ -1,6 +1,6 @@
 # Release version
-m4_define([package_version_major],[3])
-m4_define([package_version_minor],[6])
+m4_define([package_version_major],[4])
+m4_define([package_version_minor],[0])
 m4_define([package_version_micro],[0])
 m4_define([package_repository],[https://github.com/astrobit/snatk])
 m4_define([package_auth_email],[bwmulligan@astronaos.com])
@@ -63,6 +63,7 @@ AC_SUBST([opacity_profile_LIBS],['-L${top_srcdir}/SuShI/opacity_profile -lopacit
 
 
 ACX_DEF_LOCALLIB([statepop],[],[],[],[sp])
+ACX_DEF_LOCALLIB([abundance],[],[${xio_LIBS} ${xstdlib_LIBS}])
 ACX_DEF_LOCALLIB([msdb],[${es_CFLAGS}],[${es_LIBS}])
 ACX_DEF_LOCALLIB([epsplot],[],[${xstdlib_LIBS}])
 ACX_DEF_LOCALLIB([osc],[${jsoncpp_CFLAGS}],[${jsoncpp_LIBS}])
@@ -71,6 +72,7 @@ ACX_DEF_LOCALLIB([linerout],[${xio_CFLAGS} ${xmath_CFLAGS} ${es_CFLAGS} ${radiat
 ACX_DEF_LOCALLIB([esplot],[${es_CFLAGS} ${eps_CFLAGS} ${xio_CFLAGS}],[${es_LIBS} ${eps_LIBS} ${xio_LIBS} ${xstdlib_LIBS} ${linerout_LIBS}])
 ACX_DEF_LOCALLIB([kurucz_data],[${xastro_CFLAGS} ${xmath_CFLAGS} ${linerout_CFLAGS} ${radiation_CFLAGS}],[${xastro_LIBS} ${xmath_LIBS} ${linerout_LIBS} ${radiation_LIBS}])
 
+AC_CONFIG_SUBDIRS([abundance])
 AC_CONFIG_SUBDIRS([msdb])
 AC_CONFIG_SUBDIRS([radiation])
 AC_CONFIG_SUBDIRS([velocityfield])
