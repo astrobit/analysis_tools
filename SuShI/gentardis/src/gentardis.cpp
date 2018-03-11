@@ -384,7 +384,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 							dLuminosity = (g_cPereira_Data[tLum_Idx].m_dLog_Luminosity - g_cPereira_Data[tLum_Idx - 1].m_dLog_Luminosity) / (g_cPereira_Data[tLum_Idx].m_dEpoch - g_cPereira_Data[tLum_Idx - 1].m_dEpoch) * (uiDay - g_cPereira_Data[tLum_Idx - 1].m_dEpoch) + g_cPereira_Data[tLum_Idx - 1].m_dLog_Luminosity;
 						}
 					}
-					fprintf(fileYml,lpszYML_File,dLuminosity,(double)uiDay,dPS_Vel,dVmax*1e-5,lpszAbundance_File);
+					double dDay = uiDay;
+					fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmax*1e-5,lpszAbundance_File);
 					fclose(fileYml);
 				}
 				if (fileDensity)
