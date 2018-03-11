@@ -59,7 +59,7 @@ snatk_abundances::abundances::abundances(void)
 					std::string sName = sFilename.substr(0,tExtPos);
 					char lpszPath[512];
 					snatk_abundances::abundance_list cAbd;
-					sprintf(lpszPath,"%s/%s",lpszData_Path,dirEnt->d_name);
+					sprintf(lpszPath,"%s/%s",lpszUser_Abd_Dir,dirEnt->d_name);
 					cAbd.Read_Table(lpszPath);
 					m_mapAbundance[sName] = cAbd;
 				}
