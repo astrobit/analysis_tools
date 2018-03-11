@@ -166,6 +166,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	size_t uiDay_Start = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-start", 1);
 	size_t uiDay_End = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-end", 24);
 	size_t uiDay_Only = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day", -1);
+	bool bInhibit_Shell = xParse_Command_Line_Exists(i_iArg_Count,i_lpszArg_Values,"--inhibit-shell");
+	
 	if (uiDay_Only != -1)
 	{
 		uiDay_Start = uiDay_End = uiDay_Only;
@@ -262,7 +264,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 
 			cCombined_Data.Allocate(NUM_ZONES,29);
 			unsigned int uiMax_Abd;
-			bool bShell = (cShell.Get_Num_Rows() != 0);
+			bool bShell = (cShell.Get_Num_Rows() != 0 && !bInhibit_Shell);
 			if (bShell)
 				uiMax_Abd = vcShell_Abundance_Name.size();
 			else
