@@ -102,6 +102,8 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 				dC += (1.0 - dTot_Abd) * 0.5;
 				dO += (1.0 - dTot_Abd) * 0.5;
 			}
+			if (uiVout_Idx == NUM_ZONES)
+				uiVout_Idx--;
 			for (unsigned int uiJ = uiVin_Idx; uiJ <= uiVout_Idx; uiJ++) 
 			{
 				double dC_vel = io_cResampled.Get_Element_Double(uiJ,6);
@@ -134,6 +136,8 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 		}
 		else
 		{
+			if (uiVout_Idx == NUM_ZONES)
+				uiVout_Idx--;
 			for (unsigned int uiJ = uiVin_Idx; uiJ <= uiVout_Idx; uiJ++) 
 			{
 				for (unsigned int uiK = 1; uiK <= 28; uiK++)
@@ -159,6 +163,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	size_t uiFile_Num = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--chkpt", -1);
 	std::string szShell_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--shell-abund", std::string("all"));
 	std::string szEjecta_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ejecta-abund", std::string("Seitenzahl_N100_2013"));
+	size_t uiDay_Start = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-start", 1);
+	size_t uiDay_End = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-end", 24);
+	size_t uiDay_Only = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day", -1);
+	if (uiDay_Only != -1)
+	{
+		uiDay_Start = uiDay_End = uiDay_Only;
+	}
+	if (uiDay_End > 24)
+		uiDay_End = 24;
 
 	if (uiFile_Num != -1)
 	{
@@ -212,7 +225,6 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		sprintf(lpszFilename,"ejecta%04i.xdataset",uiFile_Num);
 		cEjecta.Read_xdataset(lpszFilename);
 
-
 		if (cEjecta.Get_Num_Rows() > 0)
 		{
 			sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
@@ -248,7 +260,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				}
 			}
 
-			cCombined_Data.Allocate(29,NUM_ZONES);
+			cCombined_Data.Allocate(NUM_ZONES,29);
 			unsigned int uiMax_Abd;
 			bool bShell = (cShell.Get_Num_Rows() != 0);
 			if (bShell)
@@ -257,14 +269,20 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				uiMax_Abd = 1;
 			for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
 			{
+				printf("Processing Abundance Type %s\n",vcShell_Abundance_Name[uiAbd].c_str());
 				snatk_abundances::abundance_list cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
 				cCombined_Data.Zero(); // make sure all abundances are 0
+				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+				{
+					for (unsigned int uiJ = 0; uiJ < 29; uiJ++)
+						cCombined_Data.Set_Element(uiI,uiJ,0.0);
+
+				}
 				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 				{
 					cCombined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
 
 				}
-
 				Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
 				if (bShell)
 					Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
@@ -327,13 +345,12 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					}
 					fprintf(fileAbundance,"\n");
 				}
-				for (unsigned int uiDay = 0; uiDay < 3; uiDay++)
+				for (unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
 				{
 					char lpszFilename[32];
 					char lpszAbundance_File[32];
 					FILE * fileYml = NULL;
-					unsigned int uiEpoch_Int = (unsigned int)(g_cPereira_Data[uiDay].m_dEpoch);
-					sprintf(lpszFilename,"tardis/d%02i",uiEpoch_Int);
+					sprintf(lpszFilename,"tardis/d%02i",uiDay);
 					strcpy(lpszAbundance_File,"abundance");
 					if (bShell)
 					{
@@ -348,17 +365,26 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					double	dPS_Vel = -1.0;
 					for (unsigned int uiPS_Idx = 0; uiPS_Idx < cPhotosphere.Get_Num_Rows() && dPS_Vel < 0.0; uiPS_Idx++)
 					{
-						if (g_cPereira_Data[uiDay].m_dEpoch <= cPhotosphere.Get_Element_Double(uiPS_Idx,0))
+						if (uiDay <= cPhotosphere.Get_Element_Double(uiPS_Idx,0))
 						{		// 3rd ion state
 							if (uiPS_Idx > 0)
-								dPS_Vel = (cPhotosphere.Get_Element_Double(uiPS_Idx,3) - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,3)) * (g_cPereira_Data[uiDay].m_dEpoch - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,0)) / (cPhotosphere.Get_Element_Double(uiPS_Idx,0) - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,0)) + cPhotosphere.Get_Element_Double(uiPS_Idx - 1,3);
+								dPS_Vel = (cPhotosphere.Get_Element_Double(uiPS_Idx,3) - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,3)) * (uiDay - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,0)) / (cPhotosphere.Get_Element_Double(uiPS_Idx,0) - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,0)) + cPhotosphere.Get_Element_Double(uiPS_Idx - 1,3);
 							else
 								dPS_Vel = cPhotosphere.Get_Element_Double(uiPS_Idx,3);
 							dPS_Vel *= 1e-5;
 						}
 					}
 					/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
-					fprintf(fileYml,lpszYML_File,g_cPereira_Data[uiDay].m_dLog_Luminosity,g_cPereira_Data[uiDay].m_dEpoch,dPS_Vel,dVmax*1e-5,lpszAbundance_File);
+					size_t tLum_Cnt = sizeof(g_cPereira_Data) / sizeof(pereira_data);
+					double dLuminosity = -1;
+					for (size_t tLum_Idx = 1; tLum_Idx < tLum_Cnt && dLuminosity < 0.0; tLum_Idx++)
+					{
+						if (g_cPereira_Data[tLum_Idx].m_dEpoch > uiDay)
+						{
+							dLuminosity = (g_cPereira_Data[tLum_Idx].m_dLog_Luminosity - g_cPereira_Data[tLum_Idx - 1].m_dLog_Luminosity) / (g_cPereira_Data[tLum_Idx].m_dEpoch - g_cPereira_Data[tLum_Idx - 1].m_dEpoch) * (uiDay - g_cPereira_Data[tLum_Idx - 1].m_dEpoch) + g_cPereira_Data[tLum_Idx - 1].m_dLog_Luminosity;
+						}
+					}
+					fprintf(fileYml,lpszYML_File,dLuminosity,(double)uiDay,dPS_Vel,dVmax*1e-5,lpszAbundance_File);
 					fclose(fileYml);
 				}
 				if (fileDensity)
@@ -367,6 +393,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 
 				printf("Total mass %f Msun\n",dTotal_Mass / 1.9891e33);
 			}
+			printf("Done!\n");
 		}
 		else
 		{
@@ -375,12 +402,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	}
 	else
 	{
-		printf("Usage: %s --chkpt=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013]\n",i_lpszArg_Values[0]);
+		printf("Usage: %s --chkpt=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [day options]\n",i_lpszArg_Values[0]);
 		printf("Generate inputs for tardis for a supernova-shell interaction model\n");
 		printf("Parameters:\n");
 		printf("\t--chkpt=<#>: specify the checkpoint number for which the ejecta and shell datasets will be processed.\n");
 		printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material. By default, a tardis input will be generated for all abundances.\n");
 		printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material. By default, the Seitenzahl (2013) N100 abundance will be used.\n");
+		printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");
+		printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated. Maximum value is 24.\n");
+		printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum value is 24.\n");
 		printf("Outputs:\n");
 		printf("\tdX_ABD.yaml: The parameters file for tardis for day X using shell abundance ABD.\n");
 		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile (chkpt) specified.\n");
