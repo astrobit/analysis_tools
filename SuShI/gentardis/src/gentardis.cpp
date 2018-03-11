@@ -160,7 +160,6 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	std::string szShell_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--shell-abund", std::string("all"));
 	std::string szEjecta_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ejecta-abund", std::string("Seitenzahl_N100_2013"));
 
-
 	if (uiFile_Num != -1)
 	{
 		snatk_abundances::abundances cAbd;
@@ -178,8 +177,16 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			bPrint_Abundance_Types = true;
 			fprintf(stderr,"%s does not name a valid abundance type\n",szShell_Abundance.c_str());
 		}
+		if (!bPrint_Abundance_Types)
+		{
+			printf("Applying shell abundances:\n");
+			for (auto iterI = vcShell_Abundance_Name.begin(); iterI != vcShell_Abundance_Name.end(); iterI++)
+			{
+				fprintf(stderr,"\t%s\n",iterI->c_str());
+			}
+		}
 
-		if (!cAbd.Check_List(szEjecta_Abundance))
+		if (cAbd.Check_List(szEjecta_Abundance))
 		{
 			cEjecta_Abundance = cAbd.Get(szEjecta_Abundance);
 			cEjecta_Abundance.Normalize_Groups();
@@ -210,10 +217,14 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		{
 			sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
 			cShell.Read_xdataset(lpszFilename);
+			if (cShell.Get_Num_Rows() == 0)
+				printf("No shell\n");
 
 			xdataset_improved cPhotosphere;
 			strcpy(lpszFilename,"photosphere.csv");
 			cPhotosphere.Read_Data_File(lpszFilename,false,',',1);
+			if (cPhotosphere.Get_Num_Rows() == 0)
+				printf("No photosphere data\n");
 
 			double	dVmax = 0.0;
 			if (cShell.Get_Num_Rows() > 0)
@@ -356,6 +367,10 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 
 				printf("Total mass %f Msun\n",dTotal_Mass / 1.9891e33);
 			}
+		}
+		else
+		{
+			fprintf(stderr,"Could not open ejecta input file %s.\n",lpszFilename);
 		}
 	}
 	else
