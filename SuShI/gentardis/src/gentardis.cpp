@@ -405,7 +405,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	}
 	else
 	{
-		printf("Usage: %s --chkpt=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [day options]\n",i_lpszArg_Values[0]);
+		printf("Usage: %s --chkpt=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [other options]\n",i_lpszArg_Values[0]);
 		printf("Generate inputs for tardis for a supernova-shell interaction model\n");
 		printf("Parameters:\n");
 		printf("\t--chkpt=<#>: specify the checkpoint number for which the ejecta and shell datasets will be processed.\n");
@@ -414,6 +414,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");
 		printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated. Maximum value is 24.\n");
 		printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum value is 24.\n");
+		printf("\t--inhibit-shell: If the model contains a shell, don't process it - this allows seeing only the effect of the ejecta.\n");
+
 		printf("Outputs:\n");
 		printf("\tdX_ABD.yaml: The parameters file for tardis for day X using shell abundance ABD.\n");
 		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile (chkpt) specified.\n");
