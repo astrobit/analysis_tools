@@ -12,5 +12,6 @@ include_HEADERS = include/abundance.h
 # PKG_INSTALLDIR in configure.ac.
 pkgconfig_DATA = ${PACKAGE_NAME}-${API_VERSION}.pc
 
-pkgdata_DATA = data/CO_Rich.csv data/Seitenzahl_N100_2013_Ca_Rich.csv data/Seitenzahl_N100_2013.csv data/Solar.csv
+pkgdata_DATA = data/CO_Rich.csv data/Seitenzahl_N100_2013_Ca_Rich.csv data/Seitenzahl_N100_2013.csv data/Solar.csv data/He_Solar.csv data/He_Solar_Ca_1p6.csv data/He_Solar_Ca_2p5.csv data/He_Solar_Ca_4p0.csv data/He_Solar_Ca_6p3.csv
+
 
