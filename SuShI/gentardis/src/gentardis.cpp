@@ -6,12 +6,13 @@
 #include <iostream>
 #include <sstream>
 #include <abundance.h>
-
+#include <xastro.h>
+#include <opacity_profile_data.h>
 
 #define NUM_ZONES	256
 
 /// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
-const char lpszYML_File[] = {"#New configuration for TARDIS based on YAML\n#IMPORTANT any pure floats need to have a +/- after the e e.g. 2e+5\n#Hopefully pyyaml will fix this soon.\n---\n#Currently only simple1d is allowed\ntardis_config_version: v1.0\nsupernova:\n    luminosity_requested: %.7f log_lsun\n    time_explosion: %.2f day\n\n#atom_data: kurucz_atom_pure_simple.h5\natom_data: kurucz_cd23_chianti_H_He.h5\n\nmodel:\n            \n    structure:\n        type: file\n        filename: density.dat\n        filetype: simple_ascii\n        v_inner_boundary: %.1f km/s\n        v_outer_boundary: %.1f km/s\n\n    abundances:\n#         type: uniform\n#         H: 0.7\n#         He: 0.3\n        type: file\n        filename: %s\n        filetype: simple_ascii\n\nplasma:\n    initial_t_inner: 9500 K\n    initial_t_rads: 9500 K\n    disable_electron_scattering: no\n    ionization: nebular\n    excitation: dilute-lte\n    radiative_rates_type: dilute-blackbody\n    line_interaction_type: macroatom\n\nmontecarlo:\n    seed: 23111963\n    no_of_packets : 1.0e+5\n    iterations: 20\n    enable_reflective_inner_boundary: True\n    inner_boundary_albedo: 0.5\n\n    black_body_sampling:\n        start: 1 angstrom\n        stop: 1000000 angstrom\n        num: 1.0e+5\n\n    last_no_of_packets: 5.e+5\n    no_of_virtual_packets: 5\n\n    convergence_criteria:\n        type: specific\n        damping_constant: 1.0\n        threshold: 0.05\n        fraction: 0.8\n        hold: 3\n        t_inner:\n            damping_constant: 1.0\n    \nspectrum:\n    start : 2000 angstrom\n    stop : 10000 angstrom\n    num: 8000\n\n"};
+const char lpszYML_File[] = {"#New configuration for TARDIS based on YAML\n#IMPORTANT any pure floats need to have a +/- after the e e.g. 2e+5\n#Hopefully pyyaml will fix this soon.\n---\n#Currently only simple1d is allowed\ntardis_config_version: v1.0\nsupernova:\n    luminosity_requested: %.7f log_lsun\n    time_explosion: %.2f day\n\n#atom_data: kurucz_atom_pure_simple.h5\natom_data: kurucz_cd23_chianti_H_He.h5\n\nmodel:\n            \n    structure:\n        type: file\n        filename: density.dat\n        filetype: simple_ascii\n        v_inner_boundary: %.1f km/s\n        v_outer_boundary: %.1f km/s\n\n    abundances:\n#         type: uniform\n#         H: 0.7\n#         He: 0.3\n        type: file\n        filename: %s\n        filetype: simple_ascii\n\nplasma:\n    initial_t_inner: %.0f K\n    initial_t_rads: %.0f K\n    disable_electron_scattering: no\n    ionization: nebular\n    excitation: dilute-lte\n    radiative_rates_type: dilute-blackbody\n    line_interaction_type: macroatom\n\nmontecarlo:\n    seed: 23111963\n    no_of_packets : 1.0e+5\n    iterations: 20\n    enable_reflective_inner_boundary: True\n    inner_boundary_albedo: 0.5\n\n    black_body_sampling:\n        start: 1 angstrom\n        stop: 1000000 angstrom\n        num: 1.0e+5\n\n    last_no_of_packets: 5.e+5\n    no_of_virtual_packets: 5\n\n    convergence_criteria:\n        type: specific\n        damping_constant: 1.0\n        threshold: 0.05\n        fraction: 0.8\n        hold: 3\n        t_inner:\n            damping_constant: 1.0\n    \nspectrum:\n    start : 2000 angstrom\n    stop : 10000 angstrom\n    num: 8000\n\n"};
 
 class pereira_data 
 {
@@ -149,6 +150,43 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 		}
 	}
 }
+double Interpolate_From_Dataset_Elements(xdataset_improved & i_cDataset, const double & i_dDay, size_t i_tIdx_Lower, size_t i_tIdx_Upper)
+{
+	double dRet = -1;
+	if (i_tIdx_Lower < i_cDataset.Get_Num_Rows() && i_tIdx_Upper < i_cDataset.Get_Num_Rows())
+	{
+		dRet = (i_cDataset.Get_Element_Double(i_tIdx_Upper,1) - i_cDataset.Get_Element_Double(i_tIdx_Lower,1)) * (i_dDay - i_cDataset.Get_Element_Double(i_tIdx_Lower,0)) / (i_cDataset.Get_Element_Double(i_tIdx_Upper,0) - i_cDataset.Get_Element_Double(i_tIdx_Lower,0)) + i_cDataset.Get_Element_Double(i_tIdx_Lower,1);
+	}
+	return dRet;
+}
+double Interpolate_From_Dataset(xdataset_improved & i_cDataset, const double & i_dDay)
+{
+	double dRet = -1.0;
+	if (i_cDataset.Get_Num_Rows() > 0)
+	{
+		if (i_dDay < i_cDataset.Get_Element_Double(0,0))
+		{
+//			printf("Extrapolating from begining\n");
+			dRet = Interpolate_From_Dataset_Elements(i_cDataset,i_dDay,0,1);
+		}
+		else if (i_dDay > i_cDataset.Get_Element_Double(i_cDataset.Get_Num_Rows() - 1,0))
+		{
+//			printf("Extrapolating from end\n");
+			dRet = Interpolate_From_Dataset_Elements(i_cDataset,i_dDay,i_cDataset.Get_Num_Rows() - 2,i_cDataset.Get_Num_Rows() - 1);
+		}
+		else
+		{
+			for (size_t tIdx = 1; tIdx < i_cDataset.Get_Num_Rows() && dRet < 0.0; tIdx++)
+			{
+				if (i_dDay <= i_cDataset.Get_Element_Double(tIdx,0))
+				{		// 3rd ion state
+					dRet = Interpolate_From_Dataset_Elements(i_cDataset,i_dDay,tIdx - 1,tIdx);
+				}
+			}
+		}
+	}
+	return dRet;
+}
 
 int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 {
@@ -157,16 +195,26 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	xdataset_improved cEjecta;
 	xdataset_improved cShell;
 	xdataset_improved	cCombined_Data;
+	xdataset_improved cPhotosphere;
+	xdataset_improved cPhotosphere_Default;
+	xdataset_improved cTemperature;
 	std::vector<std::string> vcShell_Abundance_Name;
 	snatk_abundances::abundance_list	cEjecta_Abundance;
 
+	model cModel;
+
+
+	double dTemperature_K = 9500.0;
 	size_t uiFile_Num = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--chkpt", -1);
+	size_t uiModel = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--model", -1);
 	std::string szShell_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--shell-abund", std::string("all"));
 	std::string szEjecta_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ejecta-abund", std::string("Seitenzahl_N100_2013"));
 	size_t uiDay_Start = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-start", 1);
 	size_t uiDay_End = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-end", 24);
 	size_t uiDay_Only = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day", -1);
 	bool bInhibit_Shell = xParse_Command_Line_Exists(i_iArg_Count,i_lpszArg_Values,"--inhibit-shell");
+	std::string szTemp_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--temps-file");
+	std::string szPhotosphere_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ps-file");
 	
 	if (uiDay_Only != -1)
 	{
@@ -175,7 +223,49 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	if (uiDay_End > 24)
 		uiDay_End = 24;
 
-	if (uiFile_Num != -1)
+	if (uiModel != -1)
+	{
+		cModel.Load_Model(uiModel);
+		cModel.Load_Model_Full_Data();
+
+		cPhotosphere_Default.Allocate(cModel.m_dsPhotosphere.GetNumRows(),2);
+		for (size_t tI = 0; tI < cModel.m_dsPhotosphere.GetNumRows();tI++)
+		{
+			cPhotosphere_Default.Set_Element(tI,0,cModel.m_dsPhotosphere.GetElement(0,tI));
+			cPhotosphere_Default.Set_Element(tI,1,cModel.m_dsPhotosphere.GetElement(3,tI) * 1.0e-8);
+		}
+
+		cEjecta = cModel.m_dsEjecta_Full_Data;
+		cShell = cModel.m_dsShell_Full_Data;
+	}
+	else if (uiFile_Num != -1)
+	{
+		sprintf(lpszFilename,"ejecta%04i.xdataset",uiFile_Num);
+		cEjecta.Read_xdataset(lpszFilename);
+
+		if (cEjecta.Get_Num_Rows() > 0)
+		{
+			sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
+			cShell.Read_xdataset(lpszFilename);
+			if (cShell.Get_Num_Rows() == 0)
+				printf("No shell\n");
+		}
+
+		xdataset_improved cPhotosphere_Temp;
+		strcpy(lpszFilename,"photosphere.csv");
+		cPhotosphere_Temp.Read_Data_File(lpszFilename,false,',',1);
+		if (cPhotosphere_Temp.Get_Num_Rows() > 0)
+		{
+			cPhotosphere_Default.Allocate(cPhotosphere_Temp.Get_Num_Rows(),2);
+			for (size_t tI = 0; tI < cPhotosphere_Temp.Get_Num_Rows();tI++)
+			{
+				cPhotosphere_Default.Set_Element(tI,0,cPhotosphere_Temp.Get_Element_Double(tI,0));
+				cPhotosphere_Default.Set_Element(tI,1,cPhotosphere_Temp.Get_Element_Double(tI,3) * 1.0e-8);
+			}
+		}
+	}
+
+	if (cEjecta.Get_Num_Rows() > 0)
 	{
 		snatk_abundances::abundances cAbd;
 		bool bPrint_Abundance_Types = false;
@@ -224,191 +314,206 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			return -1;
 		}
 
-		sprintf(lpszFilename,"ejecta%04i.xdataset",uiFile_Num);
-		cEjecta.Read_xdataset(lpszFilename);
-
-		if (cEjecta.Get_Num_Rows() > 0)
+		if (!szTemp_File.empty())
 		{
-			sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
-			cShell.Read_xdataset(lpszFilename);
-			if (cShell.Get_Num_Rows() == 0)
-				printf("No shell\n");
-
-			xdataset_improved cPhotosphere;
-			strcpy(lpszFilename,"photosphere.csv");
-			cPhotosphere.Read_Data_File(lpszFilename,false,',',1);
-			if (cPhotosphere.Get_Num_Rows() == 0)
-				printf("No photosphere data\n");
-
-			double	dVmax = 0.0;
-			if (cShell.Get_Num_Rows() > 0)
-			{
-				for (unsigned int uiI = 0; uiI < cShell.Get_Num_Rows(); uiI++)
-				{
-					if (dVmax < cShell.Get_Element_Double(uiI,27))
-						dVmax = cShell.Get_Element_Double(uiI,27);
-					if (dVmax < cShell.Get_Element_Double(uiI,25))
-						dVmax = cShell.Get_Element_Double(uiI,25);
-				}
-			}
-			else
-			{
-				for (unsigned int uiI = 0; uiI < cEjecta.Get_Num_Rows(); uiI++)
-				{
-					if (dVmax < cEjecta.Get_Element_Double(uiI,27))
-						dVmax = cEjecta.Get_Element_Double(uiI,27);
-					if (dVmax < cEjecta.Get_Element_Double(uiI,25))
-						dVmax = cEjecta.Get_Element_Double(uiI,25);
-				}
-			}
-
-			cCombined_Data.Allocate(NUM_ZONES,29);
-			unsigned int uiMax_Abd;
-			bool bShell = (cShell.Get_Num_Rows() != 0 && !bInhibit_Shell);
-			if (bShell)
-				uiMax_Abd = vcShell_Abundance_Name.size();
-			else
-				uiMax_Abd = 1;
-			for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
-			{
-				printf("Processing Abundance Type %s\n",vcShell_Abundance_Name[uiAbd].c_str());
-				snatk_abundances::abundance_list cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
-				cCombined_Data.Zero(); // make sure all abundances are 0
-				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
-				{
-					for (unsigned int uiJ = 0; uiJ < 29; uiJ++)
-						cCombined_Data.Set_Element(uiI,uiJ,0.0);
-
-				}
-				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
-				{
-					cCombined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
-
-				}
-				Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
-				if (bShell)
-					Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
-				//cCombined_Data.SaveDataFileBin("tardis/resampled.xdataset");
-
-				FILE * fileDensity = nullptr;
-				FILE * fileAbundance = nullptr;
-				FILE * fileYml = nullptr;
-				if (uiAbd == 0)
-					fileDensity = fopen("tardis/density.dat","wt");
-				if (!bShell)
-					fileAbundance = fopen("tardis/abundance.dat","wt");
-				else
-				{
-					char lpsAbundance_Filename[256];
-					sprintf(lpsAbundance_Filename,"tardis/abundance_%s.dat",vcShell_Abundance_Name[uiAbd].c_str());
-					fileAbundance = fopen(lpsAbundance_Filename,"wt");
-
-				}
-				if(!fileAbundance)
-				{
-					fprintf(stderr,"Gentardis: unable to open one or more output files.  Make sure that the `tardis' directory has been created.\n");
-					if (fileDensity)
-						fclose(fileDensity);
-					if (fileAbundance)
-						fclose(fileAbundance);
-					exit(-1);
-				}
-				if (fileDensity)
-					fprintf(fileDensity,"1 day\n"); 
-				double	dDelta_v = (cCombined_Data.Get_Element_Double(1,0) - cCombined_Data.Get_Element_Double(0,0)) * 0.5;
-				double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
-				double dTotal_Mass = 0.0;
-				for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
-				{
-					double	dMass = 0.0;
-					for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
-					{
-						dMass += cCombined_Data.Get_Element_Double(uiI,uiJ);
-					}
-					dTotal_Mass += dMass;
-					double dV = cCombined_Data.Get_Element_Double(uiI,0);
-					double dVin = dV - dDelta_v;
-					double dVout = dV + dDelta_v;
-					double dRin = dVin * 86400.0;
-					double dRout = dVout * 86400.0;
-					double dVol = dVol_Const * (dRout * dRout * dRout - dRin * dRin * dRin);
-					if (fileDensity)
-						fprintf(fileDensity,"%i %.1f %e\n",uiI + 1, cCombined_Data.Get_Element_Double(uiI,0) * 1.0e-5, dMass / dVol);
-			
-					fprintf(fileAbundance,"%i",uiI + 1);
-					for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
-					{
-						if (dMass > 0.0)
-							fprintf(fileAbundance," %.8e", cCombined_Data.Get_Element_Double(uiI,uiJ) / dMass);
-						else if (uiJ == 1)
-							fprintf(fileAbundance," 1.0");
-						else
-							fprintf(fileAbundance," 0.0");
-					}
-					fprintf(fileAbundance,"\n");
-				}
-				for (unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
-				{
-					char lpszFilename[32];
-					char lpszAbundance_File[32];
-					FILE * fileYml = NULL;
-					sprintf(lpszFilename,"tardis/d%02i",uiDay);
-					strcpy(lpszAbundance_File,"abundance");
-					if (bShell)
-					{
-						strcat(lpszFilename,"_");
-						strcat(lpszFilename,vcShell_Abundance_Name[uiAbd].c_str());
-						strcat(lpszAbundance_File,"_");
-						strcat(lpszAbundance_File,vcShell_Abundance_Name[uiAbd].c_str());
-					}
-					strcat(lpszFilename,".yml");
-					strcat(lpszAbundance_File,".dat");
-					fileYml = fopen(lpszFilename,"wt");
-					double	dPS_Vel = -1.0;
-					for (unsigned int uiPS_Idx = 0; uiPS_Idx < cPhotosphere.Get_Num_Rows() && dPS_Vel < 0.0; uiPS_Idx++)
-					{
-						if (uiDay <= cPhotosphere.Get_Element_Double(uiPS_Idx,0))
-						{		// 3rd ion state
-							if (uiPS_Idx > 0)
-								dPS_Vel = (cPhotosphere.Get_Element_Double(uiPS_Idx,3) - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,3)) * (uiDay - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,0)) / (cPhotosphere.Get_Element_Double(uiPS_Idx,0) - cPhotosphere.Get_Element_Double(uiPS_Idx - 1,0)) + cPhotosphere.Get_Element_Double(uiPS_Idx - 1,3);
-							else
-								dPS_Vel = cPhotosphere.Get_Element_Double(uiPS_Idx,3);
-							dPS_Vel *= 1e-5;
-						}
-					}
-					/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
-					size_t tLum_Cnt = sizeof(g_cPereira_Data) / sizeof(pereira_data);
-					double dLuminosity = -1;
-					for (size_t tLum_Idx = 1; tLum_Idx < tLum_Cnt && dLuminosity < 0.0; tLum_Idx++)
-					{
-						if (g_cPereira_Data[tLum_Idx].m_dEpoch > uiDay)
-						{
-							dLuminosity = (g_cPereira_Data[tLum_Idx].m_dLog_Luminosity - g_cPereira_Data[tLum_Idx - 1].m_dLog_Luminosity) / (g_cPereira_Data[tLum_Idx].m_dEpoch - g_cPereira_Data[tLum_Idx - 1].m_dEpoch) * (uiDay - g_cPereira_Data[tLum_Idx - 1].m_dEpoch) + g_cPereira_Data[tLum_Idx - 1].m_dLog_Luminosity;
-						}
-					}
-					double dDay = uiDay;
-					fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmax*1e-5,lpszAbundance_File);
-					fclose(fileYml);
-				}
-				if (fileDensity)
-					fclose(fileDensity);
-				fclose(fileAbundance);
-
-				printf("Total mass %f Msun\n",dTotal_Mass / 1.9891e33);
-			}
-			printf("Done!\n");
+			printf("Using temperatures %s\n",szTemp_File.c_str());
+			cTemperature.Read_Data_File(szTemp_File.c_str(),false,',',1);
 		}
 		else
 		{
-			fprintf(stderr,"Could not open ejecta input file %s.\n",lpszFilename);
+			printf("No temperature data -- defaulting to 9500 K\n");
+			cTemperature.Allocate(2,2);
+			cTemperature.Set_Element(0,0,0.0);
+			cTemperature.Set_Element(0,1,9500.0);
+
+			cTemperature.Set_Element(1,0,100000.0);
+			cTemperature.Set_Element(1,1,9500.0);
 		}
+
+		if (!szPhotosphere_File.empty())
+		{
+			printf("Using photosphere %s\n",szPhotosphere_File.c_str());
+			cPhotosphere.Read_Data_File(szPhotosphere_File.c_str(),false,',',1);
+		}
+		else
+		{
+			xdataset_improved cPhotosphere_Temp;
+			if (cPhotosphere_Default.Get_Num_Rows() == 0)
+			{
+				printf("No photosphere data - defaulting to 10000 km/s\n");
+				cPhotosphere.Allocate(2,2);
+				cPhotosphere.Set_Element(0,0,0.0);
+				cPhotosphere.Set_Element(0,1,10.0);
+
+				cPhotosphere.Set_Element(1,0,100000.0);
+				cPhotosphere.Set_Element(1,1,10.0);
+			}
+			else
+			{
+				printf("No photosphere data - using Thomson scattering photosphere with Ye = 3\n");
+				cPhotosphere = cPhotosphere_Default;
+			}			
+		}
+
+		double	dVmax = 0.0;
+		if (cShell.Get_Num_Rows() > 0)
+		{
+			for (unsigned int uiI = 0; uiI < cShell.Get_Num_Rows(); uiI++)
+			{
+				if (dVmax < cShell.Get_Element_Double(uiI,27))
+					dVmax = cShell.Get_Element_Double(uiI,27);
+				if (dVmax < cShell.Get_Element_Double(uiI,25))
+					dVmax = cShell.Get_Element_Double(uiI,25);
+			}
+		}
+		else
+		{
+			for (unsigned int uiI = 0; uiI < cEjecta.Get_Num_Rows(); uiI++)
+			{
+				if (dVmax < cEjecta.Get_Element_Double(uiI,27))
+					dVmax = cEjecta.Get_Element_Double(uiI,27);
+				if (dVmax < cEjecta.Get_Element_Double(uiI,25))
+					dVmax = cEjecta.Get_Element_Double(uiI,25);
+			}
+		}
+
+		cCombined_Data.Allocate(NUM_ZONES,29);
+		unsigned int uiMax_Abd;
+		bool bShell = (cShell.Get_Num_Rows() != 0 && !bInhibit_Shell);
+		if (bShell)
+			uiMax_Abd = vcShell_Abundance_Name.size();
+		else
+			uiMax_Abd = 1;
+		for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
+		{
+			printf("Processing Abundance Type %s\n",vcShell_Abundance_Name[uiAbd].c_str());
+			snatk_abundances::abundance_list cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
+			cCombined_Data.Zero(); // make sure all abundances are 0
+			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+			{
+				for (unsigned int uiJ = 0; uiJ < 29; uiJ++)
+					cCombined_Data.Set_Element(uiI,uiJ,0.0);
+
+			}
+			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+			{
+				cCombined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
+
+			}
+			Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
+			if (bShell)
+				Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
+			//cCombined_Data.SaveDataFileBin("tardis/resampled.xdataset");
+
+			FILE * fileDensity = nullptr;
+			FILE * fileAbundance = nullptr;
+			FILE * fileYml = nullptr;
+			if (uiAbd == 0)
+				fileDensity = fopen("tardis/density.dat","wt");
+			if (!bShell)
+				fileAbundance = fopen("tardis/abundance.dat","wt");
+			else
+			{
+				char lpsAbundance_Filename[256];
+				sprintf(lpsAbundance_Filename,"tardis/abundance_%s.dat",vcShell_Abundance_Name[uiAbd].c_str());
+				fileAbundance = fopen(lpsAbundance_Filename,"wt");
+
+			}
+			if(!fileAbundance)
+			{
+				fprintf(stderr,"Gentardis: unable to open one or more output files.  Make sure that the `tardis' directory has been created.\n");
+				if (fileDensity)
+					fclose(fileDensity);
+				if (fileAbundance)
+					fclose(fileAbundance);
+				exit(-1);
+			}
+			if (fileDensity)
+				fprintf(fileDensity,"1 day\n"); 
+			double	dDelta_v = (cCombined_Data.Get_Element_Double(1,0) - cCombined_Data.Get_Element_Double(0,0)) * 0.5;
+			double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
+			double dTotal_Mass = 0.0;
+			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+			{
+				double	dMass = 0.0;
+				for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
+				{
+					dMass += cCombined_Data.Get_Element_Double(uiI,uiJ);
+				}
+				dTotal_Mass += dMass;
+				double dV = cCombined_Data.Get_Element_Double(uiI,0);
+				double dVin = dV - dDelta_v;
+				double dVout = dV + dDelta_v;
+				double dRin = dVin * 86400.0;
+				double dRout = dVout * 86400.0;
+				double dVol = dVol_Const * (dRout * dRout * dRout - dRin * dRin * dRin);
+				if (fileDensity)
+					fprintf(fileDensity,"%i %.1f %e\n",uiI + 1, cCombined_Data.Get_Element_Double(uiI,0) * 1.0e-5, dMass / dVol);
+		
+				fprintf(fileAbundance,"%i",uiI + 1);
+				for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
+				{
+					if (dMass > 0.0)
+						fprintf(fileAbundance," %.8e", cCombined_Data.Get_Element_Double(uiI,uiJ) / dMass);
+					else if (uiJ == 1)
+						fprintf(fileAbundance," 1.0");
+					else
+						fprintf(fileAbundance," 0.0");
+				}
+				fprintf(fileAbundance,"\n");
+			}
+			for (unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
+			{
+				char lpszFilename[32];
+				char lpszAbundance_File[32];
+				FILE * fileYml = nullptr;
+				double dDay = uiDay;
+				sprintf(lpszFilename,"tardis/d%02i",uiDay);
+				strcpy(lpszAbundance_File,"abundance");
+				if (bShell)
+				{
+					strcat(lpszFilename,"_");
+					strcat(lpszFilename,vcShell_Abundance_Name[uiAbd].c_str());
+					strcat(lpszAbundance_File,"_");
+					strcat(lpszAbundance_File,vcShell_Abundance_Name[uiAbd].c_str());
+				}
+				strcat(lpszFilename,".yml");
+				strcat(lpszAbundance_File,".dat");
+				double	dPS_Vel = Interpolate_From_Dataset(cPhotosphere,dDay);
+				if (dPS_Vel != -1.0)
+				{
+					dPS_Vel *= 1e3;
+				}
+				double	dTemperature_K = Interpolate_From_Dataset(cTemperature,dDay);
+
+				double dRadius_cm = dPS_Vel * uiDay * 1.0e5 * 3600.0 * 24.0;
+				double dLuminosity = std::log10(dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB * dTemperature_K * dTemperature_K * dTemperature_K * dTemperature_K / g_XASTRO.k_dLsun);
+				printf("Day %i -- ps %.1f t %.1f\n",uiDay,dPS_Vel,dTemperature_K);
+				/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
+				if (dPS_Vel != -1.0 && dTemperature_K != -1.0)
+				{
+					fileYml = fopen(lpszFilename,"wt");
+					if (fileYml != nullptr)
+					{
+						fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmax*1e-5,lpszAbundance_File,dTemperature_K,dTemperature_K);
+						fclose(fileYml);
+					}
+				}
+			}
+			if (fileDensity)
+				fclose(fileDensity);
+			fclose(fileAbundance);
+
+			printf("Total mass %f Msun\n",dTotal_Mass / 1.9891e33);
+		}
+		printf("Done!\n");
 	}
 	else
 	{
-		printf("Usage: %s --chkpt=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [other options]\n",i_lpszArg_Values[0]);
+		printf("Usage: %s --model=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [other options]\n",i_lpszArg_Values[0]);
 		printf("Generate inputs for tardis for a supernova-shell interaction model\n");
 		printf("Parameters:\n");
-		printf("\t--chkpt=<#>: specify the checkpoint number for which the ejecta and shell datasets will be processed.\n");
+		printf("\t--model=<#>: specify the model for which the ejecta and shell datasets will be processed.\n");
 		printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material. By default, a tardis input will be generated for all abundances.\n");
 		printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material. By default, the Seitenzahl (2013) N100 abundance will be used.\n");
 		printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");

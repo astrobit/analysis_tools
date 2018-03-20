@@ -386,8 +386,12 @@ public:
 	xdataset	m_dsPhotosphere;
 	xdataset	m_dsEjecta_Photosphere;
 
+	xdataset_improved	m_dsShell_Full_Data;
+	xdataset_improved	m_dsEjecta_Full_Data;
+
 
 	void Load_Model(unsigned int i_uiModel);
+	void Load_Model_Full_Data(void);
 
 	model(void){m_uiModel_ID = -1;}
 	model(unsigned int i_uiModel){Load_Model(i_uiModel);}
