@@ -87,7 +87,7 @@ datasub83dir = ${datasubdir}/83/
 
 datasub10_DATA = ${lcldatadir}/10/opacity_map_ejecta.C.xdataset ${lcldatadir}/10/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/10/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/10/opacity_map_ejecta.O.xdataset ${lcldatadir}/10/opacity_map_ejecta.Si.xdataset ${lcldatadir}/10/opacity_map_scalars.opdata ${lcldatadir}/10/photosphere.csv ${lcldatadir}/10/photosphere_eo.csv
 
-datasub17_DATA = ${lcldatadir}/17/opacity_map_ejecta.C.xdataset ${lcldatadir}/17/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/17/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/17/opacity_map_ejecta.O.xdataset ${lcldatadir}/17/opacity_map_ejecta.Si.xdataset ${lcldatadir}/17/opacity_map_scalars.opdata ${lcldatadir}/17/photosphere.csv ${lcldatadir}/17/photosphere_eo.csv
+datasub17_DATA = ${lcldatadir}/17/opacity_map_ejecta.C.xdataset ${lcldatadir}/17/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/17/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/17/opacity_map_ejecta.O.xdataset ${lcldatadir}/17/opacity_map_ejecta.Si.xdataset ${lcldatadir}/17/opacity_map_scalars.opdata ${lcldatadir}/17/photosphere.csv ${lcldatadir}/17/photosphere_eo.csv ${lcldatadir}/17/full_data_ejecta.xdataset
 
 datasub18_DATA = ${lcldatadir}/18/opacity_map_ejecta.C.xdataset ${lcldatadir}/18/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/18/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/18/opacity_map_ejecta.O.xdataset ${lcldatadir}/18/opacity_map_ejecta.Si.xdataset ${lcldatadir}/18/opacity_map_scalars.opdata ${lcldatadir}/18/photosphere.csv ${lcldatadir}/18/photosphere_eo.csv
 
@@ -135,7 +135,7 @@ datasub39_DATA = ${lcldatadir}/39/opacity_map_ejecta.C.xdataset ${lcldatadir}/39
 
 datasub40_DATA = ${lcldatadir}/40/opacity_map_ejecta.C.xdataset ${lcldatadir}/40/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/40/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/40/opacity_map_ejecta.O.xdataset ${lcldatadir}/40/opacity_map_ejecta.Si.xdataset ${lcldatadir}/40/opacity_map_scalars.opdata ${lcldatadir}/40/opacity_map_shell.xdataset ${lcldatadir}/40/photosphere.csv ${lcldatadir}/40/photosphere_eo.csv
 
-datasub41_DATA = ${lcldatadir}/41/opacity_map_ejecta.C.xdataset ${lcldatadir}/41/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/41/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/41/opacity_map_ejecta.O.xdataset ${lcldatadir}/41/opacity_map_ejecta.Si.xdataset ${lcldatadir}/41/opacity_map_scalars.opdata ${lcldatadir}/41/opacity_map_shell.xdataset ${lcldatadir}/41/photosphere.csv ${lcldatadir}/41/photosphere_eo.csv
+datasub41_DATA = ${lcldatadir}/41/opacity_map_ejecta.C.xdataset ${lcldatadir}/41/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/41/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/41/opacity_map_ejecta.O.xdataset ${lcldatadir}/41/opacity_map_ejecta.Si.xdataset ${lcldatadir}/41/opacity_map_scalars.opdata ${lcldatadir}/41/opacity_map_shell.xdataset ${lcldatadir}/41/photosphere.csv ${lcldatadir}/41/photosphere_eo.csv ${lcldatadir}/41/full_data_shell.xdataset ${lcldatadir}/41/full_data_ejecta.xdataset
 
 datasub42_DATA = ${lcldatadir}/42/opacity_map_ejecta.C.xdataset ${lcldatadir}/42/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/42/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/42/opacity_map_ejecta.O.xdataset ${lcldatadir}/42/opacity_map_ejecta.Si.xdataset ${lcldatadir}/42/opacity_map_scalars.opdata ${lcldatadir}/42/opacity_map_shell.xdataset ${lcldatadir}/42/photosphere.csv ${lcldatadir}/42/photosphere_eo.csv
 
@@ -143,7 +143,7 @@ datasub43_DATA = ${lcldatadir}/43/opacity_map_ejecta.C.xdataset ${lcldatadir}/43
 
 datasub44_DATA = ${lcldatadir}/44/opacity_map_ejecta.C.xdataset ${lcldatadir}/44/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/44/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/44/opacity_map_ejecta.O.xdataset ${lcldatadir}/44/opacity_map_ejecta.Si.xdataset ${lcldatadir}/44/opacity_map_scalars.opdata ${lcldatadir}/44/opacity_map_shell.xdataset ${lcldatadir}/44/photosphere.csv ${lcldatadir}/44/photosphere_eo.csv
 
-datasub45_DATA = ${lcldatadir}/45/opacity_map_ejecta.C.xdataset ${lcldatadir}/45/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/45/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/45/opacity_map_ejecta.O.xdataset ${lcldatadir}/45/opacity_map_ejecta.Si.xdataset ${lcldatadir}/45/opacity_map_scalars.opdata ${lcldatadir}/45/opacity_map_shell.xdataset ${lcldatadir}/45/photosphere.csv ${lcldatadir}/45/photosphere_eo.csv
+datasub45_DATA = ${lcldatadir}/45/opacity_map_ejecta.C.xdataset ${lcldatadir}/45/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/45/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/45/opacity_map_ejecta.O.xdataset ${lcldatadir}/45/opacity_map_ejecta.Si.xdataset ${lcldatadir}/45/opacity_map_scalars.opdata ${lcldatadir}/45/opacity_map_shell.xdataset ${lcldatadir}/45/photosphere.csv ${lcldatadir}/45/photosphere_eo.csv ${lcldatadir}/45/full_data_shell.xdataset ${lcldatadir}/45/full_data_ejecta.xdataset
 
 datasub46_DATA = ${lcldatadir}/46/opacity_map_ejecta.C.xdataset ${lcldatadir}/46/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/46/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/46/opacity_map_ejecta.O.xdataset ${lcldatadir}/46/opacity_map_ejecta.Si.xdataset ${lcldatadir}/46/opacity_map_scalars.opdata  ${lcldatadir}/46/opacity_map_shell.xdataset ${lcldatadir}/46/photosphere.csv ${lcldatadir}/46/photosphere_eo.csv
 
@@ -151,7 +151,7 @@ datasub47_DATA = ${lcldatadir}/47/opacity_map_ejecta.C.xdataset ${lcldatadir}/47
 
 datasub48_DATA = ${lcldatadir}/48/opacity_map_ejecta.C.xdataset ${lcldatadir}/48/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/48/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/48/opacity_map_ejecta.O.xdataset ${lcldatadir}/48/opacity_map_ejecta.Si.xdataset ${lcldatadir}/48/opacity_map_scalars.opdata ${lcldatadir}/48/opacity_map_shell.xdataset ${lcldatadir}/48/photosphere.csv ${lcldatadir}/48/photosphere_eo.csv
 
-datasub49_DATA = ${lcldatadir}/49/opacity_map_ejecta.C.xdataset ${lcldatadir}/49/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/49/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/49/opacity_map_ejecta.O.xdataset ${lcldatadir}/49/opacity_map_ejecta.Si.xdataset ${lcldatadir}/49/opacity_map_scalars.opdata ${lcldatadir}/49/opacity_map_shell.xdataset ${lcldatadir}/49/photosphere.csv ${lcldatadir}/49/photosphere_eo.csv
+datasub49_DATA = ${lcldatadir}/49/opacity_map_ejecta.C.xdataset ${lcldatadir}/49/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/49/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/49/opacity_map_ejecta.O.xdataset ${lcldatadir}/49/opacity_map_ejecta.Si.xdataset ${lcldatadir}/49/opacity_map_scalars.opdata ${lcldatadir}/49/opacity_map_shell.xdataset ${lcldatadir}/49/photosphere.csv ${lcldatadir}/49/photosphere_eo.csv ${lcldatadir}/49/full_data_shell.xdataset ${lcldatadir}/49/full_data_ejecta.xdataset
 
 datasub50_DATA = ${lcldatadir}/50/opacity_map_ejecta.C.xdataset ${lcldatadir}/50/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/50/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/50/opacity_map_ejecta.O.xdataset ${lcldatadir}/50/opacity_map_ejecta.Si.xdataset ${lcldatadir}/50/opacity_map_scalars.opdata ${lcldatadir}/50/opacity_map_shell.xdataset ${lcldatadir}/50/photosphere.csv ${lcldatadir}/50/photosphere_eo.csv
 
@@ -175,7 +175,7 @@ datasub59_DATA = ${lcldatadir}/59/opacity_map_ejecta.C.xdataset ${lcldatadir}/59
 
 datasub60_DATA = ${lcldatadir}/60/opacity_map_ejecta.C.xdataset ${lcldatadir}/60/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/60/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/60/opacity_map_ejecta.O.xdataset ${lcldatadir}/60/opacity_map_ejecta.Si.xdataset ${lcldatadir}/60/opacity_map_scalars.opdata ${lcldatadir}/60/opacity_map_shell.xdataset ${lcldatadir}/60/photosphere.csv ${lcldatadir}/60/photosphere_eo.csv
 
-datasub61_DATA = ${lcldatadir}/61/opacity_map_ejecta.C.xdataset ${lcldatadir}/61/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/61/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/61/opacity_map_ejecta.O.xdataset ${lcldatadir}/61/opacity_map_ejecta.Si.xdataset ${lcldatadir}/61/opacity_map_scalars.opdata ${lcldatadir}/61/opacity_map_shell.xdataset ${lcldatadir}/61/photosphere.csv ${lcldatadir}/61/photosphere_eo.csv
+datasub61_DATA = ${lcldatadir}/61/opacity_map_ejecta.C.xdataset ${lcldatadir}/61/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/61/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/61/opacity_map_ejecta.O.xdataset ${lcldatadir}/61/opacity_map_ejecta.Si.xdataset ${lcldatadir}/61/opacity_map_scalars.opdata ${lcldatadir}/61/opacity_map_shell.xdataset ${lcldatadir}/61/photosphere.csv ${lcldatadir}/61/photosphere_eo.csv ${lcldatadir}/61/full_data_shell.xdataset ${lcldatadir}/61/full_data_ejecta.xdataset
 
 datasub62_DATA = ${lcldatadir}/62/opacity_map_ejecta.C.xdataset ${lcldatadir}/62/opacity_map_ejecta.Fe.xdataset ${lcldatadir}/62/opacity_map_ejecta.Mg.xdataset ${lcldatadir}/62/opacity_map_ejecta.O.xdataset ${lcldatadir}/62/opacity_map_ejecta.Si.xdataset ${lcldatadir}/62/opacity_map_scalars.opdata ${lcldatadir}/62/opacity_map_shell.xdataset ${lcldatadir}/62/photosphere.csv ${lcldatadir}/62/photosphere_eo.csv
 
