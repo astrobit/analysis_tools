@@ -198,10 +198,20 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	xdataset_improved cPhotosphere;
 	xdataset_improved cPhotosphere_Default;
 	xdataset_improved cTemperature;
+	xdataset_improved cLuminosity;
+	xdataset_improved cPereira_Luminosity; // SN2011fe
 	std::vector<std::string> vcShell_Abundance_Name;
 	snatk_abundances::abundance_list	cEjecta_Abundance;
 
 	model cModel;
+
+	size_t tPereira_Data_Count = sizeof(g_cPereira_Data) / sizeof(pereira_data);
+	cPereira_Luminosity.Allocate(tPereira_Data_Count,2);
+	for (size_t tI = 0; tI < tPereira_Data_Count; tI++)
+	{
+		cPereira_Luminosity.Set_Element(tI,0,g_cPereira_Data[tI].m_dEpoch);
+		cPereira_Luminosity.Set_Element(tI,1,g_cPereira_Data[tI].m_dLog_Luminosity);
+	}
 
 
 	double dTemperature_K = 9500.0;
@@ -215,6 +225,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	bool bInhibit_Shell = xParse_Command_Line_Exists(i_iArg_Count,i_lpszArg_Values,"--inhibit-shell");
 	std::string szTemp_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--temps-file");
 	std::string szPhotosphere_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ps-file");
+	std::string szLuminosity_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--lum-file");
 	
 	if (uiDay_Only != -1)
 	{
@@ -354,6 +365,16 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				cPhotosphere = cPhotosphere_Default;
 			}			
 		}
+		if (!szLuminosity_File.empty())
+		{
+			printf("Using luminosity %s\n",szLuminosity_File.c_str());
+			cLuminosity.Read_Data_File(szLuminosity_File.c_str(),false,',',1);
+		}
+		else
+		{
+			printf("No luminosoty data - using Pereira SN2011fe luminosity data\n");
+			cLuminosity = cPereira_Luminosity;
+		}
 
 		double	dVmax = 0.0;
 		if (cShell.Get_Num_Rows() > 0)
@@ -487,10 +508,11 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				double	dTemperature_K = Interpolate_From_Dataset(cTemperature,dDay);
 
 				double dRadius_cm = dPS_Vel * uiDay * 1.0e5 * 3600.0 * 24.0;
-				double dLuminosity = std::log10(dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB * dTemperature_K * dTemperature_K * dTemperature_K * dTemperature_K / g_XASTRO.k_dLsun);
-				printf("Day %i -- ps %.1f t %.1f\n",uiDay,dPS_Vel,dTemperature_K);
+				double dLuminosity;// = std::log10(dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB * dTemperature_K * dTemperature_K * dTemperature_K * dTemperature_K / g_XASTRO.k_dLsun);
+				dLuminosity = Interpolate_From_Dataset(cLuminosity,dDay);
+				printf("Day %i -- ps %.1f t %.1f L %.3f\n",uiDay,dPS_Vel,dTemperature_K,dLuminosity);
 				/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
-				if (dPS_Vel != -1.0 && dTemperature_K != -1.0)
+				if (dPS_Vel != -1.0 && dTemperature_K != -1.0 && dLuminosity != -1.0)
 				{
 					fileYml = fopen(lpszFilename,"wt");
 					if (fileYml != nullptr)
@@ -514,17 +536,19 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		printf("Generate inputs for tardis for a supernova-shell interaction model\n");
 		printf("Parameters:\n");
 		printf("\t--model=<#>: specify the model for which the ejecta and shell datasets will be processed.\n");
-		printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material. By default, a tardis input will be generated for all abundances.\n");
-		printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material. By default, the Seitenzahl (2013) N100 abundance will be used.\n");
+		printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material.\n\t\tBy default, a tardis input will be generated for all abundances.\n");
+		printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material.\n\t\tBy default, the Seitenzahl (2013) N100 abundance will be used.\n");
 		printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");
-		printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated. Maximum value is 24.\n");
-		printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum value is 24.\n");
-		printf("\t--inhibit-shell: If the model contains a shell, don't process it - this allows seeing only the effect of the ejecta.\n");
-
+		printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated.\n\t\tMaximum value is 24.\n");
+		printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum\n\t\tvalue is 24.\n");
+		printf("\t--inhibit-shell: If the model contains a shell, don't process it - this allows seeing only\n\t\tthe effect of the ejecta.\n");
+		printf("\t--temps-file=[file]: Temperatures to use at each epoch; default is 9500K at all epochs.\n\t\tFile should be in .csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = temperature in K\n");
+		printf("\t--ps-file=[file]: Photosphere velocities to use at each epoch. File should be in\n\t\t.csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = photosphere velocity in 1000 km/s.\n\t\tDefault uses the photosphere derived from the model using electron\n\t\tscattering and Ye=3.\n");
+		printf("\t--lum-file=[file]: Luminosity to use at each epoch. File should be in .csv format with\n\t\tcolumn 0 = epoch after explosion in days, col 1 = log10 of the luminosity in solar\n\t\tluminosities (e.g. 1 Lsun = 0, 10 Lsun = 1, etc.). Default uses the luminosities found\n\t\tby Pereira et al. 2013.\n");
 		printf("Outputs:\n");
 		printf("\tdX_ABD.yaml: The parameters file for tardis for day X using shell abundance ABD.\n");
-		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile (chkpt) specified.\n");
-		printf("\abundance_ABD.dat: The material abundance file generated from the ejecta and shell profiles and abundance profiles specified.\n");
+		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile\n\t\t(chkpt) specified.\n");
+		printf("\tabundance_ABD.dat: The material abundance file generated from the ejecta and shell profiles\n\t\tand abundance profiles specified. ABD is replaced by the abundance type;\n\t\tfor ejecta only, the file will be abundance.dat\n");
 	}
 
 
