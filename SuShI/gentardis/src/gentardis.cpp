@@ -508,9 +508,9 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				double	dTemperature_K = Interpolate_From_Dataset(cTemperature,dDay);
 
 				double dRadius_cm = dPS_Vel * uiDay * 1.0e5 * 3600.0 * 24.0;
-				double dLuminosity;// = std::log10(dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB * dTemperature_K * dTemperature_K * dTemperature_K * dTemperature_K / g_XASTRO.k_dLsun);
-				dLuminosity = Interpolate_From_Dataset(cLuminosity,dDay);
-				printf("Day %i -- ps %.1f t %.1f L %.3f\n",uiDay,dPS_Vel,dTemperature_K,dLuminosity);
+				double dLuminosity_Calc = std::log10(dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB * dTemperature_K * dTemperature_K * dTemperature_K * dTemperature_K / g_XASTRO.k_dLsun);
+				double dLuminosity = Interpolate_From_Dataset(cLuminosity,dDay);
+				printf("Day %i -- ps %.1f t %.1f L %.3f L(c) %.3f\n",uiDay,dPS_Vel,dTemperature_K,dLuminosity,dLuminosity_Calc);
 				/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
 				if (dPS_Vel != -1.0 && dTemperature_K != -1.0 && dLuminosity != -1.0)
 				{
