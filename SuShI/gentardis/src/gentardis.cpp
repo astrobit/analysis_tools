@@ -532,6 +532,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	}
 	else
 	{
+		fprintf(stderr,"Error: model # must be specified\n\n");
 		printf("Usage: %s --model=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [other options]\n",i_lpszArg_Values[0]);
 		printf("Generate inputs for tardis for a supernova-shell interaction model\n");
 		printf("Parameters:\n");
