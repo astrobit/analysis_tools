@@ -454,7 +454,6 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			double	dDelta_v = (cCombined_Data.Get_Element_Double(1,0) - cCombined_Data.Get_Element_Double(0,0)) * 0.5;
 			double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
 			double dTotal_Mass = 0.0;
-			dVmax = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
 			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 			{
 				double	dMass = 0.0;
@@ -527,7 +526,9 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					fileYml = fopen(lpszFilename,"wt");
 					if (fileYml != nullptr)
 					{
-						fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmax*1e-5,lpszAbundance_File,dTemperature_K,dTemperature_K);
+						double dVmaxLcl = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
+
+						fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmaxLcl*1e-5,lpszAbundance_File,dTemperature_K,dTemperature_K);
 						fclose(fileYml);
 					}
 				}
