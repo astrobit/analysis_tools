@@ -454,6 +454,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			double	dDelta_v = (cCombined_Data.Get_Element_Double(1,0) - cCombined_Data.Get_Element_Double(0,0)) * 0.5;
 			double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
 			double dTotal_Mass = 0.0;
+			dVmax = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
 			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 			{
 				double	dMass = 0.0;
@@ -472,12 +473,21 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					fprintf(fileDensity,"%i %.1f %e\n",uiI + 1, cCombined_Data.Get_Element_Double(uiI,0) * 1.0e-5, dMass / dVol);
 		
 				fprintf(fileAbundance,"%i",uiI + 1);
+				double dAbd_Norm = 0.0;
 				for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
 				{
 					if (dMass > 0.0)
-						fprintf(fileAbundance," %.8e", cCombined_Data.Get_Element_Double(uiI,uiJ) / dMass);
+						dAbd_Norm += cCombined_Data.Get_Element_Double(uiI,uiJ) / dMass;
 					else if (uiJ == 1)
-						fprintf(fileAbundance," 1.0");
+						dAbd_Norm += 1.0;
+				}
+				double dAbd_Inv_Norm = 1.0 / dAbd_Norm;
+				for (unsigned int uiJ = 1; uiJ <= 28; uiJ++)
+				{
+					if (dMass > 0.0)
+						fprintf(fileAbundance," %.8e", cCombined_Data.Get_Element_Double(uiI,uiJ) / dMass * dAbd_Inv_Norm);
+					else if (uiJ == 1)
+						fprintf(fileAbundance," %.8e", dAbd_Inv_Norm);
 					else
 						fprintf(fileAbundance," 0.0");
 				}
