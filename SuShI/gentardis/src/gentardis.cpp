@@ -527,8 +527,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					if (fileYml != nullptr)
 					{
 						double dVmaxLcl = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
-
-						fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmaxLcl*1e-5,lpszAbundance_File,dTemperature_K,dTemperature_K);
+						//printf("Velocity %f\n",dVmaxLcl);
+						fprintf(fileYml,lpszYML_File,dLuminosity,dDay,dPS_Vel,dVmaxLcl,lpszAbundance_File,dTemperature_K,dTemperature_K);
 						fclose(fileYml);
 					}
 				}
