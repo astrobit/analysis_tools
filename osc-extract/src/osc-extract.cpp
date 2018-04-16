@@ -119,9 +119,17 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		}
 		else
 		{
-			cFile.Unredshift();
-			cFile.Deredden();
+//			cFile.Unredshift();
+//			cFile.Deredden();
+
+			std::cout << "EBV: " << cFile.m_dEBV_Mean << std::endl;
+			std::cout << "Redshift: " << cFile.m_dRedshift_Weighted_Mean << std::endl;
+
+			std::cout << "Index " << tIdx << std::endl;
 			OSCspectrum cSpectrum = cFile.m_mSpectra_List[mapIdx[tIdx]];
+			cSpectrum.Deredden(cFile.m_dEBV_Mean);
+			cSpectrum.Unredshift(cFile.m_dRedshift_Weighted_Mean);
+
 			std::vector<std::string> vReferences = get_OSC_references(mapIdx[tIdx].m_szSources,cFile);
 
 			std::ostringstream ossFilename;
@@ -137,6 +145,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			FILE* fileOut=fopen(ossFilename.str().c_str(),"wt");
 			if (fileOut != nullptr)
 			{
+				std::cout << "Min: " << cSpectrum.front().m_dWavelength << std::endl;
+				std::cout << "Max: " << cSpectrum.back().m_dWavelength << std::endl;
+
 				for (auto iterI = cSpectrum.begin(); iterI != cSpectrum.end(); iterI++)
 				{
 					fprintf(fileOut,"%.17f\t%.17e\n",iterI->m_dWavelength,iterI->m_dFlux);
