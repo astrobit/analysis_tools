@@ -236,7 +236,7 @@ void OSCspectrum::Unredshift(const double & i_dRedshift)
 	{
 		for (iterator iterI = begin(); iterI != end(); iterI++)
 		{
-			iterI->m_dWavelength = XA_Rest_Frame_Wavelength(iterI->m_dWavelength,1.0 + i_dRedshift);
+			iterI->m_dWavelength = XA_Rest_Frame_Wavelength(iterI->m_dWavelength,i_dRedshift);
 		}
 	}
 }
