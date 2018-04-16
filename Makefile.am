@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
-SUBDIRS =  abundance epsplot radiation velocityfield msdb linerout esplot kurucz_data opacity_project osc SuShI 1dFlashMovie compositions equivwidth es_gaussian genplot linfit max min plotspectrum  statepop Vega_filters yaml2csv  
+SUBDIRS =  abundance epsplot radiation velocityfield msdb linerout esplot kurucz_data opacity_project osc osc-extract SuShI 1dFlashMovie compositions equivwidth es_gaussian genplot linfit max min plotspectrum  statepop Vega_filters yaml2csv  
 
 if INSTALLMOD
 if HAVEENVMOD

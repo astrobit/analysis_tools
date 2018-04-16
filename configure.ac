@@ -88,6 +88,7 @@ AC_CONFIG_SUBDIRS([SuShI/spectra-fit])
 
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([osc-extract/Makefile])
 AC_CONFIG_FILES([testmsdb/Makefile])
 AC_CONFIG_FILES([1dFlashMovie/Makefile])
 AC_CONFIG_FILES([compositions/Makefile])
