@@ -1674,6 +1674,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 									sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 								else
 									sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+								if (strncmp(lpszValue,"1.0x",4) == 0)
+									sprintf(lpszValue,"10^{%.0f}",dPower);
+
 							}
 							else if (dMantissa == 1.0 && dPower != 0.0)
 							{
@@ -1796,6 +1799,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 											sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 										else
 											sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+										if (strncmp(lpszValue,"1.0x",4) == 0)
+											sprintf(lpszValue,"10^{%.0f}",dPower);
+
 									}
 									else if (dMantissa == 1.0 && dPower != 0.0)
 									{
@@ -1888,6 +1894,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 												sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 											else
 												sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+											if (strncmp(lpszValue,"1.0x",4) == 0)
+												sprintf(lpszValue,"10^{%.0f}",dPower);
+
 										}
 										else if (dPower == 0.0 || dMantissa != 1.0)
 										{
@@ -2008,6 +2017,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 									sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 								else
 									sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+								if (strncmp(lpszValue,"1.0x",4) == 0)
+									sprintf(lpszValue,"10^{%.0f}",dPower);
+
 							}
 							else if (dMantissa == 1.0 && dPower != 0.0)
 							{
@@ -2132,6 +2144,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 											sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 										else
 											sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+										if (strncmp(lpszValue,"1.0x",4) == 0)
+											sprintf(lpszValue,"10^{%.0f}",dPower);
+
 									}
 									else if (dMantissa == 1.0 && dPower != 0.0)
 									{
@@ -2219,6 +2234,8 @@ void	data::Plot(const page_parameters & i_cGrid)
 												sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 											else
 												sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+											if (strncmp(lpszValue,"1.0x",4) == 0)
+												sprintf(lpszValue,"10^{%.0f}",dPower);
 										}
 										else if (dMantissa == 1.0 && dPower != 0.0)
 										{
@@ -2308,6 +2325,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 								sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 							else
 								sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+							if (strncmp(lpszValue,"1.0x",4) == 0)
+								sprintf(lpszValue,"10^{%.0f}",dPower);
+
 						}
 						else if (dMantissa == 1.0 && dPower != 0.0)
 						{
@@ -2348,6 +2368,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 								sprintf(lpszValue,"%.2fx10^{%.0f}",dMantissa,dPower);
 							else
 								sprintf(lpszValue,"%.1fx10^{%.0f}",dMantissa,dPower);
+							if (strncmp(lpszValue,"1.0x",4) == 0)
+								sprintf(lpszValue,"10^{%.0f}",dPower);
+
 						}
 							else if (dMantissa == 1.0 && dPower != 0.0)
 						{
