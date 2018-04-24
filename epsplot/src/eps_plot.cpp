@@ -576,7 +576,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 						char lpszValue[16];
 						if (bScientific_Notation)
 						{
-							double dLog10 = log10(dVal);
+							double dLog10 = log10(fabs(dVal));
 							double dPower = floor(dLog10);
 							double	dMantissa = dVal * pow(10.0,-dPower);
 							if (dVal == 0.0)
@@ -680,7 +680,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 								if (bScientific_Notation)
 								{
 									//printf("ys\n");
-									double dLog10 = log10(dVal);
+									double dLog10 = log10(fabs(dVal));
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
 									if (dVal == 0.0)
@@ -757,7 +757,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 									if (dSize > 0.0)
 									{
 										char lpszValue[16];
-										double dLog10 = log10(dVal);
+										double dLog10 = log10(fabs(dVal));
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
 										if (dVal == 0.0)
@@ -1660,9 +1660,9 @@ void	data::Plot(const page_parameters & i_cGrid)
 						char lpszValue[16];
 						if (bScientific_Notation)
 						{
-							double dLog10 = log10(dVal);
+							double dLog10 = log10(fabs(dVal));
 							double dPower = floor(dLog10);
-							double	dMantissa = dVal * pow(10.0,-dPower);\
+							double	dMantissa = dVal * pow(10.0,-dPower);
 							if (dVal == 0.0)
 							{
 								sprintf(lpszValue,"%.1f",dVal);
@@ -1785,7 +1785,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 								char lpszValue[16];
 								if (bScientific_Notation)
 								{
-									double dLog10 = log10(dVal);
+									double dLog10 = log10(fabs(dVal));
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
 									if (dVal == 0.0)
@@ -1880,7 +1880,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 									if (dSize > 0.0)
 									{
 										char lpszValue[16];
-										double dLog10 = log10(dVal);
+										double dLog10 = log10(fabs(dVal));
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
 										if (dVal == 0.0)
@@ -2003,7 +2003,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 						char lpszValue[16];
 						if (bScientific_Notation)
 						{
-							double dLog10 = log10(dVal);
+							double dLog10 = log10(fabs(dVal));
 							double dPower = floor(dLog10);
 							double	dMantissa = dVal * pow(10.0,-dPower);
 							if (dVal == 0.0)
@@ -2130,7 +2130,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 								if (bScientific_Notation)
 								{
 									//printf("ys\n");
-									double dLog10 = log10(dVal);
+									double dLog10 = log10(fabs(dVal));
 									double dPower = floor(dLog10);
 									double	dMantissa = dVal * pow(10.0,-dPower);
 									if (dVal == 0.0)
@@ -2220,7 +2220,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 									if (dSize > 0.0)
 									{
 										char lpszValue[16];
-										double dLog10 = log10(dVal);
+										double dLog10 = log10(fabs(dVal));
 										double dPower = floor(dLog10);
 										double	dMantissa = dVal * pow(10.0,-dPower);
 										if (dVal == 0.0)
