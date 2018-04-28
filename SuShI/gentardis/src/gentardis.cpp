@@ -8,6 +8,7 @@
 #include <abundance.h>
 #include <xastro.h>
 #include <opacity_profile_data.h>
+#include <sys/stat.h>
 
 #define NUM_ZONES	256
 
@@ -218,7 +219,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	size_t uiFile_Num = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--chkpt", -1);
 	size_t uiModel = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--model", -1);
 	std::string szShell_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--shell-abund", std::string("all"));
-	std::string szEjecta_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ejecta-abund", std::string("Seitenzahl_N100_2013"));
+	std::string szEjecta_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ejecta-abund", std::string("Seitenzahl_2013_N100"));
 	size_t uiDay_Start = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-start", 1);
 	size_t uiDay_End = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-end", 24);
 	size_t uiDay_Only = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day", -1);
@@ -226,7 +227,67 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	std::string szTemp_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--temps-file");
 	std::string szPhotosphere_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ps-file");
 	std::string szLuminosity_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--lum-file");
+	bool bUse_Calculated_Temp = true;
+
 	
+	FILE * fileRegen = fopen("regentardis","rt");
+	bool bIdentical_Line = false;
+	if (fileRegen != nullptr)
+	{
+		char * lpszBuffer = new char[4096];
+		while (feof(fileRegen) == 0 && !bIdentical_Line)
+		{
+			fgets(lpszBuffer,4096,fileRegen);
+			std::vector<std::string> vLine;
+			char * lpszCursor = lpszBuffer;
+			std::string sString;
+			bool bIn_Quotes = false;
+			while (lpszCursor[0] != 0 && lpszCursor[0] != 10 && lpszCursor[0] != 13 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t')) // end of string, cr, lf
+				lpszCursor++;
+
+			bIdentical_Line = true;
+			size_t tCommand_Idx = 0;
+			while (lpszCursor[0] != 0 && lpszCursor[0] != 10 && lpszCursor[0] != 13 && bIdentical_Line) // end of string, cr, lf
+			{
+				if (!bIn_Quotes && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
+				{
+					if (tCommand_Idx > 0)
+					{
+						bIdentical_Line = (sString == i_lpszArg_Values[tCommand_Idx]);
+					}
+					tCommand_Idx++;
+					sString.clear();
+				}
+				else
+				{
+					sString.push_back(lpszCursor[0]);
+					if (lpszCursor[0] == '\'' || lpszCursor[0] == '\"')
+						bIn_Quotes = !bIn_Quotes;
+				}
+				lpszCursor++;
+			}
+			
+		}
+		delete [] lpszBuffer;
+		fclose(fileRegen);
+	}
+	if (!bIdentical_Line)
+	{
+		fileRegen = fopen("regentardis","at");
+		if (fileRegen != nullptr)
+		{
+			fprintf(fileRegen,"%s",i_lpszArg_Values[0]);
+			for (size_t tI = 1; tI < i_iArg_Count; tI++)
+			{
+				fprintf(fileRegen," %s",i_lpszArg_Values[tI]);
+			}
+			fprintf(fileRegen,"\n");
+			std::cout << "generation command added to regentardis in local directory" << std::endl;
+			fclose(fileRegen);
+			chmod("regentardis", S_IRWXU);
+		}
+	}
+
 	if (uiDay_Only != -1)
 	{
 		uiDay_Start = uiDay_End = uiDay_Only;
@@ -327,12 +388,14 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 
 		if (!szTemp_File.empty())
 		{
+			bUse_Calculated_Temp = false;
 			printf("Using temperatures %s\n",szTemp_File.c_str());
 			cTemperature.Read_Data_File(szTemp_File.c_str(),false,',',1);
 		}
 		else
 		{
-			printf("No temperature data -- defaulting to 9500 K\n");
+			printf("No temperature data -- will calculate based on luminosity and photosphere\n");
+			// put dummy data in table anyway
 			cTemperature.Allocate(2,2);
 			cTemperature.Set_Element(0,0,0.0);
 			cTemperature.Set_Element(0,1,9500.0);
@@ -528,7 +591,10 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				double dRadius_cm = dPS_Vel * uiDay * 1.0e5 * 3600.0 * 24.0;
 				double dLuminosity_Calc = std::log10(dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB * dTemperature_K * dTemperature_K * dTemperature_K * dTemperature_K / g_XASTRO.k_dLsun);
 				double dLuminosity = Interpolate_From_Dataset(cLuminosity,dDay);
-				printf("Day %i -- ps %.1f t %.1f L %.3f L(c) %.3f\n",uiDay,dPS_Vel,dTemperature_K,dLuminosity,dLuminosity_Calc);
+				double dTemperature_Calc = std::pow(std::pow(10.0,dLuminosity) * g_XASTRO.k_dLsun / (dRadius_cm * dRadius_cm * g_XASTRO.k_dpi * 4.0 * g_XASTRO.k_dSigma_SB),0.25);
+				if (bUse_Calculated_Temp)
+					dTemperature_K = dTemperature_Calc;
+				printf("Day %i -- ps %.1f t %.1f L(c) %.3f L %.3f t(c) %.1f\n",uiDay,dPS_Vel,dTemperature_K,dLuminosity_Calc, dLuminosity, dTemperature_Calc);
 				/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
 				if (dPS_Vel != -1.0 && dTemperature_K != -1.0 && dLuminosity != -1.0)
 				{
