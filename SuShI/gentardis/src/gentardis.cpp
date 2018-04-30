@@ -13,7 +13,7 @@
 #define NUM_ZONES	256
 
 /// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
-const char lpszYML_File[] = {"#New configuration for TARDIS based on YAML\n#IMPORTANT any pure floats need to have a +/- after the e e.g. 2e+5\n#Hopefully pyyaml will fix this soon.\n---\n#Currently only simple1d is allowed\ntardis_config_version: v1.0\nsupernova:\n    luminosity_requested: %.7f log_lsun\n    time_explosion: %.2f day\n\n#atom_data: kurucz_atom_pure_simple.h5\natom_data: kurucz_cd23_chianti_H_He.h5\n\nmodel:\n            \n    structure:\n        type: file\n        filename: %s\n        filetype: simple_ascii\n        v_inner_boundary: %.1f km/s\n        v_outer_boundary: %.1f km/s\n\n    abundances:\n#         type: uniform\n        type: file\n        filename: %s\n        filetype: simple_ascii\n\n\nplasma:\n    initial_t_inner: %.0f K\n    initial_t_rad: %.0f K\n    disable_electron_scattering: no\n    ionization: nebular\n    excitation: dilute-lte\n    radiative_rates_type: detailed\n    line_interaction_type: macroatom\n#    nlte:\n#        species : [ 'Si 2', 'Ca 2', 'Mg 2', 'S 2', 'O 2', 'O 3', 'C 2']\n\nmontecarlo:\n    seed: 23111963\n    no_of_packets : 1.0e+5\n    iterations: 20\n    enable_reflective_inner_boundary: True\n    inner_boundary_albedo: 0.5\n\n    black_body_sampling:\n        start: 1 angstrom\n        stop: 1000000 angstrom\n        num: 1.0e+5\n\n    last_no_of_packets: 1.e+6\n    no_of_virtual_packets: 5\n\n    convergence_criteria:\n        type: specific\n        damping_constant: 1.0\n        threshold: 0.05\n        fraction: 0.8\n        hold: 3\n#        t_inner:\n#            damping_constant: 1.0\n\nspectrum:\n    start : 2000 angstrom\n    stop : 10000 angstrom\n    num: 8000\n\n"};
+const char lpszYML_File[] = {"#New configuration for TARDIS based on YAML\n#IMPORTANT any pure floats need to have a +/- after the e e.g. 2e+5\n#Hopefully pyyaml will fix this soon.\n---\n#Currently only simple1d is allowed\ntardis_config_version: v1.0\nsupernova:\n    luminosity_requested: %.7f log_lsun\n    time_explosion: %.2f day\n\n#atom_data: kurucz_atom_pure_simple.h5\natom_data: kurucz_cd23_chianti_H_He.h5\n\nmodel:\n            \n    structure:\n        type: file\n        filename: %s\n        filetype: simple_ascii\n        v_inner_boundary: %.1f km/s\n        v_outer_boundary: %.1f km/s\n\n    abundances:\n#         type: uniform\n        type: file\n        filename: %s\n        filetype: simple_ascii\n\n\nplasma:\n    initial_t_inner: %.0f K\n    initial_t_rad: %.0f K\n    disable_electron_scattering: no\n    ionization: nebular\n    excitation: dilute-lte\n    radiative_rates_type: detailed\n    line_interaction_type: macroatom\n#    nlte:\n#        species : [ 'Si 2', 'Ca 2', 'Mg 2', 'S 2', 'O 2', 'O 3', 'C 2']\n\nmontecarlo:\n    seed: 23111963\n    no_of_packets : %.1e\n    iterations: %i\n    enable_reflective_inner_boundary: True\n    inner_boundary_albedo: 0.5\n\n    black_body_sampling:\n        start: 1 angstrom\n        stop: 1000000 angstrom\n        num: 1.0e+5\n\n    last_no_of_packets: 1.e+6\n    no_of_virtual_packets: 5\n\n    convergence_criteria:\n        type: specific\n        damping_constant: 1.0\n        threshold: 0.05\n        fraction: 0.8\n        hold: 3\n#        t_inner:\n#            damping_constant: 1.0\n\nspectrum:\n    start : 2000 angstrom\n    stop : 10000 angstrom\n    num: 8000\n\n"};
 
 class pereira_data 
 {
@@ -227,6 +227,9 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	std::string szTemp_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--temps-file");
 	std::string szPhotosphere_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ps-file");
 	std::string szLuminosity_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--lum-file");
+	size_t uiNum_Iter = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--num-iter",20);
+	double dNum_Particles = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles",5e4);
+	double dNum_Particles_Final = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-final",5e5);
 	bool bUse_Calculated_Temp = true;
 
 	
@@ -242,12 +245,13 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			char * lpszCursor = lpszBuffer;
 			std::string sString;
 			bool bIn_Quotes = false;
+			char chQuotes_Char = 0;
 			while (lpszCursor[0] != 0 && lpszCursor[0] != 10 && lpszCursor[0] != 13 && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t')) // end of string, cr, lf
 				lpszCursor++;
 
 			bIdentical_Line = true;
 			size_t tCommand_Idx = 0;
-			while (lpszCursor[0] != 0 && lpszCursor[0] != 10 && lpszCursor[0] != 13 && bIdentical_Line) // end of string, cr, lf
+			while (lpszCursor[0] != 0 && lpszCursor[0] != 10 && lpszCursor[0] != 13 && bIdentical_Line && tCommand_Idx < i_iArg_Count) // end of string, cr, lf
 			{
 				if (!bIn_Quotes && (lpszCursor[0] == ' ' || lpszCursor[0] == '\t'))
 				{
@@ -261,11 +265,25 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				else
 				{
 					sString.push_back(lpszCursor[0]);
-					if (lpszCursor[0] == '\'' || lpszCursor[0] == '\"')
-						bIn_Quotes = !bIn_Quotes;
+					
+					if (!bIn_Quotes && lpszCursor[0] == '\'' || lpszCursor[0] == '\"')
+					{
+						chQuotes_Char = lpszCursor[0];
+						bIn_Quotes = true;
+					}
+					else if (bIn_Quotes && lpszCursor[0] == chQuotes_Char);
+					{
+						bIn_Quotes = false;
+						chQuotes_Char = 0;
+					}
 				}
 				lpszCursor++;
 			}
+			bIdentical_Line = (tCommand_Idx < i_iArg_Count && sString == i_lpszArg_Values[tCommand_Idx]);
+			tCommand_Idx++;
+			//std::cout << tCommand_Idx
+			bIdentical_Line = (bIdentical_Line && tCommand_Idx == i_iArg_Count);
+
 			
 		}
 		delete [] lpszBuffer;
@@ -572,9 +590,11 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				double dDay = uiDay;
 				sprintf(lpszFilename,"tardis/d%02i",uiDay);
 				strcpy(lpszAbundance_File,"abundance");
+				strcat(lpszFilename,"_E_");
+				strcat(lpszFilename,szEjecta_Abundance.c_str());
 				if (bShell)
 				{
-					strcat(lpszFilename,"_");
+					strcat(lpszFilename,"_S_");
 					strcat(lpszFilename,vcShell_Abundance_Name[uiAbd].c_str());
 					strcat(lpszAbundance_File,"_");
 					strcat(lpszAbundance_File,vcShell_Abundance_Name[uiAbd].c_str());
@@ -603,7 +623,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					{
 						double dVmaxLcl = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
 						//printf("Velocity %f\n",dVmaxLcl);
-						fprintf(fileYml,lpszYML_File,dLuminosity,dDay,lpszDensity_Filename,dPS_Vel,dVmaxLcl,lpszAbundance_File,dTemperature_K,dTemperature_K);
+						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, lpszDensity_Filename, dPS_Vel, dVmaxLcl, lpszAbundance_File, dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Final);
 						fclose(fileYml);
 					}
 				}
