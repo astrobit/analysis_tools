@@ -159,5 +159,30 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		
 
 	}
+	else
+	{
+		std::cout << std::endl << "Usage: " << i_lpszArg_Values[0] << " <OSC file> [spectra to extract]" << std::endl;
+		std::cout << std::endl << "OSC file:" << std::endl;
+		std::cout << "\tPath to the open supernova catalog (OSC) json file containing" << std::endl;
+		std::cout << "\tinformation for a particular supernova" << std::endl;
+		std::cout << "Spectra to extract:" << std::endl;
+		std::cout << "\tThe ID #s of the spectra to extract, each preceeded by '-'. if omitted," << std::endl;
+		std::cout << "\ta list of available spectra in the file are listed with their ID#." << std::endl;
+		std::cout << "\tEach extracted spectrum is de-reddened using the E(B-V) provided in the" << std::endl;
+		std::cout << "\tdataset for the supernova, and shifted to rest frame wavelength based" << std::endl;
+		std::cout << "\ton the redshift provided in the dataset." << std::endl;
+
+		std::cout << "Output:" << std::endl;
+		std::cout << "\tSpectra will be extracted to individual files with a name of the form" << std::endl;
+		std::cout << "\tDDDDD_IIIII_RRRRR.dat, where DDDDD is the MJD on which the spectra was" << std::endl;
+		std::cout << "\trecorded, IIIII the instrument / facility on which the spectrum was" << std::endl;
+		std::cout << "\ttaken, and RRRRR a reference to where the spectrum was published. The" << std::endl;
+		std::cout << "\tdata includes the wavelength (in %.17f format) and" << std::endl;
+		std::cout << "\tflux (in %.17e format), separated by a tab." << std::endl;
+
+		std::cout << "Example:" << std::endl << "\t" << i_lpszArg_Values[0] << " SN2011fe.json -11 -12 -15" << std::endl;
+		std::cout << "\textract specta IDs 11, 12, and 15 from SN2011fe.json." << std::endl;
+
+	}
 	return 0;
 }
