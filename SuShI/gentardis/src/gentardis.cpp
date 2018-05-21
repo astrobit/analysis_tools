@@ -489,7 +489,9 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
 		{
 			printf("Processing Abundance Type %s\n",vcShell_Abundance_Name[uiAbd].c_str());
+
 			snatk_abundances::abundance_list cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
+			printf("Zeroing abundances\n");
 			cCombined_Data.Zero(); // make sure all abundances are 0
 			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 			{
@@ -502,22 +504,27 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				cCombined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
 
 			}
+			printf("Resampling ejecta\n");
 			Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
 			if (bShell)
+			{
+				printf("Resampling shell\n");
 				Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
+			}
 			//cCombined_Data.SaveDataFileBin("tardis/resampled.xdataset");
 
 			FILE * fileDensity = nullptr;
 			FILE * fileAbundance = nullptr;
 			FILE * fileYml = nullptr;
-			char lpszDensity_Filename[64];
+			printf("Opening density file\n");
+			char lpszDensity_Filename[256];
 			if (uiAbd == 0)
 			{
 				if (bInhibit_Shell)
 					strcpy(lpszDensity_Filename,"density-noshell.dat");
 				else
 					strcpy(lpszDensity_Filename,"density.dat");
-				char lpsDensity_Full_Filename[128];
+				char lpsDensity_Full_Filename[256];
 				sprintf(lpsDensity_Full_Filename,"tardis/%s",lpszDensity_Filename);
 				fileDensity = fopen(lpsDensity_Full_Filename,"wt");
 			}
@@ -544,6 +551,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			double	dDelta_v = (cCombined_Data.Get_Element_Double(1,0) - cCombined_Data.Get_Element_Double(0,0)) * 0.5;
 			double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
 			double dTotal_Mass = 0.0;
+			printf("Writing density and abudance files\n");
 			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 			{
 				double	dMass = 0.0;
@@ -582,6 +590,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				}
 				fprintf(fileAbundance,"\n");
 			}
+			
+			printf("Starting day-by-day processing\n");
 			for (unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
 			{
 				char lpszFilename[32];
