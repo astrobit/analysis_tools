@@ -132,11 +132,11 @@ void snatk_abundances::abundances::Add_Abundance(const std::string & i_szName, c
 }
 bool snatk_abundances::abundances::Check_List(const std::string & i_szName) const
 {
-	std::cout << "m_mapAbundance.size() " << m_mapAbundance.size() << " " << i_szName << std::endl; 
+	//std::cout << "m_mapAbundance.size() " << m_mapAbundance.size() << " " << i_szName << std::endl; 
 	bool bFound = false;
 	for (auto iterI = m_mapAbundance.cbegin(); iterI != m_mapAbundance.cend() && !bFound; iterI++)
 	{
-		std::cout << iterI->first << std::endl;
+		//std::cout << iterI->first << std::endl;
 		bFound = iterI->first == i_szName;
 	}
 		
@@ -147,11 +147,11 @@ snatk_abundances::abundance_list snatk_abundances::abundances::Get(const std::st
 	snatk_abundances::abundance_list cRet;
 //	if (Check_List(i_szAbundance))
 	{
-		std::cout << "snatk-abd get start" << std::endl; fflush(stdout);
+		///std::cout << "snatk-abd get start" << std::endl; fflush(stdout);
 		bool bFound = false;
 		for (auto iterI = m_mapAbundance.cbegin(); iterI != m_mapAbundance.cend() && !bFound; iterI++)
 		{
-			std::cout << iterI->first << std::endl;
+			//std::cout << iterI->first << std::endl;
 			if (iterI->first == i_szAbundance)
 			{
 				bFound = true;
@@ -159,7 +159,7 @@ snatk_abundances::abundance_list snatk_abundances::abundances::Get(const std::st
 			}
 		}
 		//cRet = m_mapAbundance.at(i_szAbundance);
-		std::cout << "snatk-abd get end" << std::endl; fflush(stdout);
+		//std::cout << "snatk-abd get end" << std::endl; fflush(stdout);
 	}
 	return cRet;
 }
@@ -266,7 +266,7 @@ void	snatk_abundances::abundance_list::Read_Table(const char * i_lpszFilename)
 void	snatk_abundances::abundance_list::Normalize_Groups(void)
 {
 	double dC_Sum = 0.0, dO_Sum = 0.0, dMg_Sum = 0.0, dSi_Sum = 0.0, dFe_Sum = 0.0;
-	for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
+	for (auto iterI = m_dAbundances.cbegin(); iterI != m_dAbundances.cend(); iterI++)
 	{
 		if (iterI->first.m_tZ == 6)
 			dC_Sum += iterI->second;
