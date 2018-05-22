@@ -4,17 +4,44 @@
 
 namespace snatk_abundances
 {
+	class element
+	{
+	public:
+		size_t m_tZ;
+		size_t m_tA;
+
+		element(void)
+		{
+			m_tZ = 0;
+			m_tA = 1;
+		}
+		element(size_t i_tZ, size_t i_tA)
+		{
+			m_tZ = i_tZ;
+			m_tA = i_tA;
+		}
+
+
+		bool operator <(const element & i_cRHO) const;
+		bool operator <=(const element & i_cRHO) const;
+		bool operator >(const element & i_cRHO) const;
+		bool operator >=(const element & i_cRHO) const;
+		bool operator ==(const element & i_cRHO) const;
+		bool operator !=(const element & i_cRHO) const;
+
+	};
+
 	class abundance_list
 	{
 	private:
-		double	m_dAbundances[128]; // ordered by z; neutrons not included; no differentiation between isotopes
-		double	m_dUncertainties[128];
+		std::map<element,double>	m_dAbundances;
+		std::map<element,double>	m_dUncertainties;
 
 	public:
 		abundance_list(void);
 
-		double	get_Abundance(size_t i_tZ) const;
-		double	get_Uncertainty(size_t i_tZ) const;
+		double	get_Abundance(size_t i_tZ, size_t i_tA = -1) const;
+		double	get_Uncertainty(size_t i_tZ, size_t i_tA = -1) const;
 
 
 		void	Read_Table(const char * i_lpszFilename);

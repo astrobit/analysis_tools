@@ -8,7 +8,41 @@
 #include <abundance.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <iostream>
+#include <sstream>
 
+
+bool snatk_abundances::element::operator <(const snatk_abundances::element & i_cRHO) const
+{
+	return (m_tZ < i_cRHO.m_tZ || (m_tZ == i_cRHO.m_tZ && m_tA < i_cRHO.m_tA));
+}
+bool snatk_abundances::element::operator <=(const snatk_abundances::element & i_cRHO) const
+{
+	return (m_tZ < i_cRHO.m_tZ || (m_tZ == i_cRHO.m_tZ && m_tA <= i_cRHO.m_tA));
+}
+bool snatk_abundances::element::operator >(const snatk_abundances::element & i_cRHO) const
+{
+	return (m_tZ > i_cRHO.m_tZ || (m_tZ == i_cRHO.m_tZ && m_tA > i_cRHO.m_tA));
+}
+bool snatk_abundances::element::operator >=(const snatk_abundances::element & i_cRHO) const
+{
+	return (m_tZ > i_cRHO.m_tZ || (m_tZ == i_cRHO.m_tZ && m_tA >= i_cRHO.m_tA));
+}
+bool snatk_abundances::element::operator ==(const snatk_abundances::element & i_cRHO) const
+{
+	return (m_tZ == i_cRHO.m_tZ && m_tA == i_cRHO.m_tA);
+}
+bool snatk_abundances::element::operator !=(const snatk_abundances::element & i_cRHO) const
+{
+	return (m_tZ != i_cRHO.m_tZ || m_tA != i_cRHO.m_tA);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// abundances
+//
+////////////////////////////////////////////////////////////////////////////////
 
 snatk_abundances::abundances::abundances(void)
 {
@@ -21,13 +55,16 @@ snatk_abundances::abundances::abundances(void)
 		{
 			std::string sFilename = std::string(dirEnt->d_name);
 			size_t tExtPos;
-			if ((tExtPos = sFilename.find(".csv")) != std::string::npos)
+			if ((tExtPos = sFilename.find(".csv")) != std::string::npos && sFilename.find(".csv#") == std::string::npos)
 			{
 				std::string sName = sFilename.substr(0,tExtPos);
-				char lpszPath[512];
+				std::ostringstream ossPath;
+
 				snatk_abundances::abundance_list cAbd;
-				sprintf(lpszPath,"%s/%s",lpszData_Path,dirEnt->d_name);
-				cAbd.Read_Table(lpszPath);
+				ossPath << lpszData_Path;
+				ossPath << "/";
+				ossPath << dirEnt->d_name;
+				cAbd.Read_Table(ossPath.str().c_str());
 				m_mapAbundance[sName] = cAbd;
 			}
 		}
@@ -54,13 +91,16 @@ snatk_abundances::abundances::abundances(void)
 			{
 				std::string sFilename = std::string(dirEnt->d_name);
 				size_t tExtPos;
-				if ((tExtPos = sFilename.find(".csv")) != std::string::npos)
+				if ((tExtPos = sFilename.find(".csv")) != std::string::npos && sFilename.find(".csv#") == std::string::npos)
 				{
 					std::string sName = sFilename.substr(0,tExtPos);
-					char lpszPath[512];
+					std::ostringstream ossPath;
+
 					snatk_abundances::abundance_list cAbd;
-					sprintf(lpszPath,"%s/%s",lpszUser_Abd_Dir,dirEnt->d_name);
-					cAbd.Read_Table(lpszPath);
+					ossPath << lpszUser_Abd_Dir;
+					ossPath << "/";
+					ossPath << dirEnt->d_name;
+					cAbd.Read_Table(ossPath.str().c_str());
 					m_mapAbundance[sName] = cAbd;
 				}
 			}
@@ -92,14 +132,34 @@ void snatk_abundances::abundances::Add_Abundance(const std::string & i_szName, c
 }
 bool snatk_abundances::abundances::Check_List(const std::string & i_szName) const
 {
-	return (m_mapAbundance.count(i_szName) == 1);
+	std::cout << "m_mapAbundance.size() " << m_mapAbundance.size() << " " << i_szName << std::endl; 
+	bool bFound = false;
+	for (auto iterI = m_mapAbundance.cbegin(); iterI != m_mapAbundance.cend() && !bFound; iterI++)
+	{
+		std::cout << iterI->first << std::endl;
+		bFound = iterI->first == i_szName;
+	}
+		
+	return bFound; //(m_mapAbundance.count(i_szName) == 1);
 }
 snatk_abundances::abundance_list snatk_abundances::abundances::Get(const std::string & i_szAbundance) const
 {
 	snatk_abundances::abundance_list cRet;
-	if (Check_List(i_szAbundance))
+//	if (Check_List(i_szAbundance))
 	{
-		cRet = m_mapAbundance.at(i_szAbundance);
+		std::cout << "snatk-abd get start" << std::endl; fflush(stdout);
+		bool bFound = false;
+		for (auto iterI = m_mapAbundance.cbegin(); iterI != m_mapAbundance.cend() && !bFound; iterI++)
+		{
+			std::cout << iterI->first << std::endl;
+			if (iterI->first == i_szAbundance)
+			{
+				bFound = true;
+				cRet = iterI->second;
+			}
+		}
+		//cRet = m_mapAbundance.at(i_szAbundance);
+		std::cout << "snatk-abd get end" << std::endl; fflush(stdout);
 	}
 	return cRet;
 }
@@ -113,23 +173,44 @@ snatk_abundances::abundance_list snatk_abundances::abundances::Get(const std::st
 
 snatk_abundances::abundance_list::abundance_list(void)
 {
-	memset(m_dAbundances,0,sizeof(m_dAbundances));
-	memset(m_dUncertainties,0,sizeof(m_dUncertainties));
-	m_dAbundances[0] = 1.0;
-	m_dUncertainties[0] = 1.0;
+	m_dAbundances.clear();
+	m_dUncertainties.clear();
 }
-double	snatk_abundances::abundance_list::get_Abundance(size_t i_tZ) const
+double	snatk_abundances::abundance_list::get_Abundance(size_t i_tZ, size_t i_tA) const
 {
 	double dRet = 0.0;
-	if (i_tZ < 128)
-		dRet = m_dAbundances[i_tZ];
+	if (i_tA != -1)
+	{
+		if (m_dAbundances.count(element(i_tZ,i_tA)) == 1)
+			dRet = m_dAbundances.at(element(i_tZ,i_tA));
+	}
+	else
+	{
+		for (auto iterI = m_dAbundances.cbegin(); iterI != m_dAbundances.cend(); iterI++)
+		{
+			if (iterI->first.m_tZ == i_tZ)
+				dRet += iterI->second;
+		}
+	}
 	return dRet;
 }
-double	snatk_abundances::abundance_list::get_Uncertainty(size_t i_tZ) const
+double	snatk_abundances::abundance_list::get_Uncertainty(size_t i_tZ, size_t i_tA) const
 {
 	double dRet = 0.0;
-	if (i_tZ < 128)
-		dRet = m_dUncertainties[i_tZ];
+	if (i_tA != -1)
+	{
+		if (m_dAbundances.count(element(i_tZ,i_tA)) == 1)
+			dRet = m_dAbundances.at(element(i_tZ,i_tA)) * m_dAbundances.at(element(i_tZ,i_tA));
+	}
+	else
+	{
+		for (auto iterI = m_dAbundances.cbegin(); iterI != m_dAbundances.cend(); iterI++)
+		{
+			if (iterI->first.m_tZ == i_tZ)
+				dRet += iterI->second * iterI->second;
+		}
+	}
+	dRet = std::sqrt(dRet);
 	return dRet;
 }
 void	snatk_abundances::abundance_list::Read_Table(const char * i_lpszFilename)
@@ -138,31 +219,40 @@ void	snatk_abundances::abundance_list::Read_Table(const char * i_lpszFilename)
 	if (i_lpszFilename != nullptr)
 	{
 		cAbundance_File.Read_Data_File(i_lpszFilename,false,',',1);
-		memset(m_dAbundances,0,sizeof(m_dAbundances));
-		memset(m_dUncertainties,0,sizeof(m_dUncertainties));
+		m_dAbundances.clear();
+		m_dUncertainties.clear();
 		if (cAbundance_File.Get_Num_Rows() > 0)
 		{
 			double	dAbd_Sum = 0.0;
 			for (unsigned int uiI = 0; uiI < cAbundance_File.Get_Num_Rows(); uiI++)
 			{
-				double dZ = xGet_Element_Number(cAbundance_File.Get_Element(uiI,0).c_str());
+				std::string szElem_ID = cAbundance_File.Get_Element(uiI,0);
+				while (szElem_ID.back() == ' ')
+					szElem_ID.pop_back();
+				size_t tA = cAbundance_File.Get_Element_Int(uiI,1);
+
+				double dZ = xGet_Element_Number(szElem_ID.c_str());
 				unsigned int uiZ = (unsigned int)(dZ + 0.01);
 	//			printf("Load %i %f\n",uiZ,cAbundance_File.GetElementDbl(2,uiI));
 				if (uiZ <= 118)
 				{
 					double	dAbd_Curr = pow(10.0,cAbundance_File.Get_Element_Double(uiI,2));
-					m_dAbundances[uiZ] += dAbd_Curr;
-					m_dUncertainties[uiZ] += pow(10.0,cAbundance_File.Get_Element_Double(uiI,3));
+					m_dAbundances[element(uiZ,tA)] = dAbd_Curr;
+					m_dUncertainties[element(uiZ,tA)] = pow(10.0,cAbundance_File.Get_Element_Double(uiI,3));
 					dAbd_Sum += dAbd_Curr;
 				}
 				else
 					fprintf(stderr,"Could not find atomic number for element %s in file %s.\n",cAbundance_File.Get_Element(uiI,0).c_str(), i_lpszFilename);
 			}
 			double	dInv_Abd_Total = 1.0 / dAbd_Sum;
-			for (unsigned int uiZ = 0; uiZ < 128; uiZ++)
+			for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
 			{
-				m_dAbundances[uiZ] *= dInv_Abd_Total;
-				m_dUncertainties[uiZ] *= dInv_Abd_Total;
+				iterI->second *= dInv_Abd_Total;
+			}
+
+			for (auto iterI = m_dUncertainties.begin(); iterI != m_dUncertainties.end(); iterI++)
+			{
+				iterI->second *= dInv_Abd_Total;
 			}
 		}
 		else
@@ -175,36 +265,36 @@ void	snatk_abundances::abundance_list::Read_Table(const char * i_lpszFilename)
 // Gamezo et al abundance information is group abundance.  Normalize the abundances for the individual groups instead of whoel abundances
 void	snatk_abundances::abundance_list::Normalize_Groups(void)
 {
-	// Mg group: F to Al
-	double	dSum = 0.0;
-	for (unsigned int uiZ = 9; uiZ < 14; uiZ++)
-		dSum += m_dAbundances[uiZ];
-	double	dInv_Abd_Total = 1.0 / dSum;
-	for (unsigned int uiZ = 9; uiZ < 14; uiZ++)
+	double dC_Sum = 0.0, dO_Sum = 0.0, dMg_Sum = 0.0, dSi_Sum = 0.0, dFe_Sum = 0.0;
+	for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
 	{
-		m_dAbundances[uiZ] *= dInv_Abd_Total;
-		m_dUncertainties[uiZ] *= dInv_Abd_Total;
+		if (iterI->first.m_tZ == 6)
+			dC_Sum += iterI->second;
+		else if (iterI->first.m_tZ == 8)
+			dO_Sum += iterI->second;
+		else if (iterI->first.m_tZ >= 9 && iterI->first.m_tZ < 14)
+			dMg_Sum += iterI->second;
+		else if (iterI->first.m_tZ >= 14 && iterI->first.m_tZ < 21)
+			dSi_Sum += iterI->second;
+		else if (iterI->first.m_tZ >= 21)
+			dFe_Sum += iterI->second;
 	}
-
-	// Si group: Si to Mn
-	dSum = 0.0;
-	for (unsigned int uiZ = 14; uiZ < 21; uiZ++)
-		dSum += m_dAbundances[uiZ];
-	dInv_Abd_Total = 1.0 / dSum;
-	for (unsigned int uiZ = 14; uiZ < 21; uiZ++)
+	double dInv_C_Sum = 1.0 / dC_Sum,
+			dInv_O_Sum = 1.0 / dO_Sum,
+			dInv_Mg_Sum = 1.0 / dMg_Sum,
+			dInv_Si_Sum = 1.0 / dSi_Sum,
+			dInv_Fe_Sum = 1.0 / dFe_Sum;
+	for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
 	{
-		m_dAbundances[uiZ] *= dInv_Abd_Total;
-		m_dUncertainties[uiZ] *= dInv_Abd_Total;
-	}
-
-	// Fe group: Fe to Uuo (really more like Fe to Zn or Ge)
-	dSum = 0.0;
-	for (unsigned int uiZ = 21; uiZ < 119; uiZ++)
-		dSum += m_dAbundances[uiZ];
-	dInv_Abd_Total = 1.0 / dSum;
-	for (unsigned int uiZ = 21; uiZ < 119; uiZ++)
-	{
-		m_dAbundances[uiZ] *= dInv_Abd_Total;
-		m_dUncertainties[uiZ] *= dInv_Abd_Total;
+		if (iterI->first.m_tZ == 6)
+			iterI->second *= dInv_C_Sum;
+		else if (iterI->first.m_tZ == 8)
+			iterI->second *= dInv_O_Sum;
+		else if (iterI->first.m_tZ >= 9 && iterI->first.m_tZ < 14)
+			iterI->second *= dInv_Mg_Sum;
+		else if (iterI->first.m_tZ >= 14 && iterI->first.m_tZ < 21)
+			iterI->second *= dInv_Si_Sum;
+		else if (iterI->first.m_tZ >= 21)
+			iterI->second *= dInv_Fe_Sum;
 	}
 }
