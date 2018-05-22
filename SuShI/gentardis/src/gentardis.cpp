@@ -288,6 +288,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		}
 		delete [] lpszBuffer;
 		fclose(fileRegen);
+		fileRegen = nullptr;
 	}
 	if (!bIdentical_Line)
 	{
@@ -302,6 +303,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			fprintf(fileRegen,"\n");
 			std::cout << "generation command added to regentardis in local directory" << std::endl;
 			fclose(fileRegen);
+			fileRegen = nullptr;
 			chmod("regentardis", S_IRWXU);
 		}
 	}
@@ -488,10 +490,16 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			uiMax_Abd = 1;
 		for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
 		{
-			printf("Processing Abundance Type %s\n",vcShell_Abundance_Name[uiAbd].c_str());
+			printf("Processing Abundance Type %s (%i / %i)\n",vcShell_Abundance_Name[uiAbd].c_str(),uiAbd + 1, uiMax_Abd);
 
-			snatk_abundances::abundance_list cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
-			printf("Zeroing abundances\n");
+			snatk_abundances::abundance_list cShell_Abundance;
+			//printf("Checking abundance in list\n");fflush(stdout);
+			//if (cAbd.Check_List(vcShell_Abundance_Name[uiAbd]))
+			{
+				//printf("Getting abundance\n");fflush(stdout);
+				cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
+			}
+			//printf("Zeroing abundances\n");fflush(stdout);
 			cCombined_Data.Zero(); // make sure all abundances are 0
 			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 			{
@@ -504,7 +512,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				cCombined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
 
 			}
-			printf("Resampling ejecta\n");
+			printf("Resampling ejecta\n");;fflush(stdout);
 			Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
 			if (bShell)
 			{
@@ -551,7 +559,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			double	dDelta_v = (cCombined_Data.Get_Element_Double(1,0) - cCombined_Data.Get_Element_Double(0,0)) * 0.5;
 			double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
 			double dTotal_Mass = 0.0;
-			printf("Writing density and abudance files\n");
+			printf("Writing density and abundance files\n");
 			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
 			{
 				double	dMass = 0.0;
@@ -640,7 +648,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			}
 			if (fileDensity)
 				fclose(fileDensity);
-			fclose(fileAbundance);
+			if (fileAbundance)
+				fclose(fileAbundance);
 
 			printf("Total mass %f Msun\n",dTotal_Mass / 1.9891e33);
 		}
@@ -667,6 +676,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile\n\t\t(chkpt) specified.\n");
 		printf("\tabundance_ABD.dat: The material abundance file generated from the ejecta and shell profiles\n\t\tand abundance profiles specified. ABD is replaced by the abundance type;\n\t\tfor ejecta only, the file will be abundance.dat\n");
 	}
+	printf("Done 2!\n");
 
 
 	return 0;
