@@ -732,6 +732,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 				if (lpCurr_Node->properties)
 				{
 					xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
+					bool bLogX = false, bLogY = false;
 					while (lpCurr_Attr)
 					{
 						if (strcmp(lpCurr_Attr->name,"color") == 0)
@@ -749,6 +750,14 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						else if (strcmp(lpCurr_Attr->name,"size") == 0)
 						{
 							iSize = Attr_Get_Int(lpCurr_Attr,18);
+						}
+						else if (strcmp(lpCurr_Attr->name,"logx") == 0)
+						{
+							bLogX = strcmp(Attr_Get_String(lpCurr_Attr),"true") == 0;
+						}
+						else if (strcmp(lpCurr_Attr->name,"logy") == 0)
+						{
+							bLogY = strcmp(Attr_Get_String(lpCurr_Attr),"true") == 0;
 						}
 						else if (strcmp(lpCurr_Attr->name,"x") == 0)
 						{
@@ -788,6 +797,10 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						}
 						lpCurr_Attr = lpCurr_Attr->next;
 					}
+					if (bLogX)
+						dX = std::pow(10.0,dX);
+					if (bLogY)
+						dY = std::pow(10.0,dY);
 				}
 
 				if (lpszX_Axis_ID && cX_Axes.count(std::string(lpszX_Axis_ID)) == 0)
@@ -1091,18 +1104,37 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 									{
 										epsplot::eps_pair	cPair;
 										xmlAttr * lpCurr_Attr = lpCurr_Tuple->properties;
+										bool bLogX = false, bLogY = false;
 										while (lpCurr_Attr)
 										{
+
 											if (strcmp(lpCurr_Attr->name,"x") == 0)
 											{
-												cPair.m_dX = (Attr_Get_Double(lpCurr_Attr,0.0) + dX_Offset) * dX_Multiplier;
+												cPair.m_dX = Attr_Get_Double(lpCurr_Attr,0.0);
 											}
 											else if (strcmp(lpCurr_Attr->name,"y") == 0)
 											{
-												cPair.m_dY = (Attr_Get_Double(lpCurr_Attr,0.0) + dY_Offset) * dY_Multiplier;
+												cPair.m_dY = Attr_Get_Double(lpCurr_Attr,0.0);
+											}
+											else if (strcmp(lpCurr_Attr->name,"logx") == 0)
+											{
+												bLogX = (strcmp(Attr_Get_String(lpCurr_Attr),"true") == 0);
+											}
+											else if (strcmp(lpCurr_Attr->name,"logy") == 0)
+											{
+												bLogY = (strcmp(Attr_Get_String(lpCurr_Attr),"true") == 0);
 											}
 											lpCurr_Attr = lpCurr_Attr->next;
 										}
+										if (bLogX)
+											cPair.m_dX = std::pow(10.0,cPair.m_dX);
+										if (bLogY)
+											cPair.m_dY = std::pow(10.0,cPair.m_dY);
+										cPair.m_dX += dX_Offset;
+										cPair.m_dX *= dX_Multiplier;
+										cPair.m_dY += dY_Offset;
+										cPair.m_dY *= dY_Multiplier;
+
 										cData.push_back(cPair);
 									}
 									lpCurr_Tuple = lpCurr_Tuple->next;
