@@ -58,8 +58,11 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 {
 	double	dVol_Const = 4.0 / 3.0 * acos(-1.0);
 	double	dTotal_Mass = 0.0;
-	for (unsigned int uiI = 0; uiI < i_cData.Get_Num_Rows(); uiI++)
+	size_t tNRows = i_cData.Get_Num_Rows();
+	//printf("nrows: %i\n",tNRows);
+	for (size_t uiI = 0; uiI < tNRows; uiI++)
 	{
+		//printf("Row %i\n",uiI);
 		double dDens = i_cData.Get_Element_Double(uiI,8);
 		double dR = i_cData.Get_Element_Double(uiI,0);
 		double dDelta_R = i_cData.Get_Element_Double(uiI,1);
@@ -104,10 +107,11 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 				dC += (1.0 - dTot_Abd) * 0.5;
 				dO += (1.0 - dTot_Abd) * 0.5;
 			}
-			if (uiVout_Idx == NUM_ZONES)
-				uiVout_Idx--;
+			if (uiVout_Idx >= NUM_ZONES)
+				uiVout_Idx = NUM_ZONES - 1;
 			for (unsigned int uiJ = uiVin_Idx; uiJ <= uiVout_Idx; uiJ++) 
 			{
+				//printf("Velocity %i\n",uiJ);
 				double dC_vel = io_cResampled.Get_Element_Double(uiJ,6);
 				io_cResampled.Set_Element(uiJ,6,dC_vel + dC * dVel_Frac * dMass);
 
@@ -116,21 +120,25 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 
 				for (unsigned int uiK = 9; uiK <= 13; uiK++) // F to Al: Mg group
 				{
+					//printf("Element %i\n",uiK);
 					double dCurr = io_cResampled.Get_Element_Double(uiJ,uiK);
 					io_cResampled.Set_Element(uiJ,uiK,dCurr + dMg_Group * dVel_Frac * i_cAbundance.get_Abundance(uiK) * dMass);
 				}
 				for (unsigned int uiK = 14; uiK <= 20; uiK++) // Si - Ca: Si group
 				{
+					//printf("Element %i\n",uiK);
 					double dCurr = io_cResampled.Get_Element_Double(uiJ,uiK);
 					io_cResampled.Set_Element(uiJ,uiK,dCurr + dSi_Group * dVel_Frac * i_cAbundance.get_Abundance(uiK) * dMass);
 				}
 				for (unsigned int uiK = 21; uiK <= 28; uiK++) // Sc to Ni: Fe group
 				{
+					//printf("Element %i\n",uiK);
 					double dCurr = io_cResampled.Get_Element_Double(uiJ,uiK);
 					io_cResampled.Set_Element(uiJ,uiK,dCurr + dFe_Group * dVel_Frac * i_cAbundance.get_Abundance(uiK) * dMass);
 				}
 				for (unsigned int uiK = 29; uiK <= 127; uiK++) // make everything else Ni
 				{
+					//printf("Element %i\n",uiK);
 					double dCurr = io_cResampled.Get_Element_Double(uiJ,28);
 					io_cResampled.Set_Element(uiJ,28,dCurr + dFe_Group * dVel_Frac * i_cAbundance.get_Abundance(uiK) * dMass);
 				}
@@ -142,8 +150,10 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 				uiVout_Idx--;
 			for (unsigned int uiJ = uiVin_Idx; uiJ <= uiVout_Idx; uiJ++) 
 			{
+				//printf("Velocity %i\n",uiJ);
 				for (unsigned int uiK = 1; uiK <= 28; uiK++)
 				{
+					//printf("Element %i\n",uiK);
 					double dCurr = io_cResampled.Get_Element_Double(uiJ,uiK);
 					io_cResampled.Set_Element(uiJ,uiK,dCurr + dVel_Frac * i_cAbundance.get_Abundance(uiK) * dMass);
 				}
@@ -192,7 +202,7 @@ double Interpolate_From_Dataset(xdataset_improved & i_cDataset, const double & i
 int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 {
 //	char lpszLine_Buffer[1024];
-	char	lpszFilename[32];
+	char	lpszFilename[256];
 	xdataset_improved cEjecta;
 	xdataset_improved cShell;
 	xdataset_improved	cCombined_Data;
@@ -536,15 +546,23 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				sprintf(lpsDensity_Full_Filename,"tardis/%s",lpszDensity_Filename);
 				fileDensity = fopen(lpsDensity_Full_Filename,"wt");
 			}
+			std::ostringstream ossAbundance_Filename;
+			
 			if (!bShell)
-				fileAbundance = fopen("tardis/abundance.dat","wt");
+			{
+				ossAbundance_Filename << "abundance_E_" << szEjecta_Abundance << ".dat";
+			}
 			else
 			{
-				char lpsAbundance_Filename[256];
-				sprintf(lpsAbundance_Filename,"tardis/abundance_%s.dat",vcShell_Abundance_Name[uiAbd].c_str());
-				fileAbundance = fopen(lpsAbundance_Filename,"wt");
+				//char lpsAbundance_Filename[256];
+				ossAbundance_Filename << "abundance_E_" << szEjecta_Abundance << "_S_" << vcShell_Abundance_Name[uiAbd] << ".dat";
+//				sprintf(lpsAbundance_Filename,"tardis/abundance_E_%s_S_%s.dat",szEjecta_Abundance.c_str(),vcShell_Abundance_Name[uiAbd].c_str());
+//				fileAbundance = fopen(lpsAbundance_Filename,"wt");
 
 			}
+			std::ostringstream ossAbundance_Filename_Path;
+			ossAbundance_Filename_Path << "tardis/" << ossAbundance_Filename.str();
+			fileAbundance = fopen(ossAbundance_Filename_Path.str().c_str(),"wt");
 			if(!fileAbundance)
 			{
 				fprintf(stderr,"Gentardis: unable to open one or more output files.  Make sure that the `tardis' directory has been created.\n");
@@ -602,23 +620,24 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			printf("Starting day-by-day processing\n");
 			for (unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
 			{
-				char lpszFilename[32];
-				char lpszAbundance_File[32];
+				//std::ostringstream ossFilename;
+				char lpszFilename[256];
+				//char lpszAbundance_File[256];
 				FILE * fileYml = nullptr;
 				double dDay = uiDay;
 				sprintf(lpszFilename,"tardis/d%02i",uiDay);
-				strcpy(lpszAbundance_File,"abundance");
+				//strcpy(lpszAbundance_File,"abundance");
 				strcat(lpszFilename,"_E_");
 				strcat(lpszFilename,szEjecta_Abundance.c_str());
 				if (bShell)
 				{
 					strcat(lpszFilename,"_S_");
 					strcat(lpszFilename,vcShell_Abundance_Name[uiAbd].c_str());
-					strcat(lpszAbundance_File,"_");
-					strcat(lpszAbundance_File,vcShell_Abundance_Name[uiAbd].c_str());
+					//strcat(lpszAbundance_File,"_");
+					//strcat(lpszAbundance_File,vcShell_Abundance_Name[uiAbd].c_str());
 				}
 				strcat(lpszFilename,".yml");
-				strcat(lpszAbundance_File,".dat");
+				//strcat(lpszAbundance_File,".dat");
 				double	dPS_Vel = Interpolate_From_Dataset(cPhotosphere,dDay);
 				if (dPS_Vel != -1.0)
 				{
@@ -641,7 +660,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					{
 						double dVmaxLcl = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
 						//printf("Velocity %f\n",dVmaxLcl);
-						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, lpszDensity_Filename, dPS_Vel, dVmaxLcl, lpszAbundance_File, dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Final);
+						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, lpszDensity_Filename, dPS_Vel, dVmaxLcl, ossAbundance_Filename.str().c_str(), dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Final);
 						fclose(fileYml);
 					}
 				}
