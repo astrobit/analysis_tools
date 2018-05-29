@@ -216,7 +216,7 @@ double	snatk_abundances::abundance_list::get_Uncertainty(size_t i_tZ, size_t i_t
 void	snatk_abundances::abundance_list::Read_Table(const char * i_lpszFilename)
 {
 	xdataset_improved	cAbundance_File;
-	if (i_lpszFilename != nullptr)
+	if (i_lpszFilename != nullptr && i_lpszFilename[0] != 0)
 	{
 		cAbundance_File.Read_Data_File(i_lpszFilename,false,',',1);
 		m_dAbundances.clear();
@@ -226,34 +226,48 @@ void	snatk_abundances::abundance_list::Read_Table(const char * i_lpszFilename)
 			double	dAbd_Sum = 0.0;
 			for (unsigned int uiI = 0; uiI < cAbundance_File.Get_Num_Rows(); uiI++)
 			{
-				std::string szElem_ID = cAbundance_File.Get_Element(uiI,0);
-				while (szElem_ID.back() == ' ')
-					szElem_ID.pop_back();
-				size_t tA = cAbundance_File.Get_Element_Int(uiI,1);
+				if (cAbundance_File.Get_Element_Type(uiI,0) != xstdlib::empty)
+				{ 
+					std::string szElem_ID = cAbundance_File.Get_Element(uiI,0);
+					if (szElem_ID.size() > 0 && ((szElem_ID[0] >= 'a' && szElem_ID[0] <= 'z') || (szElem_ID[0] >= 'A' && szElem_ID[0] <= 'Z')))
+					{
+						while (szElem_ID.back() == ' ')
+							szElem_ID.pop_back();
+						size_t tA = cAbundance_File.Get_Element_Int(uiI,1);
 
-				double dZ = xGet_Element_Number(szElem_ID.c_str());
-				unsigned int uiZ = (unsigned int)(dZ + 0.01);
-	//			printf("Load %i %f\n",uiZ,cAbundance_File.GetElementDbl(2,uiI));
-				if (uiZ <= 118)
-				{
-					double	dAbd_Curr = pow(10.0,cAbundance_File.Get_Element_Double(uiI,2));
-					m_dAbundances[element(uiZ,tA)] = dAbd_Curr;
-					m_dUncertainties[element(uiZ,tA)] = pow(10.0,cAbundance_File.Get_Element_Double(uiI,3));
-					dAbd_Sum += dAbd_Curr;
+						double dZ = xGet_Element_Number(szElem_ID.c_str());
+						unsigned int uiZ = (unsigned int)(dZ + 0.01);
+			//			printf("Load %i %f\n",uiZ,cAbundance_File.GetElementDbl(2,uiI));
+						if (uiZ <= 118)
+						{
+							double	dAbd_Curr = pow(10.0,cAbundance_File.Get_Element_Double(uiI,2));
+							m_dAbundances[element(uiZ,tA)] = dAbd_Curr;
+							m_dUncertainties[element(uiZ,tA)] = pow(10.0,cAbundance_File.Get_Element_Double(uiI,3));
+							dAbd_Sum += dAbd_Curr;
+						}
+						else
+							fprintf(stderr,"Could not find atomic number for element %s in file %s.\n",cAbundance_File.Get_Element(uiI,0).c_str(), i_lpszFilename);
+					}
 				}
-				else
-					fprintf(stderr,"Could not find atomic number for element %s in file %s.\n",cAbundance_File.Get_Element(uiI,0).c_str(), i_lpszFilename);
 			}
-			double	dInv_Abd_Total = 1.0 / dAbd_Sum;
-			for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
+			if (dAbd_Sum != 0.0)
 			{
-				iterI->second *= dInv_Abd_Total;
-			}
+				double	dInv_Abd_Total = 1.0 / dAbd_Sum;
+				for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
+				{
+					iterI->second *= dInv_Abd_Total;
+				}
 
-			for (auto iterI = m_dUncertainties.begin(); iterI != m_dUncertainties.end(); iterI++)
-			{
-				iterI->second *= dInv_Abd_Total;
+				for (auto iterI = m_dUncertainties.begin(); iterI != m_dUncertainties.end(); iterI++)
+				{
+					iterI->second *= dInv_Abd_Total;
+				}
 			}
+			std::cout << "Reading " << i_lpszFilename << std::endl;
+			//for (auto iterI = m_dAbundances.begin(); iterI != m_dAbundances.end(); iterI++)
+			//{
+			//	std::cout << iterI->first.m_tZ << " " << iterI->first.m_tA << ":" << std::log10(iterI->second) << std::endl;
+			//}
 		}
 		else
 			fprintf(stderr,"Could not open abundance file %s.\n",i_lpszFilename);
