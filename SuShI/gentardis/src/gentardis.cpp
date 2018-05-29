@@ -13,7 +13,7 @@
 #define NUM_ZONES	256
 
 /// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
-const char lpszYML_File[] = {"#New configuration for TARDIS based on YAML\n#IMPORTANT any pure floats need to have a +/- after the e e.g. 2e+5\n#Hopefully pyyaml will fix this soon.\n---\n#Currently only simple1d is allowed\ntardis_config_version: v1.0\nsupernova:\n    luminosity_requested: %.7f log_lsun\n    time_explosion: %.2f day\n\n#atom_data: kurucz_atom_pure_simple.h5\natom_data: kurucz_cd23_chianti_H_He.h5\n\nmodel:\n            \n    structure:\n        type: file\n        filename: %s\n        filetype: simple_ascii\n        v_inner_boundary: %.1f km/s\n        v_outer_boundary: %.1f km/s\n\n    abundances:\n#         type: uniform\n        type: file\n        filename: %s\n        filetype: simple_ascii\n\n\nplasma:\n    initial_t_inner: %.0f K\n    initial_t_rad: %.0f K\n    disable_electron_scattering: no\n    ionization: nebular\n    excitation: dilute-lte\n    radiative_rates_type: detailed\n    line_interaction_type: macroatom\n#    nlte:\n#        species : [ 'Si 2', 'Ca 2', 'Mg 2', 'S 2', 'O 2', 'O 3', 'C 2']\n\nmontecarlo:\n    seed: 23111963\n    no_of_packets : %.1e\n    iterations: %i\n    enable_reflective_inner_boundary: True\n    inner_boundary_albedo: 0.5\n\n    black_body_sampling:\n        start: 1 angstrom\n        stop: 1000000 angstrom\n        num: 1.0e+5\n\n    last_no_of_packets: 1.e+6\n    no_of_virtual_packets: 5\n\n    convergence_criteria:\n        type: specific\n        damping_constant: 1.0\n        threshold: 0.05\n        fraction: 0.8\n        hold: 3\n#        t_inner:\n#            damping_constant: 1.0\n\nspectrum:\n    start : 2000 angstrom\n    stop : 10000 angstrom\n    num: 8000\n\n"};
+const char lpszYML_File[] = {"#New configuration for TARDIS based on YAML\n#IMPORTANT any pure floats need to have a +/- after the e e.g. 2e+5\n#Hopefully pyyaml will fix this soon.\n---\n#Currently only simple1d is allowed\ntardis_config_version: v1.0\nsupernova:\n    luminosity_requested: %.7f log_lsun\n    time_explosion: %.2f day\n\n#atom_data: kurucz_atom_pure_simple.h5\natom_data: kurucz_cd23_chianti_H_He.h5\n\nmodel:\n            \n    structure:\n        type: file\n        filename: %s\n        filetype: simple_ascii\n        v_inner_boundary: %.1f km/s\n        v_outer_boundary: %.1f km/s\n\n    abundances:\n#         type: uniform\n        type: file\n        filename: %s\n        filetype: simple_ascii\n\n\nplasma:\n    initial_t_inner: %.0f K\n    initial_t_rad: %.0f K\n    disable_electron_scattering: no\n    ionization: nebular\n    excitation: dilute-lte\n    radiative_rates_type: detailed\n    line_interaction_type: macroatom\n#    nlte:\n#        species : [ 'Si 2', 'Ca 2', 'Mg 2', 'S 2', 'O 2', 'O 3', 'C 2']\n\nmontecarlo:\n    seed: 23111963\n    no_of_packets : %.1e\n    iterations: %i\n    enable_reflective_inner_boundary: True\n    inner_boundary_albedo: 0.5\n\n    black_body_sampling:\n        start: 1 angstrom\n        stop: 1000000 angstrom\n        num: %.1e\n\n    last_no_of_packets: %.1e\n    no_of_virtual_packets: 5\n\n    convergence_criteria:\n        type: specific\n        damping_constant: 1.0\n        threshold: 0.05\n        fraction: 0.8\n        hold: 3\n#        t_inner:\n#            damping_constant: 1.0\n\nspectrum:\n    start : 2000 angstrom\n    stop : 10000 angstrom\n    num: 8000\n\n"};
 
 class pereira_data 
 {
@@ -239,6 +239,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	std::string szLuminosity_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--lum-file");
 	size_t uiNum_Iter = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--num-iter",20);
 	double dNum_Particles = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles",5e4);
+	double dNum_Particles_Blackbody = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-blackbody",5e4);
 	double dNum_Particles_Final = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-final",5e5);
 	bool bUse_Calculated_Temp = true;
 
@@ -660,7 +661,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 					{
 						double dVmaxLcl = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
 						//printf("Velocity %f\n",dVmaxLcl);
-						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, lpszDensity_Filename, dPS_Vel, dVmaxLcl, ossAbundance_Filename.str().c_str(), dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Final);
+						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, lpszDensity_Filename, dPS_Vel, dVmaxLcl, ossAbundance_Filename.str().c_str(), dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Blackbody, dNum_Particles_Final);
 						fclose(fileYml);
 					}
 				}
@@ -690,12 +691,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		printf("\t--temps-file=[file]: Temperatures to use at each epoch; default is 9500K at all epochs.\n\t\tFile should be in .csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = temperature in K\n");
 		printf("\t--ps-file=[file]: Photosphere velocities to use at each epoch. File should be in\n\t\t.csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = photosphere velocity in 1000 km/s.\n\t\tDefault uses the photosphere derived from the model using electron\n\t\tscattering and Ye=3.\n");
 		printf("\t--lum-file=[file]: Luminosity to use at each epoch. File should be in .csv format with\n\t\tcolumn 0 = epoch after explosion in days, col 1 = log10 of the luminosity in solar\n\t\tluminosities (e.g. 1 Lsun = 0, 10 Lsun = 1, etc.). Default uses the luminosities found\n\t\tby Pereira et al. 2013.\n");
+		printf("\t--num-iter=[20]: Number of iterations to perform before producing final spectrum. A minimum\n\t\tof 20 iterations is recommended.\n");
+		printf("\t--num-particles=[5e4]: Number of particles to use when attempting to converge.\n");
+		printf("\t--num-particles-blackbody=[5e4]: Number of blackbody particles to use.\n");
+		printf("\t--num-particles-final=[5e5]: Number of particles to use when generating final spectrum.\n");
 		printf("Outputs:\n");
-		printf("\tdX_ABD.yaml: The parameters file for tardis for day X using shell abundance ABD.\n");
+		printf("\tdX_E_ABD_S_ABD.yml: The parameters file for tardis for day X using shell abundance ABD.\n");
 		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile\n\t\t(chkpt) specified.\n");
-		printf("\tabundance_ABD.dat: The material abundance file generated from the ejecta and shell profiles\n\t\tand abundance profiles specified. ABD is replaced by the abundance type;\n\t\tfor ejecta only, the file will be abundance.dat\n");
+		printf("\tabundance_E_ABD_S_ABD.dat: The material abundance file generated from the ejecta and shell profiles\n\t\tand abundance profiles specified. ABD is replaced by the abundance type;\n\t\tfor ejecta only, the file will be abundance.dat\n");
 	}
-	printf("Done 2!\n");
 
 
 	return 0;
