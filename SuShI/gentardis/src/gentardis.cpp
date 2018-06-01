@@ -199,6 +199,33 @@ double Interpolate_From_Dataset(xdataset_improved & i_cDataset, const double & i
 	return dRet;
 }
 
+void Usage(const char * i_lpszCommand_Line)
+{
+	printf("Usage: %s --model=<#> --shell-abund=[all] --ejecta-abund=[Seitenzahl_2013_N100] [other options]\n",i_lpszCommand_Line);
+	printf("Generate inputs for tardis for a supernova-shell interaction model\n");
+	printf("Parameters:\n");
+	printf("\t--model=<#>: specify the model for which the ejecta and shell datasets will be processed.\n");
+	printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material.\n\t\tBy default, a tardis input will be generated for all abundances.\n");
+	printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material.\n\t\tBy default, the Seitenzahl (2013) N100 abundance will be used.\n");
+	printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");
+	printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated.\n");
+	printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum\n");
+	printf("\t--days=\"x y z ...\": list of specific days for which output files will be generated.\n");
+	printf("\t--inhibit-shell: If the model contains a shell, don't process it - this allows seeing only\n\t\tthe effect of the ejecta.\n");
+	printf("\t--temps-file=[file]: Temperatures to use at each epoch; default is 9500K at all epochs.\n\t\tFile should be in .csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = temperature in K\n");
+	printf("\t--ps-file=[file]: Photosphere velocities to use at each epoch. File should be in\n\t\t.csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = photosphere velocity in 1000 km/s.\n\t\tDefault uses the photosphere derived from the model using electron\n\t\tscattering and Ye=3.\n");
+	printf("\t--lum-file=[file]: Luminosity to use at each epoch. File should be in .csv format with\n\t\tcolumn 0 = epoch after explosion in days, col 1 = log10 of the luminosity in solar\n\t\tluminosities (e.g. 1 Lsun = 0, 10 Lsun = 1, etc.). Default uses the luminosities found\n\t\tby Pereira et al. 2013.\n");
+	printf("\t--num-iter=[20]: Number of iterations to perform before producing final spectrum. A minimum\n\t\tof 20 iterations is recommended.\n");
+	printf("\t--num-particles=[5e4]: Number of particles to use when attempting to converge.\n");
+	printf("\t--num-particles-blackbody=[5e4]: Number of blackbody particles to use.\n");
+	printf("\t--num-particles-final=[5e5]: Number of particles to use when generating final spectrum.\n");
+	printf("Outputs:\n");
+	printf("\tdX_E_ABD_S_ABD.yml: The parameters file for tardis for day X using shell abundance ABD.\n");
+	printf("\tdensity.dat: The material density file generated from the ejecta and shell profile\n\t\t(chkpt) specified.\n");
+	printf("\tabundance_E_ABD_S_ABD.dat: The material abundance file generated from the ejecta and shell profiles\n\t\tand abundance profiles specified. ABD is replaced by the abundance type;\n\t\tfor ejecta only, the file will be abundance.dat\n");
+}
+
+
 int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 {
 //	char lpszLine_Buffer[1024];
@@ -224,6 +251,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		cPereira_Luminosity.Set_Element(tI,1,g_cPereira_Data[tI].m_dLog_Luminosity);
 	}
 
+	std::vector<size_t> vDay_List;
 
 	double dTemperature_K = 9500.0;
 	size_t uiFile_Num = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--chkpt", -1);
@@ -233,6 +261,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	size_t uiDay_Start = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-start", 1);
 	size_t uiDay_End = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-end", 24);
 	size_t uiDay_Only = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day", -1);
+	std::string szDay_List = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--days");
 	bool bInhibit_Shell = xParse_Command_Line_Exists(i_iArg_Count,i_lpszArg_Values,"--inhibit-shell");
 	std::string szTemp_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--temps-file");
 	std::string szPhotosphere_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ps-file");
@@ -243,7 +272,58 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	double dNum_Particles_Final = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-final",5e5);
 	bool bUse_Calculated_Temp = true;
 
-	
+	if (!szDay_List.empty())
+	{
+		size_t tDay = 0;
+		bool bHas_Data = false;
+		for (auto iterI = szDay_List.begin(); iterI != szDay_List.end(); iterI++)
+		{
+			if (*iterI >= '0' && *iterI <= '9')
+			{
+				tDay *= 10;
+				tDay += (*iterI - '0');
+				bHas_Data = true;
+			}
+			else if (bHas_Data)
+			{
+				vDay_List.push_back(tDay);
+				if (tDay > 50)
+					std::cerr << "Warning: selected day " << tDay << " is after day 50." << std::endl;
+				bHas_Data = false;
+				tDay = 0;
+			}
+		}
+		if (bHas_Data)
+		{
+			vDay_List.push_back(tDay);
+			if (tDay > 50)
+				std::cerr << "Warning: selected day " << tDay << " is after day 50." << std::endl;
+		}
+	}
+	else if (uiDay_Only != -1)
+	{
+		vDay_List.push_back(uiDay_Only);
+		if (uiDay_Only > 50)
+			std::cerr << "Warning: selected day " << uiDay_Only << " is after day 50." << std::endl;
+	}
+	else if (uiDay_End > uiDay_Start)
+	{
+		if (uiDay_Start > 50 || uiDay_End > 50)
+			std::cerr << "Warning: selected day range (" << uiDay_Start << " -- " << uiDay_End << ") is after day 50." << std::endl;
+
+		size_t tDay = uiDay_Start;
+		while (tDay <= uiDay_End)
+		{
+			vDay_List.push_back(tDay);
+			tDay++;
+		}
+	}
+	else
+	{
+		std::cerr << "Error: invalid day range" << std::endl;
+		Usage(i_lpszArg_Values[0]);
+		return -1;
+	}
 	FILE * fileRegen = fopen("regentardis","rt");
 	bool bIdentical_Line = false;
 	if (fileRegen != nullptr)
@@ -319,12 +399,12 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		}
 	}
 
-	if (uiDay_Only != -1)
-	{
-		uiDay_Start = uiDay_End = uiDay_Only;
-	}
-	if (uiDay_End > 24)
-		uiDay_End = 24;
+//	if (uiDay_Only != -1)
+//	{
+//		uiDay_Start = uiDay_End = uiDay_Only;
+//	}
+//	if (uiDay_End > 24)
+//		uiDay_End = 24;
 
 	if (uiModel != -1)
 	{
@@ -619,8 +699,9 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			}
 			
 			printf("Starting day-by-day processing\n");
-			for (unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
+			for (auto iterDay = vDay_List.begin(); iterDay != vDay_List.end(); iterDay++)//unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
 			{
+				size_t uiDay = *iterDay;
 				//std::ostringstream ossFilename;
 				char lpszFilename[256];
 				//char lpszAbundance_File[256];
@@ -678,32 +759,12 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	else
 	{
 		fprintf(stderr,"Error: model # must be specified\n\n");
-		printf("Usage: %s --model=<#> --shell-abund=[all] --ejecta-abund[Seitenzahl_N100_2013] [other options]\n",i_lpszArg_Values[0]);
-		printf("Generate inputs for tardis for a supernova-shell interaction model\n");
-		printf("Parameters:\n");
-		printf("\t--model=<#>: specify the model for which the ejecta and shell datasets will be processed.\n");
-		printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material.\n\t\tBy default, a tardis input will be generated for all abundances.\n");
-		printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material.\n\t\tBy default, the Seitenzahl (2013) N100 abundance will be used.\n");
-		printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");
-		printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated.\n\t\tMaximum value is 24.\n");
-		printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum\n\t\tvalue is 24.\n");
-		printf("\t--inhibit-shell: If the model contains a shell, don't process it - this allows seeing only\n\t\tthe effect of the ejecta.\n");
-		printf("\t--temps-file=[file]: Temperatures to use at each epoch; default is 9500K at all epochs.\n\t\tFile should be in .csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = temperature in K\n");
-		printf("\t--ps-file=[file]: Photosphere velocities to use at each epoch. File should be in\n\t\t.csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = photosphere velocity in 1000 km/s.\n\t\tDefault uses the photosphere derived from the model using electron\n\t\tscattering and Ye=3.\n");
-		printf("\t--lum-file=[file]: Luminosity to use at each epoch. File should be in .csv format with\n\t\tcolumn 0 = epoch after explosion in days, col 1 = log10 of the luminosity in solar\n\t\tluminosities (e.g. 1 Lsun = 0, 10 Lsun = 1, etc.). Default uses the luminosities found\n\t\tby Pereira et al. 2013.\n");
-		printf("\t--num-iter=[20]: Number of iterations to perform before producing final spectrum. A minimum\n\t\tof 20 iterations is recommended.\n");
-		printf("\t--num-particles=[5e4]: Number of particles to use when attempting to converge.\n");
-		printf("\t--num-particles-blackbody=[5e4]: Number of blackbody particles to use.\n");
-		printf("\t--num-particles-final=[5e5]: Number of particles to use when generating final spectrum.\n");
-		printf("Outputs:\n");
-		printf("\tdX_E_ABD_S_ABD.yml: The parameters file for tardis for day X using shell abundance ABD.\n");
-		printf("\tdensity.dat: The material density file generated from the ejecta and shell profile\n\t\t(chkpt) specified.\n");
-		printf("\tabundance_E_ABD_S_ABD.dat: The material abundance file generated from the ejecta and shell profiles\n\t\tand abundance profiles specified. ABD is replaced by the abundance type;\n\t\tfor ejecta only, the file will be abundance.dat\n");
+		Usage(i_lpszArg_Values[0]);
+		return -2;
 	}
 
 
 	return 0;
 }
-
 
 
