@@ -232,7 +232,6 @@ void Usage(const char * i_lpszCommand_Line)
 int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 {
 //	char lpszLine_Buffer[1024];
-	char	lpszFilename[256];
 	xdataset_improved cEjecta;
 	xdataset_improved cShell;
 	xdataset_improved	cEjecta_Combined_Data;
@@ -255,6 +254,16 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		{
 			fprintf(stderr,"Error: unable to create tardis directory in current directory.\n");
 			return -3;
+		}
+		iErr = mkdir("tardis/log", S_IRWXU);
+		if (iErr == -1)
+		{
+			fprintf(stderr,"Warning: unable to create tardis/log directory in current directory.\n");
+		}
+		iErr = mkdir("tardis/results", S_IRWXU);
+		if (iErr == -1)
+		{
+			fprintf(stderr,"Warning: unable to create tardis/results directory in current directory.\n");
 		}
 	}
 	else
@@ -468,20 +477,26 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	}
 	else if (uiFile_Num != -1)
 	{
-		sprintf(lpszFilename,"ejecta%04i.xdataset",uiFile_Num);
-		cEjecta.Read_xdataset(lpszFilename);
+		char lspzFilenum[16];
+		sprintf(lspzFilenum,"%04i",uiFile_Num);
+
+		std::ostringstream ossEjecta_Filename;
+		ossEjecta_Filename << "ejecta" << lspzFilenum << ".xdataset";
+
+		cEjecta.Read_xdataset(ossEjecta_Filename.str().c_str());
 
 		if (cEjecta.Get_Num_Rows() > 0)
 		{
-			sprintf(lpszFilename,"shell%04i.xdataset",uiFile_Num);
-			cShell.Read_xdataset(lpszFilename);
+			std::ostringstream ossShell_Filename;
+			ossShell_Filename << "shell" << lspzFilenum << ".xdataset";
+
+			cShell.Read_xdataset(ossShell_Filename.str().c_str());
 			if (cShell.Get_Num_Rows() == 0)
 				printf("No shell\n");
 		}
 
 		xdataset_improved cPhotosphere_Temp;
-		strcpy(lpszFilename,"photosphere.csv");
-		cPhotosphere_Temp.Read_Data_File(lpszFilename,false,',',1);
+		cPhotosphere_Temp.Read_Data_File("photosphere.csv",false,',',1);
 		if (cPhotosphere_Temp.Get_Num_Rows() > 0)
 		{
 			cPhotosphere_Default.Allocate(cPhotosphere_Temp.Get_Num_Rows(),2);
@@ -674,35 +689,40 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 
 			FILE * fileDensity = nullptr;
 			FILE * fileAbundance = nullptr;
-			FILE * fileYml = nullptr;
+			FILE * fileScript = nullptr;
 			printf("Opening density file\n");
-			char lpszDensity_Filename[256];
+			std::ostringstream ossDensity_Filename;
+			std::ostringstream ossDensity_Filepath;
 			if (uiAbd == 0)
 			{
 				if (bInhibit_Shell)
-					strcpy(lpszDensity_Filename,"density-noshell.dat");
+					ossDensity_Filename << "density-noshell.dat";
 				else
-					strcpy(lpszDensity_Filename,"density.dat");
-				char lpsDensity_Full_Filename[256];
-				sprintf(lpsDensity_Full_Filename,"tardis/%s",lpszDensity_Filename);
-				fileDensity = fopen(lpsDensity_Full_Filename,"wt");
+					ossDensity_Filename << "density.dat";
+				ossDensity_Filepath << "tardis/" << ossDensity_Filename.str();
+				fileDensity = fopen(ossDensity_Filepath.str().c_str(),"wt");
 			}
 			std::ostringstream ossAbundance_Filename;
+			std::ostringstream ossScript_Filename;
 			
 			if (!bShell)
 			{
 				ossAbundance_Filename << "abundance_E_" << szEjecta_Abundance << ".dat";
+				ossScript_Filename << "run_E_" << szEjecta_Abundance;
 			}
 			else
 			{
 				//char lpsAbundance_Filename[256];
 				ossAbundance_Filename << "abundance_E_" << szEjecta_Abundance << "_S_" << vcShell_Abundance_Name[uiAbd] << ".dat";
+				ossScript_Filename << "run_E_" << szEjecta_Abundance << "_S_" << vcShell_Abundance_Name[uiAbd];
 //				sprintf(lpsAbundance_Filename,"tardis/abundance_E_%s_S_%s.dat",szEjecta_Abundance.c_str(),vcShell_Abundance_Name[uiAbd].c_str());
 //				fileAbundance = fopen(lpsAbundance_Filename,"wt");
 
 			}
 			std::ostringstream ossAbundance_Filename_Path;
+			std::ostringstream ossScript_Filename_Path;
 			ossAbundance_Filename_Path << "tardis/" << ossAbundance_Filename.str();
+			ossScript_Filename_Path << "tardis/" << ossScript_Filename.str();
 			fileAbundance = fopen(ossAbundance_Filename_Path.str().c_str(),"wt");
 			if(!fileAbundance)
 			{
@@ -758,27 +778,30 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				fprintf(fileAbundance,"\n");
 			}
 			
+			fileScript = fopen(ossScript_Filename_Path.str().c_str(),"wt");
 			printf("Starting day-by-day processing\n");
+
 			for (auto iterDay = vDay_List.begin(); iterDay != vDay_List.end(); iterDay++)//unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
 			{
 				size_t uiDay = *iterDay;
-				//std::ostringstream ossFilename;
-				char lpszFilename[256];
-				//char lpszAbundance_File[256];
-				FILE * fileYml = nullptr;
-				double dDay = uiDay;
-				sprintf(lpszFilename,"tardis/d%02i",uiDay);
-				//strcpy(lpszAbundance_File,"abundance");
-				strcat(lpszFilename,"_E_");
-				strcat(lpszFilename,szEjecta_Abundance.c_str());
+				std::ostringstream ossFilename;
+				std::ostringstream ossFilebase;
+				char lpszDay_String[16];
+				sprintf(lpszDay_String,"%02i",uiDay);
+
+				ossFilebase << "d" << lpszDay_String << "_E_" << szEjecta_Abundance;
 				if (bShell)
 				{
-					strcat(lpszFilename,"_S_");
-					strcat(lpszFilename,vcShell_Abundance_Name[uiAbd].c_str());
+					ossFilebase << "_S_" << vcShell_Abundance_Name[uiAbd];
 					//strcat(lpszAbundance_File,"_");
 					//strcat(lpszAbundance_File,vcShell_Abundance_Name[uiAbd].c_str());
 				}
-				strcat(lpszFilename,".yml");
+
+				//char lpszAbundance_File[256];
+				FILE * fileYml = nullptr;
+				double dDay = uiDay;
+				ossFilename << "tardis/" << ossFilebase.str() << ".yml";
+
 				//strcat(lpszAbundance_File,".dat");
 				double	dPS_Vel = Interpolate_From_Dataset(cPhotosphere,dDay);
 				if (dPS_Vel != -1.0)
@@ -797,16 +820,25 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				/// user data in YML file: log luminosity, time after explosion, photosphere velocity, outer velocity, abundance filename
 				if (dPS_Vel != -1.0 && dTemperature_K != -1.0 && dLuminosity != -1.0)
 				{
-					fileYml = fopen(lpszFilename,"wt");
+					fileYml = fopen(ossFilename.str().c_str(),"wt");
 					if (fileYml != nullptr)
 					{
 						double dVmaxLcl = cCombined_Data.Get_Element_Double(NUM_ZONES - 1,0) * 1.0e-5;
 						//printf("Velocity %f\n",dVmaxLcl);
-						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, lpszDensity_Filename, dPS_Vel, dVmaxLcl, ossAbundance_Filename.str().c_str(), dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Blackbody, dNum_Particles_Blackbody, dNum_Particles_Final);
+						fprintf(fileYml, lpszYML_File, dLuminosity, dDay, ossDensity_Filename.str().c_str(), dPS_Vel, dVmaxLcl, ossAbundance_Filename.str().c_str(), dTemperature_K, dTemperature_K, dNum_Particles, uiNum_Iter, dNum_Particles_Blackbody, dNum_Particles_Blackbody, dNum_Particles_Final);
 						fclose(fileYml);
+						if (fileScript != nullptr)
+						{
+							fprintf(fileScript,"tardis %s.yml results/%s.dat >& log/%s.log\n",
+								ossFilebase.str().c_str(),
+								ossFilebase.str().c_str(),
+								ossFilebase.str().c_str());
+						}
 					}
 				}
 			}
+			if (fileScript)
+				fclose(fileScript);
 			if (fileDensity)
 				fclose(fileDensity);
 			if (fileAbundance)
