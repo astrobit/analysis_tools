@@ -779,6 +779,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			}
 			
 			fileScript = fopen(ossScript_Filename_Path.str().c_str(),"wt");
+
 			printf("Starting day-by-day processing\n");
 
 			for (auto iterDay = vDay_List.begin(); iterDay != vDay_List.end(); iterDay++)//unsigned int uiDay = uiDay_Start; uiDay <= uiDay_End; uiDay++)
@@ -839,6 +840,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			}
 			if (fileScript)
 				fclose(fileScript);
+			chmod(ossScript_Filename_Path.str().c_str(), S_IRWXU);
 			if (fileDensity)
 				fclose(fileDensity);
 			if (fileAbundance)
