@@ -513,33 +513,34 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		snatk_abundances::abundances cAbd;
 		bool bPrint_Abundance_Types = false;
 		bool bAll_Specfied = false;
-
-		for (auto iterI = vsUser_Shell_Abund_List.begin(); iterI != vsUser_Shell_Abund_List.end() && !bAll_Specfied; iterI++)
+		if (!bInhibit_Shell)
 		{
-			if (*iterI == "all")
-			{
-				bAll_Specfied = true;
-				vcShell_Abundance_Name = cAbd.Get_Type_List();
-			}
-		}
-		if (!bAll_Specfied)
-		{ // check each one for validity
 			for (auto iterI = vsUser_Shell_Abund_List.begin(); iterI != vsUser_Shell_Abund_List.end() && !bAll_Specfied; iterI++)
 			{
-				if (cAbd.Check_List(*iterI))
+				if (*iterI == "all")
 				{
-					vcShell_Abundance_Name.push_back(*iterI);
+					bAll_Specfied = true;
+					vcShell_Abundance_Name = cAbd.Get_Type_List();
 				}
-				else
+			}
+			if (!bAll_Specfied)
+			{ // check each one for validity
+				for (auto iterI = vsUser_Shell_Abund_List.begin(); iterI != vsUser_Shell_Abund_List.end() && !bAll_Specfied; iterI++)
 				{
-					bPrint_Abundance_Types = true;
-					fprintf(stderr,"%s does not name a valid abundance type\n",iterI->c_str());
+					if (cAbd.Check_List(*iterI))
+					{
+						vcShell_Abundance_Name.push_back(*iterI);
+					}
+					else
+					{
+						bPrint_Abundance_Types = true;
+						fprintf(stderr,"%s does not name a valid abundance type\n",iterI->c_str());
+					}
 				}
 			}
 		}
 
-
-		if (!bPrint_Abundance_Types)
+		if (!bPrint_Abundance_Types && !bInhibit_Shell)
 		{
 			printf("Applying shell abundances:\n");
 			for (auto iterI = vcShell_Abundance_Name.begin(); iterI != vcShell_Abundance_Name.end(); iterI++)
@@ -669,19 +670,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			uiMax_Abd = 1;
 		for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
 		{
-			printf("Processing Abundance Type %s (%i / %i)\n",vcShell_Abundance_Name[uiAbd].c_str(),uiAbd + 1, uiMax_Abd);
-
 			snatk_abundances::abundance_list cShell_Abundance;
 			//printf("Checking abundance in list\n");fflush(stdout);
 			//if (cAbd.Check_List(vcShell_Abundance_Name[uiAbd]))
-			{
-				//printf("Getting abundance\n");fflush(stdout);
-				cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
-			}
-
 			cCombined_Data = cEjecta_Combined_Data;
 			if (bShell)
 			{
+				//printf("Getting abundance\n");fflush(stdout);
+				printf("Processing Abundance Type %s (%i / %i)\n",vcShell_Abundance_Name[uiAbd].c_str(),uiAbd + 1, uiMax_Abd);
+				cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
 				printf("Resampling shell\n");
 				Resample(dVmax,cShell,cCombined_Data,cShell_Abundance,false);
 			}
