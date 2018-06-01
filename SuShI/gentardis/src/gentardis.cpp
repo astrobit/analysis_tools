@@ -9,6 +9,8 @@
 #include <xastro.h>
 #include <opacity_profile_data.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #define NUM_ZONES	256
 
@@ -206,11 +208,12 @@ void Usage(const char * i_lpszCommand_Line)
 	printf("Parameters:\n");
 	printf("\t--model=<#>: specify the model for which the ejecta and shell datasets will be processed.\n");
 	printf("\t--shell-abund=[all]: specify the abundance that will be used for the shell material.\n\t\tBy default, a tardis input will be generated for all abundances.\n");
+	printf("\t--shell-abund-list=\"list of abundances\": specify a list of shell abundances that \n\t\twill be used. This option overrides --shell-abund. Entries may\n\t\tbe separated by spaces, tabs, or commas.");
 	printf("\t--ejecta-abund=[all]: specify the abundance that will be used for the ejecta material.\n\t\tBy default, the Seitenzahl (2013) N100 abundance will be used.\n");
 	printf("\t--day-start=[1]: Starting day (after explosion) for which output files will be generated.\n");
 	printf("\t--day-end=[24]: Final day (after explosion) for which output files will be generated.\n");
-	printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. Maximum\n");
-	printf("\t--days=\"x y z ...\": list of specific days for which output files will be generated.\n");
+	printf("\t--day=[#]: Only day (after explosion) for which output files will be generated. This\n\t\tOption overrides option --days, --day-start, and --day-end.\n");
+	printf("\t--days=\"x y z ...\": list of specific days for which output files will be generated.\n\t\tThis option overrides , --day-start, and --day-end.\n");
 	printf("\t--inhibit-shell: If the model contains a shell, don't process it - this allows seeing only\n\t\tthe effect of the ejecta.\n");
 	printf("\t--temps-file=[file]: Temperatures to use at each epoch; default is 9500K at all epochs.\n\t\tFile should be in .csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = temperature in K\n");
 	printf("\t--ps-file=[file]: Photosphere velocities to use at each epoch. File should be in\n\t\t.csv format with column 0 = epoch after explosion in days,\n\t\tcol 1 = photosphere velocity in 1000 km/s.\n\t\tDefault uses the photosphere derived from the model using electron\n\t\tscattering and Ye=3.\n");
@@ -232,6 +235,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	char	lpszFilename[256];
 	xdataset_improved cEjecta;
 	xdataset_improved cShell;
+	xdataset_improved	cEjecta_Combined_Data;
 	xdataset_improved	cCombined_Data;
 	xdataset_improved cPhotosphere;
 	xdataset_improved cPhotosphere_Default;
@@ -242,6 +246,20 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	snatk_abundances::abundance_list	cEjecta_Abundance;
 
 	model cModel;
+	DIR * dirTardis = opendir("tardis");
+	if (dirTardis == nullptr)
+	{
+		printf("Creating tardis directory\n");
+		int iErr = mkdir("tardis", S_IRWXU);
+		if (iErr == -1)
+		{
+			fprintf(stderr,"Error: unable to create tardis directory in current directory.\n");
+			return -3;
+		}
+	}
+	else
+		closedir(dirTardis);
+	dirTardis = nullptr;
 
 	size_t tPereira_Data_Count = sizeof(g_cPereira_Data) / sizeof(pereira_data);
 	cPereira_Luminosity.Allocate(tPereira_Data_Count,2);
@@ -257,6 +275,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	size_t uiFile_Num = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--chkpt", -1);
 	size_t uiModel = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--model", -1);
 	std::string szShell_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--shell-abund", std::string("all"));
+	std::string szShell_Abundance_List = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--shell-abund-list");
 	std::string szEjecta_Abundance = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--ejecta-abund", std::string("Seitenzahl_2013_N100"));
 	size_t uiDay_Start = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-start", 1);
 	size_t uiDay_End = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--day-end", 24);
@@ -271,6 +290,32 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	double dNum_Particles_Blackbody = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-blackbody",5e4);
 	double dNum_Particles_Final = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-final",5e5);
 	bool bUse_Calculated_Temp = true;
+
+	std::vector<std::string> vsUser_Shell_Abund_List;
+	if (!szShell_Abundance_List.empty())
+	{
+		std::string sAbund;
+		bool bHas_Data = false;
+		for (auto iterI = szShell_Abundance_List.begin(); iterI != szShell_Abundance_List.end(); iterI++)
+		{
+			if ((*iterI >= 'a' && *iterI <= 'z') || (*iterI >= 'A' && *iterI <= 'Z') || (*iterI >= '0' && *iterI <= '9') || *iterI == '@' || *iterI == '#' || *iterI == '&' || *iterI == '(' || *iterI == ')' || *iterI == '~' || *iterI == '_' || *iterI == '+' || *iterI == '-' || *iterI == '.' || *iterI == '=' || *iterI == ',')
+			{
+				sAbund.push_back(*iterI);
+			}
+			else if (!sAbund.empty())
+			{
+				vsUser_Shell_Abund_List.push_back(sAbund);
+				sAbund.clear();
+			}
+		}
+		if (!sAbund.empty())
+		{
+			vsUser_Shell_Abund_List.push_back(sAbund);
+		}
+	}
+	else
+		vsUser_Shell_Abund_List.push_back(szShell_Abundance);
+
 
 	if (!szDay_List.empty())
 	{
@@ -452,19 +497,33 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	{
 		snatk_abundances::abundances cAbd;
 		bool bPrint_Abundance_Types = false;
-		if (szShell_Abundance == "all")
+		bool bAll_Specfied = false;
+
+		for (auto iterI = vsUser_Shell_Abund_List.begin(); iterI != vsUser_Shell_Abund_List.end() && !bAll_Specfied; iterI++)
 		{
-			vcShell_Abundance_Name = cAbd.Get_Type_List();
+			if (*iterI == "all")
+			{
+				bAll_Specfied = true;
+				vcShell_Abundance_Name = cAbd.Get_Type_List();
+			}
 		}
-		else if (cAbd.Check_List(szShell_Abundance))
-		{
-			vcShell_Abundance_Name.push_back(szShell_Abundance);
+		if (!bAll_Specfied)
+		{ // check each one for validity
+			for (auto iterI = vsUser_Shell_Abund_List.begin(); iterI != vsUser_Shell_Abund_List.end() && !bAll_Specfied; iterI++)
+			{
+				if (cAbd.Check_List(*iterI))
+				{
+					vcShell_Abundance_Name.push_back(*iterI);
+				}
+				else
+				{
+					bPrint_Abundance_Types = true;
+					fprintf(stderr,"%s does not name a valid abundance type\n",iterI->c_str());
+				}
+			}
 		}
-		else
-		{
-			bPrint_Abundance_Types = true;
-			fprintf(stderr,"%s does not name a valid abundance type\n",szShell_Abundance.c_str());
-		}
+
+
 		if (!bPrint_Abundance_Types)
 		{
 			printf("Applying shell abundances:\n");
@@ -572,7 +631,21 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			}
 		}
 
+		cEjecta_Combined_Data.Allocate(NUM_ZONES,29);
 		cCombined_Data.Allocate(NUM_ZONES,29);
+		cEjecta_Combined_Data.Zero(); // make sure all abundances are 0
+		for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+		{
+			for (unsigned int uiJ = 0; uiJ < 29; uiJ++)
+				cEjecta_Combined_Data.Set_Element(uiI,uiJ,0.0);
+
+		}
+		for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
+		{
+			cEjecta_Combined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
+		}
+		printf("Resampling ejecta\n");;fflush(stdout);
+		Resample(dVmax,cEjecta,cEjecta_Combined_Data,cEjecta_Abundance,true);
 		unsigned int uiMax_Abd;
 		bool bShell = (cShell.Get_Num_Rows() != 0 && !bInhibit_Shell);
 		if (bShell)
@@ -590,21 +663,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				//printf("Getting abundance\n");fflush(stdout);
 				cShell_Abundance = cAbd.Get(vcShell_Abundance_Name[uiAbd]);
 			}
-			//printf("Zeroing abundances\n");fflush(stdout);
-			cCombined_Data.Zero(); // make sure all abundances are 0
-			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
-			{
-				for (unsigned int uiJ = 0; uiJ < 29; uiJ++)
-					cCombined_Data.Set_Element(uiI,uiJ,0.0);
 
-			}
-			for (unsigned int uiI = 0; uiI < NUM_ZONES; uiI++)
-			{
-				cCombined_Data.Set_Element(uiI,0,((uiI + 0.5) / ((double)(NUM_ZONES)) * dVmax));
-
-			}
-			printf("Resampling ejecta\n");;fflush(stdout);
-			Resample(dVmax,cEjecta,cCombined_Data,cEjecta_Abundance,true);
+			cCombined_Data = cEjecta_Combined_Data;
 			if (bShell)
 			{
 				printf("Resampling shell\n");
