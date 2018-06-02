@@ -668,6 +668,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			uiMax_Abd = vcShell_Abundance_Name.size();
 		else
 			uiMax_Abd = 1;
+		printf("Opening density file\n");
+		std::ostringstream ossDensity_Filename;
+		std::ostringstream ossDensity_Filepath;
+		if (bInhibit_Shell)
+			ossDensity_Filename << "density-noshell.dat";
+		else
+			ossDensity_Filename << "density.dat";
+		ossDensity_Filepath << "tardis/" << ossDensity_Filename.str();
+		FILE * fileDensity = fopen(ossDensity_Filepath.str().c_str(),"wt");
 		for (unsigned int uiAbd = 0; uiAbd < uiMax_Abd; uiAbd++)
 		{
 			snatk_abundances::abundance_list cShell_Abundance;
@@ -684,21 +693,8 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			}
 			//cCombined_Data.SaveDataFileBin("tardis/resampled.xdataset");
 
-			FILE * fileDensity = nullptr;
 			FILE * fileAbundance = nullptr;
 			FILE * fileScript = nullptr;
-			printf("Opening density file\n");
-			std::ostringstream ossDensity_Filename;
-			std::ostringstream ossDensity_Filepath;
-			if (uiAbd == 0)
-			{
-				if (bInhibit_Shell)
-					ossDensity_Filename << "density-noshell.dat";
-				else
-					ossDensity_Filename << "density.dat";
-				ossDensity_Filepath << "tardis/" << ossDensity_Filename.str();
-				fileDensity = fopen(ossDensity_Filepath.str().c_str(),"wt");
-			}
 			std::ostringstream ossAbundance_Filename;
 			std::ostringstream ossScript_Filename;
 			
@@ -721,14 +717,15 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			ossAbundance_Filename_Path << "tardis/" << ossAbundance_Filename.str();
 			ossScript_Filename_Path << "tardis/" << ossScript_Filename.str();
 			fileAbundance = fopen(ossAbundance_Filename_Path.str().c_str(),"wt");
-			if(!fileAbundance)
+			if(fileAbundance == nullptr)
 			{
 				fprintf(stderr,"Gentardis: unable to open one or more output files.  Make sure that the `tardis' directory has been created.\n");
 				if (fileDensity)
 					fclose(fileDensity);
+				fileDensity = nullptr;
 				if (fileAbundance)
 					fclose(fileAbundance);
-				exit(-1);
+				return -4;
 			}
 			if (fileDensity)
 				fprintf(fileDensity,"1 day\n"); 
@@ -774,7 +771,11 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 				}
 				fprintf(fileAbundance,"\n");
 			}
-			
+ 			// only need to write density file once.
+			if (fileDensity)
+				fclose(fileDensity);
+			fileDensity = nullptr;
+	
 			fileScript = fopen(ossScript_Filename_Path.str().c_str(),"wt");
 
 			printf("Starting day-by-day processing\n");
@@ -838,8 +839,6 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			if (fileScript)
 				fclose(fileScript);
 			chmod(ossScript_Filename_Path.str().c_str(), S_IRWXU);
-			if (fileDensity)
-				fclose(fileDensity);
 			if (fileAbundance)
 				fclose(fileAbundance);
 
