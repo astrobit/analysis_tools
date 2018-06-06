@@ -220,7 +220,7 @@ void Usage(const char * i_lpszCommand_Line)
 	printf("\t--lum-file=[file]: Luminosity to use at each epoch. File should be in .csv format with\n\t\tcolumn 0 = epoch after explosion in days, col 1 = log10 of the luminosity in solar\n\t\tluminosities (e.g. 1 Lsun = 0, 10 Lsun = 1, etc.). Default uses the luminosities found\n\t\tby Pereira et al. 2013.\n");
 	printf("\t--num-iter=[20]: Number of iterations to perform before producing final spectrum. A minimum\n\t\tof 20 iterations is recommended.\n");
 	printf("\t--num-particles=[5e4]: Number of particles to use when attempting to converge.\n");
-	printf("\t--num-particles-blackbody=[5e4]: Number of blackbody particles to use.\n");
+	printf("\t--num-particles-blackbody=[1e5]: Number of blackbody particles to use.\n");
 	printf("\t--num-particles-final=[5e5]: Number of particles to use when generating final spectrum.\n");
 	printf("Outputs:\n");
 	printf("\tdX_E_ABD_S_ABD.yml: The parameters file for tardis for day X using shell abundance ABD.\n");
@@ -296,7 +296,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	std::string szLuminosity_File = xParse_Command_Line_String(i_iArg_Count,i_lpszArg_Values,"--lum-file");
 	size_t uiNum_Iter = xParse_Command_Line_Int(i_iArg_Count,i_lpszArg_Values,"--num-iter",20);
 	double dNum_Particles = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles",5e4);
-	double dNum_Particles_Blackbody = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-blackbody",5e4);
+	double dNum_Particles_Blackbody = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-blackbody",1e5);
 	double dNum_Particles_Final = xParse_Command_Line_Dbl(i_iArg_Count,i_lpszArg_Values,"--num-particles-final",5e5);
 	bool bUse_Calculated_Temp = true;
 
