@@ -255,19 +255,40 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			fprintf(stderr,"Error: unable to create tardis directory in current directory.\n");
 			return -3;
 		}
-		iErr = mkdir("tardis/log", S_IRWXU);
-		if (iErr == -1)
-		{
-			fprintf(stderr,"Warning: unable to create tardis/log directory in current directory.\n");
-		}
-		iErr = mkdir("tardis/results", S_IRWXU);
+	}
+	else
+	{
+		closedir(dirTardis);
+	}
+	dirTardis = opendir("tardis/results");
+	if (dirTardis == nullptr)
+	{
+		printf("Creating tardis/results directory\n");
+		int iErr = mkdir("tardis/results", S_IRWXU);
 		if (iErr == -1)
 		{
 			fprintf(stderr,"Warning: unable to create tardis/results directory in current directory.\n");
 		}
 	}
 	else
+	{
 		closedir(dirTardis);
+	}
+	dirTardis = opendir("tardis/log");
+	if (dirTardis == nullptr)
+	{
+		printf("Creating tardis/log directory\n");
+		int iErr = mkdir("tardis/log", S_IRWXU);
+		if (iErr == -1)
+		{
+			fprintf(stderr,"Warning: unable to create tardis/log directory in current directory.\n");
+		}
+	}
+	else
+	{
+		closedir(dirTardis);
+	}
+
 	dirTardis = nullptr;
 
 	size_t tPereira_Data_Count = sizeof(g_cPereira_Data) / sizeof(pereira_data);
