@@ -9,6 +9,11 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 {
 	xdataset_improved	cAbundance;
 	xdataset_improved	cVelocity_Density;
+	if (i_iArg_Count < 3)
+	{
+		printf("Usage: %s <abundance_file> <density_file>\n",i_lpszArg_Values[0]);
+		return -1;
+	}
 
 	cAbundance.Read_Data_File(i_lpszArg_Values[1], true, 0, 0);
 	cVelocity_Density.Read_Data_File(i_lpszArg_Values[2], true, 0, 1);
@@ -128,59 +133,43 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 		epsplot::line_parameters cLine;
 		epsplot::text_parameters cText;
+		epsplot::legend_parameters cLegend;
+
+		cLine.m_dWidth = 2.0;
 		cText.m_iFont_Size = 16;
 		cText.m_eVertical_Justification = epsplot::MIDDLE;
 
-		std::vector<epsplot::eps_pair> vLegend;
-		double dLine_Width = 0.05;
-		double dText_Offset = 0.1;
-
-		for (size_t tV = 0; tV < 3; tV++)
-		{
-			double dX;
-			switch (tPlot)
-			{
-			case 0:
-			case 2:
-				dX = tV * 2.5e4 + 1.0e4;
-				break;
-			case 1:
-			case 3:
-				dX = tV * 0.325 + 0.35;
-				break;
-			}
-			for (size_t tA = 0; tA < 3; tA++)
-			{
-				double dY;
-				switch (tPlot)
-				{
-				case 0:
-				case 1:
-				 	dY = -8.0 - tA / 3.0;
-					break;
-				case 2:
-				 	dY = -6.0 - tA;
-					break;
-				case 3:
-				 	dY = -21.0 - tA;
-					break;
-				}
-				vLegend.push_back(epsplot::eps_pair(dX,dY));
-			}
-		}
+		cLegend.m_bFill = false;
+		cLegend.m_eFill_Color = epsplot::GREY_75;
+		cLegend.m_bOutline = true;
+		cLegend.m_cOutline_Parameters.m_eColor = epsplot::GREY_75;
+		cLegend.m_cOutline_Parameters.m_dWidth = 3.0;
+		cLegend.m_tNum_Col = 3;
 		switch (tPlot)
 		{
 		case 0:
-		case 2:
-			dLine_Width = 1.25e4;
-			dText_Offset = 1.5e4;
+			cLegend.m_dX = 180;
+			cLegend.m_dY = 50;
 			break;
 		case 1:
+			cLegend.m_dX = 180;
+			cLegend.m_dY = 50;
+			break;
+		case 2:
+			cLegend.m_dX = 180;
+			cLegend.m_dY = 350;
+			break;
 		case 3:
-			dLine_Width = 0.2;
-			dText_Offset = 0.225;
+			cLegend.m_dX = 130;
+			cLegend.m_dY = 50;
+			break;
 		}
-		size_t tLegend_Idx = 0;
+
+
+		cLegend.m_cText_Parameters.m_iFont_Size = 16;
+
+		unsigned int uiLegend_ID = cPlot.Set_Legend(cLegend);
+
 		for (size_t tI = 0; tI < 28; tI++)
 		{
 			bool bPlot = false;
@@ -240,20 +229,16 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					cPlot.Set_Plot_Data(vDens_Data[tPlot % 2][tI], cLine, uiX_Axis, uiY_Axis);
 
 
-				std::vector<epsplot::eps_pair> vLegend_Line;
-				epsplot::eps_pair pLegend_Start = vLegend[tLegend_Idx];
-				epsplot::eps_pair pLegend_Line_End = vLegend[tLegend_Idx];
-
-				pLegend_Line_End.m_dX += dLine_Width;
-				vLegend_Line.push_back(pLegend_Start);
-				vLegend_Line.push_back(pLegend_Line_End);
-
-				cPlot.Set_Plot_Data(vLegend_Line, cLine, uiX_Axis, uiY_Axis);
+				epsplot::legend_entry_parameters	cLE;
 
 				char lpszElem[8];
 				xGet_Element_Symbol(tI + 1, lpszElem);
-				cPlot.Set_Text_Data(pLegend_Start.m_dX + dText_Offset, pLegend_Start.m_dY, lpszElem, cLine, cText, uiX_Axis, uiY_Axis);
-				tLegend_Idx++;
+
+				cLE.m_bLine = true;
+				cLE.m_cLine_Parameters = cLine;
+				cLE.m_szEntry_Text = lpszElem;
+
+				cPlot.Set_Legend_Entry(uiLegend_ID,cLE);
 
 			}
 		}
