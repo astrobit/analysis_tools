@@ -15,7 +15,7 @@ struct EnumHash
 };
 
 
-class SOURCE_FILE
+class source_file
 {
 private:
 	char * 	m_lpszFilename;
@@ -36,7 +36,7 @@ public:
 		return m_lpszFilename;
 	}
 
-	void Copy(const SOURCE_FILE & i_cRHO)
+	void Copy(const source_file & i_cRHO)
 	{
 		if (i_cRHO.m_lpszFilename)
 		{
@@ -44,30 +44,31 @@ public:
 			m_xdDataset = i_cRHO.m_xdDataset;
 		}
 	}
-	SOURCE_FILE(void)
+	source_file(void)
 	{
-		m_lpszFilename = NULL;
+		m_lpszFilename = nullptr;
 	}
-	SOURCE_FILE(const SOURCE_FILE & i_cRHO)
+	source_file(const source_file & i_cRHO)
 	{
-		m_lpszFilename = NULL;
+		m_lpszFilename = nullptr;
 		Copy(i_cRHO);
 	}
-	SOURCE_FILE & operator = (const SOURCE_FILE & i_cRHO)
+	source_file & operator = (const source_file & i_cRHO)
 	{
 		Copy(i_cRHO);
 	}
-	~SOURCE_FILE(void)
+	~source_file(void)
 	{
 		if (m_lpszFilename)
 			delete [] m_lpszFilename;
-		m_lpszFilename = NULL;
+		m_lpszFilename = nullptr;
 	}
 };
 
+
 const char * Node_Get_PCDATA_Content(const xmlNode * i_lpNode)
 {
-	const char * lpszRet = NULL;
+	const char * lpszRet = nullptr;
 	xmlNode* lpText = i_lpNode->children;
 	while (lpText && lpText->type != XML_TEXT_NODE)
 		lpText = lpText->next;
@@ -81,14 +82,14 @@ inline bool Test_Attr_Content(const xmlAttr * i_lpAttr)
 }
 const char * Attr_Get_String(const xmlAttr * i_lpAttr)
 {
-	const char * lpRet = NULL;
+	const char * lpRet = nullptr;
 	if (Test_Attr_Content(i_lpAttr))
 		lpRet = (const char *) i_lpAttr->children->content;
 	return lpRet;
 }
 const char * Attr_Fill_String(const xmlAttr * i_lpAttr, const char * &io_lpszStr_Out)
 {
-	const char * lpRet = NULL;
+	const char * lpRet = nullptr;
 	if (Test_Attr_Content(i_lpAttr))
 		lpRet = (const char *)i_lpAttr->children->content;
 	if (io_lpszStr_Out)
@@ -272,7 +273,7 @@ public:
 	epsplot::symbol_parameters	m_cSymbol_Parameters;
 	CAPTION_INFO(void)
 	{
-		m_lpszCaption_Text = NULL;
+		m_lpszCaption_Text = nullptr;
 		m_cLine_Parameters.m_eColor = (epsplot::COLOR) -1;
 		m_cSymbol_Parameters.m_eColor = (epsplot::COLOR) -1;
 	}
@@ -317,7 +318,7 @@ void Output_Caption(FILE * o_fileOut, const std::vector<CAPTION_INFO> &i_vCaptio
 	{
 		if (uiCount != 0)
 			fprintf(o_fileOut,", ");
-		if ((*cIter).m_lpszCaption_Text != NULL)
+		if ((*cIter).m_lpszCaption_Text != nullptr)
 			fprintf(o_fileOut,"%s (",(*cIter).m_lpszCaption_Text);
 		else
 			fprintf(o_fileOut,"Plot %i (",uiCount);
@@ -357,26 +358,32 @@ void Output_Caption(FILE * o_fileOut, const std::vector<CAPTION_INFO> &i_vCaptio
 
 void Parse_XML(xmlNode * i_lpRoot_Element)
 {
-	std::unordered_map<std::string, SOURCE_FILE> cSource_Files;
+	std::unordered_map<std::string, source_file> cSource_Files;
 	std::unordered_map<std::string, unsigned int> cX_Axes;
 	std::unordered_map<std::string, unsigned int> cY_Axes;
 	epsplot::COLOR eUser_Color = epsplot::CLR_CUSTOM_1;
 	std::unordered_map<std::string, epsplot::COLOR>	cColor_Map;
 	std::unordered_map<std::string, epsplot::STIPPLE>	cStipple_Map;
 	std::unordered_map<std::string, epsplot::SYMBOL_TYPE>	cSymbol_Map;
+	std::unordered_map<std::string, epsplot::PS_FONT>	cFont_Map;
+	std::unordered_map<std::string, epsplot::PS_HORIZONTAL_JUSTIFICATION>	cHoriz_Just_Map;
+	std::unordered_map<std::string, epsplot::PS_VERTICAL_JUSTIFICATION>	cVert_Just_Map;
 	std::vector <CAPTION_INFO> vCaption_Info;
-	const char * lpszGraph_Title = NULL;
-	const char * lpszOutput_Path = NULL;
-	const char * lpszLayout = NULL;
-	const char * lpszSize = NULL;
-	const char * lpszWidth = NULL;
-	const char * lpszHeight = NULL;
-	const char * lpszCaptionfile_Path = NULL;
-	const char * lpszLaTeX_Figure_File_Path = NULL;
-	const char * lpszCaption_Prefix = NULL;
-	const char * lpszCaption_Postfix = NULL;
-	const char * lpszFigure_Label = NULL;
+	const char * lpszGraph_Title = nullptr;
+	const char * lpszOutput_Path = nullptr;
+	const char * lpszLayout = nullptr;
+	const char * lpszSize = nullptr;
+	const char * lpszWidth = nullptr;
+	const char * lpszHeight = nullptr;
+	const char * lpszCaptionfile_Path = nullptr;
+	const char * lpszLaTeX_Figure_File_Path = nullptr;
+	const char * lpszCaption_Prefix = nullptr;
+	const char * lpszCaption_Postfix = nullptr;
+	const char * lpszFigure_Label = nullptr;
 	epsplot::data cPlot;
+	bool						bHas_Legend = false;
+	epsplot::legend_parameters			cLegend;
+
 	epsplot::page_parameters	cPlot_Parameters;
 	epsplot::COLOR eDefault_Color = epsplot::BLACK;
 	epsplot::STIPPLE eDefault_Stipple = epsplot::SOLID;
@@ -457,6 +464,23 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 	cSymbol_Map["star6"] = epsplot::STAR6;
 
 
+	cFont_Map["times"] = epsplot::TIMES;
+	cFont_Map["helvetica"] = epsplot::HELVETICA;
+	cFont_Map["courier"] = epsplot::COURIER;
+	cFont_Map["symbol"] = epsplot::SYMBOL;
+
+	cHoriz_Just_Map["left"] = epsplot::LEFT;
+	cHoriz_Just_Map["center"] = epsplot::CENTER;
+	cHoriz_Just_Map["right"] = epsplot::RIGHT;
+
+	cVert_Just_Map["top"] = epsplot::TOP;
+	cVert_Just_Map["middle"] = epsplot::MIDDLE;
+	cVert_Just_Map["bottom"] = epsplot::BOTTOM;
+
+
+	std::vector<epsplot::legend_entry_parameters> cLegend_Entries;
+
+
 	// this routine parses the XML tree describing the graph
 	if (i_lpRoot_Element && i_lpRoot_Element->type == XML_ELEMENT_NODE && strcmp(i_lpRoot_Element->name,"GRAPH") == 0)
 	{
@@ -522,12 +546,12 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					if (lpCurr_Node->properties)
 					{
 						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
-						SOURCE_FILE cFile;
+						source_file cFile;
 						bool bWhitespace_Separated = false;
 						unsigned int uiHeader_Lines = 0;
 						bool	bHas_Strings = false;
 						char chSeparator = ',';
-						const char *  lpszID = NULL;
+						const char *  lpszID = nullptr;
 						while (lpCurr_Attr)
 						{
 							if (strcmp(lpCurr_Attr->name,"name") == 0)
@@ -556,7 +580,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							}
 							lpCurr_Attr = lpCurr_Attr->next;
 						}
-						if (cFile.Get_File() && lpszID != NULL)
+						if (cFile.Get_File() && lpszID != nullptr)
 						{
 							cFile.m_xdDataset.ReadDataFile(cFile.Get_File(),bWhitespace_Separated,bHas_Strings,bWhitespace_Separated ? 0 : chSeparator, uiHeader_Lines);
 							cSource_Files[std::string(lpszID)] = cFile;
@@ -568,9 +592,9 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					if (lpCurr_Node->properties)
 					{
 						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
-						SOURCE_FILE cFile;
+						source_file cFile;
 						bool bWhitespace_Separated = false;
-						const char *  lpszID = NULL;
+						const char *  lpszID = nullptr;
 						while (lpCurr_Attr)
 						{
 							if (strcmp(lpCurr_Attr->name,"name") == 0)
@@ -583,7 +607,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							}
 							lpCurr_Attr = lpCurr_Attr->next;
 						}
-						if (cFile.Get_File() && lpszID != NULL)
+						if (cFile.Get_File() && lpszID != nullptr)
 						{
 							cFile.m_xdDataset.ReadDataFileBin(cFile.Get_File());
 							cSource_Files[std::string(lpszID)] = cFile;
@@ -596,7 +620,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					{
 						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
 						epsplot::color_triplet	cColor;
-						const char * lpszID = NULL;
+						const char * lpszID = nullptr;
 						while (lpCurr_Attr)
 						{
 							if (strcmp(lpCurr_Attr->name,"name") == 0)
@@ -640,13 +664,193 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						
 					}
 				}
+				else if (strcmp(lpCurr_Node->name,"LEGEND") == 0)
+				{
+					if (lpCurr_Node->properties != nullptr)
+					{
+						bHas_Legend = true;
+						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
+						epsplot::color_triplet	cColor;
+
+
+						while (lpCurr_Attr)
+						{
+							if (strcmp(lpCurr_Attr->name,"fillcolor") == 0)
+							{
+								const char * lpszColor = Attr_Get_String(lpCurr_Attr);
+								if (lpszColor != nullptr)
+								{
+									cLegend.m_eFill_Color = cColor_Map[lpszColor];
+									cLegend.m_bFill = true;
+								}
+	
+							}
+							else if (strcmp(lpCurr_Attr->name,"outlinecolor") == 0)
+							{
+								const char * lpszColor = Attr_Get_String(lpCurr_Attr);
+								if (lpszColor != nullptr)
+								{
+									cLegend.m_cOutline_Parameters.m_eColor = cColor_Map[lpszColor];
+									cLegend.m_bOutline = true;
+								}
+							}
+							else if (strcmp(lpCurr_Attr->name,"outlinewidth") == 0)
+							{
+								cLegend.m_cOutline_Parameters.m_dWidth = Attr_Get_Double(lpCurr_Attr,0.0);
+								cLegend.m_bOutline = true;
+							}
+							else if (strcmp(lpCurr_Attr->name,"x") == 0)
+							{
+								cLegend.m_dX = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"y") == 0)
+							{
+								cLegend.m_dY = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"numcol") == 0)
+							{
+								cLegend.m_tNum_Col = Attr_Get_Uint(lpCurr_Attr,0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"numrow") == 0)
+							{
+								cLegend.m_tNum_Row = Attr_Get_Uint(lpCurr_Attr,0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"colwidth") == 0)
+							{
+								cLegend.m_dColumn_Width = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"rowheight") == 0)
+							{
+								cLegend.m_dRow_Height = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"gapwidth") == 0)
+							{
+								cLegend.m_dGap_Width = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"linelength") == 0)
+							{
+								cLegend.m_dLine_Length = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"font") == 0)
+							{
+								const char * lpszStyle = Attr_Get_String(lpCurr_Attr);
+								if (lpszStyle != nullptr)
+								{
+									cLegend.m_cText_Parameters.m_eFont = cFont_Map[lpszStyle];
+								}
+							}
+							else if (strcmp(lpCurr_Attr->name,"italics") == 0)
+							{
+								const char * lpszString = Attr_Get_String(lpCurr_Attr);
+								cLegend.m_cText_Parameters.m_bItalic = lpszString != nullptr && strcmp(lpszString,"true") == 0;
+							}
+							else if (strcmp(lpCurr_Attr->name,"bold") == 0)
+							{
+								const char * lpszString = Attr_Get_String(lpCurr_Attr);
+								cLegend.m_cText_Parameters.m_bBold = lpszString != nullptr && strcmp(lpszString,"true") == 0;
+							}
+							else if (strcmp(lpCurr_Attr->name,"textsize") == 0)
+							{
+								cLegend.m_cText_Parameters.m_iFont_Size = Attr_Get_Double(lpCurr_Attr,0.0);
+							}
+							else if (strcmp(lpCurr_Attr->name,"horizontaljustification") == 0)
+							{
+								const char * lpszStyle = Attr_Get_String(lpCurr_Attr);
+								if (lpszStyle != nullptr)
+								{
+									cLegend.m_cText_Parameters.m_eHorizontal_Justification = cHoriz_Just_Map[lpszStyle];
+								}
+							}
+							else if (strcmp(lpCurr_Attr->name,"verticaljustification") == 0)
+							{
+								const char * lpszStyle = Attr_Get_String(lpCurr_Attr);
+								if (lpszStyle != nullptr)
+								{
+									cLegend.m_cText_Parameters.m_eVertical_Justification = cVert_Just_Map[lpszStyle];
+								}
+							}
+							lpCurr_Attr = lpCurr_Attr->next;
+						}
+						
+					}
+					xmlNode * lpData_Node = lpCurr_Node->children;
+					while (lpData_Node != nullptr)
+					{
+						if (lpData_Node && lpData_Node->type == XML_ELEMENT_NODE)
+						{
+							if (strcmp(lpData_Node->name,"LEGENDENTRY") == 0)
+							{
+
+								epsplot::legend_entry_parameters cLegend_Entry;
+
+								if (lpData_Node->properties != nullptr)
+								{
+									xmlAttr * lpCurr_Attr = lpData_Node->properties;
+									while (lpCurr_Attr)
+									{
+										if (strcmp(lpCurr_Attr->name,"color") == 0)
+										{
+											const char * lpszColor = Attr_Get_String(lpCurr_Attr);
+											if (lpszColor != nullptr)
+											{
+												cLegend_Entry.m_cLine_Parameters.m_eColor = cColor_Map[lpszColor];
+											}
+										}
+										else if (strcmp(lpCurr_Attr->name,"linewidth") == 0)
+										{
+											cLegend_Entry.m_cLine_Parameters.m_dWidth = Attr_Get_Double(lpCurr_Attr,0.0);
+										}
+										else if (strcmp(lpCurr_Attr->name,"linestyle") == 0)
+										{
+											const char * lpszStyle = Attr_Get_String(lpCurr_Attr);
+											if (lpszStyle != nullptr)
+											{
+												cLegend_Entry.m_bLine = strcmp(lpszStyle,"none") != 0 && strcmp(lpszStyle,"default") != 0;
+												if (cLegend_Entry.m_bLine)
+													cLegend_Entry.m_cLine_Parameters.m_eStipple = cStipple_Map[lpszStyle];
+											}
+										}
+										else if (strcmp(lpCurr_Attr->name,"symbol") == 0)
+										{
+											const char * lpszStyle = Attr_Get_String(lpCurr_Attr);
+											if (lpszStyle != nullptr)
+											{
+												cLegend_Entry.m_bSymbol = strcmp(lpszStyle,"none") != 0 && strcmp(lpszStyle,"default") != 0;
+												if (cLegend_Entry.m_bSymbol)
+													cLegend_Entry.m_cSymbol_Parameters.m_eType = cSymbol_Map[lpszStyle];
+											}
+										}
+										else if (strcmp(lpCurr_Attr->name,"symbolsize") == 0)
+										{
+											cLegend_Entry.m_cSymbol_Parameters.m_dSize = Attr_Get_Double(lpCurr_Attr,0.0);
+										}
+										else if (strcmp(lpCurr_Attr->name,"symbolfilled") == 0)
+										{
+											const char * lpszString = Attr_Get_String(lpCurr_Attr);
+											cLegend_Entry.m_cSymbol_Parameters.m_bFilled = lpszString != nullptr && strcmp(lpszString,"true") == 0;
+										}
+										else if (strcmp(lpCurr_Attr->name,"symboloutlinewidth") == 0)
+										{
+											cLegend_Entry.m_cSymbol_Parameters.m_dLine_Width = Attr_Get_Double(lpCurr_Attr,0.0);
+										}
+										lpCurr_Attr = lpCurr_Attr->next;
+									}
+						
+								}
+
+								cLegend_Entry.m_szEntry_Text = Node_Get_PCDATA_Content(lpData_Node);
+								cLegend_Entries.push_back(cLegend_Entry);
+							}
+						}
+					}
+				}
 				else if (strcmp(lpCurr_Node->name,"AXIS") == 0)
 				{
 					if (lpCurr_Node->properties)
 					{
 						xmlAttr * lpCurr_Attr = lpCurr_Node->properties;
 						epsplot::axis_parameters	cAxis;
-						const char * lpszID = NULL;
+						const char * lpszID = nullptr;
 						char chDirection;
 						while (lpCurr_Attr)
 						{
@@ -716,18 +920,18 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 //				printf("%s\n",lpCurr_Node->name);
 			if (lpCurr_Node->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->name,"TEXT") == 0)
 			{
-				const char * lpszColor = NULL;
-				const char * lpszFont = NULL;
-				const char * lpszHoriz_Justification = NULL;
-				const char * lpszVert_Justification = NULL;
+				const char * lpszColor = nullptr;
+				const char * lpszFont = nullptr;
+				const char * lpszHoriz_Justification = nullptr;
+				const char * lpszVert_Justification = nullptr;
 				bool	bBold = false, bItalics = false;
 				int	iSize = 18;
 				double dWidth = 1.0;
 				double	dAngle = 0.0;
 				double dX;
 				double dY;
-				const char * lpszX_Axis_ID = NULL;
-				const char * lpszY_Axis_ID = NULL;
+				const char * lpszX_Axis_ID = nullptr;
+				const char * lpszY_Axis_ID = nullptr;
 				bool bFault = false;
 				if (lpCurr_Node->properties)
 				{
@@ -830,36 +1034,28 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 					}
 					else
 						cLine_Parameters.m_eColor = cColor_Map[std::string(lpszColor)];
-					if (!lpszFont || strcmp(lpszFont,"times") == 0)
+					if (lpszFont == nullptr)
 						cText_Paramters.m_eFont = epsplot::TIMES;
-					else if (strcmp(lpszFont,"helvetica") == 0)
-						cText_Paramters.m_eFont = epsplot::HELVETICA;
-					else if (strcmp(lpszFont,"courier") == 0)
-						cText_Paramters.m_eFont = epsplot::COURIER;
-					else if (strcmp(lpszFont,"symbol") == 0)
-						cText_Paramters.m_eFont = epsplot::SYMBOL;
+					else
+						cText_Paramters.m_eFont = cFont_Map[lpszFont];
 
 					cText_Paramters.m_bItalic = bItalics;
 					cText_Paramters.m_bBold = bBold;
 					cText_Paramters.m_iFont_Size = iSize;
 					cText_Paramters.m_dRotation = dAngle;
 
-					if (!lpszHoriz_Justification || strcmp(lpszHoriz_Justification,"left") == 0)
+					if (!lpszHoriz_Justification)
 						cText_Paramters.m_eHorizontal_Justification = epsplot::LEFT;
-					else if (strcmp(lpszHoriz_Justification,"center") == 0)
-						cText_Paramters.m_eHorizontal_Justification = epsplot::CENTER;
-					else if (strcmp(lpszHoriz_Justification,"right") == 0)
-						cText_Paramters.m_eHorizontal_Justification = epsplot::RIGHT;
+					else
+						cText_Paramters.m_eHorizontal_Justification = cHoriz_Just_Map[lpszHoriz_Justification];
 
-					if (!lpszVert_Justification || strcmp(lpszVert_Justification,"top") == 0)
+					if (!lpszVert_Justification)
 						cText_Paramters.m_eVertical_Justification = epsplot::TOP;
-					else if (strcmp(lpszVert_Justification,"middle") == 0)
-						cText_Paramters.m_eVertical_Justification = epsplot::MIDDLE;
-					else if (strcmp(lpszVert_Justification,"bottom") == 0)
-						cText_Paramters.m_eVertical_Justification = epsplot::BOTTOM;
+					else
+						cText_Paramters.m_eVertical_Justification = cVert_Just_Map[lpszVert_Justification];
 
-					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
-					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
+					unsigned int uiX_Axis = lpszX_Axis_ID == nullptr ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
+					unsigned int uiY_Axis = lpszY_Axis_ID == nullptr ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
 					const char * lpszText = Node_Get_PCDATA_Content(lpCurr_Node);
 					if (lpszText)
 					{
@@ -872,19 +1068,19 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 			}
 			else if (lpCurr_Node->type == XML_ELEMENT_NODE && strcmp(lpCurr_Node->name,"PLOT") == 0)
 			{
-				const char * lpszColor = NULL;
-				const char * lpszStyle = NULL;
-				const char * lpszSymbol = NULL;
-				const char * lpszFilled = NULL;
+				const char * lpszColor = nullptr;
+				const char * lpszStyle = nullptr;
+				const char * lpszSymbol = nullptr;
+				const char * lpszFilled = nullptr;
 				double dWidth = 2.0;
 				double dX_Offset = 0.0;
 				double dY_Offset = 0.0;
 				double	dX_Multiplier = 1.0;
 				double	dY_Multiplier = 1.0;
-				const char * lpszX_Axis_ID = NULL;
-				const char * lpszY_Axis_ID = NULL;
-				const char * lpszCaption_Text = NULL;
-				const char * lpszLegend_Text = NULL;
+				const char * lpszX_Axis_ID = nullptr;
+				const char * lpszY_Axis_ID = nullptr;
+				const char * lpszCaption_Text = nullptr;
+				const char * lpszLegend_Text = nullptr;
 				double dSymbol_Size = 12.0;
 				bool bFault = false;
 				if (lpCurr_Node->properties)
@@ -1014,8 +1210,8 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 						cSymbol_Parameters.m_eType = cSymbol_Map[std::string(lpszSymbol)];
 					cSymbol_Parameters.m_bFilled = bFilled_Symbol;
 
-					unsigned int uiX_Axis = lpszX_Axis_ID == NULL ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
-					unsigned int uiY_Axis = lpszY_Axis_ID == NULL ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
+					unsigned int uiX_Axis = lpszX_Axis_ID == nullptr ? (cX_Axes.size() == 1 ? (*cX_Axes.begin()).second : -1) : cX_Axes[std::string(lpszX_Axis_ID)];
+					unsigned int uiY_Axis = lpszY_Axis_ID == nullptr ? (cY_Axes.size() == 1 ? (*cY_Axes.begin()).second : -1) : cY_Axes[std::string(lpszY_Axis_ID)];
 					cSymbol_Parameters.m_dSize = dSymbol_Size;
 					cSymbol_Parameters.m_eColor = cLine_Parameters.m_eColor;
 					std::vector < epsplot::eps_pair> cData;
@@ -1041,11 +1237,19 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							}
 							else if (strcmp(lpData_Node->name,"LEGENDINFO") == 0)
 							{
-								lpszLegend_Text = Node_Get_PCDATA_Content(lpData_Node);
+								epsplot::legend_entry_parameters cLegend_Entry;
+
+								cLegend_Entry.m_cLine_Parameters = cLine_Parameters;
+								cLegend_Entry.m_bLine = !bNo_Line;
+								cLegend_Entry.m_cSymbol_Parameters = cSymbol_Parameters;
+								cLegend_Entry.m_bSymbol = !bNo_Symbol;
+								cLegend_Entry.m_szEntry_Text = Node_Get_PCDATA_Content(lpData_Node);
+								cLegend_Entries.push_back(cLegend_Entry);
+
 							}
 							else if (strcmp(lpData_Node->name,"PLOTFILE") == 0)
 							{
-								const char * lpszFile_ID = NULL;
+								const char * lpszFile_ID = nullptr;
 								unsigned int uiX_Column=0;
 								unsigned int uiY_Column=1;
 								if (lpData_Node->properties)
@@ -1142,7 +1346,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 							}
 							else if (strcmp(lpData_Node->name,"ERRORBAR") == 0)
 							{
-								const char * lpszDirection = NULL, * lpszType = NULL, *lpszColor = NULL, *lpszStyle = NULL;
+								const char * lpszDirection = nullptr, * lpszType = nullptr, *lpszColor = nullptr, *lpszStyle = nullptr;
 								double dSize = 4.0;
 								double dWidth = 1.0;
 								double dMultiplier;
@@ -1214,7 +1418,7 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 								{
 									if (lpEB_Data_Node && lpEB_Data_Node->type == XML_ELEMENT_NODE)
 									{
-										const char * lpszFile_ID = NULL;
+										const char * lpszFile_ID = nullptr;
 										unsigned int uiCol_ID;
 										if (strcmp(lpEB_Data_Node->name,"ERRORBARFILE") == 0)
 										{
@@ -1343,7 +1547,14 @@ void Parse_XML(xmlNode * i_lpRoot_Element)
 			lpCurr_Node = lpCurr_Node->next;
 		}
 
-
+		if (cLegend_Entries.size() > 0 || bHas_Legend)
+		{
+			unsigned int uiLegend_ID = cPlot.Set_Legend(cLegend);
+			for (auto iterI = cLegend_Entries.begin(); iterI != cLegend_Entries.end(); iterI++)
+			{
+				cPlot.Set_Legend_Entry(uiLegend_ID,*iterI);
+			}
+		}
 
 
 		cPlot.Plot(cPlot_Parameters);
@@ -1413,9 +1624,9 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 
 	if (lpszPlotFile)
 	{
-		xmlDocPtr doc = xmlReadFile(lpszPlotFile, NULL, XML_PARSE_DTDVALID);
+		xmlDocPtr doc = xmlReadFile(lpszPlotFile, nullptr, XML_PARSE_DTDVALID);
 
-		if (doc == NULL)
+		if (doc == nullptr)
 		{
 		    fprintf(stderr, "Failed to parse %s\n", lpszPlotFile);
 			return 1;
@@ -1431,7 +1642,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		bool bUse_X_Axis = false, bUse_Y_Axis = false;
 
 		xmlDocPtr doc = xmlNewDoc(BAD_CAST "1.0");
-		xmlNodePtr root_node = xmlNewNode(NULL, BAD_CAST "GRAPH");
+		xmlNodePtr root_node = xmlNewNode(nullptr, BAD_CAST "GRAPH");
 		const char * lpszDTD_Path = getenv("LINE_ANALYSIS_DATA_PATH");
 		const char * lpszDatapath = DATAPATH;
 		if (lpszDTD_Path == nullptr)
@@ -1441,7 +1652,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		{
 			char *lpszDTD_Full_Path = new char[strlen(lpszDTD_Path) + 16];
 			sprintf(lpszDTD_Full_Path,"%s/genplots.dtd",lpszDTD_Path);
-			xmlDtdPtr dtd = xmlCreateIntSubset(doc, BAD_CAST "GRAPH", NULL, BAD_CAST lpszDTD_Full_Path);
+			xmlDtdPtr dtd = xmlCreateIntSubset(doc, BAD_CAST "GRAPH", nullptr, BAD_CAST lpszDTD_Full_Path);
 			delete [] lpszDTD_Full_Path;
 		}
 		xmlDocSetRootElement(doc, root_node);
@@ -1456,7 +1667,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (bX_Axis_Log || !std::isnan(dX_min) || !std::isnan(dX_max) || lpszX_Axis_Title)
 		{
 			bUse_X_Axis = true;
-			xmlNodePtr axisnode = xmlNewChild(root_node, NULL, BAD_CAST "AXIS",NULL);
+			xmlNodePtr axisnode = xmlNewChild(root_node, nullptr, BAD_CAST "AXIS",nullptr);
 			xmlNewProp(axisnode,BAD_CAST "axisid", BAD_CAST "xaxis1");
 			xmlNewProp(axisnode,BAD_CAST "direction", BAD_CAST "x");
 			if (bX_Axis_Log)
@@ -1477,7 +1688,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 		if (bY_Axis_Log || !std::isnan(dY_min) || !std::isnan(dY_max) || lpszY_Axis_Title)
 		{
 			bUse_Y_Axis = true;
-			xmlNodePtr axisnode = xmlNewChild(root_node, NULL, BAD_CAST "AXIS",NULL);
+			xmlNodePtr axisnode = xmlNewChild(root_node, nullptr, BAD_CAST "AXIS",nullptr);
 			xmlNewProp(axisnode,BAD_CAST "axisid", BAD_CAST "yaxis1");
 			xmlNewProp(axisnode,BAD_CAST "direction", BAD_CAST "y");
 			if (bY_Axis_Log)
@@ -1495,7 +1706,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			if (lpszY_Axis_Title)
 				xmlNewProp(axisnode,BAD_CAST "title", BAD_CAST lpszY_Axis_Title);
 		}
-		xmlNodePtr sourcefilenode = xmlNewChild(root_node,NULL, BAD_CAST "SOURCEFILE",NULL);
+		xmlNodePtr sourcefilenode = xmlNewChild(root_node,nullptr, BAD_CAST "SOURCEFILE",nullptr);
 		xmlNewProp(sourcefilenode,BAD_CAST "name", BAD_CAST lpszDatafile);
 		xmlNewProp(sourcefilenode,BAD_CAST "fileid", BAD_CAST "file1");
 		sprintf(lpszValue,"%i",uiHeader_Lines);
@@ -1582,7 +1793,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 			}
 			for (unsigned int uiI = 0; uiI < uiY_Count; uiI++)
 			{
-				xmlNodePtr plotnode = xmlNewChild(root_node,NULL, BAD_CAST "PLOT",NULL);
+				xmlNodePtr plotnode = xmlNewChild(root_node,nullptr, BAD_CAST "PLOT",nullptr);
 				if (bUse_X_Axis)
 					xmlNewProp(plotnode,BAD_CAST "xaxisid", BAD_CAST "xaxis1");
 				if (bUse_Y_Axis)
@@ -1591,7 +1802,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 					xmlNewProp(plotnode,BAD_CAST "style", BAD_CAST "default");
 				else
 					xmlNewProp(plotnode,BAD_CAST "style", BAD_CAST "solid");
-				xmlNodePtr plotfilenode = xmlNewChild(plotnode,NULL, BAD_CAST "PLOTFILE",NULL);
+				xmlNodePtr plotfilenode = xmlNewChild(plotnode,nullptr, BAD_CAST "PLOTFILE",nullptr);
 				xmlNewProp(plotfilenode,BAD_CAST "fileid", BAD_CAST "file1");
 				sprintf(lpszValue,"%i",lpcPlots[uiI].m_uiX_Column);
 				xmlNewProp(plotfilenode,BAD_CAST "xcol", BAD_CAST lpszValue);
@@ -1614,7 +1825,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 				{
 					if (uiI != uiX_Axis_Column)
 					{
-						xmlNodePtr plotnode = xmlNewChild(root_node,NULL, BAD_CAST "PLOT",NULL);
+						xmlNodePtr plotnode = xmlNewChild(root_node,nullptr, BAD_CAST "PLOT",nullptr);
 						if (bUse_X_Axis)
 							xmlNewProp(plotnode,BAD_CAST "xaxisid", BAD_CAST "xaxis1");
 						if (bUse_Y_Axis)
@@ -1623,7 +1834,7 @@ int main(int i_iArg_Count, const char * i_lpszArg_Values[])
 							xmlNewProp(plotnode,BAD_CAST "style", BAD_CAST "default");
 						else
 							xmlNewProp(plotnode,BAD_CAST "style", BAD_CAST "solid");
-						xmlNodePtr plotfilenode = xmlNewChild(plotnode,NULL, BAD_CAST "PLOTFILE",NULL);
+						xmlNodePtr plotfilenode = xmlNewChild(plotnode,nullptr, BAD_CAST "PLOTFILE",nullptr);
 						xmlNewProp(plotfilenode,BAD_CAST "fileid", BAD_CAST "file1");
 						sprintf(lpszValue,"%i",uiX_Axis_Column);
 						xmlNewProp(plotfilenode,BAD_CAST "xcol", BAD_CAST lpszValue);

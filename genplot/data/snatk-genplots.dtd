@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|XDATASET*|PLOT+|TEXT*|CAPTIONPREFIX?|CAPTIONPOSTFIX?)*>
+<!ELEMENT GRAPH (COLOR*|AXIS*|	SOURCEFILE*|XDATASET*|PLOT+|TEXT*|CAPTIONPREFIX?|CAPTIONPOSTFIX?|LEGEND*)*>
 <!ATTLIST GRAPH
 	outputfile CDATA #REQUIRED
 	title		CDATA #IMPLIED
@@ -112,5 +112,38 @@
 	max		CDATA	#IMPLIED
 	displaymajorindices (true|false) #IMPLIED
 	displayminorindices (true|false) #IMPLIED
+>
+
+<!ELEMENT LEGEND (LEGENDENTRY*)>
+<!ATTLIST LEGEND
+	fillcolor	CDATA #IMPLIED
+	outlinecolor	CDATA #IMPLIED
+	outlinewidth	CDATA #IMPLIED
+	x			CDATA #REQUIRED
+	y			CDATA #REQUIRED
+	numcol		CDATA #IMPLIED
+	numrow		CDATA #IMPLIED
+	colwidth	CDATA #IMPLIED
+	rowheight	CDATA #IMPLIED
+	linelength	CDATA #IMPLIED
+	gapwidth	CDATA #IMPLIED
+	textwidth	CDATA #IMPLIED
+	font	(times|helvetica|courier|symbol) #IMPLIED
+	italics	(true|false) #IMPLIED
+	bold	(true|false) #IMPLIED
+	textsize    CDATA #IMPLIED
+	horizontaljustification (left|center|right) #IMPLIED
+	verticaljustification (top|middle|bottom) #IMPLIED
+>
+
+<!ELEMENT LEGENDENTRY (#PCDATA)>
+<!ATTLIST LEGENDENTRY
+	color	CDATA #IMPLIED
+	linestyle	(none|default|solid|sdash|ldash|lsdash|dot|sdashdot|ldashdot|lsdashdot|longlongdash) #IMPLIED
+	linewidth	CDATA #IMPLIED
+	symbol	(none|default|square|circle|triup|tridn|trilt|trirt|diamond|times|plus|dash|asterisk|star4|star5|star6) #IMPLIED
+	symbolsize CDATA #IMPLIED
+	symbolfilled (true|false) #IMPLIED
+	symboloutlinewidth CDATA #IMPLIED
 >
 	
