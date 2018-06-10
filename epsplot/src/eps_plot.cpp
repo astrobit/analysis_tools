@@ -1322,8 +1322,10 @@ void	data::Plot(const page_parameters & i_cGrid)
 
 				{
 					char lpszText[32];
-					sprintf(lpszText,"Text %i (%s)\n",uiI,lpcText->Get_Text());
+					sprintf(lpszText,"Text %i (",uiI);
 					cEPS.Comment(lpszText);
+					cEPS.Comment(lpcText->Get_Text());
+					cEPS.Comment(")\n");
 					double dX = lpX_Axis->Scale(lpcText->m_dX);
 					double dY = lpY_Axis->Scale(lpcText->m_dY);
 
@@ -2392,6 +2394,179 @@ void	data::Plot(const page_parameters & i_cGrid)
 				cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),0.0, dGraph_Space_Y-(*cAxis_Iter).m_cParameters.m_dTitle_Size * 0.5, cAxis_Iter->m_cParameters.Get_Title(), 0.0);
 			}
 			
+			cEPS.State_Pop();
+		}
+
+		if (!m_cLegends.empty() && !m_cLegend_Entries.empty())
+		{
+			cEPS.State_Push();
+			cEPS.Translate(dGraph_Offset_X,dGraph_Offset_Y);
+			for (auto iterI = m_cLegends.begin(); iterI != m_cLegends.end(); iterI++)
+			{
+				legend_parameters cLcl_Parameters = Preprocess_Legend(iterI->first);
+
+				double dWidth = cLcl_Parameters.m_tNum_Col * (cLcl_Parameters.m_dColumn_Width + cLcl_Parameters.m_dGap_Width);
+				double dHeight = (cLcl_Parameters.m_tNum_Row + 1) * (cLcl_Parameters.m_dRow_Height);
+
+				if (cLcl_Parameters.m_dX == -1)
+					cLcl_Parameters.m_dX = dGraph_Space_X - dWidth;
+				if (cLcl_Parameters.m_dY == -1)
+					cLcl_Parameters.m_dY = dGraph_Space_Y - dHeight;
+
+
+				if (cLcl_Parameters.m_bFill)
+				{
+
+					sprintf(lpszText,"Legend Fill %i\n",iterI->first);
+					cEPS.Comment(lpszText);
+
+					if (cLcl_Parameters.m_eFill_Color != eCurr_Color)
+					{
+						eCurr_Color = cLcl_Parameters.m_eFill_Color;
+						cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+					}
+					cEPS.Move_To(cLcl_Parameters.m_dX,cLcl_Parameters.m_dY);
+					cEPS.Line_To(cLcl_Parameters.m_dX + dWidth,cLcl_Parameters.m_dY);
+					cEPS.Line_To(cLcl_Parameters.m_dX + dWidth,cLcl_Parameters.m_dY + dHeight);
+					cEPS.Line_To(cLcl_Parameters.m_dX,cLcl_Parameters.m_dY + dHeight);
+					cEPS.Line_To(cLcl_Parameters.m_dX,cLcl_Parameters.m_dY);
+					cEPS.Fill();
+				}
+				if (cLcl_Parameters.m_bOutline)
+				{
+					sprintf(lpszText,"Legend Outline %i\n",iterI->first);
+					cEPS.Comment(lpszText);
+
+					if (cLcl_Parameters.m_cOutline_Parameters.m_eColor != eCurr_Color)
+					{
+						eCurr_Color = cLcl_Parameters.m_cOutline_Parameters.m_eColor;
+						cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+					}
+					if (cLcl_Parameters.m_cOutline_Parameters.m_eStipple != eCurr_Stipple)
+					{
+						eCurr_Stipple = cLcl_Parameters.m_cOutline_Parameters.m_eStipple;
+						unsigned int uiStipple_Size;
+						const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+						cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+					}
+					if (cLcl_Parameters.m_cOutline_Parameters.m_dWidth != dCurr_Line_Width)
+					{
+						dCurr_Line_Width = cLcl_Parameters.m_cOutline_Parameters.m_dWidth;
+						cEPS.Set_Line_Width(dCurr_Line_Width);
+					}
+					cEPS.Move_To(cLcl_Parameters.m_dX,cLcl_Parameters.m_dY);
+					cEPS.Line_To(cLcl_Parameters.m_dX + dWidth,cLcl_Parameters.m_dY);
+					cEPS.Line_To(cLcl_Parameters.m_dX + dWidth,cLcl_Parameters.m_dY + dHeight);
+					cEPS.Line_To(cLcl_Parameters.m_dX,cLcl_Parameters.m_dY + dHeight);
+					cEPS.Line_To(cLcl_Parameters.m_dX,cLcl_Parameters.m_dY);
+					cEPS.Stroke();
+				}
+
+				std::map<std::pair<size_t,size_t>,size_t> tEntry_Placement;
+
+				std::vector<size_t> vLE = Get_Legend_Entries(iterI->first);
+				auto iterK = vLE.begin();
+				for (size_t tCol = 0; tCol < cLcl_Parameters.m_tNum_Col && iterK != vLE.end(); tCol++)
+				{
+					for (size_t tRow = 0; tRow < cLcl_Parameters.m_tNum_Row && iterK != vLE.end(); tRow++)
+					{
+						std::pair<size_t,size_t> pPos(tCol,tRow);
+						if (tEntry_Placement.count(pPos) == 0)
+						{
+							tEntry_Placement[pPos] = *iterK;
+							iterK++;
+						}
+					}
+				}
+				for (auto iterJ = tEntry_Placement.begin(); iterJ != tEntry_Placement.end(); iterJ++)
+				{
+					double dX = cLcl_Parameters.m_dX + 0.5 * cLcl_Parameters.m_dGap_Width + iterJ->first.first * (cLcl_Parameters.m_dColumn_Width + cLcl_Parameters.m_dGap_Width);
+					double dY = cLcl_Parameters.m_dY + 0.5 * cLcl_Parameters.m_dRow_Height + (cLcl_Parameters.m_tNum_Row - iterJ->first.second - 0.5) * cLcl_Parameters.m_dRow_Height;
+					if (m_cLegend_Entries[iterJ->second].m_bLine)
+					{
+						char lpszText[32];
+						sprintf(lpszText,"Legend Entry Line %i\n",iterJ->second);
+						cEPS.Comment(lpszText);
+						if (m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_eColor != eCurr_Color)
+						{
+							eCurr_Color = m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_eColor;
+							cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+						}
+						if (m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_eStipple != eCurr_Stipple)
+						{
+							eCurr_Stipple = m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_eStipple;
+							unsigned int uiStipple_Size;
+							const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+							cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+						}
+						if (m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_dWidth != dCurr_Line_Width)
+						{
+							dCurr_Line_Width = m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_dWidth;
+							cEPS.Set_Line_Width(dCurr_Line_Width);
+						}
+						cEPS.Move_To(dX,dY);
+						cEPS.Line_To(dX + cLcl_Parameters.m_dLine_Length,dY);
+						cEPS.Stroke();
+					}
+					if (m_cLegend_Entries[iterJ->second].m_bSymbol)
+					{
+						char lpszText[32];
+						sprintf(lpszText,"Legend Entry Symbol %i\n",iterJ->second);
+						cEPS.Comment(lpszText);
+						if (m_cLegend_Entries[iterJ->second].m_cSymbol_Parameters.m_eColor != eCurr_Color)
+						{
+							eCurr_Color = m_cLegend_Entries[iterJ->second].m_cSymbol_Parameters.m_eColor;
+							cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+						}
+						double dX_Symb = dX + 0.5 * cLcl_Parameters.m_dLine_Length;
+						double dY_Symb = dY;
+
+						if (m_cLegend_Entries[iterJ->second].m_cSymbol_Parameters.m_eColor != eCurr_Color)
+						{
+							eCurr_Color = m_cLegend_Entries[iterJ->second].m_cSymbol_Parameters.m_eColor;
+							cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+						}
+						if (eCurr_Stipple != SOLID)
+						{
+							unsigned int uiStipple_Size;
+							const double * i_lpdStipple = Get_Stipple(SOLID,uiStipple_Size);
+							cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+						}
+
+						Draw_Symbol(cEPS,dX_Symb,dY_Symb,m_cLegend_Entries[iterJ->second].m_cSymbol_Parameters);
+						if (eCurr_Stipple != SOLID)
+						{
+							unsigned int uiStipple_Size;
+							const double * i_lpdStipple = Get_Stipple(eCurr_Stipple,uiStipple_Size);
+							cEPS.Set_Dash(i_lpdStipple,uiStipple_Size,0.0);
+						}
+
+					}
+					if (!m_cLegend_Entries[iterJ->second].m_szEntry_Text.empty())
+					{
+						if (m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_eColor != eCurr_Color)
+						{
+							eCurr_Color = m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_eColor;
+							cEPS.Set_RGB_Color(Get_Color(eCurr_Color));
+						}
+						if (m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_dWidth != dCurr_Line_Width)
+						{
+							dCurr_Line_Width = m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_dWidth;
+							cEPS.Set_Line_Width(dCurr_Line_Width);
+						}
+
+						char lpszText[64];
+						sprintf(lpszText,"Legend Entry Text %i (",iterJ->second);
+						cEPS.Comment(lpszText);
+						cEPS.Comment(m_cLegend_Entries[iterJ->second].m_szEntry_Text.c_str());
+						cEPS.Comment(")\n");
+						double dX_Text = dX + cLcl_Parameters.m_dLine_Length + cLcl_Parameters.m_dGap_Width;
+						double dY_Text = dY;
+
+						cEPS.Text(cLcl_Parameters.m_cText_Parameters.m_eFont, cLcl_Parameters.m_cText_Parameters.m_bItalic, cLcl_Parameters.m_cText_Parameters.m_bBold, cLcl_Parameters.m_cText_Parameters.m_iFont_Size, cLcl_Parameters.m_cText_Parameters.m_eHorizontal_Justification, cLcl_Parameters.m_cText_Parameters.m_eVertical_Justification, Get_Color(eCurr_Color),dX_Text, dY_Text, m_cLegend_Entries[iterJ->second].m_szEntry_Text.c_str(), cLcl_Parameters.m_cText_Parameters.m_dRotation, m_cLegend_Entries[iterJ->second].m_cLine_Parameters.m_dWidth);
+					}
+				}
+			}
 			cEPS.State_Pop();
 		}
 

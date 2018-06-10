@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 AM_CPPFLAGS = -I${srcdir}/include ${xio_CFLAGS} ${xstdlib_CFLAGS}
 
 lib_LTLIBRARIES = libepsplot.la
-libepsplot_la_SOURCES =  src/ep_axis.cpp src/ep_color.cpp src/ep_epsfile.cpp src/ep_errorbar.cpp src/ep_lineplot.cpp src/ep_plot3d.cpp src/ep_rectangle.cpp src/eps_plot.cpp src/ep_stipple.cpp src/ep_symbol.cpp src/ep_text.cpp
+libepsplot_la_SOURCES =  src/ep_axis.cpp src/ep_color.cpp src/ep_epsfile.cpp src/ep_errorbar.cpp src/ep_lineplot.cpp src/ep_plot3d.cpp src/ep_rectangle.cpp src/eps_plot.cpp src/ep_stipple.cpp src/ep_symbol.cpp src/ep_text.cpp src/ep_legend.cpp src/ep_legend_entry.cpp src/ep_text_processing.cpp
 libepsplot_la_LDFLAGS = -version-info 1:0:1
 
 

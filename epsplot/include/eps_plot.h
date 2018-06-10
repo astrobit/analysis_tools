@@ -771,6 +771,61 @@ namespace	epsplot
 		}
 	};
 
+
+
+	class legend_entry_parameters
+	{
+	public:
+		bool m_bLine;
+		bool m_bSymbol;
+
+		line_parameters	m_cLine_Parameters;
+		symbol_parameters	m_cSymbol_Parameters;
+
+		std::string	m_szEntry_Text;
+
+		legend_entry_parameters(void)
+		{
+			m_bLine = true;
+			m_bSymbol = false;
+			m_szEntry_Text.clear();
+		}
+	};
+
+	class legend_parameters
+	{
+	public:
+		bool			m_bFill;
+		epsplot::COLOR 	m_eFill_Color;
+		bool			m_bOutline;
+		line_parameters	m_cOutline_Parameters;
+		double		m_dX;
+		double		m_dY;
+		size_t		m_tNum_Col;
+		size_t		m_tNum_Row;
+		double		m_dColumn_Width;
+		double		m_dRow_Height;
+		double		m_dGap_Width;
+		double		m_dLine_Length;
+
+		text_parameters	m_cText_Parameters;
+
+		legend_parameters(void)
+		{
+			m_bFill = false;
+			m_bOutline = false;
+			m_dX = -1;
+			m_dY = -1;
+			m_tNum_Col = 1;
+			m_tNum_Row = -1;
+			m_dColumn_Width = -1;
+			m_dRow_Height = -1;
+			m_dGap_Width = 12.0; // points
+			m_dLine_Length = -1;//36.0; // points
+			m_cText_Parameters.m_eVertical_Justification = MIDDLE; // override default of top
+		}
+	};
+
 	enum item_type {type_line,type_symbol,type_rectangle,type_text,type_errorbar,type_3d};
 	class	plot_item
 	{
@@ -937,6 +992,7 @@ namespace	epsplot
 			m_uiNum_Points = 0;
 		}
 	};
+
 
 
 	class axis_metadata
@@ -1140,6 +1196,17 @@ namespace	epsplot
 		std::vector<axis_metadata>	m_cY_Axis_Parameters;
 		std::vector<axis_metadata>	m_cZ_Axis_Parameters;
 
+		std::map<size_t,legend_parameters>	m_cLegends;
+		std::map<size_t,legend_entry_parameters>	m_cLegend_Entries;
+		std::map<size_t,size_t>	m_cLegend_Entry_Crossref;
+
+		double Estimate_Text_Width(const std::string &i_sString,const epsplot::text_parameters & i_cText_Param) const;
+		double Estimate_Text_Height(const std::string &i_sString,const epsplot::text_parameters & i_cText_Param) const;
+
+		legend_parameters Preprocess_Legend(unsigned int i_uiLegend_ID) const;
+		std::vector<size_t> Get_Legend_Entries(unsigned int i_uiLegend_ID) const;
+
+
 		void Draw_Symbol(epsfile & io_cEPS, const double & i_dX, const double & i_dY, const symbol_parameters & i_cSymbol_Param);
 		void	Deallocate_Plot_Data(void)
 		{
@@ -1188,6 +1255,10 @@ namespace	epsplot
 					delete lpcErrorbar;
 			}
 			m_vcPlot_Item_List.clear();
+			m_cLegends.clear();
+			m_cLegend_Entries.clear();
+			m_cLegend_Entry_Crossref.clear();
+
 		}
 		void	Deallocate_X_Axis_Data(void)
 		{
@@ -1221,6 +1292,7 @@ namespace	epsplot
 		}
 		std::vector<axis_metadata> * Get_Axis_Metedata_Vector_Ptr(AXIS i_eAxis);
 		const std::vector<axis_metadata> * Get_Axis_Metedata_Vector_Ptr_Const(AXIS i_eAxis) const;
+
 
 	public:
 	// Methods for the title
@@ -1325,6 +1397,12 @@ namespace	epsplot
 		unsigned int	Set_Text_Data(const double & i_dX, const double & i_dY, const char * i_lpszText, const line_parameters & i_cLine_Parameters, const text_parameters & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
 		unsigned int	Modify_Text_Data(unsigned int i_uiText_Data_ID, const double & i_dX, const double & i_dY, const char * i_lpszText, const line_parameters & i_cLine_Parameters, const text_parameters & i_cText_Parameters, unsigned int i_uiX_Axis_Type, unsigned int i_uiY_Axis_Type);
 
+	// Methods for legend
+		unsigned int	Set_Legend(const legend_parameters & i_cLegend_Parameters);
+		unsigned int	Modify_Legend(unsigned int i_uiLegend_ID, const legend_parameters & i_cLegend_Parameters);
+
+		unsigned int	Set_Legend_Entry(unsigned int i_uiLegend_ID, const legend_entry_parameters & i_cLegend_Parameters);
+		unsigned int	Modify_Legend_Entry(unsigned int i_uiLegend_Entry_ID, unsigned int i_uiLegend_ID, const legend_entry_parameters & i_cLegend_Parameters);
 	// Methods for plotting
 		void	Plot(const page_parameters & i_cGrid);
 
