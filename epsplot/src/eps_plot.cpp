@@ -1540,12 +1540,20 @@ void	data::Plot(const page_parameters & i_cGrid)
 			dX = dGraph_Space_X * 0.5 + dGraph_Offset_X;
 			if (uiI & 1)
 			{
+				bool bNeed_Descent = false;
+				for (auto iterI = (*cAxis_Iter).m_cParameters.Get_Title_String().begin();!bNeed_Descent && iterI != (*cAxis_Iter).m_cParameters.Get_Title_String().end(); iterI++)
+				{
+					bNeed_Descent = (*iterI == 'g' || *iterI == 'y' || *iterI == 'p' || *iterI == 'q' || *iterI == 'j');
+				}
 				dY = dGraph_Space_Y + dGraph_Offset_Y;
 				if (cAxis_Iter->m_cParameters.m_bLabel_Major_Indices)
 					dY += cAxis_Iter->m_cParameters.m_dMajor_Label_Size * 2.0;
 				else if (cAxis_Iter->m_cParameters.m_bLabel_Minor_Indices)
 					dY += cAxis_Iter->m_cParameters.m_dMinor_Label_Size * 2.0;
-				dY += 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
+				if (bNeed_Descent)
+					dY += 0.8 * cAxis_Iter->m_cParameters.m_dTitle_Size; // 0.8 to allow for charaters below the line, like 'g', 'y', etc.
+				else
+					dY += 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
 			}
 			else			
 			{
@@ -1572,8 +1580,16 @@ void	data::Plot(const page_parameters & i_cGrid)
 			}
 			else			
 			{
+				bool bNeed_Descent = false;
+				for (auto iterI = (*cAxis_Iter).m_cParameters.Get_Title_String().begin();!bNeed_Descent && iterI != (*cAxis_Iter).m_cParameters.Get_Title_String().end(); iterI++)
+				{
+					bNeed_Descent = (*iterI == 'g' || *iterI == 'y' || *iterI == 'p' || *iterI == 'q' || *iterI == 'j');
+				}
 				dX = (dY_Margin[0] - dMaxLenY[0] + i_cGrid.m_dSide_Unprintable_Margins_Inches) * 72.0;
-				dX -= 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
+				if (bNeed_Descent)
+					dX -= 0.8 * cAxis_Iter->m_cParameters.m_dTitle_Size; // 0.6 to allow for charaters below the line, like 'g', 'y', etc.
+				else
+					dX -= 0.5 * cAxis_Iter->m_cParameters.m_dTitle_Size;
 			}
 			cEPS.Text(TIMES,false,false,(*cAxis_Iter).m_cParameters.m_dTitle_Size,CENTER,MIDDLE,Get_Color((*cAxis_Iter).m_cParameters.m_eTitle_Color),dX,dY, (*cAxis_Iter).m_cParameters.Get_Title(),90.0);
 			uiI++;
