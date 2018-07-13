@@ -1540,7 +1540,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 			dX = dGraph_Space_X * 0.5 + dGraph_Offset_X;
 			if (uiI & 1)
 			{
-				bool bNeed_Descent = false;
+				bool bNeed_Descent = true;
 				for (auto iterI = (*cAxis_Iter).m_cParameters.Get_Title_String().begin();!bNeed_Descent && iterI != (*cAxis_Iter).m_cParameters.Get_Title_String().end(); iterI++)
 				{
 					bNeed_Descent = (*iterI == 'g' || *iterI == 'y' || *iterI == 'p' || *iterI == 'q' || *iterI == 'j');
@@ -1580,7 +1580,7 @@ void	data::Plot(const page_parameters & i_cGrid)
 			}
 			else			
 			{
-				bool bNeed_Descent = false;
+				bool bNeed_Descent = true;
 				for (auto iterI = (*cAxis_Iter).m_cParameters.Get_Title_String().begin();!bNeed_Descent && iterI != (*cAxis_Iter).m_cParameters.Get_Title_String().end(); iterI++)
 				{
 					bNeed_Descent = (*iterI == 'g' || *iterI == 'y' || *iterI == 'p' || *iterI == 'q' || *iterI == 'j');
