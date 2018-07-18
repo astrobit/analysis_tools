@@ -102,13 +102,24 @@ void Resample(const double & i_dVmax, const xdataset_improved & i_cData, xdatase
 			double	dSi_Group = i_cData.Get_Element_Double(uiI,2) + i_cData.Get_Element_Double(uiI,4) + i_cData.Get_Element_Double(uiI,20) + i_cData.Get_Element_Double(uiI,21);
 			double	dFe_Group = i_cData.Get_Element_Double(uiI,5) + i_cData.Get_Element_Double(uiI,6) + i_cData.Get_Element_Double(uiI,7) + i_cData.Get_Element_Double(uiI,9) + i_cData.Get_Element_Double(uiI,10) + i_cData.Get_Element_Double(uiI,15) + i_cData.Get_Element_Double(uiI,18) + i_cData.Get_Element_Double(uiI,22) + i_cData.Get_Element_Double(uiI,23) + i_cData.Get_Element_Double(uiI,24);
 			double dTot_Abd = (dC + dO + dMg_Group + dSi_Group + dFe_Group);
-//			if (dTot_Abd < 1.0)
+			//printf("GA: C %.2e O %.2e Mg %.2e Si %.2e Fe %.2e Tot %.2e\n",dC,dO,dMg_Group,dSi_Group,dFe_Group,dTot_Abd);
+			if (dTot_Abd < 1.0)
 			{
 				// this can occur in the outer edges of the ejecta, where there is some mixing with CSM H and He.  
 				// replace this with C and O.
 				dC += (1.0 - dTot_Abd) * 0.5;
 				dO += (1.0 - dTot_Abd) * 0.5;
 			}
+			else
+			{
+				dC /= dTot_Abd;
+				dO /= dTot_Abd;
+				dMg_Group /= dTot_Abd;
+				dSi_Group /= dTot_Abd;
+				dFe_Group /= dTot_Abd;
+			}
+
+			//printf("Corrected GA: C %.2e O %.2e Mg %.2e Si %.2e Fe %.2e Tot %.2e\n",dC,dO,dMg_Group,dSi_Group,dFe_Group,dTot_Abd);
 			if (uiVout_Idx >= NUM_ZONES)
 				uiVout_Idx = NUM_ZONES - 1;
 			for (unsigned int uiJ = uiVin_Idx; uiJ <= uiVout_Idx; uiJ++) 
@@ -481,8 +492,10 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 //	if (uiDay_End > 24)
 //		uiDay_End = 24;
 
+
 	if (uiModel != -1)
 	{
+		std::cout << "Model " << uiModel << std::endl;
 		cModel.Load_Model(uiModel);
 		cModel.Load_Model_Full_Data();
 
@@ -499,6 +512,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 	else if (uiFile_Num != -1)
 	{
 		char lspzFilenum[16];
+		std::cout << "File # " << lspzFilenum << std::endl;
 		sprintf(lspzFilenum,"%04i",uiFile_Num);
 
 		std::ostringstream ossEjecta_Filename;
@@ -566,7 +580,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 			printf("Applying shell abundances:\n");
 			for (auto iterI = vcShell_Abundance_Name.begin(); iterI != vcShell_Abundance_Name.end(); iterI++)
 			{
-				fprintf(stderr,"\t%s\n",iterI->c_str());
+				fprintf(stdout,"\t%s\n",iterI->c_str());
 			}
 		}
 
@@ -574,6 +588,7 @@ int main(int i_iArg_Count,const char * i_lpszArg_Values[])
 		{
 			cEjecta_Abundance = cAbd.Get(szEjecta_Abundance);
 			cEjecta_Abundance.Normalize_Groups();
+			printf("Applying ejecta abundance: %s\n",szEjecta_Abundance.c_str());
 		}
 		else
 		{
