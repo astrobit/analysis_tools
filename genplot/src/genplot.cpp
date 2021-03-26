@@ -56,6 +56,7 @@ public:
 	source_file & operator = (const source_file & i_cRHO)
 	{
 		Copy(i_cRHO);
+		return *this;
 	}
 	~source_file(void)
 	{
